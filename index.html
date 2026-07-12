@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ParkWiz — העוזר החכם לחניה ברחוב</title>
+<meta name="description" content="ParkWiz — מצא חניה פנויה בתל אביב בזמן אמת בעזרת דיווחי קהילה, מפת זמינות חכמה והתראות. חסוך זמן, דלק ועצבים.">
+<meta property="og:title" content="ParkWiz — מציא חניות רחוב בזמן אמת">
+<meta property="og:description" content="מפת חניה חיה מבוססת קהילה: זמינות לפי רחוב, דיווחי 'אני עוזב' והזמנת מקום מראש.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#22c55e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ParkWiz">
+<style>
+:root{
+  --bg:#0a0f0a; --bg2:#0f1a0f; --card:#111a11;
+  --border:rgba(255,255,255,0.07); --text:#e0f0e0; --muted:#5a7a5a;
+  --green:#22c55e; --yellow:#eab308; --red:#ef4444; --blue:#3b82f6;
+  --purple:#a855f7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+
+/* top bar */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;gap:8px;z-index:30;flex-shrink:0}
+.logo{font-size:1.1rem;font-weight:800;color:var(--green);white-space:nowrap;line-height:1.1}
+.logo-sub{font-size:0.6rem;color:var(--muted);font-weight:400;white-space:nowrap}
+.search-wrap{flex:1;position:relative;max-width:360px}
+.search-box{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:24px;padding:7px 14px;color:var(--text);font-size:0.85rem;font-family:inherit;direction:rtl}
+.search-box:focus{outline:none;border-color:var(--green)}
+.autocomplete{position:absolute;top:calc(100% + 4px);right:0;left:0;background:#151f15;border:1px solid var(--green);border-radius:12px;overflow:hidden;z-index:50;display:none}
+.autocomplete.open{display:block}
+.ac-item{padding:9px 14px;font-size:0.83rem;cursor:pointer;border-bottom:1px solid var(--border)}
+.ac-item:last-child{border:none}
+.ac-item:hover{background:rgba(34,197,94,.1);color:var(--green)}
+.btn{padding:7px 14px;border-radius:20px;border:none;cursor:pointer;font-size:0.8rem;font-weight:600;font-family:inherit;transition:all.2s;white-space:nowrap}
+.btn-primary{background:var(--green);color:#0a0f0a}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--border)}
+.heatmap-btn{background:rgba(168,85,247,.15);color:var(--purple);border:1px solid rgba(168,85,247,.3);border-radius:20px;padding:7px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;border-style:solid;transition:all.2s;white-space:nowrap}
+.heatmap-btn.active{background:var(--purple);color:#fff}
+
+/* filter bar */
+.filter-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 12px;display:flex;align-items:center;gap:6px;z-index:29;flex-shrink:0;overflow-x:auto}
+.filter-btn{padding:5px 12px;border-radius:16px;border:1px solid var(--border);cursor:pointer;font-size:0.75rem;font-weight:600;font-family:inherit;background:rgba(255,255,255,.04);color:var(--muted);transition:all.2s;white-space:nowrap;flex-shrink:0}
+.filter-btn.active{border-color:var(--green);background:rgba(34,197,94,.12);color:var(--green)}
+.filter-btn.forbidden{border-color:rgba(239,68,68,.3);color:rgba(239,68,68,.5);cursor:not-allowed;opacity:.6}
+.filter-label{font-size:0.7rem;color:var(--muted);white-space:nowrap;flex-shrink:0}
+
+/* layout */
+.main{flex:1;display:flex;overflow:hidden;position:relative}
+
+/* map */
+.map-wrap{flex:1;position:relative;overflow:hidden}
+canvas#mapCanvas{display:block;width:100%;height:100%}
+
+/* hero overlay */
+.hero-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:8;transition:opacity.4s}
+.hero-overlay.hidden{opacity:0}
+.hero-text{font-size:1.05rem;font-weight:700;color:rgba(255,255,255,.7);text-shadow:0 2px 12px rgba(0,0,0,.8);margin-bottom:8px}
+.hero-arrow{font-size:1.8rem;animation:heroArrow 1.4s ease-in-out infinite}
+@keyframes heroArrow{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+/* pulsing user dot overlay */
+@keyframes pulse{0%{transform:scale(1);opacity:.8}50%{transform:scale(1.5);opacity:.3}100%{transform:scale(1);opacity:.8}}
+.user-dot{position:absolute;width:20px;height:20px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 0 0 6px rgba(59,130,246,.25);animation:pulse 2s ease-in-out infinite;transform:translate(-50%,-50%);pointer-events:none;z-index:5;transition:left .5s,top .5s}
+
+/* live update badge */
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.live-badge{position:absolute;top:12px;right:12px;background:rgba(10,15,10,.9);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:0.72rem;z-index:10;min-width:140px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-inline-end:5px;animation:blink 1.2s ease-in-out infinite}
+.live-pulse{color:var(--green);font-size:0.7rem;font-weight:700}
+
+/* legend */
+.legend{position:absolute;top:12px;left:12px;background:rgba(10,15,10,.9);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:0.72rem;z-index:10}
+.legend-item{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.legend-item:last-child{margin:0}
+.dot-lg{width:9px;height:9px;border-radius:50%}
+.seg-lg{width:18px;height:5px;border-radius:3px;flex-shrink:0}
+
+/* side panel */
+.side-panel{width:270px;border-inline-start:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:transform .3s}
+.panel-header{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.panel-header h3{font-size:0.85rem;font-weight:700;margin-bottom:2px}
+.panel-header p{font-size:0.7rem;color:var(--muted)}
+.stats-row{display:flex;padding:8px 12px;gap:6px;border-bottom:1px solid var(--border);flex-shrink:0}
+.stat-pill{flex:1;background:rgba(255,255,255,.04);border-radius:8px;padding:7px;text-align:center}
+.stat-n{font-size:1.1rem;font-weight:800;line-height:1}
+.stat-l{font-size:0.62rem;color:var(--muted);margin-top:2px}
+.spots-list{flex:1;overflow-y:auto;padding:6px}
+.spot-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:6px;cursor:pointer;transition:all.2s;position:relative}
+.spot-item:hover{border-color:var(--green)}
+.spot-item.selected{border-color:var(--green);background:rgba(34,197,94,.06)}
+.spot-street{font-weight:700;font-size:0.84rem;margin-bottom:4px}
+.spot-meta{display:flex;justify-content:space-between;align-items:center}
+.spot-dist{font-size:0.72rem;color:var(--muted)}
+.spot-badge{font-size:0.68rem;padding:2px 7px;border-radius:10px;font-weight:600}
+.badge-free{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-soon{background:rgba(234,179,8,.15);color:var(--yellow)}
+.spot-time{font-size:0.65rem;color:var(--muted);margin-top:3px}
+.freshness{position:absolute;top:10px;left:10px;width:5px;height:5px;border-radius:50%}
+.fresh{background:var(--green)}
+.stale{background:var(--yellow)}
+.reserve-row{margin-top:7px;display:flex;gap:5px}
+.reserve-btn{flex:1;padding:5px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);border-radius:8px;color:var(--blue);font-size:0.7rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all.2s}
+.reserve-btn:hover{background:var(--blue);color:#fff}
+
+/* live feed */
+.live-feed{padding:8px 10px;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(34,197,94,.03)}
+.feed-title{font-size:0.67rem;color:var(--green);font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.feed-item{font-size:0.69rem;color:var(--muted);line-height:1.5;min-height:1.5em}
+.feed-time{font-size:0.62rem;color:rgba(90,122,90,.6)}
+
+/* gamification panel */
+.game-panel{width:220px;border-inline-start:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;padding:12px}
+.rank-badge{text-align:center;padding:12px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);border-radius:12px;margin-bottom:12px}
+.rank-icon{font-size:2rem;margin-bottom:4px}
+.rank-title{font-size:0.78rem;font-weight:700;color:var(--purple)}
+.rank-sub{font-size:0.65rem;color:var(--muted)}
+.xp-bar-wrap{margin-bottom:14px}
+.xp-label{font-size:0.7rem;color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between}
+.xp-track{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--purple));border-radius:3px;transition:width .5s}
+.leaderboard-title{font-size:0.73rem;font-weight:700;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
+.lb-item{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.75rem}
+.lb-item:last-child{border:none}
+.lb-rank{width:16px;text-align:center;font-weight:700;font-size:0.68rem;color:var(--muted)}
+.lb-name{flex:1}
+.lb-pts{color:var(--green);font-weight:700;font-size:0.72rem}
+.me-row{background:rgba(34,197,94,.06);border-radius:6px;padding:4px 5px;margin:-4px -5px}
+.challenges-title{font-size:0.73rem;font-weight:700;color:var(--muted);margin-top:14px;margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
+.challenge-item{background:rgba(255,255,255,.04);border-radius:8px;padding:8px;margin-bottom:6px;font-size:0.73rem}
+.ch-title{font-weight:600;margin-bottom:3px}
+.ch-progress{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;margin-top:4px}
+.ch-fill{height:100%;background:var(--yellow);border-radius:2px}
+
+/* bottom navigation */
+.bottom-nav{background:var(--bg2);border-top:1px solid var(--border);display:flex;flex-shrink:0;z-index:30}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-size:0.6rem;font-family:inherit;gap:3px;transition:color.2s}
+.nav-tab .icon{font-size:1.2rem}
+.nav-tab.active{color:var(--green)}
+.nav-tab:hover{color:var(--text)}
+
+/* leaving multi-step overlay */
+.leaving-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:90;display:none;align-items:center;justify-content:center}
+.leaving-overlay.show{display:flex}
+.leaving-box{background:var(--bg2);border:2px solid var(--green);border-radius:20px;padding:28px 32px;text-align:center;width:min(340px,90vw)}
+.leaving-step-title{font-size:1rem;font-weight:700;margin-bottom:16px}
+.leaving-type-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.leaving-type-btn{padding:10px 16px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all.2s}
+.leaving-type-btn:hover,.leaving-type-btn.chosen{border-color:var(--green);background:rgba(34,197,94,.15);color:var(--green)}
+.leaving-slider-wrap{margin:12px 0}
+.leaving-slider-wrap input[type=range]{width:100%;accent-color:var(--green)}
+.leaving-slider-val{font-size:2rem;font-weight:900;color:var(--green)}
+.leaving-count{font-size:4rem;font-weight:900;color:var(--green);line-height:1}
+.leaving-label{font-size:1rem;color:var(--text);margin-top:8px}
+.cancel-btn{margin-top:14px;font-size:0.75rem;color:var(--muted);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:inherit}
+
+/* street card overlay */
+.street-card-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:85;display:none;align-items:flex-end;justify-content:center}
+.street-card-overlay.show{display:flex}
+.street-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px 20px 0 0;width:min(500px,100vw);padding:20px 20px 28px;max-height:70vh;overflow-y:auto}
+.sc-handle{width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 16px}
+.sc-name{font-size:1.2rem;font-weight:800;margin-bottom:6px}
+.sc-avail{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sc-avail-pct{font-size:2rem;font-weight:900}
+.sc-avail-label{font-size:0.78rem;color:var(--muted);line-height:1.4}
+.sc-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.sc-bar-fill{height:100%;border-radius:4px;transition:width.5s}
+.sc-mini-chart{display:flex;align-items:flex-end;gap:3px;height:40px;margin-bottom:14px}
+.sc-mini-bar{flex:1;border-radius:3px 3px 0 0;min-height:4px;transition:height.3s}
+.sc-mini-labels{display:flex;gap:3px;font-size:0.55rem;color:var(--muted);margin-bottom:14px}
+.sc-mini-label{flex:1;text-align:center}
+.sc-community{font-size:0.8rem;color:var(--muted);margin-bottom:14px;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px}
+.sc-actions{display:flex;gap:8px;flex-wrap:wrap}
+.sc-btn{flex:1;padding:10px 8px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all.2s;white-space:nowrap;text-align:center;min-width:110px}
+.sc-btn:hover{border-color:var(--green);background:rgba(34,197,94,.1);color:var(--green)}
+.sc-btn-nav{background:rgba(34,197,94,.15);border-color:var(--green);color:var(--green)}
+
+/* toast */
+.toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(--green);color:#0a0f0a;padding:10px 22px;border-radius:24px;font-weight:700;font-size:0.88rem;z-index:100;opacity:0;transition:opacity.3s;pointer-events:none;white-space:nowrap;max-width:90vw}
+.toast.show{opacity:1}
+
+/* history bottom sheet */
+.history-sheet{position:fixed;bottom:-100%;left:0;right:0;background:var(--bg2);border-top:2px solid var(--border);border-radius:20px 20px 0 0;z-index:80;transition:bottom .35s cubic-bezier(.4,0,.2,1);padding:0 0 20px;max-height:70vh;overflow:hidden;display:flex;flex-direction:column}
+.history-sheet.open{bottom:62px}
+.sheet-handle{width:40px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:10px auto 14px}
+.sheet-title{font-size:0.95rem;font-weight:700;padding:0 16px 10px;border-bottom:1px solid var(--border)}
+.history-list{overflow-y:auto;padding:10px 14px}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.82rem}
+.history-item:last-child{border:none}
+.hist-addr{font-weight:600}
+.hist-meta{font-size:0.7rem;color:var(--muted);margin-top:2px}
+.hist-pts{color:var(--green);font-weight:700;font-size:0.78rem}
+
+/* reserve modal */
+.reserve-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:90;display:none;align-items:center;justify-content:center}
+.reserve-modal.show{display:flex}
+.reserve-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:24px;width:min(340px,90vw);text-align:center}
+.reserve-box h3{font-size:1rem;margin-bottom:8px}
+.reserve-price{font-size:2rem;font-weight:800;color:var(--green);margin:12px 0}
+.reserve-sub{font-size:0.78rem;color:var(--muted);margin-bottom:18px}
+.reserve-actions{display:flex;gap:10px}
+.reserve-actions button{flex:1;padding:11px;border-radius:12px;border:none;cursor:pointer;font-size:0.88rem;font-weight:700;font-family:inherit}
+.btn-confirm{background:var(--green);color:#0a0f0a}
+.btn-cancel-r{background:rgba(255,255,255,.07);color:var(--text)}
+
+/* heatmap canvas */
+#heatmapCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none}
+#heatmapCanvas.active{display:block}
+
+/* Map loading overlay */
+.map-loading{position:absolute;inset:0;background:#0c1a0c;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s}
+.map-loading.hidden{opacity:0;pointer-events:none}
+.skeleton-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:10px;width:260px;height:160px}
+.skel-cell{background:rgba(34,197,94,.06);border-radius:6px;animation:skelPulse 1.2s ease-in-out infinite}
+.skel-cell:nth-child(even){animation-delay:.2s}
+.skel-cell:nth-child(3n){animation-delay:.4s}
+@keyframes skelPulse{0%,100%{opacity:.4}50%{opacity:.9}}
+.map-loading-label{color:var(--green);font-size:0.9rem;font-weight:700;letter-spacing:.5px}
+
+/* XP bounce popup */
+@keyframes xpBounce{0%{opacity:0;transform:translateY(0) scale(0.7)}40%{opacity:1;transform:translateY(-30px) scale(1.2)}70%{transform:translateY(-50px) scale(1)}100%{opacity:0;transform:translateY(-70px) scale(0.8)}}
+.xp-pop{position:fixed;font-size:1.1rem;font-weight:800;color:var(--green);pointer-events:none;z-index:200;animation:xpBounce .9s ease forwards;text-shadow:0 2px 8px rgba(34,197,94,.5)}
+
+/* Traffic light dot in spot list */
+.tl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block;margin-inline-end:6px;box-shadow:0 0 5px currentColor}
+
+/* mobile hide game panel */
+@media(max-width:600px){.game-panel{display:none}.side-panel{display:none}}
+
+/* FREE badge + Premium */
+.free-pill{background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:12px;padding:4px 10px;font-size:0.68rem;font-weight:800;color:var(--muted);letter-spacing:.4px;white-space:nowrap}
+.premium-btn{padding:7px 14px;border-radius:20px;border:none;cursor:pointer;font-size:0.78rem;font-weight:700;font-family:inherit;background:linear-gradient(135deg,#a855f7,#3b82f6);color:#fff;white-space:nowrap;transition:opacity.2s}
+.premium-btn:hover{opacity:.88}
+
+/* Pricing modal */
+.park-pricing-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center}
+.park-pricing-overlay.show{display:flex}
+.park-pricing-box{background:var(--bg2);border:1px solid rgba(34,197,94,.2);border-radius:24px;padding:28px;width:min(500px,95vw);max-height:92vh;overflow-y:auto}
+.pp2{border:1px solid var(--border);border-radius:14px;padding:16px 14px;text-align:center;position:relative;transition:border-color.2s}
+.pp2:hover,.pp2.feat{border-color:var(--green)}
+.pp2.feat{background:rgba(34,197,94,.05)}
+.pp2-top{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--green);color:#0a0f0a;font-size:0.6rem;font-weight:800;padding:2px 10px;border-radius:20px;white-space:nowrap}
+.pp2-name{font-weight:800;font-size:0.88rem;margin-bottom:5px}
+.pp2-price{font-size:1.3rem;font-weight:900;color:var(--green);margin-bottom:5px}
+.pp2-price span{font-size:0.7rem;color:var(--muted);font-weight:400}
+.pp2-list{font-size:0.7rem;color:var(--muted);line-height:1.75;text-align:start}
+.pp2-list li{list-style:none}
+.pp2-list li::before{content:'✓ ';color:var(--green)}
+
+/* Premium-only modal */
+.premium-lock-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;align-items:center;justify-content:center}
+.premium-lock-overlay.show{display:flex}
+.premium-lock-box{background:var(--bg2);border:1px solid rgba(168,85,247,.35);border-radius:20px;padding:28px 24px;width:min(340px,90vw);text-align:center}
+.lock-icon{font-size:2.5rem;margin-bottom:10px}
+.lock-title{font-size:1rem;font-weight:800;margin-bottom:6px}
+.lock-sub{font-size:0.82rem;color:var(--muted);margin-bottom:18px;line-height:1.5}
+
+/* ── Route view (מסלול + חניות בדרך) ── */
+.route-panel{padding:9px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(59,130,246,.06)}
+.rp-title{font-size:0.7rem;color:var(--blue);font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.rp-close{color:var(--muted);cursor:pointer;font-size:0.72rem}
+.rp-close:hover{color:var(--red)}
+.rp-item{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.72rem}
+.rp-item:last-of-type{border:none}
+.rp-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0;border:1.5px solid rgba(255,255,255,.5)}
+.rp-info{flex:1;min-width:0}
+.rp-type{font-weight:700;font-size:0.72rem}
+.rp-meta{color:var(--muted);font-size:0.63rem}
+.rp-nav-btn{padding:4px 9px;border-radius:10px;border:1px solid rgba(59,130,246,.4);background:rgba(59,130,246,.12);color:var(--blue);font-size:0.63rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.rp-nav-btn:hover{background:var(--blue);color:#fff}
+.rp-disclaimer{font-size:0.57rem;color:var(--muted);margin-top:6px;line-height:1.4}
+.park-tooltip{position:absolute;z-index:15;background:rgba(10,15,10,.96);border:1px solid var(--blue);border-radius:10px;padding:8px 11px;font-size:0.72rem;font-weight:600;display:none;pointer-events:none;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.park-tooltip.show{display:block}
+.nav-prompt{position:fixed;bottom:150px;left:50%;transform:translateX(-50%);z-index:78;background:var(--bg2);border:2px solid var(--blue);border-radius:16px;padding:12px 16px;display:none;align-items:center;gap:10px;box-shadow:0 8px 28px rgba(0,0,0,.6);max-width:94vw;flex-wrap:wrap;justify-content:center}
+.nav-prompt.show{display:flex}
+.nav-prompt-text{font-size:0.84rem;font-weight:700}
+.nav-park-btn{padding:8px 16px;border-radius:14px;border:none;background:var(--green);color:#0a0f0a;font-size:0.8rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<!-- ParkWiz Pricing Modal -->
+<div class="park-pricing-overlay" id="parkPricingOverlay">
+  <div class="park-pricing-box">
+    <div style="font-size:1.2rem;font-weight:900;text-align:center;margin-bottom:4px">🅿️ ParkWiz Premium</div>
+    <div style="text-align:center;color:var(--muted);font-size:0.82rem;margin-bottom:22px">בחר תוכנית שמתאימה לך</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px">
+      <div class="pp2">
+        <div class="pp2-name">Free</div>
+        <div class="pp2-price">₪0 <span>/חודש</span></div>
+        <ul class="pp2-list">
+          <li>מפה בסיסית</li>
+          <li>5 דיווחים/יום</li>
+          <li>ללא הזמנה מראש</li>
+        </ul>
+      </div>
+      <div class="pp2 feat">
+        <div class="pp2-top">הכי פופולרי</div>
+        <div class="pp2-name">Premium</div>
+        <div class="pp2-price">₪14.90 <span>/חודש</span></div>
+        <ul class="pp2-list">
+          <li>הזמנה מראש</li>
+          <li>התראות push</li>
+          <li>ללא פרסומות</li>
+          <li>Priority alerts</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%;margin-top:10px;font-size:0.78rem" onclick="activatePremium()">שדרג</button>
+      </div>
+      <div class="pp2">
+        <div class="pp2-name">עסק</div>
+        <div class="pp2-price">₪149 <span>/חודש</span></div>
+        <ul class="pp2-list">
+          <li>לוח ניהול חניון</li>
+          <li>API גישה</li>
+          <li>סטטיסטיקות</li>
+          <li>תמיכה עסקית</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%;margin-top:10px;font-size:0.78rem;background:var(--purple);color:#fff" onclick="closeParkPricing()">צור קשר</button>
+      </div>
+    </div>
+    <span style="display:block;text-align:center;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline" onclick="closeParkPricing()">המשך עם Free</span>
+    <div style="text-align:center;margin-top:10px;font-size:0.68rem;color:var(--muted)">
+      <span style="cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('terms')">תנאי שימוש</span> ·
+      <span style="cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('privacy')">מדיניות פרטיות</span>
+    </div>
+  </div>
+</div>
+
+<!-- Premium Lock Modal -->
+<div class="premium-lock-overlay" id="premiumLockOverlay">
+  <div class="premium-lock-box">
+    <div class="lock-icon">🔒</div>
+    <div class="lock-title">הזמנה מראש זמינה ב-Premium בלבד</div>
+    <div class="lock-sub">שדרג ל-Premium כדי להזמין מקום מראש, לקבל התראות push ועוד.</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="closeLockModal();showParkPricing()">שדרג ל-Premium ⚡</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeLockModal()">לא עכשיו</button>
+    </div>
+  </div>
+</div>
+
+<!-- Street Card Overlay -->
+<div class="street-card-overlay" id="streetCardOverlay" onclick="closeStreetCard(event)">
+  <div class="street-card" id="streetCard">
+    <div class="sc-handle"></div>
+    <div class="sc-name" id="scName">רחוב דיזנגוף</div>
+    <div class="sc-avail">
+      <div class="sc-avail-pct" id="scPct" style="color:var(--green)">45%</div>
+      <div class="sc-bar-track" style="flex:1"><div class="sc-bar-fill" id="scBarFill" style="width:45%;background:var(--green)"></div></div>
+      <div class="sc-avail-label" id="scLabel">בינוני<br><span style="font-size:0.7rem;color:var(--muted)">זמינות חניה</span></div>
+    </div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px">זמינות לפי שעה (08:00–22:00)</div>
+    <div class="sc-mini-chart" id="scMiniChart"></div>
+    <div class="sc-mini-labels" id="scMiniLabels"></div>
+    <div class="sc-community" id="scCommunity">📍 7 חניות פנויות כרגע לפי קהילה</div>
+    <div class="sc-actions">
+      <button class="sc-btn" style="background:var(--green);border-color:var(--green);color:#0a0f0a;font-weight:800" onclick="startNavigation()">🧭 התחל ניווט</button>
+      <button class="sc-btn" onclick="shareWaze()">📤 פתח ב-Waze</button>
+      <button class="sc-btn" onclick="shareWhatsApp()">💬 שתף WhatsApp</button>
+      <button class="sc-btn sc-btn-nav" id="scNavBtn" onclick="navigateToStreet()">🧭 הנחה אותי לשם</button>
+    </div>
+  </div>
+</div>
+
+<div class="topbar">
+  <div style="display:flex;flex-direction:column;align-items:flex-start">
+    <div class="logo">🅿️ ParkWiz</div>
+    <div class="logo-sub">העוזר החכם לחניה ברחוב</div>
+    <div class="logo-sub" style="color:var(--green);opacity:.8">הסתברויות אמיתיות, לא הבטחות</div>
+  </div>
+  <span class="free-pill" id="planPill">FREE</span>
+  <div class="search-wrap">
+    <input class="search-box" id="searchInput" placeholder="חפש רחוב בתל אביב..." autocomplete="off" oninput="onSearch(this.value)" onblur="setTimeout(closeAC,200)">
+    <div class="autocomplete" id="autocomplete"></div>
+  </div>
+  <button class="heatmap-btn" id="heatmapBtn" onclick="toggleHeatmap()">🌡️ חום</button>
+  <button class="premium-btn" onclick="showParkPricing()">ParkWiz Premium ⚡</button>
+  <div class="pw-auth-area" id="pwAuthArea">
+    <button class="btn btn-ghost" style="color:var(--green);border-color:rgba(34,197,94,.4)" onclick="pwOpenAuth('login')">התחבר</button>
+  </div>
+</div>
+
+<!-- Filter bar -->
+<div class="filter-bar">
+  <span class="filter-label">סנן:</span>
+  <button class="filter-btn active" id="filt-blue" onclick="toggleFilter('blue')">🔵 כחול-לבן</button>
+  <button class="filter-btn active" id="filt-free" onclick="toggleFilter('free')">⚪ חינם</button>
+  <button class="filter-btn forbidden" onclick="showToast('❌ אזור אסור לחניה')">🚫 אסור</button>
+  <button class="filter-btn active" id="filt-timed" onclick="toggleFilter('timed')">⏱️ עד 3 שעות</button>
+</div>
+
+<div class="main">
+  <div class="map-wrap" id="mapWrap">
+    <canvas id="mapCanvas"></canvas>
+    <canvas id="heatmapCanvas"></canvas>
+    <div class="map-loading" id="mapLoading">
+      <div class="skeleton-grid">
+        <div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div>
+        <div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div>
+        <div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div>
+      </div>
+      <div class="map-loading-label">🗺️ טוען מפת רחובות...</div>
+    </div>
+    <!-- Hero text before street selected -->
+    <div class="hero-overlay" id="heroOverlay">
+      <div class="hero-text">בחר רחוב לראות זמינות חניה בזמן אמת</div>
+      <div class="hero-arrow">👇</div>
+    </div>
+    <div class="user-dot" id="userDot"></div>
+    <div class="park-tooltip" id="parkTooltip"></div>
+    <div class="live-badge">
+      <span class="live-dot"></span><span class="live-pulse">עדכון חי</span><br>
+      <span id="updateTime" style="color:var(--muted);font-size:0.68rem">עודכן עכשיו</span>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="seg-lg" style="background:var(--green)"></div>קל (70%+)</div>
+      <div class="legend-item"><div class="seg-lg" style="background:var(--yellow)"></div>בינוני (30-70%)</div>
+      <div class="legend-item"><div class="seg-lg" style="background:var(--red)"></div>קשה (0-30%)</div>
+      <div class="legend-item"><div class="dot-lg" style="background:var(--blue)"></div>אתה כאן</div>
+    </div>
+  </div>
+
+  <!-- Side panel — spots list -->
+  <div class="side-panel" id="sidePanel">
+    <div class="panel-header">
+      <h3>🛣️ רחובות קרובים</h3>
+      <p id="panelSub">קהילה שמדווחת בזמן אמת</p>
+    </div>
+    <div class="stats-row">
+      <div class="stat-pill"><div class="stat-n" style="color:var(--green)" id="freeCount">0</div><div class="stat-l">פנויים</div></div>
+      <div class="stat-pill"><div class="stat-n" style="color:var(--yellow)" id="soonCount">0</div><div class="stat-l">בינוני</div></div>
+      <div class="stat-pill"><div class="stat-n" style="color:var(--muted)" id="totalCount">0</div><div class="stat-l">רחובות</div></div>
+    </div>
+    <!-- Live community feed -->
+    <div class="live-feed">
+      <div class="feed-title"><span class="live-dot"></span>עדכוני קהילה אחרונים</div>
+      <div id="feedItem" class="feed-item">טוען...</div>
+      <div id="feedTime" class="feed-time"></div>
+    </div>
+    <!-- Departure helper -->
+    <div class="departure-panel" id="departurePanel">
+      <div class="dep-title">🕐 עוזר יציאה</div>
+      <div class="dep-msg" id="depMsg">מחשב...</div>
+      <div class="dep-sub" id="depSub"></div>
+    </div>
+    <!-- Parkings along route -->
+    <div class="route-panel" id="routePanel" style="display:none">
+      <div class="rp-title"><span>🅿️ חניות בדרך ליעד</span><span class="rp-close" onclick="clearRoute()">✕ נקה מסלול</span></div>
+      <div id="routeParkList"></div>
+      <div class="rp-disclaimer">* אינטגרציית פנגו — הדמיה. בגרסה מסחרית: שיתוף פעולה עם ספקי תשלום חניה.</div>
+    </div>
+    <div class="spots-list" id="spotsList"></div>
+  </div>
+
+  <!-- Gamification panel -->
+  <div class="game-panel" id="gamePanel">
+    <div class="rank-badge">
+      <div class="rank-icon">🥈</div>
+      <div class="rank-title">מוצא חניה</div>
+      <div class="rank-sub" id="xpSub">340 / 500 XP</div>
+    </div>
+    <div class="xp-bar-wrap">
+      <div class="xp-label"><span>XP</span><span id="xpPct">68%</span></div>
+      <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:68%"></div></div>
+    </div>
+
+    <div class="leaderboard-title">🏆 דירוג שבועי</div>
+    <div id="leaderboard"></div>
+
+    <div class="challenges-title">🎯 אתגרים</div>
+    <div class="challenge-item">
+      <div class="ch-title">דווח 5 חניות היום</div>
+      <div style="color:var(--muted);font-size:0.65rem">3/5 הושלמו</div>
+      <div class="ch-progress"><div class="ch-fill" style="width:60%"></div></div>
+    </div>
+    <div class="challenge-item">
+      <div class="ch-title">חנה ברחוב דיזנגוף</div>
+      <div style="color:var(--muted);font-size:0.65rem">0/1 הושלמו</div>
+      <div class="ch-progress"><div class="ch-fill" style="width:0%"></div></div>
+    </div>
+    <div class="challenge-item">
+      <div class="ch-title">שבוע רצוף דיווחים</div>
+      <div style="color:var(--muted);font-size:0.65rem">4/7 ימים</div>
+      <div class="ch-progress"><div class="ch-fill" style="width:57%;background:var(--purple)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Recommended 3 streets mini-card -->
+<div class="reco-card" id="recoCard">
+  <span class="reco-close" onclick="closeReco()">✕</span>
+  <div class="reco-title" id="recoTitle">🎯 במקום להסתובב — נסה לפי הסדר:</div>
+  <div id="recoList"></div>
+</div>
+
+<!-- Navigation "park here" prompt -->
+<div class="nav-prompt" id="navPrompt">
+  <span class="nav-prompt-text" id="navPromptText">🅿️ חניה כחול-לבן פנויה 50 מטר מימין!</span>
+  <button class="nav-park-btn" onclick="parkHere()">חנה כאן</button>
+</div>
+
+<!-- Found-parking feedback prompt -->
+<div class="found-prompt" id="foundPrompt">
+  <span class="found-q">מצאת חניה?</span>
+  <button class="found-btn" onclick="answerFound('fast')">כן, מהר ⚡</button>
+  <button class="found-btn" onclick="answerFound('slow')">כן, לקח זמן 🕐</button>
+  <button class="found-btn" onclick="answerFound('no')">לא 😞</button>
+</div>
+
+<!-- WhatsApp community banner -->
+<div class="wa-banner" id="waBanner">
+  <span>💬</span>
+  <span class="wa-banner-text">הצטרף לקהילת החניה של השכונה שלך ב-WhatsApp</span>
+  <button class="wa-join-btn" onclick="joinWaCommunity()">הצטרף</button>
+  <span class="wa-close" onclick="closeWaBanner()">✕</span>
+</div>
+
+<!-- Bottom navigation -->
+<div class="bottom-nav">
+  <button class="nav-tab active" id="navMap" onclick="switchNav('map')"><span class="icon">🗺️</span>מפה</button>
+  <button class="nav-tab" id="navSearch" onclick="switchNav('search')"><span class="icon">🔍</span>חיפוש</button>
+  <button class="nav-tab" id="navReport" onclick="startLeaving()"><span class="icon">🚗</span>אני עוזב!</button>
+  <button class="nav-tab" id="navHistory" onclick="toggleHistory()"><span class="icon">📋</span>היסטוריה</button>
+  <button class="nav-tab" id="navProfile" onclick="switchNav('profile')"><span class="icon">👤</span>פרופיל</button>
+</div>
+
+<!-- Leaving multi-step overlay -->
+<div class="leaving-overlay" id="leavingOverlay">
+  <div class="leaving-box">
+    <!-- Step 0: when -->
+    <div id="leavingStep0">
+      <div class="leaving-step-title">🕐 מתי אתה יוצא?</div>
+      <div class="leaving-when-btns">
+        <button class="leaving-type-btn" onclick="leavingPickWhen(0,this)">🚗 עכשיו</button>
+        <button class="leaving-type-btn" onclick="leavingPickWhen(4,this)">⏳ בעוד 2-5 דק'</button>
+        <button class="leaving-type-btn" onclick="leavingPickWhen(10,this)">🕐 בעוד 10 דק'</button>
+      </div>
+      <button class="cancel-btn" onclick="cancelLeaving()">ביטול</button>
+    </div>
+    <!-- Step 1: type -->
+    <div id="leavingStep1">
+      <div class="leaving-step-title">🚗 איזה סוג חניה?</div>
+      <div class="leaving-type-btns">
+        <button class="leaving-type-btn" onclick="leavingPickType('free',this)">⚪ חינם</button>
+        <button class="leaving-type-btn" onclick="leavingPickType('blue',this)">🔵 כחול-לבן</button>
+        <button class="leaving-type-btn" onclick="leavingPickType('timed',this)">⏱️ מוגבל זמן</button>
+      </div>
+      <button class="cancel-btn" onclick="cancelLeaving()">ביטול</button>
+    </div>
+    <!-- Step 2: count -->
+    <div id="leavingStep2" style="display:none">
+      <div class="leaving-step-title">🅿️ כמה מקומות נפנו לידך?</div>
+      <div class="leaving-slider-wrap">
+        <div class="leaving-slider-val" id="sliderVal">1</div>
+        <input type="range" min="1" max="3" value="1" oninput="document.getElementById('sliderVal').textContent=this.value" id="spotsSlider">
+        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px"><span>1</span><span>2</span><span>3+</span></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="leavingSubmit()">שלח דיווח ✅</button>
+      <button class="cancel-btn" onclick="cancelLeaving()">ביטול</button>
+    </div>
+    <!-- Step 3: countdown -->
+    <div id="leavingStep3" style="display:none">
+      <div class="leaving-count" id="leavingCount">3</div>
+      <div class="leaving-label" id="leavingLabel">מדווח בעוד...</div>
+    </div>
+  </div>
+</div>
+
+<!-- History bottom sheet -->
+<div class="history-sheet" id="historySheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">📋 היסטוריית חניות</div>
+  <div class="history-list" id="historyList"></div>
+  <div style="text-align:center;padding:8px 0 0;font-size:0.68rem;color:var(--muted);flex-shrink:0">
+    <span style="cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('terms')">תנאי שימוש</span> ·
+    <span style="cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('privacy')">מדיניות פרטיות</span>
+  </div>
+</div>
+
+<!-- Reserve modal -->
+<div class="reserve-modal" id="reserveModal">
+  <div class="reserve-box">
+    <h3>🅿️ הזמן מקום חניה</h3>
+    <div style="font-size:0.82rem;color:var(--muted)" id="reserveAddr">רחוב דיזנגוף 142</div>
+    <div class="reserve-price">₪4.50</div>
+    <div class="reserve-sub">30 דקות · תשלום בסיום</div>
+    <div class="reserve-actions">
+      <button class="btn-cancel-r" onclick="closeReserve()">ביטול</button>
+      <button class="btn-confirm" onclick="confirmReserve()">✅ הזמן עכשיו</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Street Data ──────────────────────────────────────────────────
+// Each street: name, availability (0-100), type (blue/free/timed), isH, ratio position
+const STREETS_DEF = [
+  { name:'רוטשילד',    avail:78, type:'blue',  isH:true,  pos:0.18 },
+  { name:'דיזנגוף',   avail:42, type:'free',  isH:true,  pos:0.36 },
+  { name:'בן יהודה',  avail:15, type:'blue',  isH:true,  pos:0.55 },
+  { name:'אלנבי',     avail:63, type:'timed', isH:true,  pos:0.74 },
+  { name:'ארלוזורוב', avail:88, type:'free',  isH:false, pos:0.12 },
+  { name:'ז\'בוטינסקי',avail:28, type:'blue',  isH:false, pos:0.30 },
+  { name:'ביאליק',    avail:55, type:'free',  isH:false, pos:0.50 },
+  { name:'הרצל',      avail:8,  type:'blue',  isH:false, pos:0.68 },
+  { name:'נורדאו',    avail:70, type:'timed', isH:false, pos:0.86 },
+];
+
+// Hourly availability pattern per street (8h - 22h, 7 slots)
+function genHourlyPattern(avail) {
+  const base = avail / 100;
+  return [8,10,12,14,16,18,20].map(h => {
+    const rush = (h===8||h===18||h===20) ? -0.25 : (h===12||h===14) ? -0.12 : 0;
+    return Math.max(0.05, Math.min(1, base + rush + (Math.random()-.5)*.15));
+  });
+}
+
+const STREET_HOURLY = STREETS_DEF.map(s => genHourlyPattern(s.avail));
+
+const COMMUNITY_FEED = [
+  { msg:'👤 משתמש דיווח: חניה פנתה בדיזנגוף 45', street:'דיזנגוף' },
+  { msg:'👤 רוטשילד פנויה בקצה הצפוני', street:'רוטשילד' },
+  { msg:'👤 אלנבי 72 — 2 מקומות התפנו', street:'אלנבי' },
+  { msg:'👤 ביאליק קרוב לפינת הרצל — פנוי!', street:'ביאליק' },
+  { msg:'👤 ז\'בוטינסקי עמוס, נסה ארלוזורוב', street:'ז\'בוטינסקי' },
+  { msg:'👤 נורדאו ליד פארק — 3 מקומות', street:'נורדאו' },
+  { msg:'👤 בן יהודה מלא, הגיעו מוקדם!', street:'בן יהודה' },
+  { msg:'👤 ארלוזורוב — מקום נפתח ליד 12', street:'ארלוזורוב' },
+];
+let feedIdx = 0;
+let feedSecondsAgo = 0;
+
+const LEADERBOARD = [
+  {name:'יוסי כ.', pts:820},
+  {name:'מיכל ל.', pts:750},
+  {name:'אתה', pts:340, me:true},
+  {name:'רונן מ.', pts:280},
+  {name:'שרית ד.', pts:195},
+];
+
+const HISTORY = [
+  {addr:'רח\' דיזנגוף 88', time:'אמש 19:23', saved:'4 דקות', pts:25},
+  {addr:'שד\' רוטשילד 30', time:'א\' 08:15', saved:'7 דקות', pts:40},
+  {addr:'רח\' אלנבי 52', time:'ב\' 13:00', saved:'2 דקות', pts:15},
+  {addr:'שד\' ביאליק 10', time:'ג\' 10:30', saved:'9 דקות', pts:50},
+  {addr:'רח\' נורדאו 4', time:'ה\' 17:45', saved:'3 דקות', pts:20},
+];
+
+const TA_STREETS = ['רחוב דיזנגוף','שדרות רוטשילד','רחוב הרצל','רחוב אלנבי','שדרות נורדאו','רחוב ארלוזורוב','רחוב ביאליק','שדרות ז\'בוטינסקי','רחוב בן יהודה'];
+
+let selectedStreetIdx = null;
+let activeFilters = { blue:true, free:true, timed:true };
+let userScore = 340;
+let secondsAgo = 0;
+let heatmapActive = false;
+let historyOpen = false;
+let leavingParkType = null;
+let isPremium = false;
+
+// Legacy spots for side panel list (keep existing feel)
+let spots = [];
+function makeSpot() {
+  const si = Math.floor(Math.random()*STREETS_DEF.length);
+  const s = STREETS_DEF[si];
+  const roll = Math.random();
+  let type = roll < s.avail/100 * 1.2 ? 'free' : roll < 0.65 ? 'soon' : 'taken';
+  return {
+    x: s.isH ? (0.05 + Math.random()*0.9) : s.pos + (Math.random()-.5)*.02,
+    y: s.isH ? s.pos + (Math.random()-.5)*.015 : (0.05 + Math.random()*0.9),
+    type, paid: s.type === 'blue',
+    street: s.name + ' ' + (Math.floor(Math.random()*120)+10),
+    dist: Math.floor(Math.random()*800+50),
+    minsAgo: Math.floor(Math.random()*8)+1,
+    id: Math.random().toString(36).slice(2),
+    flash: 0,
+    streetIdx: si,
+  };
+}
+
+// ─── Init ─────────────────────────────────────────────────────────
+function init() {
+  spots = [];
+  for (let i = 0; i < 26; i++) spots.push(makeSpot());
+  renderLeaderboard();
+  renderHistory();
+  const loading = document.getElementById('mapLoading');
+  setTimeout(() => {
+    renderAll();
+    loading.classList.add('hidden');
+    setTimeout(() => { loading.style.display = 'none'; }, 420);
+  }, 1200);
+  startFeedCycle();
+}
+
+// ─── Availability color ───────────────────────────────────────────
+function availColor(pct) {
+  if (pct >= 70) return '#22c55e';
+  if (pct >= 30) return '#eab308';
+  return '#ef4444';
+}
+
+// ─── Draw Map ─────────────────────────────────────────────────────
+function drawMap() {
+  const canvas = document.getElementById('mapCanvas');
+  const wrap = document.getElementById('mapWrap');
+  const rect = wrap.getBoundingClientRect();
+  if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
+    canvas.width = Math.floor(rect.width); canvas.height = Math.floor(rect.height);
+  }
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Background + buildings — cached offscreen (static, avoids per-frame flicker/CPU)
+  if (!drawMap._bg || drawMap._bg.width !== W || drawMap._bg.height !== H) {
+    const bg = document.createElement('canvas'); bg.width = W; bg.height = H;
+    const bctx = bg.getContext('2d');
+    bctx.fillStyle = '#0c1a0c';
+    bctx.fillRect(0,0,W,H);
+    const hPos = STREETS_DEF.filter(s=>s.isH).map(s=>s.pos).sort((a,b)=>a-b);
+    const vPos = STREETS_DEF.filter(s=>!s.isH).map(s=>s.pos).sort((a,b)=>a-b);
+    const allH = [0, ...hPos, 1];
+    const allV = [0, ...vPos, 1];
+    for (let xi=0; xi<allV.length-1; xi++) {
+      for (let yi=0; yi<allH.length-1; yi++) {
+        const x1=allV[xi]*W+7, x2=allV[xi+1]*W-7;
+        const y1=allH[yi]*H+7, y2=allH[yi+1]*H-7;
+        if (x2>x1 && y2>y1) {
+          bctx.fillStyle = '#0d1a0d';
+          bctx.fillRect(x1,y1,x2-x1,y2-y1);
+          // tiny buildings
+          const cols = Math.max(1, Math.floor((x2-x1)/28));
+          const rows = Math.max(1, Math.floor((y2-y1)/28));
+          const bw = (x2-x1)/cols, bh = (y2-y1)/rows;
+          for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) {
+            const bx=x1+c*bw+3, by=y1+r*bh+3;
+            bctx.fillStyle=`rgba(${22+xi*6},${32+yi*5},${22+xi*4},.95)`;
+            bctx.fillRect(bx,by,bw-6,bh-6);
+            if (bw>18 && bh>18 && Math.random()<0.55) {
+              bctx.fillStyle='rgba(255,210,80,0.14)';
+              bctx.fillRect(bx+3,by+3,4,4);
+            }
+          }
+        }
+      }
+    }
+    drawMap._bg = bg;
+  }
+  ctx.drawImage(drawMap._bg, 0, 0);
+
+  // Draw street base (dark road)
+  STREETS_DEF.forEach(s => {
+    ctx.lineWidth = 14;
+    ctx.strokeStyle = '#182818';
+    ctx.beginPath();
+    if (s.isH) { ctx.moveTo(0,s.pos*H); ctx.lineTo(W,s.pos*H); }
+    else { ctx.moveTo(s.pos*W,0); ctx.lineTo(s.pos*W,H); }
+    ctx.stroke();
+  });
+
+  // Draw colored availability segments on top of roads
+  STREETS_DEF.forEach((s, idx) => {
+    const filtered = !activeFilters[s.type];
+    const color = filtered ? 'rgba(100,100,100,0.25)' : availColor(s.avail);
+    const isSelected = selectedStreetIdx === idx;
+
+    // Main colored street line
+    ctx.lineWidth = filtered ? 4 : (isSelected ? 10 : 7);
+    ctx.strokeStyle = color;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    if (s.isH) { ctx.moveTo(8,s.pos*H); ctx.lineTo(W-8,s.pos*H); }
+    else { ctx.moveTo(s.pos*W,8); ctx.lineTo(s.pos*W,H-8); }
+    ctx.stroke();
+
+    // Selected glow
+    if (isSelected) {
+      ctx.lineWidth = 16;
+      ctx.strokeStyle = color + '40';
+      ctx.beginPath();
+      if (s.isH) { ctx.moveTo(8,s.pos*H); ctx.lineTo(W-8,s.pos*H); }
+      else { ctx.moveTo(s.pos*W,8); ctx.lineTo(s.pos*W,H-8); }
+      ctx.stroke();
+    }
+
+    if (!filtered) {
+      // Center dashes
+      ctx.setLineDash([10,9]);
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(255,220,50,0.18)';
+      ctx.beginPath();
+      if (s.isH) { ctx.moveTo(8,s.pos*H); ctx.lineTo(W-8,s.pos*H); }
+      else { ctx.moveTo(s.pos*W,8); ctx.lineTo(s.pos*W,H-8); }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Street name label
+    if (!filtered) {
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillStyle = isSelected ? '#fff' : 'rgba(255,255,255,0.55)';
+      ctx.textBaseline = 'middle';
+      if (s.isH) {
+        ctx.textAlign = 'right';
+        ctx.fillText(s.name + ' ' + s.avail + '%', W-10, s.pos*H - 10);
+      } else {
+        ctx.save();
+        ctx.translate(s.pos*W + 6, H*0.12);
+        ctx.rotate(Math.PI/2);
+        ctx.textAlign = 'left';
+        ctx.fillText(s.name + ' ' + s.avail + '%', 0, 0);
+        ctx.restore();
+      }
+    }
+  });
+
+  const now = Date.now();
+
+  // Route line (Waze-style, animated dashes along street grid)
+  if (route.active && route.path.length > 1) {
+    const pts = route.path.map(p=>({x:p.x*W, y:p.y*H}));
+    ctx.lineJoin='round'; ctx.lineCap='round';
+    // glow underlay
+    ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+    ctx.lineWidth = 11; ctx.strokeStyle = 'rgba(59,130,246,0.25)'; ctx.stroke();
+    // solid blue route
+    ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+    ctx.lineWidth = 5; ctx.strokeStyle = '#3b82f6'; ctx.stroke();
+    // moving white dashes (Waze feel)
+    ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+    ctx.setLineDash([12,16]); ctx.lineDashOffset = -((now/30)%28);
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.stroke();
+    ctx.setLineDash([]);
+    // destination pin
+    const end = pts[pts.length-1];
+    ctx.font = '16px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.fillText('📍', end.x, end.y - 4);
+  } else if (selectedStreetIdx !== null) {
+    const s = STREETS_DEF[selectedStreetIdx];
+    const ux=userPos.x*W, uy=userPos.y*H;
+    const sx = s.isH ? W*0.5 : s.pos*W;
+    const sy = s.isH ? s.pos*H : H*0.5;
+    ctx.setLineDash([8,6]);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(59,130,246,0.55)';
+    ctx.beginPath(); ctx.moveTo(ux,uy); ctx.lineTo(sx,sy); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Spot dots (subtle, on streets)
+  spots.forEach(s => {
+    const sdef = STREETS_DEF[s.streetIdx];
+    if (sdef && !activeFilters[sdef.type]) return;
+    const x = s.x*W, y = s.y*H;
+    const color = s.type==='free'?'#22c55e':s.type==='soon'?'#eab308':'#ef4444';
+    const r = 6;
+
+    // Pulse rings for newly freed spots
+    if (s.flash && now - s.flash < 3000) {
+      const elapsed = now - s.flash;
+      for (let ring = 0; ring < 2; ring++) {
+        const delay = ring * 500;
+        const re = elapsed - delay;
+        if (re > 0 && re < 1400) {
+          const prog = re/1400;
+          ctx.beginPath();
+          ctx.arc(x, y, r + 4 + prog*22, 0, Math.PI*2);
+          ctx.strokeStyle = `rgba(34,197,94,${(1-prog)*0.65})`;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+    }
+
+    ctx.beginPath(); ctx.arc(x,y,r+3,0,Math.PI*2);
+    ctx.fillStyle = color+'28'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle = color; ctx.fill();
+    ctx.fillStyle='#fff';
+    ctx.font='bold 7px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(s.type==='free'?'P':s.type==='soon'?'↑':'✕', x, y);
+  });
+
+  // Future "leaving soon" reports — blinking light-blue with countdown
+  futureReports.forEach(r => {
+    const x = r.x*W, y = r.y*H;
+    const blink = 0.45 + 0.55 * Math.abs(Math.sin(now/350));
+    const cyan = '#22d3ee';
+    ctx.beginPath(); ctx.arc(x,y,13,0,Math.PI*2);
+    ctx.fillStyle = `rgba(34,211,238,${0.18*blink})`; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2);
+    ctx.globalAlpha = blink;
+    ctx.fillStyle = cyan; ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#062a30';
+    ctx.font = 'bold 8px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('🚗', x, y);
+    // countdown label
+    const remainMs = r.readyAt - now;
+    const label = remainMs > 0 ? `יוצא בעוד ${Math.max(1,Math.ceil(remainMs/60000))} דק'` : 'מתפנה עכשיו!';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillStyle = cyan;
+    ctx.fillText(label, x, y - 16);
+  });
+
+  // Pango payment-ended events — blinking "clearing soon" markers
+  pangoEvents.forEach(ev => {
+    const x = ev.x*W, y = ev.y*H;
+    const blink = 0.45 + 0.55 * Math.abs(Math.sin(now/300));
+    ctx.beginPath(); ctx.arc(x,y,12,0,Math.PI*2);
+    ctx.fillStyle = `rgba(56,189,248,${0.16*blink})`; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,7.5,0,Math.PI*2);
+    ctx.globalAlpha = blink;
+    ctx.fillStyle = '#38bdf8'; ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#06283a';
+    ctx.font = 'bold 9px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('P', x, y);
+    ctx.font = 'bold 9.5px sans-serif';
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText("מתפנה (פנגו) ~2 דק'", x, y - 15);
+  });
+
+  // Parkings along active route
+  if (route.active) {
+    route.parkings.forEach(p => {
+      const x = p.x*W, y = p.y*H, r = 8;
+      if (p.taken) {
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle='#ef4444'; ctx.fill();
+        ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+        ctx.fillStyle='#fff'; ctx.font='bold 9px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('✕', x, y);
+      } else if (p.type === 'blue') {
+        // half blue / half white
+        ctx.beginPath(); ctx.arc(x,y,r,Math.PI/2,Math.PI*1.5); ctx.closePath(); ctx.fillStyle='#fff'; ctx.fill();
+        ctx.beginPath(); ctx.arc(x,y,r,-Math.PI/2,Math.PI/2); ctx.closePath(); ctx.fillStyle='#3b82f6'; ctx.fill();
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.strokeStyle='#3b82f6'; ctx.lineWidth=2; ctx.stroke();
+      } else {
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle='#22c55e'; ctx.fill();
+        ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+        ctx.fillStyle='#fff'; ctx.font='bold 9px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('P', x, y);
+      }
+    });
+  }
+}
+
+// ─── Heatmap ─────────────────────────────────────────────────────
+function drawHeatmap() {
+  const canvas = document.getElementById('heatmapCanvas');
+  const wrap = document.getElementById('mapWrap');
+  const rect = wrap.getBoundingClientRect();
+  if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
+    canvas.width = Math.floor(rect.width); canvas.height = Math.floor(rect.height);
+  }
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  STREETS_DEF.forEach(s => {
+    const cx = s.isH ? W*0.5 : s.pos*W;
+    const cy = s.isH ? s.pos*H : H*0.5;
+    const freeRatio = s.avail/100;
+    const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,s.isH?H*0.5:W*0.5);
+    const r = Math.floor(255*(1-freeRatio)), g = Math.floor(200*freeRatio);
+    grad.addColorStop(0,`rgba(${r},${g},30,0.22)`);
+    grad.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grad;
+    ctx.fillRect(0,0,W,H);
+  });
+}
+
+function toggleHeatmap() {
+  heatmapActive = !heatmapActive;
+  document.getElementById('heatmapBtn').classList.toggle('active', heatmapActive);
+  document.getElementById('heatmapCanvas').classList.toggle('active', heatmapActive);
+  if (heatmapActive) drawHeatmap();
+}
+
+// ─── Filter bar ───────────────────────────────────────────────────
+function toggleFilter(type) {
+  activeFilters[type] = !activeFilters[type];
+  document.getElementById('filt-'+type).classList.toggle('active', activeFilters[type]);
+  renderAll();
+}
+
+// ─── Side Panel ──────────────────────────────────────────────────
+function renderSidePanel() {
+  const visible = STREETS_DEF.filter(s => activeFilters[s.type]);
+  const easy = visible.filter(s=>s.avail>=70).length;
+  const med = visible.filter(s=>s.avail>=30 && s.avail<70).length;
+  document.getElementById('freeCount').textContent = easy;
+  document.getElementById('soonCount').textContent = med;
+  document.getElementById('totalCount').textContent = visible.length;
+  if (typeof updateDepartureHelper === 'function') updateDepartureHelper();
+
+  const list = document.getElementById('spotsList');
+  const sorted = [...STREETS_DEF].map((s,i)=>({...s,idx:i}))
+    .filter(s=>activeFilters[s.type])
+    .sort((a,b)=>b.avail-a.avail);
+
+  list.innerHTML = sorted.map(s => {
+    const color = availColor(s.avail);
+    const label = s.avail>=70?'פנוי בקלות':s.avail>=30?'בינוני':'עמוס';
+    const typeLabel = s.type==='blue'?'🔵 כחול-לבן':s.type==='free'?'⚪ חינם':'⏱️ מוגבל';
+    return `
+    <div class="spot-item ${selectedStreetIdx===s.idx?'selected':''}" onclick="selectStreet(${s.idx})">
+      <div class="spot-street" style="display:flex;align-items:center;justify-content:space-between">
+        <span style="display:flex;align-items:center">
+          <span class="tl-dot" style="background:${color};color:${color}"></span>
+          📍 ${s.name}
+        </span>
+        <span style="font-size:0.68rem;color:${color};font-weight:700">${s.avail}%</span>
+      </div>
+      <div class="spot-meta" style="margin-top:4px">
+        <span class="spot-dist">${typeLabel}</span>
+        <span class="spot-badge" style="background:${color}22;color:${color}">${label}</span>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:6px;overflow:hidden">
+        <div style="height:100%;width:${s.avail}%;background:${color};border-radius:2px;transition:width.5s"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Street Card ─────────────────────────────────────────────────
+function selectStreet(idx) {
+  selectedStreetIdx = idx;
+  document.getElementById('heroOverlay').classList.add('hidden');
+  const s = STREETS_DEF[idx];
+  const hourly = STREET_HOURLY[idx];
+  const color = availColor(s.avail);
+  const label = s.avail>=70?'קל למציאה':s.avail>=30?'בינוני':'קשה — עמוס';
+  const spotsNow = Math.round(s.avail/100 * (8 + Math.floor(Math.random()*6)));
+
+  document.getElementById('scName').textContent = 'רח\' ' + s.name;
+  document.getElementById('scPct').textContent = s.avail + '%';
+  document.getElementById('scPct').style.color = color;
+  document.getElementById('scBarFill').style.width = s.avail + '%';
+  document.getElementById('scBarFill').style.background = color;
+  document.getElementById('scLabel').innerHTML = label + '<br><span style="font-size:0.7rem;color:var(--muted)">זמינות חניה</span>';
+  // Probabilistic language instead of point promises
+  const prob = Math.round(s.avail);
+  let probText;
+  if (prob >= 60) probText = `🎯 סיכוי גבוה (${prob}%) למצוא חניה ב-10 הדקות הקרובות`;
+  else if (prob >= 30) probText = `🎯 סיכוי בינוני (${prob}%) למצוא חניה ב-10 הדקות הקרובות — ייתכן סיבוב או שניים`;
+  else probText = `🎯 סיכוי נמוך (${prob}%) — שקול רחוב אחר`;
+  const pangoNum = 2 + (typeof pangoEvents !== 'undefined' ? pangoEvents.filter(ev=>ev.streetIdx===idx).length : 0);
+  document.getElementById('scCommunity').innerHTML = probText +
+    `<div style="font-size:0.66rem;color:var(--muted);margin-top:3px">מבוסס על ${spotsNow + 4} דיווחי קהילה + ${pangoNum} אירועי פנגו + דפוסי שעה</div>`;
+  scheduleFoundPrompt(idx);
+
+  // Mini bar chart
+  const hours = ['08','10','12','14','16','18','20'];
+  const maxH = Math.max(...hourly);
+  document.getElementById('scMiniChart').innerHTML = hourly.map((v,i)=> {
+    const h = Math.max(6, Math.round(v/maxH * 36));
+    const c = availColor(Math.round(v*100));
+    return `<div class="sc-mini-bar" style="height:${h}px;background:${c};opacity:${i===3?1:0.65}"></div>`;
+  }).join('');
+  document.getElementById('scMiniLabels').innerHTML = hours.map(h=>`<div class="sc-mini-label">${h}</div>`).join('');
+
+  document.getElementById('scNavBtn').dataset.street = s.name;
+  buildRouteToStreet(idx);
+  document.getElementById('streetCardOverlay').classList.add('show');
+  renderAll();
+}
+
+function closeStreetCard(e) {
+  if (e && e.target !== document.getElementById('streetCardOverlay')) return;
+  document.getElementById('streetCardOverlay').classList.remove('show');
+  selectedStreetIdx = null;
+  renderAll();
+}
+
+function shareWaze() {
+  if (selectedStreetIdx === null) return;
+  const s = STREETS_DEF[selectedStreetIdx];
+  window.open(`https://waze.com/ul?q=${encodeURIComponent('רחוב '+s.name+' תל אביב')}`, '_blank');
+}
+
+function shareWhatsApp() {
+  if (selectedStreetIdx === null) return;
+  const s = STREETS_DEF[selectedStreetIdx];
+  const msg = `🅿️ ParkWiz: רחוב ${s.name} — זמינות חניה ${s.avail}%. בוא תחנה כאן!`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function navigateToStreet() {
+  const btn = document.getElementById('scNavBtn');
+  const street = btn.dataset.street || 'תל אביב';
+  window.open(`waze://ul?q=${encodeURIComponent('רחוב '+street+' תל אביב')}`, '_blank');
+  setTimeout(()=>{
+    window.open(`https://waze.com/ul?q=${encodeURIComponent('רחוב '+street+' תל אביב')}`, '_blank');
+  }, 500);
+}
+
+// ─── Leaderboard & History ────────────────────────────────────────
+function renderLeaderboard() {
+  const sorted = [...LEADERBOARD].sort((a,b)=>b.pts-a.pts);
+  document.getElementById('leaderboard').innerHTML = sorted.map((u,i)=>`
+    <div class="lb-item ${u.me?'me-row':''}">
+      <div class="lb-rank">${i+1}</div>
+      <div class="lb-name">${u.me?'⭐ '+u.name:u.name}</div>
+      <div class="lb-pts">${u.pts}</div>
+    </div>`).join('');
+}
+
+function renderHistory() {
+  document.getElementById('historyList').innerHTML = HISTORY.map(h=>`
+    <div class="history-item">
+      <div>
+        <div class="hist-addr">📍 ${h.addr}</div>
+        <div class="hist-meta">${h.time} · חסכת ${h.saved}</div>
+      </div>
+      <div class="hist-pts">+${h.pts} XP</div>
+    </div>`).join('');
+}
+
+// ─── Actions ─────────────────────────────────────────────────────
+function renderAll() {
+  drawMap();
+  renderSidePanel();
+  if (heatmapActive) drawHeatmap();
+  positionUserDot();
+}
+
+function positionUserDot() {
+  const wrap = document.getElementById('mapWrap');
+  const dot = document.getElementById('userDot');
+  dot.style.left = (wrap.offsetWidth*userPos.x)+'px';
+  dot.style.top = (wrap.offsetHeight*userPos.y)+'px';
+}
+
+function onSearch(val) {
+  const ac = document.getElementById('autocomplete');
+  if (!val.trim()) { ac.classList.remove('open'); return; }
+  const matches = TA_STREETS.filter(s=>s.includes(val)).slice(0,5);
+  if (!matches.length) { ac.classList.remove('open'); return; }
+  ac.innerHTML = matches.map(s=>`<div class="ac-item" onclick="selectSearch('${s}')">${s}</div>`).join('');
+  ac.classList.add('open');
+}
+
+function selectSearch(street) {
+  document.getElementById('searchInput').value = street;
+  document.getElementById('autocomplete').classList.remove('open');
+  const clean = street.replace(/^(רחוב|שדרות|שד'|רח') /,'');
+  const idx = STREETS_DEF.findIndex(s=>s.name===clean||street.includes(s.name));
+  if (idx !== -1) { selectStreet(idx); showRecommended(idx); return; }
+  showRecommended(null);
+  showToast('🔍 מציג חניות ב'+street);
+}
+
+function closeAC() {
+  document.getElementById('autocomplete').classList.remove('open');
+}
+
+// ─── "אני עוזב" multi-step flow ───────────────────────────────────
+let leavingDelayMin = 0;
+let futureReports = [];
+
+function leavingPickWhen(mins, btn) {
+  leavingDelayMin = mins;
+  document.querySelectorAll('#leavingStep0 .leaving-type-btn').forEach(b=>b.classList.remove('chosen'));
+  btn.classList.add('chosen');
+  setTimeout(()=>{
+    document.getElementById('leavingStep0').style.display = 'none';
+    document.getElementById('leavingStep1').style.display = 'block';
+  }, 280);
+}
+
+function addFutureReport(count) {
+  const idx = selectedStreetIdx !== null ? selectedStreetIdx : Math.floor(Math.random()*STREETS_DEF.length);
+  const s = STREETS_DEF[idx];
+  const now = Date.now();
+  futureReports.push({
+    streetIdx: idx, count,
+    x: s.isH ? (0.15 + Math.random()*0.7) : s.pos,
+    y: s.isH ? s.pos : (0.15 + Math.random()*0.7),
+    readyAt: now + leavingDelayMin*60000,
+    expireAt: now + (leavingDelayMin+3)*60000,
+  });
+  const xpGain = 8 + count * 4;
+  userScore += xpGain;
+  updateXP(xpGain);
+  document.getElementById('leavingOverlay').classList.remove('show');
+  showToast(`🕐 דיווח עתידי נקלט! מקום יתפנה ב${s.name} בעוד ~${leavingDelayMin} דק' (+${xpGain} XP)`);
+  COMMUNITY_FEED.unshift({msg:`👤 משתמש יוצא בעוד ~${leavingDelayMin} דק' ב${s.name} (${count} מקומ${count>1?'ות':''})`, street:s.name});
+  updateFeed();
+  renderAll();
+}
+
+function pruneFutureReports() {
+  const now = Date.now();
+  const before = futureReports.length;
+  futureReports = futureReports.filter(r => {
+    if (now >= r.expireAt) return false;               // auto-expire: time + 3 min
+    return true;
+  });
+  if (futureReports.length !== before) renderAll();
+}
+setInterval(pruneFutureReports, 5000);
+
+function startLeaving() {
+  leavingParkType = null;
+  leavingDelayMin = 0;
+  document.getElementById('leavingStep0').style.display = 'block';
+  document.querySelectorAll('#leavingStep0 .leaving-type-btn').forEach(b=>b.classList.remove('chosen'));
+  document.getElementById('leavingStep1').style.display = 'none';
+  document.getElementById('leavingStep2').style.display = 'none';
+  document.getElementById('leavingStep3').style.display = 'none';
+  document.querySelectorAll('.leaving-type-btn').forEach(b=>b.classList.remove('chosen'));
+  document.getElementById('spotsSlider').value = 1;
+  document.getElementById('sliderVal').textContent = '1';
+  document.getElementById('leavingOverlay').classList.add('show');
+}
+
+function leavingPickType(type, btn) {
+  leavingParkType = type;
+  document.querySelectorAll('.leaving-type-btn').forEach(b=>b.classList.remove('chosen'));
+  btn.classList.add('chosen');
+  setTimeout(()=>{
+    document.getElementById('leavingStep1').style.display = 'none';
+    document.getElementById('leavingStep2').style.display = 'block';
+  }, 280);
+}
+
+function leavingSubmit() {
+  const count = parseInt(document.getElementById('spotsSlider').value);
+  if (leavingDelayMin > 0) { addFutureReport(count); return; }
+  document.getElementById('leavingStep2').style.display = 'none';
+  document.getElementById('leavingStep3').style.display = 'block';
+  const countEl = document.getElementById('leavingCount');
+  const labelEl = document.getElementById('leavingLabel');
+  countEl.style.fontSize = '4rem';
+  countEl.style.color = 'var(--green)';
+  labelEl.textContent = 'מדווח בעוד...';
+  let n = 3;
+  countEl.textContent = n;
+  const iv = setInterval(()=>{
+    n--;
+    if (n <= 0) {
+      clearInterval(iv);
+      countEl.textContent = '✅';
+      countEl.style.fontSize = '3rem';
+      const xpGain = 10 + count * 5;
+      labelEl.textContent = `תודה! +${xpGain} XP לדיווח מפורט 🏆`;
+      labelEl.style.color = 'var(--green)';
+      setTimeout(() => {
+        document.getElementById('leavingOverlay').classList.remove('show');
+        labelEl.style.color = '';
+        doReportLeaving(count, xpGain);
+      }, 950);
+    } else {
+      countEl.textContent = n;
+    }
+  }, 1000);
+}
+
+function cancelLeaving() {
+  document.getElementById('leavingOverlay').classList.remove('show');
+}
+
+function doReportLeaving(count, xpGain) {
+  // Update street availability
+  const idx = selectedStreetIdx !== null ? selectedStreetIdx : Math.floor(Math.random()*STREETS_DEF.length);
+  STREETS_DEF[idx].avail = Math.min(100, STREETS_DEF[idx].avail + count * 8);
+  userScore += xpGain;
+  updateXP(xpGain);
+  renderAll();
+  showToast('✅ תודה! +' + xpGain + ' נקודות אמינות 🏆');
+  HISTORY.unshift({addr:'רח\' '+STREETS_DEF[idx].name, time:'עכשיו', saved:'? דקות', pts:xpGain});
+  renderHistory();
+  // Add to feed
+  COMMUNITY_FEED.unshift({msg:`👤 משתמש דיווח: ${count} מקום${count>1?'ות':''} פנ${count>1?'ו':'ה'} ב${STREETS_DEF[idx].name}`, street:STREETS_DEF[idx].name});
+  updateFeed();
+}
+
+// ─── Live Feed ───────────────────────────────────────────────────
+function startFeedCycle() {
+  updateFeed();
+  setInterval(()=>{
+    feedSecondsAgo++;
+    if (feedSecondsAgo >= 4) {
+      feedIdx = (feedIdx + 1) % COMMUNITY_FEED.length;
+      feedSecondsAgo = 0;
+    }
+    updateFeed();
+  }, 1000);
+}
+
+function updateFeed() {
+  const item = COMMUNITY_FEED[feedIdx % COMMUNITY_FEED.length];
+  document.getElementById('feedItem').textContent = item.msg;
+  document.getElementById('feedTime').textContent = feedSecondsAgo === 0 ? 'עכשיו' : `לפני ${feedSecondsAgo} שניות`;
+}
+
+function toggleHistory() {
+  historyOpen = !historyOpen;
+  document.getElementById('historySheet').classList.toggle('open', historyOpen);
+}
+
+function openReserve(id) {
+  document.getElementById('reserveModal').classList.add('show');
+}
+function closeReserve() {
+  document.getElementById('reserveModal').classList.remove('show');
+}
+function confirmReserve() {
+  closeReserve();
+  showToast('✅ המקום הוזמן! יש לך 30 דקות. 💳 ₪4.50 יחויב בסיום');
+}
+
+function updateXP(gained) {
+  const pct = Math.min(100, Math.round(userScore/500*100));
+  document.getElementById('xpFill').style.width = pct+'%';
+  document.getElementById('xpPct').textContent = pct+'%';
+  document.getElementById('xpSub').textContent = userScore+' / 500 XP';
+  LEADERBOARD.find(u=>u.me).pts = userScore;
+  renderLeaderboard();
+  if (gained) {
+    const xpEl = document.getElementById('xpSub');
+    const rect = xpEl.getBoundingClientRect();
+    const pop = document.createElement('div');
+    pop.className = 'xp-pop';
+    pop.textContent = '+' + gained + ' XP';
+    pop.style.left = rect.left + 'px';
+    pop.style.top = rect.top + 'px';
+    document.body.appendChild(pop);
+    setTimeout(() => pop.remove(), 950);
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+function switchNav(tab) {
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav'+tab[0].toUpperCase()+tab.slice(1)).classList.add('active');
+  if (tab==='search') document.getElementById('searchInput').focus();
+  if (tab==='profile') showToast('👤 פרופיל: '+userScore+' XP | דירוג #3 שבועי');
+}
+
+// ─── Live simulation ──────────────────────────────────────────────
+function refreshStreets() {
+  secondsAgo++;
+  document.getElementById('updateTime').textContent = `עודכן לפני ${secondsAgo} שנ'`;
+  // Randomly drift 1-2 street availabilities slightly
+  for (let c=0; c<2; c++) {
+    const i = Math.floor(Math.random()*STREETS_DEF.length);
+    const delta = (Math.random()-.5) * 8;
+    STREETS_DEF[i].avail = Math.round(Math.max(5, Math.min(98, STREETS_DEF[i].avail + delta)));
+  }
+  secondsAgo = 0;
+  renderAll();
+  if (heatmapActive) drawHeatmap();
+}
+
+window.addEventListener('resize', ()=>{ drawMap(); positionUserDot(); if(heatmapActive)drawHeatmap(); });
+
+// Click on map — detect nearby street
+document.getElementById('mapCanvas').addEventListener('click', e=>{
+  const canvas = e.target;
+  const rect = canvas.getBoundingClientRect();
+  const px = (e.clientX - rect.left) / rect.width;
+  const py = (e.clientY - rect.top) / rect.height;
+
+  // Parking markers on route — tooltip first
+  if (route.active) {
+    for (const p of route.parkings) {
+      const dx = (px - p.x) * rect.width, dy = (py - p.y) * rect.height;
+      if (Math.hypot(dx, dy) < 14) { showParkTooltip(p); return; }
+    }
+    hideParkTooltip();
+  }
+
+  let closest = null, minD = 0.025;
+  STREETS_DEF.forEach((s, idx) => {
+    let d;
+    if (s.isH) d = Math.abs(py - s.pos);
+    else d = Math.abs(px - s.pos);
+    if (d < minD) { minD = d; closest = idx; }
+  });
+  if (closest !== null) {
+    selectStreet(closest);
+  }
+});
+
+// ─── Premium / Pricing ───────────────────────────────────────────
+function showParkPricing() { document.getElementById('parkPricingOverlay').classList.add('show'); }
+function closeParkPricing() { document.getElementById('parkPricingOverlay').classList.remove('show'); }
+function showPremiumLock() {
+  if (isPremium) { openReserve(); return; }
+  document.getElementById('premiumLockOverlay').classList.add('show');
+}
+function closeLockModal() { document.getElementById('premiumLockOverlay').classList.remove('show'); }
+function activatePremium() {
+  isPremium = true;
+  closeParkPricing();
+  const pill = document.getElementById('planPill');
+  pill.textContent = 'PREMIUM';
+  pill.style.cssText = 'background:linear-gradient(135deg,#a855f7,#3b82f6);color:#fff;border-color:transparent;border-radius:12px;padding:4px 10px;font-size:0.68rem;font-weight:800;letter-spacing:.4px;white-space:nowrap';
+  document.querySelector('.premium-btn').textContent = '✅ Premium פעיל';
+  document.querySelector('.premium-btn').style.background = 'rgba(168,85,247,.2)';
+  showToast('🎉 ParkWiz Premium הופעל! הזמנות מראש זמינות.');
+}
+
+// ─── "3 רחובות מומלצים" ──────────────────────────────────────────
+function walkMinutes(target, s) {
+  if (!target || target === s) return 2;
+  return Math.max(2, Math.min(8, Math.round(2 + Math.abs(s.pos - target.pos) * 8 + (s.isH !== target.isH ? 1 : 0))));
+}
+
+function showRecommended(targetIdx) {
+  const target = targetIdx !== null ? STREETS_DEF[targetIdx] : null;
+  const top3 = STREETS_DEF.map((s,i)=>({...s, idx:i}))
+    .filter(s => activeFilters[s.type])
+    .sort((a,b)=>b.avail-a.avail)
+    .slice(0,3);
+  if (!top3.length) return;
+  document.getElementById('recoList').innerHTML = top3.map((s,i)=>{
+    const c = availColor(s.avail);
+    return `<div class="reco-item" onclick="selectStreet(${s.idx});closeReco()">
+      <span class="reco-name">${i+1}. ${s.name}</span>
+      <span class="reco-pct" style="color:${c}">(${Math.round(s.avail)}%)</span>
+      <span class="reco-walk">🚶 ${walkMinutes(target, s)} דק' ליעד</span>
+    </div>`;
+  }).join('');
+  document.getElementById('recoCard').classList.add('show');
+}
+function closeReco() { document.getElementById('recoCard').classList.remove('show'); }
+
+// ─── עוזר יציאה (departure helper) ───────────────────────────────
+function updateDepartureHelper() {
+  const visible = STREETS_DEF.filter(s => activeFilters[s.type]);
+  const msgEl = document.getElementById('depMsg'), subEl = document.getElementById('depSub');
+  if (!visible.length) { msgEl.textContent = '—'; subEl.textContent = ''; return; }
+  const avg = visible.reduce((a,s)=>a+s.avail,0) / visible.length;
+  const hour = new Date().getHours();
+  // rush-hour penalty / off-peak bonus
+  let score = avg;
+  if (hour >= 17 && hour < 19) score -= 22;
+  else if (hour >= 8 && hour < 10) score -= 12;
+  else if (hour >= 21 || hour < 7) score += 12;
+  const target = selectedStreetIdx !== null ? STREETS_DEF[selectedStreetIdx].name : null;
+  const where = target ? `ליד ${target}` : 'באזור';
+  if (score >= 55) {
+    msgEl.innerHTML = '✅ <span style="color:var(--green)">צא עכשיו — חלון טוב</span>';
+    subEl.textContent = `זמינות ${where} גבוהה יחסית לשעה זו`;
+  } else if (score >= 30) {
+    msgEl.innerHTML = '⏳ <span style="color:var(--yellow)">חכה ~15 דקות — עומס יורד</span>';
+    subEl.textContent = `הזמינות ${where} צפויה להשתפר בקרוב`;
+  } else {
+    msgEl.innerHTML = '❌ <span style="color:var(--red)">אל תצא עכשיו — שיא עומס, נסה אחרי 19:00</span>';
+    subEl.textContent = `זמינות נמוכה ${where} בשעה זו`;
+  }
+}
+
+// ─── Feedback loop אחרי חיפוש ────────────────────────────────────
+let foundTimer = null;
+let foundStreetIdx = null;
+function scheduleFoundPrompt(idx) {
+  clearTimeout(foundTimer);
+  foundStreetIdx = idx;
+  foundTimer = setTimeout(()=>{
+    document.getElementById('foundPrompt').classList.add('show');
+  }, 30000);
+}
+function answerFound(ans) {
+  document.getElementById('foundPrompt').classList.remove('show');
+  if (foundStreetIdx === null) return;
+  const s = STREETS_DEF[foundStreetIdx];
+  const delta = ans === 'no' ? -10 : 5;
+  s.avail = Math.max(5, Math.min(98, s.avail + delta));
+  try {
+    const arr = JSON.parse(localStorage.getItem('parkwiz_found_feedback') || '[]');
+    arr.push({ street: s.name, answer: ans, ts: new Date().toISOString() });
+    while (arr.length > 200) arr.shift();
+    localStorage.setItem('parkwiz_found_feedback', JSON.stringify(arr));
+  } catch(e) {}
+  renderAll();
+  showToast(ans === 'no' ? '😞 תודה — עדכנו את ההסתברות של ' + s.name : '💚 תודה! הדיווח שלך משפר את הדיוק');
+  foundStreetIdx = null;
+}
+
+// ─── באנר קהילת WhatsApp ─────────────────────────────────────────
+function joinWaCommunity() {
+  const msg = '🅿️ הצטרפתי לקהילת החניה של השכונה ב-ParkWiz! בואו נעזור אחד לשני למצוא חניה — הסתברויות אמיתיות, לא הבטחות: https://parkwiz.example';
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+function closeWaBanner() {
+  document.getElementById('waBanner').classList.add('hidden');
+  try { localStorage.setItem('parkwiz_wa_banner_closed', '1'); } catch(e) {}
+}
+if (localStorage.getItem('parkwiz_wa_banner_closed')) {
+  document.getElementById('waBanner').classList.add('hidden');
+}
+
+// ─── Route view: מסלול Waze-style + חניות בדרך ────────────────────
+let userPos = { x:0.5, y:0.5 };
+let route = { active:false, path:[], parkings:[], targetIdx:null, label:'' };
+let navState = { active:false, start:0, promptShown:false };
+let pangoEvents = [];
+
+function nearestStreetTo(arr, val) { return arr.reduce((a,b)=>Math.abs(b.pos-val)<Math.abs(a.pos-val)?b:a); }
+
+// Path along the street grid — 2-3 turns, never a straight line
+function buildRoutePath(tx, ty) {
+  const hs = STREETS_DEF.filter(s=>s.isH), vs = STREETS_DEF.filter(s=>!s.isH);
+  const h1 = nearestStreetTo(hs, userPos.y);
+  const v1 = nearestStreetTo(vs, tx);
+  const raw = [
+    {x:userPos.x, y:userPos.y},
+    {x:userPos.x, y:h1.pos},
+    {x:v1.pos,    y:h1.pos},
+    {x:v1.pos,    y:ty},
+    {x:tx,        y:ty},
+  ];
+  const path = [raw[0]];
+  raw.slice(1).forEach(p=>{
+    const l = path[path.length-1];
+    if (Math.abs(p.x-l.x) > 0.004 || Math.abs(p.y-l.y) > 0.004) path.push(p);
+  });
+  return path;
+}
+
+function pathLength(path) {
+  let L = 0;
+  for (let i=1;i<path.length;i++) L += Math.hypot(path[i].x-path[i-1].x, path[i].y-path[i-1].y);
+  return L;
+}
+
+function pointAt(path, t) {
+  let d = Math.max(0, Math.min(1, t)) * pathLength(path);
+  for (let i=1;i<path.length;i++) {
+    const seg = Math.hypot(path[i].x-path[i-1].x, path[i].y-path[i-1].y);
+    if (d <= seg || i === path.length-1) {
+      const f = seg ? Math.min(1, d/seg) : 0;
+      return { x: path[i-1].x + (path[i].x-path[i-1].x)*f, y: path[i-1].y + (path[i].y-path[i-1].y)*f };
+    }
+    d -= seg;
+  }
+  return path[path.length-1];
+}
+
+function genRouteParkings(targetIdx) {
+  const baseProb = targetIdx !== null ? STREETS_DEF[targetIdx].avail : 50;
+  return [0.35, 0.5, 0.65, 0.8, 0.92].map((f, i) => {
+    const p = pointAt(route.path, f);
+    const type = Math.random() < 0.5 ? 'blue' : 'free';
+    const prob = Math.max(8, Math.min(96, Math.round(baseProb + (Math.random()-0.5)*26)));
+    const walk = Math.max(1, Math.round((1-f)*8));
+    const price = type === 'blue' ? (5.9 + Math.round(Math.random()*3)*0.3).toFixed(2) : null;
+    return { id:i, x:p.x+(Math.random()-.5)*.015, y:p.y+(Math.random()-.5)*.015, type, prob, walk, price, taken:false };
+  });
+}
+
+function buildRouteToPoint(tx, ty, label, targetIdx, keepParkings) {
+  route.path = buildRoutePath(tx, ty);
+  route.active = true;
+  route.targetIdx = targetIdx;
+  route.label = label;
+  if (!keepParkings) route.parkings = genRouteParkings(targetIdx);
+  renderRoutePanel();
+  drawMap();
+}
+
+function buildRouteToStreet(idx) {
+  const s = STREETS_DEF[idx];
+  buildRouteToPoint(s.isH ? 0.72 : s.pos, s.isH ? s.pos : 0.72, s.name, idx, false);
+}
+
+function clearRoute() {
+  route.active = false; route.parkings = []; route.path = [];
+  hideParkTooltip();
+  document.getElementById('routePanel').style.display = 'none';
+  renderAll();
+}
+
+function renderRoutePanel() {
+  const panel = document.getElementById('routePanel');
+  if (!route.active) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  const list = [...route.parkings].sort((a,b)=>a.walk-b.walk);
+  document.getElementById('routeParkList').innerHTML = list.map(p => {
+    const dotStyle = p.taken ? 'background:var(--red)' :
+      (p.type === 'blue' ? 'background:linear-gradient(90deg,#3b82f6 50%,#fff 50%)' : 'background:var(--green)');
+    const typeName = p.type === 'blue' ? '🔵 כחול-לבן' : '🟢 חינם';
+    const priceTxt = p.type === 'blue' ? ` · ₪${p.price}/שעה` : '';
+    return `<div class="rp-item">
+      <span class="rp-dot" style="${dotStyle}"></span>
+      <span class="rp-info">
+        <span class="rp-type">${p.taken ? '❌ נתפסה — ' : ''}${typeName}</span>
+        <div class="rp-meta">🚶 ${p.walk} דק' מהיעד · סיכוי ${p.prob}% פנוי${priceTxt}</div>
+      </span>
+      ${p.taken ? '' : `<button class="rp-nav-btn" onclick="navToParking(${p.id})">נווט לכאן</button>`}
+    </div>`;
+  }).join('');
+}
+
+function navToParking(id) {
+  const p = route.parkings.find(q => q.id === id);
+  if (!p) return;
+  buildRouteToPoint(p.x, p.y, 'חניה נבחרת', route.targetIdx, true);
+  showToast('🧭 היעד עודכן לחניה שבחרת — המסלול צויר מחדש');
+}
+
+// Tooltip on marker click
+function showParkTooltip(p) {
+  const wrap = document.getElementById('mapWrap');
+  const tt = document.getElementById('parkTooltip');
+  const typeName = p.type === 'blue' ? 'כחול-לבן' : 'חינם';
+  const price = p.type === 'blue' ? ` · ₪${p.price}/שעה` : '';
+  tt.textContent = `${p.taken ? '🔴 תפוסה · ' : ''}${typeName} · סיכוי ${p.prob}% פנוי · ${p.walk} דק' הליכה מהיעד${price}`;
+  tt.style.left = Math.min(wrap.offsetWidth-190, Math.max(6, p.x*wrap.offsetWidth - 85)) + 'px';
+  tt.style.top = Math.max(6, p.y*wrap.offsetHeight - 44) + 'px';
+  tt.classList.add('show');
+  clearTimeout(showParkTooltip._t);
+  showParkTooltip._t = setTimeout(hideParkTooltip, 3500);
+}
+function hideParkTooltip() { document.getElementById('parkTooltip').classList.remove('show'); }
+
+// ─── סימולציית ניווט (8 שניות) ───────────────────────────────────
+function startNavigation() {
+  if (!route.active && selectedStreetIdx !== null) buildRouteToStreet(selectedStreetIdx);
+  if (!route.active) { showToast('בחר יעד קודם 🗺️'); return; }
+  document.getElementById('streetCardOverlay').classList.remove('show');
+  const dot = document.getElementById('userDot');
+  dot.style.transition = 'none';
+  navState = { active:true, start:Date.now(), promptShown:false, timer:null };
+  showToast('🧭 ניווט התחיל — נסיעה בטוחה!');
+  navState.timer = setInterval(navStep, 50);
+}
+
+function navStep() {
+  if (!navState.active) return;
+  const t = Math.min(1, (Date.now() - navState.start) / 8000);
+  userPos = pointAt(route.path, t);
+  positionUserDot();
+  drawMap();
+  if (t >= 0.72 && !navState.promptShown) {
+    navState.promptShown = true;
+    document.getElementById('navPromptText').textContent = pangoOnRoute()
+      ? '🅿️ נהג מסיים חניה בפנגו 50 מטר מימין — מגיע בדיוק בזמן!'
+      : '🅿️ חניה כחול-לבן פנויה 50 מטר מימין!';
+    document.getElementById('navPrompt').classList.add('show');
+  }
+  if (t >= 1) { finishNavigation(); }
+}
+
+function pangoOnRoute() {
+  if (!route.active) return null;
+  return pangoEvents.find(ev => ev.streetIdx === route.targetIdx ||
+    route.parkings.some(p => Math.hypot(p.x-ev.x, p.y-ev.y) < 0.12)) || null;
+}
+
+function parkHere() { finishNavigation(); }
+
+function finishNavigation() {
+  if (!navState.active) return;
+  navState.active = false;
+  clearInterval(navState.timer);
+  document.getElementById('navPrompt').classList.remove('show');
+  document.getElementById('userDot').style.transition = '';
+  const end = route.path[route.path.length-1];
+  let nearest = null, nd = 1e9;
+  route.parkings.forEach(p => {
+    if (p.taken) return;
+    const d = Math.hypot(p.x-end.x, p.y-end.y);
+    if (d < nd) { nd = d; nearest = p; }
+  });
+  if (nearest) { nearest.taken = true; userPos = { x:nearest.x, y:nearest.y }; positionUserDot(); }
+  showToast('✅ הגעת! החניה סומנה כתפוסה');
+  userScore += 20; updateXP(20);
+  renderRoutePanel();
+  renderAll();
+}
+
+// ─── שכבת "דיווחי פנגו" (סימולציה) ───────────────────────────────
+function weightedPangoStreet() {
+  const pool = [];
+  STREETS_DEF.forEach((s, i) => {
+    const w = (s.type === 'blue' ? 3 : 1) + (s.avail < 40 ? 2 : 0);
+    for (let k = 0; k < w; k++) pool.push(i);
+  });
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function spawnPangoEvent() {
+  const idx = weightedPangoStreet();
+  const s = STREETS_DEF[idx];
+  pangoEvents.push({
+    streetIdx: idx,
+    x: s.isH ? (0.15 + Math.random()*0.7) : s.pos,
+    y: s.isH ? s.pos : (0.15 + Math.random()*0.7),
+    expireAt: Date.now() + (120 + Math.random()*60)*1000, // auto-expire 2-3 min
+  });
+  s.avail = Math.round(Math.min(98, s.avail + 8)); // temporary probability boost
+  const num = Math.floor(Math.random()*120)+10;
+  COMMUNITY_FEED.unshift({ msg:`🔵 פנגו: חניה מתפנה ב${s.name} ${num} (הסתיים תשלום)`, street:s.name });
+  if (COMMUNITY_FEED.length > 16) COMMUNITY_FEED.pop();
+  feedIdx = 0; feedSecondsAgo = 0; updateFeed();
+  renderAll();
+  schedulePango();
+}
+function schedulePango() { setTimeout(spawnPangoEvent, 6000 + Math.random()*4000); }
+schedulePango();
+
+setInterval(() => { // prune expired pango events + revert boost
+  const now = Date.now();
+  const expired = pangoEvents.filter(ev => now >= ev.expireAt);
+  if (expired.length) {
+    expired.forEach(ev => {
+      const s = STREETS_DEF[ev.streetIdx];
+      s.avail = Math.round(Math.max(5, s.avail - 8));
+    });
+    pangoEvents = pangoEvents.filter(ev => now < ev.expireAt);
+    renderAll();
+  }
+}, 5000);
+
+init();
+setInterval(refreshStreets, 3500);
+// Keep pulsing spots redrawing
+setInterval(()=>{
+  if(route.active || pangoEvents.length || futureReports.length || spots.some(s=>s.flash&&Date.now()-s.flash<3000)) drawMap();
+}, 60);
+</script>
+
+<style>
+/* ── Auth / Account ── */
+.pw-auth-area{position:relative;flex-shrink:0}
+.pw-avatar{width:34px;height:34px;border-radius:50%;background:var(--green);color:#0a0f0a;font-weight:800;font-size:0.95rem;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid rgba(34,197,94,.4)}
+.pw-dd{display:none;position:absolute;top:calc(100% + 6px);left:0;background:#122012;border:1px solid var(--border);border-radius:12px;overflow:hidden;z-index:250;min-width:150px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.pw-dd.open{display:block}
+.pw-dd div{padding:10px 14px;font-size:0.8rem;cursor:pointer;white-space:nowrap}
+.pw-dd div:hover{background:rgba(34,197,94,.1);color:var(--green)}
+.pw-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:400;align-items:center;justify-content:center}
+.pw-overlay.show{display:flex}
+.pw-modal{background:var(--bg2);border:1px solid rgba(34,197,94,.3);border-radius:20px;padding:24px;width:min(400px,92vw);max-height:88vh;overflow-y:auto}
+.pw-modal h2{font-size:1.05rem;font-weight:900;text-align:center;margin-bottom:6px}
+.pw-modal .sub{text-align:center;color:var(--muted);font-size:0.8rem;margin-bottom:16px}
+.pw-tabs{display:flex;gap:6px;margin-bottom:16px}
+.pw-tab{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer}
+.pw-tab.active{border-color:var(--green);background:rgba(34,197,94,.12);color:var(--green)}
+.pw-field{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:0.85rem;font-family:inherit;margin-bottom:10px;direction:rtl}
+.pw-field:focus{outline:none;border-color:var(--green)}
+.pw-error{color:var(--red);font-size:0.75rem;margin-bottom:8px;min-height:1em}
+.pw-close{display:block;text-align:center;margin-top:10px;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline}
+.pw-legal-body{font-size:0.8rem;color:rgba(224,240,224,.75);line-height:1.7;text-align:right}
+.pw-legal-body p{margin-bottom:10px}
+/* Onboarding */
+.pw-ob-dots{display:flex;gap:6px;justify-content:center;margin:14px 0}
+.pw-ob-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15)}
+.pw-ob-dot.on{background:var(--green)}
+.pw-ob-icon{font-size:2.6rem;text-align:center;margin-bottom:10px}
+.pw-ob-actions{display:flex;gap:10px;margin-top:14px}
+.pw-ob-skip{flex:1;padding:9px;border-radius:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:0.82rem;cursor:pointer}
+/* Feedback — above bottom nav */
+.pw-fb-fab{position:fixed;bottom:78px;left:14px;z-index:75;background:var(--green);color:#0a0f0a;border:none;border-radius:24px;padding:10px 16px;font-weight:700;font-size:0.8rem;font-family:inherit;cursor:pointer;box-shadow:0 6px 20px rgba(34,197,94,.4)}
+.pw-fb-stars{display:flex;gap:6px;justify-content:center;margin-bottom:12px;flex-direction:row-reverse}
+.pw-fb-star{font-size:1.6rem;cursor:pointer;filter:grayscale(1);transition:filter.15s,transform.15s}
+.pw-fb-star.on{filter:none;transform:scale(1.1)}
+.pw-fb-text{width:100%;min-height:80px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-family:inherit;font-size:0.83rem;resize:vertical;direction:rtl}
+.pw-submit{width:100%;padding:10px;border-radius:12px;background:var(--green);color:#0a0f0a;border:none;font-weight:800;font-size:0.88rem;font-family:inherit;cursor:pointer}
+
+/* ── Departure helper (עוזר יציאה) ── */
+.departure-panel{padding:9px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(59,130,246,.05)}
+.dep-title{font-size:0.67rem;color:var(--blue);font-weight:700;margin-bottom:4px}
+.dep-msg{font-size:0.76rem;font-weight:700;line-height:1.4}
+.dep-sub{font-size:0.64rem;color:var(--muted);margin-top:2px}
+
+/* ── Recommended 3 streets mini-card ── */
+.reco-card{position:fixed;bottom:120px;right:14px;z-index:76;background:var(--bg2);border:1px solid var(--green);border-radius:14px;padding:12px 14px;width:min(300px,88vw);box-shadow:0 8px 28px rgba(0,0,0,.55);display:none}
+.reco-card.show{display:block}
+.reco-title{font-size:0.76rem;font-weight:800;color:var(--green);margin-bottom:8px;padding-inline-end:18px}
+.reco-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:0.78rem;cursor:pointer}
+.reco-item:last-child{border:none}
+.reco-item:hover .reco-name{color:var(--green)}
+.reco-name{font-weight:700}
+.reco-pct{font-weight:800;font-size:0.74rem}
+.reco-walk{font-size:0.66rem;color:var(--muted);white-space:nowrap}
+.reco-close{position:absolute;top:8px;left:10px;color:var(--muted);cursor:pointer;font-size:0.8rem}
+
+/* ── Future "leaving soon" (עתידי) ── */
+.leaving-when-btns{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.leaving-when-btns .leaving-type-btn{width:100%}
+
+/* ── Found-parking feedback prompt ── */
+.found-prompt{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);z-index:77;background:var(--bg2);border:1px solid var(--green);border-radius:16px;padding:10px 14px;display:none;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.55);max-width:94vw;flex-wrap:wrap;justify-content:center}
+.found-prompt.show{display:flex}
+.found-q{font-size:0.8rem;font-weight:700;white-space:nowrap}
+.found-btn{padding:6px 10px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);font-size:0.72rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all.2s}
+.found-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* ── WhatsApp community banner ── */
+.wa-banner{background:rgba(34,197,94,.08);border-top:1px solid rgba(34,197,94,.25);padding:6px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;z-index:30;font-size:0.74rem}
+.wa-banner.hidden{display:none}
+.wa-banner-text{flex:1;color:var(--text);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wa-join-btn{padding:4px 12px;border-radius:14px;border:none;background:var(--green);color:#0a0f0a;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.wa-close{color:var(--muted);cursor:pointer;padding:0 4px;font-size:0.85rem}
+</style>
+
+<!-- Auth Modal -->
+<div class="pw-overlay" id="pwAuthOverlay">
+  <div class="pw-modal">
+    <h2 id="pwAuthTitle">התחברות ל-ParkWiz</h2>
+    <div class="sub" id="pwAuthSub">הדיווחים וה-XP שלך במקום אחד</div>
+    <div class="pw-tabs">
+      <button class="pw-tab active" id="pwTabLogin" onclick="pwSetAuthTab('login')">התחברות</button>
+      <button class="pw-tab" id="pwTabSignup" onclick="pwSetAuthTab('signup')">הרשמה</button>
+    </div>
+    <div id="pwAuthNameWrap" style="display:none"><input class="pw-field" id="pwAuthName" placeholder="שם מלא"></div>
+    <input class="pw-field" id="pwAuthEmail" type="email" placeholder="אימייל">
+    <input class="pw-field" id="pwAuthPass" type="password" placeholder="סיסמה">
+    <div class="pw-error" id="pwAuthError"></div>
+    <button class="pw-submit" id="pwAuthSubmit" onclick="pwSubmitAuth()">התחבר</button>
+    <span class="pw-close" onclick="pwCloseAuth()">סגור</span>
+  </div>
+</div>
+
+<!-- Legal Modal -->
+<div class="pw-overlay" id="pwLegalOverlay">
+  <div class="pw-modal">
+    <h2 id="pwLegalTitle">תנאי שימוש</h2>
+    <div class="pw-legal-body" id="pwLegalBody"></div>
+    <span class="pw-close" onclick="document.getElementById('pwLegalOverlay').classList.remove('show')">סגור</span>
+  </div>
+</div>
+
+<!-- Onboarding -->
+<div class="pw-overlay" id="pwObOverlay">
+  <div class="pw-modal">
+    <div class="pw-ob-icon" id="pwObIcon">🅿️</div>
+    <h2 id="pwObTitle"></h2>
+    <div class="sub" id="pwObText" style="line-height:1.7"></div>
+    <div class="pw-ob-dots" id="pwObDots"></div>
+    <div class="pw-ob-actions">
+      <button class="pw-ob-skip" onclick="pwFinishOb()">דלג</button>
+      <button class="pw-submit" style="flex:1;width:auto" id="pwObNext" onclick="pwObNext()">הבא</button>
+    </div>
+  </div>
+</div>
+
+<!-- Feedback -->
+<button class="pw-fb-fab" onclick="pwOpenFeedback()">💬 משוב</button>
+<div class="pw-overlay" id="pwFbOverlay">
+  <div class="pw-modal">
+    <h2>נשמח לשמוע ממך 💚</h2>
+    <div class="sub">איך היית מדרג את ParkWiz?</div>
+    <div class="pw-fb-stars" id="pwFbStars"></div>
+    <textarea class="pw-fb-text" id="pwFbText" placeholder="ספר לנו מה אהבת ומה כדאי לשפר..."></textarea>
+    <button class="pw-submit" style="margin-top:10px" onclick="pwSubmitFeedback()">שלח משוב</button>
+    <span class="pw-close" onclick="document.getElementById('pwFbOverlay').classList.remove('show')">ביטול</span>
+  </div>
+</div>
+
+<script>
+/* ── Analytics stub ── */
+function track(event, props) {
+  try {
+    const key = 'parkwiz_analytics';
+    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+    arr.push({ event, props: props || {}, ts: new Date().toISOString() });
+    while (arr.length > 200) arr.shift();
+    localStorage.setItem(key, JSON.stringify(arr));
+  } catch(e) {}
+}
+
+/* ── Auth ── */
+const PW_USER_KEY = 'parkwiz_user';
+function pwGetUser() { try { return JSON.parse(localStorage.getItem(PW_USER_KEY)); } catch(e){ return null; } }
+let pwAuthMode = 'login';
+
+function pwOpenAuth(mode, gated) {
+  pwAuthMode = mode || 'login';
+  pwSetAuthTab(pwAuthMode, true);
+  document.getElementById('pwAuthTitle').textContent = gated ? 'צור חשבון חינם כדי להמשיך' : (pwAuthMode === 'login' ? 'התחברות ל-ParkWiz' : 'הרשמה ל-ParkWiz');
+  document.getElementById('pwAuthSub').textContent = gated ? 'דיווחי חניה, XP ודירוג — דורשים חשבון (חינם!)' : 'הדיווחים וה-XP שלך במקום אחד';
+  document.getElementById('pwAuthError').textContent = '';
+  document.getElementById('pwAuthOverlay').classList.add('show');
+}
+function pwCloseAuth() { document.getElementById('pwAuthOverlay').classList.remove('show'); }
+function pwSetAuthTab(mode, silent) {
+  pwAuthMode = mode;
+  document.getElementById('pwTabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('pwTabSignup').classList.toggle('active', mode === 'signup');
+  document.getElementById('pwAuthNameWrap').style.display = mode === 'signup' ? 'block' : 'none';
+  document.getElementById('pwAuthSubmit').textContent = mode === 'login' ? 'התחבר' : 'צור חשבון';
+  if (!silent) {
+    document.getElementById('pwAuthTitle').textContent = mode === 'login' ? 'התחברות ל-ParkWiz' : 'הרשמה ל-ParkWiz';
+  }
+}
+function pwSubmitAuth() {
+  const email = document.getElementById('pwAuthEmail').value.trim();
+  const pass = document.getElementById('pwAuthPass').value;
+  const name = document.getElementById('pwAuthName').value.trim();
+  const err = document.getElementById('pwAuthError');
+  if (!email.includes('@')) { err.textContent = 'נא להזין אימייל תקין'; return; }
+  if (pass.length < 4) { err.textContent = 'סיסמה קצרה מדי (לפחות 4 תווים)'; return; }
+  if (pwAuthMode === 'signup' && !name) { err.textContent = 'נא להזין שם'; return; }
+  const user = { name: name || email.split('@')[0], email };
+  localStorage.setItem(PW_USER_KEY, JSON.stringify(user));
+  track(pwAuthMode === 'signup' ? 'signup' : 'login', { email });
+  pwCloseAuth();
+  pwRenderAuthArea();
+  showToast(pwAuthMode === 'signup' ? '🎉 ברוך הבא ל-ParkWiz, ' + user.name + '!' : '👋 שמחים לראות אותך שוב!');
+}
+function pwLogout() {
+  localStorage.removeItem(PW_USER_KEY);
+  pwRenderAuthArea();
+  showToast('התנתקת בהצלחה');
+}
+function pwRenderAuthArea() {
+  const area = document.getElementById('pwAuthArea');
+  const u = pwGetUser();
+  if (u) {
+    area.innerHTML = `<div class="pw-avatar" onclick="document.getElementById('pwDd').classList.toggle('open')">${u.name.charAt(0)}</div>
+      <div class="pw-dd" id="pwDd">
+        <div onclick="document.getElementById('pwDd').classList.remove('open');showToast('👤 החשבון שלי — בקרוב')">החשבון שלי</div>
+        <div onclick="pwLogout()">התנתק</div>
+      </div>`;
+  } else {
+    area.innerHTML = `<button class="btn btn-ghost" style="color:var(--green);border-color:rgba(34,197,94,.4)" onclick="pwOpenAuth('login')">התחבר</button>`;
+  }
+}
+pwRenderAuthArea();
+
+/* ── Gate primary action: "אני עוזב" report ── */
+const _pwOrigStartLeaving = startLeaving;
+startLeaving = function() {
+  if (!pwGetUser()) { pwOpenAuth('signup', true); return; }
+  _pwOrigStartLeaving();
+};
+const _pwOrigDoReport = doReportLeaving;
+doReportLeaving = function(count, xpGain) {
+  _pwOrigDoReport(count, xpGain);
+  track('report_leaving', { count, xpGain });
+};
+
+/* ── Track pricing / upgrade ── */
+const _pwOrigShowPricing = showParkPricing;
+showParkPricing = function() { track('pricing_open'); _pwOrigShowPricing(); };
+const _pwOrigActivatePremium = activatePremium;
+activatePremium = function() { track('upgrade_click', { plan: 'premium' }); _pwOrigActivatePremium(); };
+
+/* ── Legal ── */
+const PW_LEGAL = {
+  terms: { title: 'תנאי שימוש', html: `
+<p><strong>1. כללי.</strong> ברוכים הבאים ל-ParkWiz, פלטפורמה קהילתית לאיתור חניות רחוב. השימוש באפליקציה, במפה ובדיווחי הקהילה כפוף לתנאים אלו. עצם השימוש מהווה הסכמה מלאה להם.</p>
+<p><strong>2. אופי המידע.</strong> נתוני הזמינות מבוססים על דיווחי משתמשים ואומדנים סטטיסטיים. ParkWiz אינה מתחייבת שחניה שדווחה כפנויה אכן תהיה זמינה בהגעתך, ואינה אחראית לדוחות חניה, גרירה או כל נזק הנובע מהסתמכות על המידע.</p>
+<p><strong>3. שימוש בזמן נהיגה.</strong> אין להשתמש באפליקציה תוך כדי נהיגה. הדיווח והחיפוש ייעשו רק כשהרכב חונה או על ידי נוסע. האחריות לציות לחוקי התנועה חלה עליך בלבד.</p>
+<p><strong>4. דיווחי קהילה.</strong> הנך מתחייב לדווח מידע אמין בלבד. דיווחים כוזבים או שימוש לרעה עלולים להוביל להשעיית החשבון ואיפוס נקודות ה-XP.</p>
+<p><strong>5. מנוי Premium.</strong> תוכנית Premium מחויבת חודשית וניתנת לביטול בכל עת דרך הגדרות החשבון. הזמנת מקום מראש כפופה לזמינות בפועל ואינה מובטחת.</p>
+<p><strong>6. הגבלת אחריות ודין.</strong> השירות ניתן כפי שהוא (AS-IS). הדין החל הוא דין מדינת ישראל, וסמכות השיפוט הבלעדית נתונה לבתי המשפט המוסמכים בתל אביב-יפו.</p>` },
+  privacy: { title: 'מדיניות פרטיות', html: `
+<p><strong>1. איזה מידע נאסף.</strong> בעת הרשמה נאספים שם ואימייל. במהלך השימוש נאספים דיווחי חניה, רחובות שנצפו ונתוני שימוש כלליים לצורך שיפור דיוק המפה.</p>
+<p><strong>2. נתוני מיקום.</strong> ככל שתאשר גישה למיקום, הוא ישמש להצגת רחובות קרובים ולשיוך דיווחים בלבד. איננו עוקבים אחר מסלולי נסיעה ואיננו משתפים מיקום עם מפרסמים.</p>
+<p><strong>3. שימוש במידע.</strong> המידע משמש לתפעול השירות, חישוב זמינות חניה בזמן אמת, ניקוד XP ולוח מובילים. דיווחים מוצגים לקהילה באופן אנונימי.</p>
+<p><strong>4. אחסון מקומי.</strong> העדפות, היסטוריה ומשוב נשמרים בדפדפן שלך (localStorage). מחיקת נתוני הדפדפן תמחק מידע זה.</p>
+<p><strong>5. זכויותיך.</strong> באפשרותך לבקש עיון, תיקון או מחיקה של המידע האישי שלך, וכן לסגור את החשבון בכל עת בפנייה לתמיכה.</p>
+<p><strong>6. עדכונים.</strong> מדיניות זו עשויה להתעדכן. שינוי מהותי יוצג באפליקציה, והמשך שימוש מהווה הסכמה לנוסח המעודכן.</p>` }
+};
+function pwOpenLegal(kind) {
+  document.getElementById('pwLegalTitle').textContent = PW_LEGAL[kind].title;
+  document.getElementById('pwLegalBody').innerHTML = PW_LEGAL[kind].html;
+  document.getElementById('pwLegalOverlay').classList.add('show');
+}
+
+/* ── Onboarding ── */
+const PW_OB_STEPS = [
+  { icon: '🅿️', title: 'ברוך הבא ל-ParkWiz!', text: 'מפת חניה חיה של תל אביב, מבוססת על דיווחי קהילה בזמן אמת. ירוק = קל למצוא, צהוב = בינוני, אדום = עמוס.' },
+  { icon: '🚗', title: 'איך משתמשים?', text: 'לחץ על רחוב במפה כדי לראות זמינות לפי שעות. עוזב חניה? לחץ "אני עוזב!" למטה — תעזור לקהילה ותצבור XP 🏆.' },
+  { icon: '⚡', title: 'מה מקבלים ב-Premium?', text: 'הזמנת מקום חניה מראש, התראות push כשמתפנה מקום ברחוב שלך, ללא פרסומות ועדיפות בהתראות — רק ₪14.90 לחודש.' },
+];
+let pwObStep = 0;
+function pwRenderOb() {
+  const s = PW_OB_STEPS[pwObStep];
+  document.getElementById('pwObIcon').textContent = s.icon;
+  document.getElementById('pwObTitle').textContent = s.title;
+  document.getElementById('pwObText').textContent = s.text;
+  document.getElementById('pwObDots').innerHTML = PW_OB_STEPS.map((_, i) => `<div class="pw-ob-dot${i === pwObStep ? ' on' : ''}"></div>`).join('');
+  document.getElementById('pwObNext').textContent = pwObStep === PW_OB_STEPS.length - 1 ? 'בואו נתחיל!' : 'הבא';
+}
+function pwObNext() {
+  if (pwObStep >= PW_OB_STEPS.length - 1) { pwFinishOb(); return; }
+  pwObStep++;
+  pwRenderOb();
+}
+function pwFinishOb() {
+  localStorage.setItem('parkwiz_onboarded', '1');
+  document.getElementById('pwObOverlay').classList.remove('show');
+}
+if (!localStorage.getItem('parkwiz_onboarded')) {
+  pwRenderOb();
+  document.getElementById('pwObOverlay').classList.add('show');
+}
+
+/* ── Feedback widget ── */
+let pwFbRating = 0;
+function pwRenderFbStars() {
+  document.getElementById('pwFbStars').innerHTML = [1,2,3,4,5].map(n =>
+    `<span class="pw-fb-star${n <= pwFbRating ? ' on' : ''}" onclick="pwFbRating=${n};pwRenderFbStars()">⭐</span>`).join('');
+}
+function pwOpenFeedback() {
+  pwFbRating = 0;
+  document.getElementById('pwFbText').value = '';
+  pwRenderFbStars();
+  document.getElementById('pwFbOverlay').classList.add('show');
+}
+function pwSubmitFeedback() {
+  if (!pwFbRating) { showToast('בחר דירוג כוכבים 🙂'); return; }
+  try {
+    const arr = JSON.parse(localStorage.getItem('parkwiz_feedback') || '[]');
+    arr.push({ rating: pwFbRating, text: document.getElementById('pwFbText').value.trim(), ts: new Date().toISOString() });
+    localStorage.setItem('parkwiz_feedback', JSON.stringify(arr));
+  } catch(e) {}
+  track('feedback', { rating: pwFbRating });
+  document.getElementById('pwFbOverlay').classList.remove('show');
+  showToast('תודה על המשוב! 💚');
+}
+
+track('app_open');
+</script>
+</body>
+</html>
