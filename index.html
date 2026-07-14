@@ -427,6 +427,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
       <div class="legend-item"><div class="seg-lg" style="background:#9ca3af"></div>אפור (חינם)</div>
       <div class="legend-item"><div class="seg-lg" style="background:#ef4444"></div>אדום-לבן</div>
       <div class="legend-item"><div class="dot-lg" style="background:#a855f7"></div>פרטית להשכרה</div>
+      <div class="legend-item"><div class="seg-lg" style="background:#ec4899"></div>שמורה (נכים/תושב)</div>
     </div>
   </div>
 
@@ -441,6 +442,8 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
       <div class="stat-pill"><div class="stat-n" style="color:var(--yellow)" id="soonCount">0</div><div class="stat-l">בינוני</div></div>
       <div class="stat-pill"><div class="stat-n" style="color:var(--muted)" id="totalCount">0</div><div class="stat-l">רחובות</div></div>
     </div>
+    <!-- Arrival mode: curb map around destination -->
+    <div class="live-feed" id="arrivalPanel" style="display:none;border-color:rgba(74,222,128,.4)"></div>
     <!-- Live community feed -->
     <div class="live-feed">
       <div class="feed-title"><span class="live-dot"></span>עדכוני קהילה אחרונים</div>
@@ -634,6 +637,83 @@ const STREETS_DEF = [
 const ZONE_COLORS = { blue:'#3b82f6', free:'#9ca3af', timed:'#f59e0b' };
 let realMap = null, segLayers = [], midMarkers = [], heatLayer = null;
 
+// ─── מפת מדרכות: פיצול כל רחוב לקטעי אבן-שפה עם סוג לכל קטע ───
+const CURB_TYPES = {
+  blue:     { c:'#3b82f6', label:'כחול-לבן (בתשלום)', park:true },
+  free:     { c:'#9ca3af', label:'אפור — חינם',        park:true },
+  timed:    { c:'#f59e0b', label:'מוגבל בזמן',          park:true },
+  red:      { c:'#ef4444', label:'אדום-לבן — אסור',     park:false },
+  reserved: { c:'#ec4899', label:'שמורה (נכים/תושב)',   park:false },
+};
+function lerp(a, b, t) { return [ a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t ]; }
+// דטרמיניסטי לפי רחוב: פינות = אדום-לבן (החוק: 12 מ' מהצומת), באמצע שילוב של סוג הרחוב + שמורות + אפור
+const CURBS = STREETS_DEF.map((s, idx) => {
+  const N = 6, out = [];
+  for (let i = 0; i < N; i++) {
+    const seed = Math.abs(Math.sin(idx*7.13 + i*3.7)) ;
+    let type;
+    if (i === 0 || i === N-1) type = seed < 0.7 ? 'red' : s.type;         // פינות
+    else if (seed < 0.12) type = 'reserved';
+    else if (seed < 0.30) type = s.type === 'free' ? 'blue' : 'free';     // גיוון
+    else type = s.type;
+    out.push({ a: lerp(s.a, s.b, i/N), b: lerp(s.a, s.b, (i+1)/N), type,
+               mid: lerp(s.a, s.b, (i+0.5)/N), street: idx });
+  }
+  return out;
+});
+
+// ─── מצב הגעה ליעד: מה יש סביב היעד לפי מפת המדרכות ───
+let destMarker = null, destCircle = null;
+function distM(a, b) { // מרחק מטרים משוער
+  const dy = (a[0]-b[0]) * 111320, dx = (a[1]-b[1]) * 94000;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+function arrivalMode(lat, lng, name) {
+  if (!realMap) return;
+  if (destMarker) { destMarker.remove(); destCircle.remove(); }
+  destMarker = L.marker([lat, lng]).addTo(realMap).bindTooltip('🎯 ' + name);
+  destCircle = L.circle([lat, lng], { radius: 300, color:'#22c55e', weight:1.5, fillOpacity:0.05 }).addTo(realMap);
+  realMap.setView([lat, lng], 16);
+
+  const near = CURBS.flat().filter(ch => distM([lat,lng], ch.mid) <= 300);
+  const counts = {};
+  near.forEach(ch => counts[ch.type] = (counts[ch.type]||0) + 1);
+  const total = near.length || 1;
+  const bars = Object.entries(counts).sort((x,y)=>y[1]-x[1]).map(([t,n]) => {
+    const pct = Math.round(n/total*100);
+    return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:.72rem">
+      <div style="width:10px;height:10px;border-radius:3px;background:${CURB_TYPES[t].c};flex-shrink:0"></div>
+      <div style="flex:1">${CURB_TYPES[t].label}</div><b>${pct}%</b></div>`;
+  }).join('');
+
+  const legal = near.filter(ch => CURB_TYPES[ch.type].park)
+    .map(ch => ({ ch, d: Math.round(distM([lat,lng], ch.mid)), s: STREETS_DEF[ch.street] }))
+    .sort((x,y) => (x.ch.type==='free'?-40:0) + x.d - ((y.ch.type==='free'?-40:0) + y.d))
+    .slice(0, 3);
+  const list = legal.map(({ch,d,s}) => `
+    <div onclick="selectStreet(${ch.street})" style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:4px;font-size:.72rem;cursor:pointer">
+      <div><b style="color:${CURB_TYPES[ch.type].c}">●</b> ${s.name} · ${CURB_TYPES[ch.type].label}</div>
+      <div>${d} מ' · ${s.avail}% פנוי</div>
+    </div>`).join('') || '<div style="font-size:.72rem;color:var(--muted)">אין חניה חוקית ברדיוס — הרחב חיפוש</div>';
+
+  const panel = document.getElementById('arrivalPanel');
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="feed-title" style="color:#4ade80">🎯 הגעת: ${name} — מה יש סביבך (300 מ')</div>
+    ${bars}
+    <div style="font-size:.7rem;color:var(--muted);margin:6px 0 4px">המומלצות (חינם קודם, ואז לפי מרחק):</div>
+    ${list}
+    <div style="font-size:.63rem;color:var(--muted);margin-top:4px">⛔ אדום-לבן בפינות = אסור עצירה · 🩷 שמורה = אל תתפתה, הקנס 250-1,000 ₪</div>
+    <div style="text-align:left;margin-top:4px"><b style="font-size:.68rem;color:var(--muted);cursor:pointer" onclick="clearArrival()">✕ סגור</b></div>`;
+  renderAll();
+}
+function clearArrival() {
+  if (destMarker) { destMarker.remove(); destCircle.remove(); destMarker = destCircle = null; }
+  const p = document.getElementById('arrivalPanel');
+  p.style.display = 'none';
+  realMap.setView([32.076, 34.776], 14);
+}
+
 function initRealMap() {
   if (!window.L || realMap) return;
   const el = document.getElementById('realMap');
@@ -645,19 +725,17 @@ function initRealMap() {
   L.control.zoom({ position:'bottomleft' }).addTo(realMap);
 
   STREETS_DEF.forEach((s, idx) => {
-    // קו הרחוב לפי סוג האזור (כחול-לבן / חינם / מוגבל)
-    const line = L.polyline([s.a, s.b], {
-      color: ZONE_COLORS[s.type] || '#9ca3af',
-      weight: 7, opacity: 0.85,
-    }).addTo(realMap);
-    line.on('click', () => selectStreet(idx));
-    segLayers.push(line);
-    // קטע אדום-לבן (אסור חניה) — מקטע מקווקו בקצה הרחוב
-    if (s.red) {
-      const rb = [ s.b[0] + (s.a[0]-s.b[0])*0.25, s.b[1] + (s.a[1]-s.b[1])*0.25 ];
-      L.polyline([s.b, rb], { color:'#ef4444', weight:7, opacity:0.95, dashArray:'8 8' })
-        .addTo(realMap).bindTooltip('⛔ אדום-לבן — אסור לחנות', {sticky:true});
-    }
+    // מפת מדרכות: הרחוב מפוצל לקטעי אבן-שפה, כל קטע עם סוג משלו
+    const group = L.featureGroup(CURBS[idx].map(ch => {
+      const line = L.polyline([ch.a, ch.b], {
+        color: CURB_TYPES[ch.type].c, weight: 7, opacity: 0.85,
+        dashArray: ch.type === 'red' ? '8 8' : null,
+      });
+      line.bindTooltip(`${s.name} · ${CURB_TYPES[ch.type].label}`, {sticky:true});
+      line.on('click', () => selectStreet(idx));
+      return line;
+    })).addTo(realMap);
+    segLayers.push(group);
     // עיגול זמינות באמצע הרחוב
     const mid = [ (s.a[0]+s.b[0])/2, (s.a[1]+s.b[1])/2 ];
     const mk = L.circleMarker(mid, {
@@ -668,6 +746,9 @@ function initRealMap() {
     mk.on('click', () => selectStreet(idx));
     midMarkers.push(mk);
   });
+
+  // מצב הגעה: לחיצה על נקודה ריקה במפה = "זה היעד שלי"
+  realMap.on('click', (e) => arrivalMode(e.latlng.lat, e.latlng.lng, 'היעד שלך'));
 
   // המשתמש
   L.circleMarker([32.0745, 34.7715], { radius:8, color:'#fff', weight:2, fillColor:'#38bdf8', fillOpacity:1 })
@@ -1366,7 +1447,11 @@ function selectSearch(street) {
   document.getElementById('autocomplete').classList.remove('open');
   const clean = street.replace(/^(רחוב|שדרות|שד'|רח') /,'');
   const idx = STREETS_DEF.findIndex(s=>s.name===clean||street.includes(s.name));
-  if (idx !== -1) { selectStreet(idx); showRecommended(idx); return; }
+  if (idx !== -1) {
+    const s = STREETS_DEF[idx];
+    arrivalMode((s.a[0]+s.b[0])/2, (s.a[1]+s.b[1])/2, s.name);
+    selectStreet(idx); showRecommended(idx); return;
+  }
   showRecommended(null);
   showToast('🔍 מציג חניות ב'+street);
 }
