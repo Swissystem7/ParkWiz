@@ -114,6 +114,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 .chance-mid{color:#f59e0b;background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.35)}
 .chance-low{color:var(--red);background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.3)}
 .spot-time{font-size:0.65rem;color:var(--muted);margin-top:3px}
+.spot-tariff{margin-top:4px;font-size:0.66rem;color:var(--muted);display:flex;align-items:center;gap:4px}
 .freshness{position:absolute;top:10px;left:10px;width:5px;height:5px;border-radius:50%}
 .fresh{background:var(--green)}
 .stale{background:var(--yellow)}
@@ -184,6 +185,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 .sc-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
 .sc-bar-fill{height:100%;border-radius:4px;transition:width.5s}
 .sc-chance{margin:-2px 0 12px}
+.sc-tariff{font-size:0.75rem;color:var(--text);margin:-2px 0 12px;padding:8px 10px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:9px}
 .sc-mini-chart{display:flex;align-items:flex-end;gap:3px;height:40px;margin-bottom:14px}
 .sc-mini-bar{flex:1;border-radius:3px 3px 0 0;min-height:4px;transition:height.3s}
 .sc-mini-labels{display:flex;gap:3px;font-size:0.55rem;color:var(--muted);margin-bottom:14px}
@@ -409,6 +411,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
     <div class="sc-chance">
       <span class="chance-badge chance-mid" id="scChanceBadge"><span>סיכוי למצוא חניה</span><strong>45%</strong></span>
     </div>
+    <div class="sc-tariff" id="scTariff">💰 תעריף חניה: ₪6.20 לשעה (כחול-לבן)</div>
     <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px">זמינות לפי שעה (08:00–22:00)</div>
     <div class="sc-mini-chart" id="scMiniChart"></div>
     <div class="sc-mini-labels" id="scMiniLabels"></div>
@@ -1333,6 +1336,16 @@ function chanceBadgeHTML(pct) {
   return `<span class="chance-badge chance-${chanceLevel(pct)}"><span>סיכוי למצוא חניה</span><strong>${pct}%</strong></span>`;
 }
 
+function parkingTypeLabel(type) {
+  return type==='blue'?'🔵 כחול-לבן':type==='free'?'⚪ חינם':'⏱️ מוגבל';
+}
+
+function parkingTariffLabel(type) {
+  if (type === 'blue') return '💰 תעריף חניה: ₪6.20 לשעה (כחול-לבן)';
+  if (type === 'free') return '💰 תעריף חניה: חינם';
+  return '💰 תעריף חניה: מוגבל בזמן';
+}
+
 // ─── Draw Map ─────────────────────────────────────────────────────
 function drawMap() {
   const canvas = document.getElementById('mapCanvas');
@@ -1648,7 +1661,8 @@ function renderSidePanel() {
   list.innerHTML = sorted.map(s => {
     const color = availColor(s.predictedPct);
     const label = s.predictedPct>=70?'פנוי בקלות':s.predictedPct>=30?'בינוני':'עמוס';
-    const typeLabel = s.type==='blue'?'🔵 כחול-לבן':s.type==='free'?'⚪ חינם':'⏱️ מוגבל';
+    const typeLabel = parkingTypeLabel(s.type);
+    const tariffLabel = parkingTariffLabel(s.type);
     const redTag = s.red ? '<span style="font-size:0.62rem;color:#ef4444;font-weight:700"> ⛔ קטעי אדום-לבן</span>' : '';
     const fit = fitInfo(s.idx);
     const chancePct = s.predictedPct;
@@ -1668,6 +1682,7 @@ function renderSidePanel() {
         <span class="spot-dist">${typeLabel}${redTag}</span>
         <span class="spot-badge" style="background:${color}22;color:${color}">${label}</span>
       </div>
+      <div class="spot-tariff">${tariffLabel}</div>
       <div style="margin-top:4px;font-size:0.66rem;font-weight:700;color:${fit.color}">${fit.txt} <span style="color:var(--muted);font-weight:400">(מרווח משוער ${fit.gap} מ')</span></div>
       <div style="height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:6px;overflow:hidden">
         <div style="height:100%;width:${s.predictedPct}%;background:${color};border-radius:2px;transition:width.5s"></div>
@@ -1689,6 +1704,7 @@ function renderStreetCard(idx, schedulePrompt) {
   const chancePct = getCurrentHourAvailabilityPct(idx);
   const label = predictedPct>=70?'קל למציאה':predictedPct>=30?'בינוני':'קשה — עמוס';
   const spotsNow = Math.round(predictedPct/100 * (8 + Math.floor(Math.random()*6)));
+  const tariffLabel = parkingTariffLabel(s.type);
 
   document.getElementById('scName').textContent = 'רח\' ' + s.name;
   document.getElementById('scPct').textContent = predictedPct + '%';
@@ -1699,6 +1715,7 @@ function renderStreetCard(idx, schedulePrompt) {
   const scChanceBadge = document.getElementById('scChanceBadge');
   scChanceBadge.className = `chance-badge chance-${chanceLevel(chancePct)}`;
   scChanceBadge.innerHTML = `<span>סיכוי למצוא חניה</span><strong>${chancePct}%</strong>`;
+  document.getElementById('scTariff').textContent = tariffLabel;
   // Probabilistic language instead of point promises
   const prob = chancePct;
   let probText;
