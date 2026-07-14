@@ -103,6 +103,11 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 .spot-badge{font-size:0.68rem;padding:2px 7px;border-radius:10px;font-weight:600}
 .badge-free{background:rgba(34,197,94,.15);color:var(--green)}
 .badge-soon{background:rgba(234,179,8,.15);color:var(--yellow)}
+.chance-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:0.64rem;font-weight:700;border:1px solid transparent;white-space:nowrap;line-height:1}
+.chance-badge strong{font-size:0.68rem;font-weight:800}
+.chance-high{color:var(--green);background:rgba(34,197,94,.13);border-color:rgba(34,197,94,.32)}
+.chance-mid{color:#f59e0b;background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.35)}
+.chance-low{color:var(--red);background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.3)}
 .spot-time{font-size:0.65rem;color:var(--muted);margin-top:3px}
 .freshness{position:absolute;top:10px;left:10px;width:5px;height:5px;border-radius:50%}
 .fresh{background:var(--green)}
@@ -173,6 +178,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 .sc-avail-label{font-size:0.78rem;color:var(--muted);line-height:1.4}
 .sc-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
 .sc-bar-fill{height:100%;border-radius:4px;transition:width.5s}
+.sc-chance{margin:-2px 0 12px}
 .sc-mini-chart{display:flex;align-items:flex-end;gap:3px;height:40px;margin-bottom:14px}
 .sc-mini-bar{flex:1;border-radius:3px 3px 0 0;min-height:4px;transition:height.3s}
 .sc-mini-labels{display:flex;gap:3px;font-size:0.55rem;color:var(--muted);margin-bottom:14px}
@@ -394,6 +400,9 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
       <div class="sc-avail-pct" id="scPct" style="color:var(--green)">45%</div>
       <div class="sc-bar-track" style="flex:1"><div class="sc-bar-fill" id="scBarFill" style="width:45%;background:var(--green)"></div></div>
       <div class="sc-avail-label" id="scLabel">בינוני<br><span style="font-size:0.7rem;color:var(--muted)">זמינות חניה</span></div>
+    </div>
+    <div class="sc-chance">
+      <span class="chance-badge chance-mid" id="scChanceBadge"><span>סיכוי למצוא חניה</span><strong>45%</strong></span>
     </div>
     <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px">זמינות לפי שעה (08:00–22:00)</div>
     <div class="sc-mini-chart" id="scMiniChart"></div>
@@ -1187,6 +1196,7 @@ function genHourlyPattern(avail, streetIdx) {
 }
 
 const STREET_HOURLY = STREETS_DEF.map((s, i) => genHourlyPattern(s.avail, i));
+const HOURLY_SLOTS = [8,10,12,14,16,18,20];
 
 const COMMUNITY_FEED = [
   { msg:'👤 משתמש דיווח: חניה פנתה בדיזנגוף 45', street:'דיזנגוף' },
@@ -1274,6 +1284,27 @@ function availColor(pct) {
   if (pct >= 70) return '#22c55e';
   if (pct >= 30) return '#eab308';
   return '#ef4444';
+}
+
+function getCurrentHourAvailabilityPct(streetIdx) {
+  const fallback = Math.max(0, Math.min(100, Math.round(STREETS_DEF[streetIdx].avail || 0)));
+  const hourly = STREET_HOURLY[streetIdx];
+  if (!hourly || !hourly.length) return fallback;
+  const hour = new Date().getHours();
+  const slot = Math.max(0, Math.min(hourly.length - 1, Math.floor((hour - HOURLY_SLOTS[0]) / 2)));
+  const slotVal = hourly[slot];
+  if (typeof slotVal !== 'number') return fallback;
+  return Math.max(0, Math.min(100, Math.round(slotVal * 100)));
+}
+
+function chanceLevel(pct) {
+  if (pct > 66) return 'high';
+  if (pct >= 33) return 'mid';
+  return 'low';
+}
+
+function chanceBadgeHTML(pct) {
+  return `<span class="chance-badge chance-${chanceLevel(pct)}"><span>סיכוי למצוא חניה</span><strong>${pct}%</strong></span>`;
 }
 
 // ─── Draw Map ─────────────────────────────────────────────────────
@@ -1581,6 +1612,7 @@ function renderSidePanel() {
     const typeLabel = s.type==='blue'?'🔵 כחול-לבן':s.type==='free'?'⚪ חינם':'⏱️ מוגבל';
     const redTag = s.red ? '<span style="font-size:0.62rem;color:#ef4444;font-weight:700"> ⛔ קטעי אדום-לבן</span>' : '';
     const fit = fitInfo(s.idx);
+    const chancePct = getCurrentHourAvailabilityPct(s.idx);
     return `
     <div class="spot-item ${selectedStreetIdx===s.idx?'selected':''}" onclick="selectStreet(${s.idx})">
       <div class="spot-street" style="display:flex;align-items:center;justify-content:space-between">
@@ -1588,7 +1620,10 @@ function renderSidePanel() {
           <span class="tl-dot" style="background:${color};color:${color}"></span>
           📍 ${s.name}
         </span>
-        <span style="font-size:0.68rem;color:${color};font-weight:700">${s.avail}%</span>
+        <span style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span style="font-size:0.68rem;color:${color};font-weight:700">${s.avail}%</span>
+          ${chanceBadgeHTML(chancePct)}
+        </span>
       </div>
       <div class="spot-meta" style="margin-top:4px">
         <span class="spot-dist">${typeLabel}${redTag}</span>
@@ -1613,6 +1648,7 @@ function selectStreet(idx) {
   const s = STREETS_DEF[idx];
   const hourly = STREET_HOURLY[idx];
   const color = availColor(s.avail);
+  const chancePct = getCurrentHourAvailabilityPct(idx);
   const label = s.avail>=70?'קל למציאה':s.avail>=30?'בינוני':'קשה — עמוס';
   const spotsNow = Math.round(s.avail/100 * (8 + Math.floor(Math.random()*6)));
 
@@ -1622,8 +1658,11 @@ function selectStreet(idx) {
   document.getElementById('scBarFill').style.width = s.avail + '%';
   document.getElementById('scBarFill').style.background = color;
   document.getElementById('scLabel').innerHTML = label + '<br><span style="font-size:0.7rem;color:var(--muted)">זמינות חניה</span>';
+  const scChanceBadge = document.getElementById('scChanceBadge');
+  scChanceBadge.className = `chance-badge chance-${chanceLevel(chancePct)}`;
+  scChanceBadge.innerHTML = `<span>סיכוי למצוא חניה</span><strong>${chancePct}%</strong>`;
   // Probabilistic language instead of point promises
-  const prob = Math.round(s.avail);
+  const prob = chancePct;
   let probText;
   if (prob >= 60) probText = `🎯 סיכוי גבוה (${prob}%) למצוא חניה ב-10 הדקות הקרובות`;
   else if (prob >= 30) probText = `🎯 סיכוי בינוני (${prob}%) למצוא חניה ב-10 הדקות הקרובות — ייתכן סיבוב או שניים`;
