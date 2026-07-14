@@ -423,6 +423,10 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
       <div class="legend-item"><div class="seg-lg" style="background:var(--yellow)"></div>בינוני (30-70%)</div>
       <div class="legend-item"><div class="seg-lg" style="background:var(--red)"></div>קשה (0-30%)</div>
       <div class="legend-item"><div class="dot-lg" style="background:var(--blue)"></div>אתה כאן</div>
+      <div class="legend-item"><div class="seg-lg" style="background:#3b82f6"></div>כחול-לבן</div>
+      <div class="legend-item"><div class="seg-lg" style="background:#9ca3af"></div>אפור (חינם)</div>
+      <div class="legend-item"><div class="seg-lg" style="background:#ef4444"></div>אדום-לבן</div>
+      <div class="legend-item"><div class="dot-lg" style="background:#a855f7"></div>פרטית להשכרה</div>
     </div>
   </div>
 
@@ -442,6 +446,12 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
       <div class="feed-title"><span class="live-dot"></span>עדכוני קהילה אחרונים</div>
       <div id="feedItem" class="feed-item">טוען...</div>
       <div id="feedTime" class="feed-time"></div>
+    </div>
+    <!-- Private parking marketplace -->
+    <div class="live-feed" style="border-color:rgba(168,85,247,.35)">
+      <div class="feed-title" style="color:#c084fc">🏠 חניות פרטיות להשכרה</div>
+      <div id="privList"></div>
+      <div style="font-size:.65rem;color:var(--muted)">יש לך חניה פרטית? <b style="color:#c084fc;cursor:pointer" onclick="showToast('🏠 בקרוב: פרסם את החניה שלך והרווח ₪ כשאתה לא בבית!')">השכר אותה →</b></div>
     </div>
     <!-- Departure helper -->
     <div class="departure-panel" id="departurePanel">
@@ -662,6 +672,7 @@ function initRealMap() {
   // המשתמש
   L.circleMarker([32.0745, 34.7715], { radius:8, color:'#fff', weight:2, fillColor:'#38bdf8', fillOpacity:1 })
     .addTo(realMap).bindTooltip('אתה כאן');
+  initPrivateSpots();
   const ud = document.getElementById('userDot');
   if (ud) ud.style.display = 'none';
 }
@@ -704,9 +715,83 @@ function setVehicle(id) {
 // מרווח משוער ברחוב (דטרמיניסטי לפי אינדקס + זמינות; בגרסה אמיתית: מנתוני checkout של הרכב האחרון)
 function streetGap(idx) {
   const s = STREETS_DEF[idx];
+  if (s.lastGap) return s.lastGap; // מרווח אמיתי מהרכב האחרון שיצא (מהפיד החי)
   const seed = Math.sin(idx * 12.9898) * 43758.5453;
   const jitter = (seed - Math.floor(seed)) * 1.4; // 0..1.4m
   return +(3.6 + (s.avail/100) * 2.2 + jitter).toFixed(1);
+}
+
+// ─── פיד חי: יוצא/נכנס מפנגו/סלופארק/ParkWiz + התאמה לפי גודל הרכב ───
+const PARK_APPS = ['פנגו','סלופארק','ParkWiz'];
+function liveParkingEvent() {
+  const si = Math.floor(Math.random()*STREETS_DEF.length);
+  const s = STREETS_DEF[si];
+  const app = PARK_APPS[Math.floor(Math.random()*PARK_APPS.length)];
+  const veh = VEHICLE_TYPES[Math.floor(Math.random()*VEHICLE_TYPES.length)];
+  if (Math.random() < 0.55) { // יוצא
+    s.avail = Math.min(97, s.avail + 6 + Math.floor(Math.random()*8));
+    s.lastGap = +(veh.len + 0.5 + Math.random()*0.9).toFixed(1);
+    COMMUNITY_FEED.unshift({ msg:`🔵 ${app}: ${veh.label.split(' ')[0]} יצא מ${s.name} — נפתח מרווח ${s.lastGap} מ'`, street:s.name });
+    if (s.lastGap >= getVehicle().len + 0.4)
+      showToast(`🎯 התפנתה חניה בגודל שלך ב${s.name} (${s.lastGap} מ')!`);
+  } else { // נכנס
+    s.avail = Math.max(3, s.avail - (5 + Math.floor(Math.random()*7)));
+    s.lastGap = null;
+    COMMUNITY_FEED.unshift({ msg:`🔴 ${app}: ${veh.label.split(' ')[0]} תפס חניה ב${s.name}`, street:s.name });
+  }
+  if (COMMUNITY_FEED.length > 12) COMMUNITY_FEED.pop();
+  feedIdx = 0; feedSecondsAgo = 0;
+  renderAll();
+}
+setInterval(liveParkingEvent, 8000);
+
+// ─── השכרת חניות פרטיות — המרקטפלייס ───
+const PRIVATE_SPOTS = [
+  { owner:'דנה',  addr:"רוטשילד 22 (חניון בניין)",  lat:32.0648, lng:34.7730, price:12, len:5.0, booked:false },
+  { owner:'אבי',  addr:"דיזנגוף 118 (חצר)",         lat:32.0832, lng:34.7742, price:10, len:4.6, booked:false },
+  { owner:'משה',  addr:"בן יהודה 77 (שער חשמלי)",   lat:32.0810, lng:34.7692, price:15, len:5.4, booked:false },
+  { owner:'רותם', addr:"ארלוזורוב 40 (מקורה)",       lat:32.0866, lng:34.7800, price:18, len:4.8, booked:false },
+  { owner:'יעל',  addr:"נורדאו 15 (פרטית)",          lat:32.0925, lng:34.7760, price:9,  len:4.3, booked:false },
+];
+let privMarkers = [];
+function privPopupHtml(i) {
+  const p = PRIVATE_SPOTS[i];
+  const fitOk = p.len >= getVehicle().len + 0.2;
+  return `<div style="direction:rtl;min-width:175px">
+    <b>🏠 חניה פרטית — ${p.owner}</b><br>${p.addr}<br>
+    ₪${p.price}/שעה · אורך ${p.len} מ' · ${fitOk?'✓ מתאים לרכב שלך':'✗ צר לרכבך'}<br>
+    <button onclick="bookPrivate(${i})" ${p.booked?'disabled':''}
+      style="margin-top:6px;background:${p.booked?'#555':'#a855f7'};color:#fff;border:none;border-radius:8px;padding:6px 12px;cursor:pointer">
+      ${p.booked?'הוזמנה ✓':'הזמן עכשיו'}</button></div>`;
+}
+function initPrivateSpots() {
+  if (!realMap || privMarkers.length) return;
+  PRIVATE_SPOTS.forEach((p,i) => {
+    const mk = L.circleMarker([p.lat,p.lng], { radius:11, color:'#fff', weight:2, fillColor:'#a855f7', fillOpacity:.95 }).addTo(realMap);
+    mk.bindTooltip(`🏠 ₪${p.price}/שעה — ${p.owner}`, {direction:'top'});
+    mk.bindPopup(privPopupHtml(i));
+    privMarkers.push(mk);
+  });
+  renderPrivateList();
+}
+function bookPrivate(i) {
+  const p = PRIVATE_SPOTS[i];
+  if (p.booked) return;
+  p.booked = true;
+  if (privMarkers[i]) { privMarkers[i].setStyle({ fillColor:'#6b7280' }); privMarkers[i].setPopupContent(privPopupHtml(i)); }
+  showToast(`✅ הוזמנה חניה אצל ${p.owner} — ₪${p.price}/שעה`);
+  renderPrivateList();
+}
+function renderPrivateList() {
+  const el = document.getElementById('privList');
+  if (!el) return;
+  el.innerHTML = PRIVATE_SPOTS.map((p,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:7px 9px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:10px;margin-bottom:6px;font-size:.75rem">
+      <div><b>${p.addr}</b><br><span style="color:var(--muted)">₪${p.price}/שעה · ${p.len} מ' · ${p.owner}</span></div>
+      <button onclick="bookPrivate(${i})" ${p.booked?'disabled':''}
+        style="background:${p.booked?'#374151':'#a855f7'};color:#fff;border:none;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:.72rem;flex-shrink:0">
+        ${p.booked?'הוזמנה ✓':'הזמן'}</button>
+    </div>`).join('');
 }
 function fitInfo(idx) {
   const gap = streetGap(idx);
