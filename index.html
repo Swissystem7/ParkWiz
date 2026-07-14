@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>ParkWiz — העוזר החכם לחניה ברחוב</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <meta name="description" content="ParkWiz — מצא חניה פנויה בתל אביב בזמן אמת בעזרת דיווחי קהילה, מפת זמינות חכמה והתראות. חסוך זמן, דלק ועצבים.">
 <meta property="og:title" content="ParkWiz — מציא חניות רחוב בזמן אמת">
 <meta property="og:description" content="מפת חניה חיה מבוססת קהילה: זמינות לפי רחוב, דיווחי 'אני עוזב' והזמנת מקום מראש.">
@@ -396,6 +398,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
   <div class="map-wrap" id="mapWrap">
     <canvas id="mapCanvas"></canvas>
     <canvas id="heatmapCanvas"></canvas>
+    <div id="realMap" style="position:absolute;inset:0;z-index:4;background:transparent"></div>
     <div class="map-loading" id="mapLoading">
       <div class="skeleton-grid">
         <div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div>
@@ -451,6 +454,12 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
       <div class="rp-title"><span>🅿️ חניות בדרך ליעד</span><span class="rp-close" onclick="clearRoute()">✕ נקה מסלול</span></div>
       <div id="routeParkList"></div>
       <div class="rp-disclaimer">* אינטגרציית פנגו — הדמיה. בגרסה מסחרית: שיתוף פעולה עם ספקי תשלום חניה.</div>
+    </div>
+    <!-- Vehicle selector: מדד התאמת מקום לפי גודל הרכב -->
+    <div style="padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;margin:6px 0">
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">🚗 הרכב שלי (למדד "מתאים לרכב"):</div>
+      <select id="vehicleSel" onchange="setVehicle(this.value)"
+              style="width:100%;background:#101d10;color:#e5e7eb;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px;font-size:0.75rem"></select>
     </div>
     <div class="spots-list" id="spotsList"></div>
   </div>
@@ -600,16 +609,124 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 // ─── Street Data ──────────────────────────────────────────────────
 // Each street: name, availability (0-100), type (blue/free/timed), isH, ratio position
 const STREETS_DEF = [
-  { name:'רוטשילד',    avail:78, type:'blue',  isH:true,  pos:0.18 },
-  { name:'דיזנגוף',   avail:42, type:'free',  isH:true,  pos:0.36 },
-  { name:'בן יהודה',  avail:15, type:'blue',  isH:true,  pos:0.55 },
-  { name:'אלנבי',     avail:63, type:'timed', isH:true,  pos:0.74 },
-  { name:'ארלוזורוב', avail:88, type:'free',  isH:false, pos:0.12 },
-  { name:'ז\'בוטינסקי',avail:28, type:'blue',  isH:false, pos:0.30 },
-  { name:'ביאליק',    avail:55, type:'free',  isH:false, pos:0.50 },
-  { name:'הרצל',      avail:8,  type:'blue',  isH:false, pos:0.68 },
-  { name:'נורדאו',    avail:70, type:'timed', isH:false, pos:0.86 },
+  { name:'רוטשילד',    avail:78, type:'blue',  isH:true,  pos:0.18, lat:32.0663, lng:34.7748, a:[32.0623,34.7700], b:[32.0703,34.7797] },
+  { name:'דיזנגוף',   avail:42, type:'free',  isH:true,  pos:0.36, lat:32.0807, lng:34.7738, a:[32.0755,34.7738], b:[32.0900,34.7748] },
+  { name:'בן יהודה',  avail:15, type:'blue',  isH:true,  pos:0.55, lat:32.0809, lng:34.7690, a:[32.0730,34.7672], b:[32.0895,34.7715] },
+  { name:'אלנבי',     avail:63, type:'timed', isH:true,  pos:0.74, lat:32.0669, lng:34.7702, red:true, a:[32.0736,34.7642], b:[32.0620,34.7760] },
+  { name:'ארלוזורוב', avail:88, type:'free',  isH:false, pos:0.12, lat:32.0871, lng:34.7754, a:[32.0872,34.7720], b:[32.0855,34.7900] },
+  { name:'ז\'בוטינסקי',avail:28, type:'blue',  isH:false, pos:0.30, lat:32.0862, lng:34.7800, a:[32.0895,34.7745], b:[32.0875,34.7930] },
+  { name:'ביאליק',    avail:55, type:'free',  isH:false, pos:0.50, lat:32.0731, lng:34.7690, a:[32.0715,34.7690], b:[32.0745,34.7705] },
+  { name:'הרצל',      avail:8,  type:'blue',  isH:false, pos:0.68, lat:32.0577, lng:34.7702, red:true, a:[32.0680,34.7702], b:[32.0560,34.7700] },
+  { name:'נורדאו',    avail:70, type:'timed', isH:false, pos:0.86, lat:32.0930, lng:34.7735, a:[32.0930,34.7715], b:[32.0918,34.7830] },
 ];
+
+// ─── מפה אמיתית (Leaflet + OpenStreetMap) עם סימוני חניה ─────────
+const ZONE_COLORS = { blue:'#3b82f6', free:'#9ca3af', timed:'#f59e0b' };
+let realMap = null, segLayers = [], midMarkers = [], heatLayer = null;
+
+function initRealMap() {
+  if (!window.L || realMap) return;
+  const el = document.getElementById('realMap');
+  if (!el) return;
+  realMap = L.map('realMap', { zoomControl:false, attributionControl:true }).setView([32.076, 34.776], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '© OpenStreetMap'
+  }).addTo(realMap);
+  L.control.zoom({ position:'bottomleft' }).addTo(realMap);
+
+  STREETS_DEF.forEach((s, idx) => {
+    // קו הרחוב לפי סוג האזור (כחול-לבן / חינם / מוגבל)
+    const line = L.polyline([s.a, s.b], {
+      color: ZONE_COLORS[s.type] || '#9ca3af',
+      weight: 7, opacity: 0.85,
+    }).addTo(realMap);
+    line.on('click', () => selectStreet(idx));
+    segLayers.push(line);
+    // קטע אדום-לבן (אסור חניה) — מקטע מקווקו בקצה הרחוב
+    if (s.red) {
+      const rb = [ s.b[0] + (s.a[0]-s.b[0])*0.25, s.b[1] + (s.a[1]-s.b[1])*0.25 ];
+      L.polyline([s.b, rb], { color:'#ef4444', weight:7, opacity:0.95, dashArray:'8 8' })
+        .addTo(realMap).bindTooltip('⛔ אדום-לבן — אסור לחנות', {sticky:true});
+    }
+    // עיגול זמינות באמצע הרחוב
+    const mid = [ (s.a[0]+s.b[0])/2, (s.a[1]+s.b[1])/2 ];
+    const mk = L.circleMarker(mid, {
+      radius: 13, color:'#0c1a0c', weight:2,
+      fillColor: availColor(s.avail), fillOpacity: 0.95,
+    }).addTo(realMap);
+    mk.bindTooltip(`${s.name} · ${s.avail}% פנוי`, {direction:'top'});
+    mk.on('click', () => selectStreet(idx));
+    midMarkers.push(mk);
+  });
+
+  // המשתמש
+  L.circleMarker([32.0745, 34.7715], { radius:8, color:'#fff', weight:2, fillColor:'#38bdf8', fillOpacity:1 })
+    .addTo(realMap).bindTooltip('אתה כאן');
+  const ud = document.getElementById('userDot');
+  if (ud) ud.style.display = 'none';
+}
+
+function updateRealMap() {
+  if (!realMap) return;
+  STREETS_DEF.forEach((s, idx) => {
+    if (midMarkers[idx]) midMarkers[idx].setStyle({ fillColor: availColor(s.avail) });
+    if (segLayers[idx]) segLayers[idx].setStyle({
+      opacity: activeFilters[s.type] ? 0.85 : 0.15,
+      weight: selectedStreetIdx === idx ? 11 : 7,
+    });
+  });
+  // שכבת חום: עיגולי זמינות שקופים
+  if (heatmapActive) {
+    if (heatLayer) heatLayer.remove();
+    heatLayer = L.layerGroup(STREETS_DEF.map(s => {
+      const mid = [ (s.a[0]+s.b[0])/2, (s.a[1]+s.b[1])/2 ];
+      return L.circle(mid, { radius: 220, color:'transparent', fillColor: availColor(s.avail), fillOpacity: 0.28 });
+    })).addTo(realMap);
+  } else if (heatLayer) { heatLayer.remove(); heatLayer = null; }
+}
+
+// ─── Vehicle-fit model (הדמיה: "הרכב האחרון שחנה" → אורך מרווח משוער) ──
+const VEHICLE_TYPES = [
+  { id:'small',  label:'🚗 קטן (עד 3.8 מ\')',   len:3.8 },
+  { id:'sedan',  label:'🚙 משפחתי (4.5 מ\')',   len:4.5 },
+  { id:'suv',    label:'🚐 SUV/ג\'יפ (4.9 מ\')', len:4.9 },
+  { id:'van',    label:'🚚 מסחרי/ואן (5.5 מ\')', len:5.5 },
+];
+function getVehicle() {
+  const id = localStorage.getItem('pw_vehicle') || 'sedan';
+  return VEHICLE_TYPES.find(v=>v.id===id) || VEHICLE_TYPES[1];
+}
+function setVehicle(id) {
+  localStorage.setItem('pw_vehicle', id);
+  renderSidePanel();
+  if (selectedStreetIdx !== null) selectStreet(selectedStreetIdx);
+}
+// מרווח משוער ברחוב (דטרמיניסטי לפי אינדקס + זמינות; בגרסה אמיתית: מנתוני checkout של הרכב האחרון)
+function streetGap(idx) {
+  const s = STREETS_DEF[idx];
+  const seed = Math.sin(idx * 12.9898) * 43758.5453;
+  const jitter = (seed - Math.floor(seed)) * 1.4; // 0..1.4m
+  return +(3.6 + (s.avail/100) * 2.2 + jitter).toFixed(1);
+}
+function fitInfo(idx) {
+  const gap = streetGap(idx);
+  const need = getVehicle().len + 0.4; // מרווח תמרון
+  const ratio = gap / need;
+  if (ratio >= 1.15) return { txt:'✓ מתאים לרכב שלך', color:'#22c55e', gap };
+  if (ratio >= 0.98) return { txt:'⚠ צפוף לרכב שלך', color:'#eab308', gap };
+  return { txt:'✗ צר מדי לרכב שלך', color:'#ef4444', gap };
+}
+// ─── ניווט חיצוני: Waze + Google Maps (deep links רשמיים) ──────────
+function navWaze(idx, ev) {
+  if (ev) ev.stopPropagation();
+  const s = STREETS_DEF[idx];
+  window.open(`https://waze.com/ul?ll=${s.lat},${s.lng}&navigate=yes`, '_blank');
+}
+function navGmaps(idx, ev) {
+  if (ev) ev.stopPropagation();
+  const s = STREETS_DEF[idx];
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`, '_blank');
+}
 
 // Hourly availability pattern per street (8h - 22h, 7 slots)
 function genHourlyPattern(avail) {
@@ -684,15 +801,21 @@ function makeSpot() {
 
 // ─── Init ─────────────────────────────────────────────────────────
 function init() {
+  const vs = document.getElementById('vehicleSel');
+  if (vs) {
+    vs.innerHTML = VEHICLE_TYPES.map(v=>`<option value="${v.id}">${v.label}</option>`).join('');
+    vs.value = getVehicle().id;
+  }
   spots = [];
   for (let i = 0; i < 26; i++) spots.push(makeSpot());
   renderLeaderboard();
   renderHistory();
   const loading = document.getElementById('mapLoading');
   setTimeout(() => {
+    initRealMap();
     renderAll();
     loading.classList.add('hidden');
-    setTimeout(() => { loading.style.display = 'none'; }, 420);
+    setTimeout(() => { loading.style.display = 'none'; if (realMap) realMap.invalidateSize(); }, 420);
   }, 1200);
   startFeedCycle();
 }
@@ -1007,6 +1130,8 @@ function renderSidePanel() {
     const color = availColor(s.avail);
     const label = s.avail>=70?'פנוי בקלות':s.avail>=30?'בינוני':'עמוס';
     const typeLabel = s.type==='blue'?'🔵 כחול-לבן':s.type==='free'?'⚪ חינם':'⏱️ מוגבל';
+    const redTag = s.red ? '<span style="font-size:0.62rem;color:#ef4444;font-weight:700"> ⛔ קטעי אדום-לבן</span>' : '';
+    const fit = fitInfo(s.idx);
     return `
     <div class="spot-item ${selectedStreetIdx===s.idx?'selected':''}" onclick="selectStreet(${s.idx})">
       <div class="spot-street" style="display:flex;align-items:center;justify-content:space-between">
@@ -1017,11 +1142,16 @@ function renderSidePanel() {
         <span style="font-size:0.68rem;color:${color};font-weight:700">${s.avail}%</span>
       </div>
       <div class="spot-meta" style="margin-top:4px">
-        <span class="spot-dist">${typeLabel}</span>
+        <span class="spot-dist">${typeLabel}${redTag}</span>
         <span class="spot-badge" style="background:${color}22;color:${color}">${label}</span>
       </div>
+      <div style="margin-top:4px;font-size:0.66rem;font-weight:700;color:${fit.color}">${fit.txt} <span style="color:var(--muted);font-weight:400">(מרווח משוער ${fit.gap} מ')</span></div>
       <div style="height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:6px;overflow:hidden">
         <div style="height:100%;width:${s.avail}%;background:${color};border-radius:2px;transition:width.5s"></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:7px">
+        <button onclick="navWaze(${s.idx},event)" style="flex:1;background:#33ccff22;color:#33ccff;border:1px solid #33ccff44;border-radius:8px;padding:4px 6px;font-size:0.68rem;cursor:pointer;font-weight:700">🚘 נווט ב-Waze</button>
+        <button onclick="navGmaps(${s.idx},event)" style="flex:1;background:#34a85322;color:#5dd57f;border:1px solid #34a85344;border-radius:8px;padding:4px 6px;font-size:0.68rem;cursor:pointer;font-weight:700">🗺️ Google Maps</button>
       </div>
     </div>`;
   }).join('');
@@ -1127,6 +1257,7 @@ function renderAll() {
   renderSidePanel();
   if (heatmapActive) drawHeatmap();
   positionUserDot();
+  updateRealMap();
 }
 
 function positionUserDot() {
