@@ -45,7 +45,15 @@ jobs:
           grep -q "leaflet" /tmp/live.html || { echo "::error::Live site missing Leaflet (stale?)"; exit 1; }
           echo "OK: live site up with current stack"
 
-      - name: "בדיקה 4: מדד כנות — ספירת randomness"
+      - name: "בדיקה 4: אין חזרה של טענות זמן-אמת (PW-004)"
+        run: |
+          if grep -E "בזמן אמת|נתון אמת|חניה חיה" index.html; then
+            echo "::error::REGRESSION: 'real-time/live' product claims are back (violates truth-first)"
+            exit 1
+          fi
+          echo "OK: no real-time claims — probabilistic wording only"
+
+      - name: "בדיקה 5: מדד כנות — ספירת randomness"
         run: |
           n=$(grep -c "Math.random" index.html || true)
           echo "Math.random count: $n (Sprint-1 goal: shrink toward deterministic prediction)"

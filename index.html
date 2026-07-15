@@ -6,9 +6,9 @@
 <title>ParkWiz — העוזר החכם לחניה ברחוב</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<meta name="description" content="ParkWiz — מצא חניה פנויה בתל אביב בזמן אמת בעזרת דיווחי קהילה, מפת זמינות חכמה והתראות. חסוך זמן, דלק ועצבים.">
-<meta property="og:title" content="ParkWiz — מציא חניות רחוב בזמן אמת">
-<meta property="og:description" content="מפת חניה חיה מבוססת קהילה: זמינות לפי רחוב, דיווחי 'אני עוזב' והזמנת מקום מראש.">
+<meta name="description" content="ParkWiz — הערכת סיכוי למצוא חניה בתל אביב לפי דיווחי קהילה ונתוני עירייה. חיזוי הסתברותי, לא הבטחה. חסוך זמן, דלק ועצבים.">
+<meta property="og:title" content="ParkWiz — הערכת סיכוי לחניית רחוב">
+<meta property="og:description" content="מפת סיכויי חניה מבוססת קהילה ונתוני עירייה: הערכה לפי רחוב, דיווחי 'אני עוזב' והזמנת מקום מראש.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#22c55e">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -449,7 +449,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
     </div>
     <!-- Hero text before street selected -->
     <div class="hero-overlay" id="heroOverlay">
-      <div class="hero-text">בחר רחוב לראות זמינות חניה בזמן אמת</div>
+      <div class="hero-text">בחר רחוב לראות הערכת סיכוי לחניה</div>
       <div class="hero-arrow">👇</div>
     </div>
     <div class="user-dot" id="userDot"></div>
@@ -475,7 +475,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
   <div class="side-panel" id="sidePanel">
     <div class="panel-header">
       <h3>🛣️ רחובות קרובים</h3>
-      <p id="panelSub">קהילה שמדווחת בזמן אמת</p>
+      <p id="panelSub">הערכה לפי דיווחי קהילה ונתוני עירייה</p>
     </div>
     <div class="stats-row">
       <div class="stat-pill"><div class="stat-n" style="color:var(--green)" id="freeCount">0</div><div class="stat-l">פנויים</div></div>
@@ -720,7 +720,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
         <div class="profile-block-title">⚙️ הגדרות חשבון</div>
         <div class="profile-settings">
           <label class="profile-setting">
-            <span>התראות חניה חיה</span>
+            <span>התראות דיווחי חניה</span>
             <span class="profile-switch"><input type="checkbox" id="profileNotifToggle" onchange="profileSettingChanged('notifications', this)"></span>
           </label>
           <label class="profile-setting">
@@ -887,7 +887,7 @@ async function planVacation() {
     <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">התוכנית ל<b style="color:#fbbf24">${d.name}</b> בשעה ${VAC_HOURS[hi]}:</div>
     ${rows || '<div style="font-size:.7rem;color:var(--muted)">אין רחובות מנוטרים ברדיוס — ראה חניון</div>'}
     ${priv ? `<div onclick="openRent(${priv.i})" style="padding:6px 8px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);border-radius:8px;margin-bottom:4px;font-size:.72rem;cursor:pointer">🏠 <b>שריין מראש</b>: חניה פרטית של ${priv.p.owner} · ₪${priv.p.price}/שעה · ${priv.d} מ' — מובטחת, בלי חיפושים</div>` : ''}
-    ${lot ? `<div style="padding:6px 8px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.3);border-radius:8px;font-size:.72rem">🛟 <b>תוכנית ב' בטוחה</b>: חניון ${lot.shem_chenyon} (${lot.ktovet||''}) · ${Math.round(lotD)} מ' — נתון אמת עיריית ת"א</div>` : ''}
+    ${lot ? `<div style="padding:6px 8px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.3);border-radius:8px;font-size:.72rem">🛟 <b>תוכנית ב' בטוחה</b>: חניון ${lot.shem_chenyon} (${lot.ktovet||''}) · ${Math.round(lotD)} מ' — נתוני עיריית ת"א (יובאו 07/2026)</div>` : ''}
     <div style="display:flex;gap:6px;margin-top:5px">
       <button onclick="window.open('https://waze.com/ul?ll=${d.lat},${d.lng}&navigate=yes','_blank')" style="flex:1;background:#33ccff22;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:5px;font-size:.7rem;cursor:pointer">🚗 Waze ליעד</button>
       <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}','_blank')" style="flex:1;background:#22c55e22;color:#4ade80;border:1px solid #22c55e55;border-radius:8px;padding:5px;font-size:.7rem;cursor:pointer">🗺 Google Maps</button>
@@ -913,7 +913,7 @@ async function toggleTlvLayer() {
         }),
         L.geoJSON(lots, {
           pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius:5, color:'#fff', weight:1, fillColor:'#0ea5e9', fillOpacity:.9 })
-            .bindPopup(`<div style="direction:rtl"><b>🅿 חניון ${f.properties.shem_chenyon}</b><br>${f.properties.ktovet || ''}<br><span style="font-size:.7rem;color:#888">אחוזות החוף · נתון אמת עיריית ת"א</span></div>`),
+            .bindPopup(`<div style="direction:rtl"><b>🅿 חניון ${f.properties.shem_chenyon}</b><br>${f.properties.ktovet || ''}<br><span style="font-size:.7rem;color:#888">אחוזות החוף · נתוני עיריית ת"א (יובאו 07/2026)</span></div>`),
         }),
       ]).addTo(realMap);
     } catch(e) { showToast('⚠ שכבת העירייה לא נטענה'); return; }
@@ -1693,7 +1693,7 @@ let profileSettings = { notifications:true, darkmap:false, sounds:true };
 
 function profileSettingChanged(kind, el) {
   const labels = {
-    notifications: 'התראות חניה חיה',
+    notifications: 'התראות דיווחי חניה',
     darkmap: 'מצב מפה כהה במיוחד',
     sounds: 'צלילי ניווט'
   };
@@ -2649,7 +2649,7 @@ const PW_LEGAL = {
   privacy: { title: 'מדיניות פרטיות', html: `
 <p><strong>1. איזה מידע נאסף.</strong> בעת הרשמה נאספים שם ואימייל. במהלך השימוש נאספים דיווחי חניה, רחובות שנצפו ונתוני שימוש כלליים לצורך שיפור דיוק המפה.</p>
 <p><strong>2. נתוני מיקום.</strong> ככל שתאשר גישה למיקום, הוא ישמש להצגת רחובות קרובים ולשיוך דיווחים בלבד. איננו עוקבים אחר מסלולי נסיעה ואיננו משתפים מיקום עם מפרסמים.</p>
-<p><strong>3. שימוש במידע.</strong> המידע משמש לתפעול השירות, חישוב זמינות חניה בזמן אמת, ניקוד XP ולוח מובילים. דיווחים מוצגים לקהילה באופן אנונימי.</p>
+<p><strong>3. שימוש במידע.</strong> המידע משמש לתפעול השירות, חישוב הערכת סיכוי לחניה, ניקוד XP ולוח מובילים. דיווחים מוצגים לקהילה באופן אנונימי.</p>
 <p><strong>4. אחסון מקומי.</strong> העדפות, היסטוריה ומשוב נשמרים בדפדפן שלך (localStorage). מחיקת נתוני הדפדפן תמחק מידע זה.</p>
 <p><strong>5. זכויותיך.</strong> באפשרותך לבקש עיון, תיקון או מחיקה של המידע האישי שלך, וכן לסגור את החשבון בכל עת בפנייה לתמיכה.</p>
 <p><strong>6. עדכונים.</strong> מדיניות זו עשויה להתעדכן. שינוי מהותי יוצג באפליקציה, והמשך שימוש מהווה הסכמה לנוסח המעודכן.</p>` }
@@ -2662,7 +2662,7 @@ function pwOpenLegal(kind) {
 
 /* ── Onboarding ── */
 const PW_OB_STEPS = [
-  { icon: '🅿️', title: 'ברוך הבא ל-ParkWiz!', text: 'מפת חניה חיה של תל אביב, מבוססת על דיווחי קהילה בזמן אמת. ירוק = קל למצוא, צהוב = בינוני, אדום = עמוס.' },
+  { icon: '🅿️', title: 'ברוך הבא ל-ParkWiz!', text: 'הערכת סיכוי לחניה בתל אביב — לפי דיווחי קהילה ונתוני עירייה. ירוק = סיכוי גבוה, צהוב = בינוני, אדום = נמוך. חיזוי, לא הבטחה.' },
   { icon: '🚗', title: 'איך משתמשים?', text: 'לחץ על רחוב במפה כדי לראות זמינות לפי שעות. עוזב חניה? לחץ "אני עוזב!" למטה — תעזור לקהילה ותצבור XP 🏆.' },
   { icon: '⚡', title: 'מה מקבלים ב-Premium?', text: 'הזמנת מקום חניה מראש, התראות push כשמתפנה מקום ברחוב שלך, ללא פרסומות ועדיפות בהתראות — רק ₪14.90 לחודש.' },
 ];
