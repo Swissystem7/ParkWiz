@@ -53,7 +53,18 @@ jobs:
           fi
           echo "OK: no real-time claims — probabilistic wording only"
 
-      - name: "בדיקה 5: מדד כנות — ספירת randomness"
+      - name: "בדיקה 5: החיזוי נשאר דטרמיניסטי (PW-005)"
+        run: |
+          python3 - << 'EOF'
+          import re
+          src = open('index.html', encoding='utf-8').read()
+          m = re.search(r'function genHourlyPattern.*?\n}', src, re.S)
+          assert m, 'genHourlyPattern not found'
+          assert 'Math.random' not in m.group(0), 'REGRESSION: prediction uses Math.random again!'
+          print('OK: prediction is deterministic (no Math.random in genHourlyPattern)')
+          EOF
+
+      - name: "בדיקה 6: מדד כנות — ספירת randomness"
         run: |
           n=$(grep -c "Math.random" index.html || true)
           echo "Math.random count: $n (Sprint-1 goal: shrink toward deterministic prediction)"
