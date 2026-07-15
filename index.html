@@ -1166,16 +1166,23 @@ function navGmaps(idx, ev) {
   window.open(`https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`, '_blank');
 }
 
-// Hourly availability pattern per street (8h - 22h, 7 slots)
-function genHourlyPattern(avail) {
+// חיזוי הסתברותי דטרמיניסטי (PW-005): אותו רחוב+שעה → תמיד אותו סיכוי.
+// נוסחה שקופה: base(זמינות) + rush(דפוס-שעה) + var(וריאציה יציבה לפי רחוב+שעה, ללא Math.random).
+// המשקלים קבועים ומתועדים; בגרסה אמיתית base יבוא מהיסטוריית דיווחים, לא מ-avail הדמו.
+const RUSH_WEIGHT = { 8:-0.25, 18:-0.25, 20:-0.25, 12:-0.12, 14:-0.12 };
+function stableVar(streetIdx, hour) {           // דטרמיניסטי, טווח ~±0.075
+  const x = Math.sin((streetIdx + 1) * 12.9898 + hour * 78.233) * 43758.5453;
+  return ((x - Math.floor(x)) - 0.5) * 0.15;
+}
+function genHourlyPattern(avail, streetIdx) {
   const base = avail / 100;
   return [8,10,12,14,16,18,20].map(h => {
-    const rush = (h===8||h===18||h===20) ? -0.25 : (h===12||h===14) ? -0.12 : 0;
-    return Math.max(0.05, Math.min(1, base + rush + (Math.random()-.5)*.15));
+    const rush = RUSH_WEIGHT[h] || 0;
+    return +Math.max(0.05, Math.min(1, base + rush + stableVar(streetIdx, h))).toFixed(3);
   });
 }
 
-const STREET_HOURLY = STREETS_DEF.map(s => genHourlyPattern(s.avail));
+const STREET_HOURLY = STREETS_DEF.map((s, i) => genHourlyPattern(s.avail, i));
 
 const COMMUNITY_FEED = [
   { msg:'👤 משתמש דיווח: חניה פנתה בדיזנגוף 45', street:'דיזנגוף' },
