@@ -1,0 +1,64 @@
+name: ParkWiz Sentinel
+
+# סוכן-ענן דטרמיניסטי: שומר האמת של ParkWiz.
+# רץ יומית בענן (גם כשכל המחשבים כבויים) — אפס טוקני LLM.
+on:
+  schedule:
+    - cron: '0 4 * * *'   # 07:00 ישראל, כל יום
+  workflow_dispatch:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  truth-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "בדיקה 1: אין רגרסיה של אירועים מזויפים אוטומטיים"
+        run: |
+          if grep -q "setInterval(liveParkingEvent" index.html; then
+            echo "::error::REGRESSION: fake live events auto-timer is back!"
+            exit 1
+          fi
+          echo "OK: no auto fake-events timer"
+
+      - name: "בדיקה 2: קבצי הדאטה העירוניים תקינים"
+        run: |
+          python3 - << 'EOF'
+          import json
+          for f in ['tlv-zones.json', 'tlv-lots.json', 'tlv-tow.json']:
+              d = json.load(open(f, encoding='utf-8'))
+              n = len(d.get('features', []))
+              assert n > 0, f'{f}: empty!'
+              print(f'OK: {f} — {n} features')
+          EOF
+
+      - name: "בדיקה 3: האתר החי נושם ומעודכן"
+        run: |
+          code=$(curl -s -o /tmp/live.html -w "%{http_code}" https://swissystem7.github.io/ParkWiz/)
+          [ "$code" = "200" ] || { echo "::error::Pages down (HTTP $code)"; exit 1; }
+          grep -q "leaflet" /tmp/live.html || { echo "::error::Live site missing Leaflet (stale?)"; exit 1; }
+          echo "OK: live site up with current stack"
+
+      - name: "בדיקה 4: מדד כנות — ספירת randomness"
+        run: |
+          n=$(grep -c "Math.random" index.html || true)
+          echo "Math.random count: $n (Sprint-1 goal: shrink toward deterministic prediction)"
+          echo "random_count=$n" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: "פתיחת Issue בכשל"
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Sentinel: בדיקת אמת נכשלה (${new Date().toISOString().slice(0,10)})`,
+              body: `ריצת Sentinel נכשלה: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\nצוות: Claude/Codex — לתקן לפי COORDINATION.md.`
+            });
