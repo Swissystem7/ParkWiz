@@ -443,6 +443,25 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
       <div class="stat-pill"><div class="stat-n" style="color:var(--yellow)" id="soonCount">0</div><div class="stat-l">בינוני</div></div>
       <div class="stat-pill"><div class="stat-n" style="color:var(--muted)" id="totalCount">0</div><div class="stat-l">רחובות</div></div>
     </div>
+    <!-- Vacation planner: pre-plan parking at destination -->
+    <div class="live-feed" style="border-color:rgba(251,191,36,.4)">
+      <div class="feed-title" style="color:#fbbf24">🏖 מצב חופשה — תכנן חניה מראש</div>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <select id="vacDest" style="flex:2;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
+          <option value="0">חוף גורדון</option>
+          <option value="1">נמל תל אביב</option>
+          <option value="2">שוק הכרמל</option>
+          <option value="3">שדרות רוטשילד</option>
+          <option value="4">דיזנגוף סנטר</option>
+        </select>
+        <select id="vacHour" style="flex:1;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
+          <option value="0">08:00</option><option value="1">10:00</option><option value="2" selected>12:00</option>
+          <option value="3">14:00</option><option value="4">16:00</option><option value="5">18:00</option><option value="6">20:00</option>
+        </select>
+      </div>
+      <button onclick="planVacation()" style="width:100%;background:#fbbf24;color:#1c1917;border:none;border-radius:9px;padding:7px;font-size:.78rem;font-weight:700;cursor:pointer">📋 בנה לי תוכנית חניה</button>
+      <div id="vacPlan" style="margin-top:6px"></div>
+    </div>
     <!-- Arrival mode: curb map around destination -->
     <div class="live-feed" id="arrivalPanel" style="display:none;border-color:rgba(74,222,128,.4)"></div>
     <!-- Live community feed -->
@@ -723,6 +742,57 @@ function arrivalMode(lat, lng, name) {
     <div style="text-align:left;margin-top:4px"><b style="font-size:.68rem;color:var(--muted);cursor:pointer" onclick="clearArrival()">✕ סגור</b></div>`;
   renderAll();
 }
+// ─── מצב חופשה: תכנון חניה מראש ליעד ושעה (חיזוי לפי דפוסי שעה + חניונים אמיתיים) ───
+const VAC_DESTS = [
+  { name:'חוף גורדון',     lat:32.0838, lng:34.7669 },
+  { name:'נמל תל אביב',    lat:32.0965, lng:34.7748 },
+  { name:'שוק הכרמל',      lat:32.0680, lng:34.7688 },
+  { name:'שדרות רוטשילד',  lat:32.0663, lng:34.7748 },
+  { name:'דיזנגוף סנטר',   lat:32.0751, lng:34.7752 },
+];
+const VAC_HOURS = ['08:00','10:00','12:00','14:00','16:00','18:00','20:00'];
+let vacLots = null;
+async function planVacation() {
+  const d = VAC_DESTS[+document.getElementById('vacDest').value];
+  const hi = +document.getElementById('vacHour').value;
+  if (!vacLots) { try { vacLots = (await fetch('tlv-lots.json').then(r=>r.json())).features; } catch(e) { vacLots = []; } }
+
+  // רחובות בטווח 500 מ' — הסתברות לפי דפוס השעה
+  const opts = STREETS_DEF.map((s, i) => {
+    const mid = [ (s.a[0]+s.b[0])/2, (s.a[1]+s.b[1])/2 ];
+    return { s, i, dist: Math.round(distM([d.lat,d.lng], mid)), prob: Math.round(STREET_HOURLY[i][hi]*100) };
+  }).filter(o => o.dist <= 900).sort((a,b) => (b.prob - b.dist/15) - (a.prob - a.dist/15)).slice(0,2);
+
+  // החניון האמיתי הקרוב ביותר (אחוזות החוף) — תוכנית ב' בטוחה
+  let lot = null, lotD = 1e9;
+  vacLots.forEach(f => {
+    const [lng, lat] = f.geometry.coordinates;
+    const dd = distM([d.lat,d.lng], [lat,lng]);
+    if (dd < lotD) { lotD = dd; lot = f.properties; }
+  });
+
+  // חניה פרטית פנויה בסביבה
+  const priv = PRIVATE_SPOTS.map((p,i)=>({p,i,d:Math.round(distM([d.lat,d.lng],[p.lat,p.lng]))}))
+    .filter(x=>!x.p.booked && x.d<=900).sort((a,b)=>a.d-b.d)[0];
+
+  const rows = opts.map(o => `
+    <div onclick="selectStreet(${o.i})" style="display:flex;justify-content:space-between;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:4px;font-size:.72rem;cursor:pointer">
+      <div>🅿 רחוב ${o.s.name} <span style="color:${availColor(o.prob)}">סיכוי ${o.prob}%</span> ב-${VAC_HOURS[hi]}</div>
+      <div>${o.dist} מ' · ~${Math.max(1,Math.round(o.dist/80))} דק' הליכה</div>
+    </div>`).join('');
+
+  document.getElementById('vacPlan').innerHTML = `
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">התוכנית ל<b style="color:#fbbf24">${d.name}</b> בשעה ${VAC_HOURS[hi]}:</div>
+    ${rows || '<div style="font-size:.7rem;color:var(--muted)">אין רחובות מנוטרים ברדיוס — ראה חניון</div>'}
+    ${priv ? `<div onclick="openRent(${priv.i})" style="padding:6px 8px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);border-radius:8px;margin-bottom:4px;font-size:.72rem;cursor:pointer">🏠 <b>שריין מראש</b>: חניה פרטית של ${priv.p.owner} · ₪${priv.p.price}/שעה · ${priv.d} מ' — מובטחת, בלי חיפושים</div>` : ''}
+    ${lot ? `<div style="padding:6px 8px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.3);border-radius:8px;font-size:.72rem">🛟 <b>תוכנית ב' בטוחה</b>: חניון ${lot.shem_chenyon} (${lot.ktovet||''}) · ${Math.round(lotD)} מ' — נתון אמת עיריית ת"א</div>` : ''}
+    <div style="display:flex;gap:6px;margin-top:5px">
+      <button onclick="window.open('https://waze.com/ul?ll=${d.lat},${d.lng}&navigate=yes','_blank')" style="flex:1;background:#33ccff22;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:5px;font-size:.7rem;cursor:pointer">🚗 Waze ליעד</button>
+      <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}','_blank')" style="flex:1;background:#22c55e22;color:#4ade80;border:1px solid #22c55e55;border-radius:8px;padding:5px;font-size:.7rem;cursor:pointer">🗺 Google Maps</button>
+    </div>`;
+  arrivalMode(d.lat, d.lng, d.name);
+}
+
 // ─── שכבת אמת: GIS עיריית ת"א (ETL ראשון — אזורי חניה + חניוני אחוזות החוף) ───
 let tlvLayer = null, tlvOn = false;
 async function toggleTlvLayer() {
