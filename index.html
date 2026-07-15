@@ -450,12 +450,27 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
       <div class="feed-title"><span class="live-dot"></span>עדכוני קהילה אחרונים</div>
       <div id="feedItem" class="feed-item">טוען...</div>
       <div id="feedTime" class="feed-time"></div>
+      <div style="display:flex;gap:6px;margin-top:5px">
+        <button onclick="confirmFeed(true)" style="flex:1;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.4);border-radius:8px;padding:4px;font-size:.68rem;cursor:pointer">👍 עדיין פנוי (+5 XP)</button>
+        <button onclick="confirmFeed(false)" style="flex:1;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:4px;font-size:.68rem;cursor:pointer">👎 כבר תפוס (+5 XP)</button>
+      </div>
     </div>
     <!-- Private parking marketplace -->
     <div class="live-feed" style="border-color:rgba(168,85,247,.35)">
       <div class="feed-title" style="color:#c084fc">🏠 חניות פרטיות להשכרה</div>
       <div id="privList"></div>
       <div style="font-size:.65rem;color:var(--muted)">יש לך חניה פרטית? <b style="color:#c084fc;cursor:pointer" onclick="showToast('🏠 בקרוב: פרסם את החניה שלך והרווח ₪ כשאתה לא בבית!')">השכר אותה →</b></div>
+      <div style="font-size:.62rem;color:var(--muted);margin-top:3px">🔒 נסחרות כאן רק חניות פרטיות. חניה ציבורית לא נמכרת ולא תימכר — זה גם לא חוקי.</div>
+    </div>
+    <!-- מד צפיפות קהילה: הפתרון לביצה-ותרנגולת — שכונה אחת בכל פעם -->
+    <div class="live-feed" style="border-color:rgba(56,189,248,.35)">
+      <div class="feed-title" style="color:#38bdf8">📡 צפיפות דיווח — לב תל אביב</div>
+      <div style="display:flex;align-items:center;gap:8px;margin:4px 0">
+        <div style="flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden"><div style="width:68%;height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e)"></div></div>
+        <b style="font-size:.75rem">34/50</b>
+      </div>
+      <div style="font-size:.68rem;color:var(--muted)">34 מדווחים פעילים בשכונה · דיוק חיזוי מוערך: 68%. עוד 16 שכנים = דיוק מלא.</div>
+      <div style="text-align:center;margin-top:5px"><b style="font-size:.72rem;color:#38bdf8;cursor:pointer" onclick="showToast('📲 קישור הזמנה הועתק — שתף בקבוצת הוואטסאפ השכונתית!')">+ הזמן שכן ולקבל 50 XP</b></div>
     </div>
     <!-- Departure helper -->
     <div class="departure-panel" id="departurePanel">
@@ -769,7 +784,7 @@ function initRealMap() {
       radius: 13, color:'#0c1a0c', weight:2,
       fillColor: availColor(s.avail), fillOpacity: 0.95,
     }).addTo(realMap);
-    mk.bindTooltip(`${s.name} · ${s.avail}% פנוי`, {direction:'top'});
+    mk.bindTooltip(`${s.name} · סיכוי ${s.avail}% (הערכה, לא הבטחה)`, {direction:'top'});
     mk.on('click', () => selectStreet(idx));
     midMarkers.push(mk);
   });
@@ -839,14 +854,17 @@ function liveParkingEvent() {
   if (Math.random() < 0.55) { // יוצא
     s.avail = Math.min(97, s.avail + 6 + Math.floor(Math.random()*8));
     s.lastGap = +(veh.len + 0.5 + Math.random()*0.9).toFixed(1);
-    COMMUNITY_FEED.unshift({ msg:`🔵 ${app}: ${veh.label.split(' ')[0]} יצא מ${s.name} — נפתח מרווח ${s.lastGap} מ'`, street:s.name });
+    s.lastGapT = Date.now();
+    COMMUNITY_FEED.unshift({ msg:`🔵 ${app}: ${veh.label.split(' ')[0]} יצא מ${s.name} — נפתח מרווח ${s.lastGap} מ'`, street:s.name, t:Date.now() });
     if (s.lastGap >= getVehicle().len + 0.4)
       showToast(`🎯 התפנתה חניה בגודל שלך ב${s.name} (${s.lastGap} מ')!`);
   } else { // נכנס
     s.avail = Math.max(3, s.avail - (5 + Math.floor(Math.random()*7)));
     s.lastGap = null;
-    COMMUNITY_FEED.unshift({ msg:`🔴 ${app}: ${veh.label.split(' ')[0]} תפס חניה ב${s.name}`, street:s.name });
+    COMMUNITY_FEED.unshift({ msg:`🔴 ${app}: ${veh.label.split(' ')[0]} תפס חניה ב${s.name}`, street:s.name, t:Date.now() });
   }
+  // ריקבון דאטה: מרווח שדווח מתיישן — אחרי 3 דקות כבר לא סומכים עליו (הלקח של Google Open Spot)
+  STREETS_DEF.forEach(st => { if (st.lastGapT && Date.now() - st.lastGapT > 180e3) { st.lastGap = null; st.lastGapT = null; } });
   if (COMMUNITY_FEED.length > 12) COMMUNITY_FEED.pop();
   feedIdx = 0; feedSecondsAgo = 0;
   renderAll();
@@ -1678,10 +1696,31 @@ function startFeedCycle() {
   }, 1000);
 }
 
+// אימות קהילתי בסגנון Waze: confirm מעלה ודאות, disconfirm מפיל את הדיווח מיד
+function confirmFeed(stillFree) {
+  const item = COMMUNITY_FEED[feedIdx % COMMUNITY_FEED.length];
+  const s = STREETS_DEF.find(x => item.street && item.street.includes(x.name));
+  if (s) {
+    if (stillFree) { s.avail = Math.min(97, s.avail + 4); item.t = Date.now(); }
+    else { s.avail = Math.max(3, s.avail - 6); s.lastGap = null; item.t = Date.now() - 999e3; }
+  }
+  userScore += 5;
+  showToast(stillFree ? '👍 תודה! הדיווח אומת (+5 XP)' : '👎 עודכן — הדיווח נפסל (+5 XP)');
+  renderAll();
+}
+
 function updateFeed() {
   const item = COMMUNITY_FEED[feedIdx % COMMUNITY_FEED.length];
   document.getElementById('feedItem').textContent = item.msg;
-  document.getElementById('feedTime').textContent = feedSecondsAgo === 0 ? 'עכשיו' : `לפני ${feedSecondsAgo} שניות`;
+  // ודאות דועכת עם הזמן — דיווח חניה "נרקב" תוך דקות
+  let conf = '';
+  if (item.t) {
+    const ageS = Math.round((Date.now() - item.t) / 1000);
+    const pct = Math.max(0, Math.round(100 - ageS / 1.8)); // 100% → 0% תוך 3 דק'
+    conf = ` · ודאות ${pct}%` + (pct < 40 ? ' ⚠' : '');
+  }
+  document.getElementById('feedTime').textContent =
+    (feedSecondsAgo === 0 ? 'עכשיו' : `לפני ${feedSecondsAgo} שניות`) + conf;
 }
 
 function toggleHistory() {
