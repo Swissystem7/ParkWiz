@@ -378,6 +378,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
     <input class="search-box" id="searchInput" placeholder="חפש רחוב בתל אביב..." autocomplete="off" oninput="onSearch(this.value)" onblur="setTimeout(closeAC,200)">
     <div class="autocomplete" id="autocomplete"></div>
   </div>
+  <button class="btn btn-ghost" onclick="liveParkingEvent()">DEMO</button>
   <button class="heatmap-btn" id="heatmapBtn" onclick="toggleHeatmap()">🌡️ חום</button>
   <button class="premium-btn" onclick="showParkPricing()">ParkWiz Premium ⚡</button>
   <div class="pw-auth-area" id="pwAuthArea">
@@ -925,13 +926,13 @@ function liveParkingEvent() {
     s.avail = Math.min(97, s.avail + 6 + Math.floor(Math.random()*8));
     s.lastGap = +(veh.len + 0.5 + Math.random()*0.9).toFixed(1);
     s.lastGapT = Date.now();
-    COMMUNITY_FEED.unshift({ msg:`🔵 ${app}: ${veh.label.split(' ')[0]} יצא מ${s.name} — נפתח מרווח ${s.lastGap} מ'`, street:s.name, t:Date.now() });
+    COMMUNITY_FEED.unshift({ msg:`[הדגמה] 🔵 ${app}: ${veh.label.split(' ')[0]} יצא מ${s.name} — נפתח מרווח ${s.lastGap} מ'`, street:s.name, t:Date.now() });
     if (s.lastGap >= getVehicle().len + 0.4)
-      showToast(`🎯 התפנתה חניה בגודל שלך ב${s.name} (${s.lastGap} מ')!`);
+      showToast(`[הדגמה] 🎯 התפנתה חניה בגודל שלך ב${s.name} (${s.lastGap} מ')!`);
   } else { // נכנס
     s.avail = Math.max(3, s.avail - (5 + Math.floor(Math.random()*7)));
     s.lastGap = null;
-    COMMUNITY_FEED.unshift({ msg:`🔴 ${app}: ${veh.label.split(' ')[0]} תפס חניה ב${s.name}`, street:s.name, t:Date.now() });
+    COMMUNITY_FEED.unshift({ msg:`[הדגמה] 🔴 ${app}: ${veh.label.split(' ')[0]} תפס חניה ב${s.name}`, street:s.name, t:Date.now() });
   }
   // ריקבון דאטה: מרווח שדווח מתיישן — אחרי 3 דקות כבר לא סומכים עליו (הלקח של Google Open Spot)
   STREETS_DEF.forEach(st => { if (st.lastGapT && Date.now() - st.lastGapT > 180e3) { st.lastGap = null; st.lastGapT = null; } });
@@ -939,8 +940,6 @@ function liveParkingEvent() {
   feedIdx = 0; feedSecondsAgo = 0;
   renderAll();
 }
-setInterval(liveParkingEvent, 8000);
-
 // ─── השכרת חניות פרטיות — המרקטפלייס ───
 const PRIVATE_SPOTS = [
   { owner:'דנה',  addr:"רוטשילד 22 (חניון בניין)",  lat:32.0648, lng:34.7730, price:12, len:5.0, booked:false },
