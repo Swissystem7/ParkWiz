@@ -6,9 +6,9 @@
 <title>ParkWiz — העוזר החכם לחניה ברחוב</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<meta name="description" content="ParkWiz — מצא חניה פנויה בתל אביב בזמן אמת בעזרת דיווחי קהילה, מפת זמינות חכמה והתראות. חסוך זמן, דלק ועצבים.">
-<meta property="og:title" content="ParkWiz — מציא חניות רחוב בזמן אמת">
-<meta property="og:description" content="מפת חניה חיה מבוססת קהילה: זמינות לפי רחוב, דיווחי 'אני עוזב' והזמנת מקום מראש.">
+<meta name="description" content="ParkWiz — הערכת סיכוי למציאת חניה בתל אביב על בסיס מודל שקוף ודיווחי משתמשים קצרים.">
+<meta property="og:title" content="ParkWiz — הערכת חניה שקופה">
+<meta property="og:description" content="מפת הדגמה עם מקור, זמן ורמת ביטחון — ללא הבטחה לנתוני תפוסה חיים.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#22c55e">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -394,6 +394,13 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
   <button class="filter-btn active" id="filt-timed" onclick="toggleFilter('timed')">⏱️ עד 3 שעות</button>
 </div>
 
+<!-- Product trust layer: the MVP uses municipal GIS + statistical estimates, not live occupancy. -->
+<div id="trustBanner" style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:8px 14px;background:#0b1720;border-bottom:1px solid rgba(56,189,248,.35);color:#cbd5e1;font-size:.75rem;text-align:center">
+  <strong style="color:#38bdf8">גרסת פיילוט שקופה</strong>
+  <span>שכבות העירייה הן נתוני GIS רשמיים; אחוזי הזמינות הם הערכה סטטיסטית — לא תפוסה חיה.</span>
+  <button onclick="showDataMethodology()" style="background:transparent;color:#7dd3fc;border:1px solid rgba(56,189,248,.45);border-radius:999px;padding:4px 9px;cursor:pointer">איך חישבנו?</button>
+</div>
+
 <div class="main">
   <div class="map-wrap" id="mapWrap">
     <canvas id="mapCanvas"></canvas>
@@ -410,14 +417,14 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
     </div>
     <!-- Hero text before street selected -->
     <div class="hero-overlay" id="heroOverlay">
-      <div class="hero-text">בחר רחוב לראות זמינות חניה בזמן אמת</div>
+      <div class="hero-text">בחר רחוב לראות סבירות משוערת למציאת חניה</div>
       <div class="hero-arrow">👇</div>
     </div>
     <div class="user-dot" id="userDot"></div>
     <div class="park-tooltip" id="parkTooltip"></div>
     <div class="live-badge">
-      <span class="live-dot"></span><span class="live-pulse">עדכון חי</span><br>
-      <span id="updateTime" style="color:var(--muted);font-size:0.68rem">עודכן עכשיו</span>
+      <span style="color:#38bdf8">●</span><span> מודל הערכה</span><br>
+      <span id="updateTime" style="color:var(--muted);font-size:0.68rem">מבוסס שעה, אזור ונתוני GIS</span>
     </div>
     <div class="legend">
       <div class="legend-item"><div class="seg-lg" style="background:var(--green)"></div>קל (70%+)</div>
@@ -436,7 +443,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
   <div class="side-panel" id="sidePanel">
     <div class="panel-header">
       <h3>🛣️ רחובות קרובים</h3>
-      <p id="panelSub">קהילה שמדווחת בזמן אמת</p>
+      <p id="panelSub">הערכה הסתברותית · לא הבטחה למקום פנוי</p>
     </div>
     <div class="stats-row">
       <div class="stat-pill"><div class="stat-n" style="color:var(--green)" id="freeCount">0</div><div class="stat-l">פנויים</div></div>
@@ -464,9 +471,9 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
     </div>
     <!-- Arrival mode: curb map around destination -->
     <div class="live-feed" id="arrivalPanel" style="display:none;border-color:rgba(74,222,128,.4)"></div>
-    <!-- Live community feed -->
+    <!-- Pilot community-report examples; not live production data. -->
     <div class="live-feed">
-      <div class="feed-title"><span class="live-dot"></span>עדכוני קהילה אחרונים</div>
+      <div class="feed-title">🧪 דוגמאות דיווח לפיילוט — לא מידע חי</div>
       <div id="feedItem" class="feed-item">טוען...</div>
       <div id="feedTime" class="feed-time"></div>
       <div style="display:flex;gap:6px;margin-top:5px">
@@ -476,7 +483,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
     </div>
     <!-- Private parking marketplace -->
     <div class="live-feed" style="border-color:rgba(168,85,247,.35)">
-      <div class="feed-title" style="color:#c084fc">🏠 חניות פרטיות להשכרה</div>
+      <div class="feed-title" style="color:#c084fc">🏠 חניות פרטיות לפיילוט (רשומות הדגמה)</div>
       <div id="privList"></div>
       <div style="font-size:.65rem;color:var(--muted)">יש לך חניה פרטית? <b style="color:#c084fc;cursor:pointer" onclick="showToast('🏠 בקרוב: פרסם את החניה שלך והרווח ₪ כשאתה לא בבית!')">השכר אותה →</b></div>
       <div style="font-size:.62rem;color:var(--muted);margin-top:3px">🔒 נסחרות כאן רק חניות פרטיות. חניה ציבורית לא נמכרת ולא תימכר — זה גם לא חוקי.</div>
@@ -653,6 +660,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 
 <div class="toast" id="toast"></div>
 
+<script src="availability-model.js"></script>
 <script>
 // ─── Street Data ──────────────────────────────────────────────────
 // Each street: name, availability (0-100), type (blue/free/timed), isH, ratio position
@@ -914,32 +922,11 @@ function streetGap(idx) {
   return +(3.6 + (s.avail/100) * 2.2 + jitter).toFixed(1);
 }
 
-// ─── פיד חי: יוצא/נכנס מפנגו/סלופארק/ParkWiz + התאמה לפי גודל הרכב ───
-const PARK_APPS = ['פנגו','סלופארק','ParkWiz'];
+// Legacy demo hook retained without side effects; no third-party live feed is connected.
 function liveParkingEvent() {
-  const si = Math.floor(Math.random()*STREETS_DEF.length);
-  const s = STREETS_DEF[si];
-  const app = PARK_APPS[Math.floor(Math.random()*PARK_APPS.length)];
-  const veh = VEHICLE_TYPES[Math.floor(Math.random()*VEHICLE_TYPES.length)];
-  if (Math.random() < 0.55) { // יוצא
-    s.avail = Math.min(97, s.avail + 6 + Math.floor(Math.random()*8));
-    s.lastGap = +(veh.len + 0.5 + Math.random()*0.9).toFixed(1);
-    s.lastGapT = Date.now();
-    COMMUNITY_FEED.unshift({ msg:`🔵 ${app}: ${veh.label.split(' ')[0]} יצא מ${s.name} — נפתח מרווח ${s.lastGap} מ'`, street:s.name, t:Date.now() });
-    if (s.lastGap >= getVehicle().len + 0.4)
-      showToast(`🎯 התפנתה חניה בגודל שלך ב${s.name} (${s.lastGap} מ')!`);
-  } else { // נכנס
-    s.avail = Math.max(3, s.avail - (5 + Math.floor(Math.random()*7)));
-    s.lastGap = null;
-    COMMUNITY_FEED.unshift({ msg:`🔴 ${app}: ${veh.label.split(' ')[0]} תפס חניה ב${s.name}`, street:s.name, t:Date.now() });
-  }
-  // ריקבון דאטה: מרווח שדווח מתיישן — אחרי 3 דקות כבר לא סומכים עליו (הלקח של Google Open Spot)
-  STREETS_DEF.forEach(st => { if (st.lastGapT && Date.now() - st.lastGapT > 180e3) { st.lastGap = null; st.lastGapT = null; } });
-  if (COMMUNITY_FEED.length > 12) COMMUNITY_FEED.pop();
-  feedIdx = 0; feedSecondsAgo = 0;
-  renderAll();
+  return false;
 }
-setInterval(liveParkingEvent, 8000);
+// Disabled in the trustworthy MVP: never fabricate third-party or community events.
 
 // ─── השכרת חניות פרטיות — המרקטפלייס ───
 const PRIVATE_SPOTS = [
@@ -1047,12 +1034,7 @@ function renderPrivateList() {
     </div>`).join('');
 }
 function fitInfo(idx) {
-  const gap = streetGap(idx);
-  const need = getVehicle().len + 0.4; // מרווח תמרון
-  const ratio = gap / need;
-  if (ratio >= 1.15) return { txt:'✓ מתאים לרכב שלך', color:'#22c55e', gap };
-  if (ratio >= 0.98) return { txt:'⚠ צפוף לרכב שלך', color:'#eab308', gap };
-  return { txt:'✗ צר מדי לרכב שלך', color:'#ef4444', gap };
+  return { txt:'ℹ התאמת גודל דורשת דיווח או מדידה בשטח', color:'#94a3b8', gap:null };
 }
 // ─── ניווט חיצוני: Waze + Google Maps (deep links רשמיים) ──────────
 function navWaze(idx, ev) {
@@ -1071,22 +1053,39 @@ function genHourlyPattern(avail) {
   const base = avail / 100;
   return [8,10,12,14,16,18,20].map(h => {
     const rush = (h===8||h===18||h===20) ? -0.25 : (h===12||h===14) ? -0.12 : 0;
-    return Math.max(0.05, Math.min(1, base + rush + (Math.random()-.5)*.15));
+    return Math.max(0.05, Math.min(1, base + rush));
   });
 }
 
 const STREET_HOURLY = STREETS_DEF.map(s => genHourlyPattern(s.avail));
 
 const COMMUNITY_FEED = [
-  { msg:'👤 משתמש דיווח: חניה פנתה בדיזנגוף 45', street:'דיזנגוף' },
-  { msg:'👤 רוטשילד פנויה בקצה הצפוני', street:'רוטשילד' },
-  { msg:'👤 אלנבי 72 — 2 מקומות התפנו', street:'אלנבי' },
-  { msg:'👤 ביאליק קרוב לפינת הרצל — פנוי!', street:'ביאליק' },
-  { msg:'👤 ז\'בוטינסקי עמוס, נסה ארלוזורוב', street:'ז\'בוטינסקי' },
-  { msg:'👤 נורדאו ליד פארק — 3 מקומות', street:'נורדאו' },
-  { msg:'👤 בן יהודה מלא, הגיעו מוקדם!', street:'בן יהודה' },
-  { msg:'👤 ארלוזורוב — מקום נפתח ליד 12', street:'ארלוזורוב' },
+  { msg:'🧪 דוגמה: חניה התפנתה בדיזנגוף 45', street:'דיזנגוף' },
+  { msg:'🧪 דוגמה: רוטשילד פנויה בקצה הצפוני', street:'רוטשילד' },
+  { msg:'🧪 דוגמה: אלנבי 72 — 2 מקומות התפנו', street:'אלנבי' },
 ];
+STREETS_DEF.forEach((street) => { street.baselineAvailability = street.avail; });
+const AVAILABILITY_MODEL = window.ParkWizAvailability;
+const REPORTS_STORAGE_KEY = 'parkwiz-user-reports-v1';
+let userReports = [];
+
+function loadUserReports() {
+  try { userReports = JSON.parse(localStorage.getItem(REPORTS_STORAGE_KEY) || '[]'); }
+  catch (_) { userReports = []; }
+}
+function persistUserReports() {
+  localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(userReports));
+}
+function refreshAvailabilityModels(now = new Date()) {
+  userReports = userReports.filter((report) => report.expiresAt > now.getTime());
+  STREETS_DEF.forEach((street, streetIdx) => {
+    street.availabilityModel = AVAILABILITY_MODEL.calculate({
+      baseline: street.baselineAvailability, streetIdx, reports: userReports, now,
+    });
+    street.avail = street.availabilityModel.score;
+  });
+  persistUserReports();
+}
 let feedIdx = 0;
 let feedSecondsAgo = 0;
 
@@ -1139,6 +1138,8 @@ function makeSpot() {
 
 // ─── Init ─────────────────────────────────────────────────────────
 function init() {
+  loadUserReports();
+  refreshAvailabilityModels();
   const vs = document.getElementById('vehicleSel');
   if (vs) {
     vs.innerHTML = VEHICLE_TYPES.map(v=>`<option value="${v.id}">${v.label}</option>`).join('');
@@ -1483,7 +1484,7 @@ function renderSidePanel() {
         <span class="spot-dist">${typeLabel}${redTag}</span>
         <span class="spot-badge" style="background:${color}22;color:${color}">${label}</span>
       </div>
-      <div style="margin-top:4px;font-size:0.66rem;font-weight:700;color:${fit.color}">${fit.txt} <span style="color:var(--muted);font-weight:400">(מרווח משוער ${fit.gap} מ')</span></div>
+      <div style="margin-top:4px;font-size:0.66rem;font-weight:700;color:${fit.color}">${fit.txt}</div>
       <div style="height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:6px;overflow:hidden">
         <div style="height:100%;width:${s.avail}%;background:${color};border-radius:2px;transition:width.5s"></div>
       </div>
@@ -1503,10 +1504,9 @@ function selectStreet(idx) {
   const hourly = STREET_HOURLY[idx];
   const color = availColor(s.avail);
   const label = s.avail>=70?'קל למציאה':s.avail>=30?'בינוני':'קשה — עמוס';
-  const spotsNow = Math.round(s.avail/100 * (8 + Math.floor(Math.random()*6)));
 
   document.getElementById('scName').textContent = 'רח\' ' + s.name;
-  document.getElementById('scPct').textContent = s.avail + '%';
+  document.getElementById('scPct').innerHTML = `<bdi dir="ltr">${s.avail}%</bdi>`;
   document.getElementById('scPct').style.color = color;
   document.getElementById('scBarFill').style.width = s.avail + '%';
   document.getElementById('scBarFill').style.background = color;
@@ -1517,9 +1517,11 @@ function selectStreet(idx) {
   if (prob >= 60) probText = `🎯 סיכוי גבוה (${prob}%) למצוא חניה ב-10 הדקות הקרובות`;
   else if (prob >= 30) probText = `🎯 סיכוי בינוני (${prob}%) למצוא חניה ב-10 הדקות הקרובות — ייתכן סיבוב או שניים`;
   else probText = `🎯 סיכוי נמוך (${prob}%) — שקול רחוב אחר`;
-  const pangoNum = 2 + (typeof pangoEvents !== 'undefined' ? pangoEvents.filter(ev=>ev.streetIdx===idx).length : 0);
+  const model = s.availabilityModel;
+  const confidencePct = Math.round(model.confidence * 100);
   document.getElementById('scCommunity').innerHTML = probText +
-    `<div style="font-size:0.66rem;color:var(--muted);margin-top:3px">מבוסס על ${spotsNow + 4} דיווחי קהילה + ${pangoNum} אירועי פנגו + דפוסי שעה</div>`;
+    `<div style="font-size:0.66rem;color:var(--muted);margin-top:3px">רמת ביטחון: ${confidencePct}% · ${model.modelVersion} · אין נתוני תפוסה חיים.</div>` +
+    `<div style="font-size:0.62rem;color:var(--muted);margin-top:3px">גורמים: ${model.factors.join(' · ')}</div>`;
   scheduleFoundPrompt(idx);
 
   // Mini bar chart
@@ -1591,6 +1593,7 @@ function renderHistory() {
 
 // ─── Actions ─────────────────────────────────────────────────────
 function renderAll() {
+  refreshAvailabilityModels();
   drawMap();
   renderSidePanel();
   if (heatmapActive) drawHeatmap();
@@ -1647,15 +1650,17 @@ function leavingPickWhen(mins, btn) {
 }
 
 function addFutureReport(count) {
-  const idx = selectedStreetIdx !== null ? selectedStreetIdx : Math.floor(Math.random()*STREETS_DEF.length);
+  const idx = selectedStreetIdx !== null ? selectedStreetIdx : 0;
   const s = STREETS_DEF[idx];
   const now = Date.now();
   futureReports.push({
     streetIdx: idx, count,
-    x: s.isH ? (0.15 + Math.random()*0.7) : s.pos,
-    y: s.isH ? s.pos : (0.15 + Math.random()*0.7),
+    x: s.isH ? 0.5 : s.pos,
+    y: s.isH ? s.pos : 0.5,
     readyAt: now + leavingDelayMin*60000,
-    expireAt: now + (leavingDelayMin+3)*60000,
+    createdAt: now,
+    expiresAt: now + Math.min(7, Math.max(3, leavingDelayMin + 3))*60000,
+    source: 'user', confidence: 0.45,
   });
   const xpGain = 8 + count * 4;
   userScore += xpGain;
@@ -1671,7 +1676,7 @@ function pruneFutureReports() {
   const now = Date.now();
   const before = futureReports.length;
   futureReports = futureReports.filter(r => {
-    if (now >= r.expireAt) return false;               // auto-expire: time + 3 min
+    if (now >= r.expiresAt) return false;
     return true;
   });
   if (futureReports.length !== before) renderAll();
@@ -1739,9 +1744,11 @@ function cancelLeaving() {
 }
 
 function doReportLeaving(count, xpGain) {
-  // Update street availability
-  const idx = selectedStreetIdx !== null ? selectedStreetIdx : Math.floor(Math.random()*STREETS_DEF.length);
-  STREETS_DEF[idx].avail = Math.min(100, STREETS_DEF[idx].avail + count * 8);
+  const idx = selectedStreetIdx !== null ? selectedStreetIdx : 0;
+  const createdAt = Date.now();
+  userReports.push({ source:'user', streetIdx:idx, count, createdAt, expiresAt:createdAt + 5*60000, confidence:0.45 });
+  persistUserReports();
+  refreshAvailabilityModels();
   userScore += xpGain;
   updateXP(xpGain);
   renderAll();
@@ -1769,11 +1776,7 @@ function startFeedCycle() {
 // אימות קהילתי בסגנון Waze: confirm מעלה ודאות, disconfirm מפיל את הדיווח מיד
 function confirmFeed(stillFree) {
   const item = COMMUNITY_FEED[feedIdx % COMMUNITY_FEED.length];
-  const s = STREETS_DEF.find(x => item.street && item.street.includes(x.name));
-  if (s) {
-    if (stillFree) { s.avail = Math.min(97, s.avail + 4); item.t = Date.now(); }
-    else { s.avail = Math.max(3, s.avail - 6); s.lastGap = null; item.t = Date.now() - 999e3; }
-  }
+  item.t = stillFree ? Date.now() : Date.now() - 999e3;
   userScore += 5;
   showToast(stillFree ? '👍 תודה! הדיווח אומת (+5 XP)' : '👎 עודכן — הדיווח נפסל (+5 XP)');
   renderAll();
@@ -1836,6 +1839,10 @@ function showToast(msg) {
   setTimeout(()=>t.classList.remove('show'), 2800);
 }
 
+function showDataMethodology() {
+  showToast('מקור: GIS עיריית ת״א. הסבירות היא מודל הדגמה לפי אזור ושעה — ללא נתוני תפוסה חיים.');
+}
+
 function switchNav(tab) {
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
   document.getElementById('nav'+tab[0].toUpperCase()+tab.slice(1)).classList.add('active');
@@ -1846,14 +1853,8 @@ function switchNav(tab) {
 // ─── Live simulation ──────────────────────────────────────────────
 function refreshStreets() {
   secondsAgo++;
-  document.getElementById('updateTime').textContent = `עודכן לפני ${secondsAgo} שנ'`;
-  // Randomly drift 1-2 street availabilities slightly
-  for (let c=0; c<2; c++) {
-    const i = Math.floor(Math.random()*STREETS_DEF.length);
-    const delta = (Math.random()-.5) * 8;
-    STREETS_DEF[i].avail = Math.round(Math.max(5, Math.min(98, STREETS_DEF[i].avail + delta)));
-  }
-  secondsAgo = 0;
+  document.getElementById('updateTime').textContent = `המודל חושב לפני ${secondsAgo} שנ'`;
+  refreshAvailabilityModels();
   renderAll();
   if (heatmapActive) drawHeatmap();
 }
@@ -1972,8 +1973,6 @@ function answerFound(ans) {
   document.getElementById('foundPrompt').classList.remove('show');
   if (foundStreetIdx === null) return;
   const s = STREETS_DEF[foundStreetIdx];
-  const delta = ans === 'no' ? -10 : 5;
-  s.avail = Math.max(5, Math.min(98, s.avail + delta));
   try {
     const arr = JSON.parse(localStorage.getItem('parkwiz_found_feedback') || '[]');
     arr.push({ street: s.name, answer: ans, ts: new Date().toISOString() });
@@ -2178,51 +2177,19 @@ function finishNavigation() {
   renderAll();
 }
 
-// ─── שכבת "דיווחי פנגו" (סימולציה) ───────────────────────────────
+// Legacy third-party simulation hooks are inert until a verified API is connected.
 function weightedPangoStreet() {
-  const pool = [];
-  STREETS_DEF.forEach((s, i) => {
-    const w = (s.type === 'blue' ? 3 : 1) + (s.avail < 40 ? 2 : 0);
-    for (let k = 0; k < w; k++) pool.push(i);
-  });
-  return pool[Math.floor(Math.random()*pool.length)];
+  return null;
 }
 
 function spawnPangoEvent() {
-  const idx = weightedPangoStreet();
-  const s = STREETS_DEF[idx];
-  pangoEvents.push({
-    streetIdx: idx,
-    x: s.isH ? (0.15 + Math.random()*0.7) : s.pos,
-    y: s.isH ? s.pos : (0.15 + Math.random()*0.7),
-    expireAt: Date.now() + (120 + Math.random()*60)*1000, // auto-expire 2-3 min
-  });
-  s.avail = Math.round(Math.min(98, s.avail + 8)); // temporary probability boost
-  const num = Math.floor(Math.random()*120)+10;
-  COMMUNITY_FEED.unshift({ msg:`🔵 פנגו: חניה מתפנה ב${s.name} ${num} (הסתיים תשלום)`, street:s.name });
-  if (COMMUNITY_FEED.length > 16) COMMUNITY_FEED.pop();
-  feedIdx = 0; feedSecondsAgo = 0; updateFeed();
-  renderAll();
-  schedulePango();
+  return false;
 }
-function schedulePango() { setTimeout(spawnPangoEvent, 6000 + Math.random()*4000); }
-schedulePango();
-
-setInterval(() => { // prune expired pango events + revert boost
-  const now = Date.now();
-  const expired = pangoEvents.filter(ev => now >= ev.expireAt);
-  if (expired.length) {
-    expired.forEach(ev => {
-      const s = STREETS_DEF[ev.streetIdx];
-      s.avail = Math.round(Math.max(5, s.avail - 8));
-    });
-    pangoEvents = pangoEvents.filter(ev => now < ev.expireAt);
-    renderAll();
-  }
-}, 5000);
+function schedulePango() { return false; }
+// Disabled: Pango/Cello do not expose a verified public live checkout API.
 
 init();
-setInterval(refreshStreets, 3500);
+// Re-render on real user actions; do not create fake "live" changes on a timer.
 // Keep pulsing spots redrawing
 setInterval(()=>{
   if(route.active || pangoEvents.length || futureReports.length || spots.some(s=>s.flash&&Date.now()-s.flash<3000)) drawMap();
@@ -2463,7 +2430,7 @@ const PW_LEGAL = {
   privacy: { title: 'מדיניות פרטיות', html: `
 <p><strong>1. איזה מידע נאסף.</strong> בעת הרשמה נאספים שם ואימייל. במהלך השימוש נאספים דיווחי חניה, רחובות שנצפו ונתוני שימוש כלליים לצורך שיפור דיוק המפה.</p>
 <p><strong>2. נתוני מיקום.</strong> ככל שתאשר גישה למיקום, הוא ישמש להצגת רחובות קרובים ולשיוך דיווחים בלבד. איננו עוקבים אחר מסלולי נסיעה ואיננו משתפים מיקום עם מפרסמים.</p>
-<p><strong>3. שימוש במידע.</strong> המידע משמש לתפעול השירות, חישוב זמינות חניה בזמן אמת, ניקוד XP ולוח מובילים. דיווחים מוצגים לקהילה באופן אנונימי.</p>
+<p><strong>3. שימוש במידע.</strong> המידע משמש לתפעול השירות, חישוב הערכת זמינות, ניקוד XP ולוח מובילים. דיווחים מוצגים לקהילה באופן אנונימי.</p>
 <p><strong>4. אחסון מקומי.</strong> העדפות, היסטוריה ומשוב נשמרים בדפדפן שלך (localStorage). מחיקת נתוני הדפדפן תמחק מידע זה.</p>
 <p><strong>5. זכויותיך.</strong> באפשרותך לבקש עיון, תיקון או מחיקה של המידע האישי שלך, וכן לסגור את החשבון בכל עת בפנייה לתמיכה.</p>
 <p><strong>6. עדכונים.</strong> מדיניות זו עשויה להתעדכן. שינוי מהותי יוצג באפליקציה, והמשך שימוש מהווה הסכמה לנוסח המעודכן.</p>` }
@@ -2476,7 +2443,7 @@ function pwOpenLegal(kind) {
 
 /* ── Onboarding ── */
 const PW_OB_STEPS = [
-  { icon: '🅿️', title: 'ברוך הבא ל-ParkWiz!', text: 'מפת חניה חיה של תל אביב, מבוססת על דיווחי קהילה בזמן אמת. ירוק = קל למצוא, צהוב = בינוני, אדום = עמוס.' },
+  { icon: '🅿️', title: 'ברוך הבא ל-ParkWiz!', text: 'מפת הדגמה של תל אביב עם הערכת סיכוי ודיווחי משתמשים קצרי תוקף. הסמל, הטקסט והצבע מציגים את רמת הקושי.' },
   { icon: '🚗', title: 'איך משתמשים?', text: 'לחץ על רחוב במפה כדי לראות זמינות לפי שעות. עוזב חניה? לחץ "אני עוזב!" למטה — תעזור לקהילה ותצבור XP 🏆.' },
   { icon: '⚡', title: 'מה מקבלים ב-Premium?', text: 'הזמנת מקום חניה מראש, התראות push כשמתפנה מקום ברחוב שלך, ללא פרסומות ועדיפות בהתראות — רק ₪14.90 לחודש.' },
 ];
