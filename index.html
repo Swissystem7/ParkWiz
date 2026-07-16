@@ -1228,6 +1228,18 @@ const HISTORY = [
 const TA_STREETS = ['רחוב דיזנגוף','שדרות רוטשילד','רחוב הרצל','רחוב אלנבי','שדרות נורדאו','רחוב ארלוזורוב','רחוב ביאליק','שדרות ז\'בוטינסקי','רחוב בן יהודה'];
 
 let selectedStreetIdx = null;
+// Real community reports (COMMUNITY_REPORT) — evidence-based, mirrors tested lib/weightedAvailability.js, no Math.random.
+const PW_COMMUNITY_REPORTS = [];
+function pwWeightedAvailability(streetIdx, nowMs) {
+  let sum = 0;
+  for (const r of PW_COMMUNITY_REPORTS) {
+    if (r.streetIdx !== streetIdx) continue;
+    const age = nowMs - r.ts;
+    if (age > 7200000) continue; // ignore reports older than 2h
+    sum += r.delta * Math.pow(0.5, age / 900000); // weight halves every 15 min
+  }
+  return sum;
+}
 let activeFilters = { blue:true, free:true, timed:true };
 let userScore = 340;
 let secondsAgo = 0;
@@ -1637,8 +1649,11 @@ function selectStreet(idx) {
   else if (prob >= 30) probText = `🎯 סיכוי בינוני (${prob}%) למצוא חניה ב-10 הדקות הקרובות — ייתכן סיבוב או שניים`;
   else probText = `🎯 סיכוי נמוך (${prob}%) — שקול רחוב אחר`;
   const pangoNum = 2 + (typeof pangoEvents !== 'undefined' ? pangoEvents.filter(ev=>ev.streetIdx===idx).length : 0);
+  const commScore = pwWeightedAvailability(idx, Date.now());
+  const commCount = PW_COMMUNITY_REPORTS.filter(r => r.streetIdx === idx && Date.now() - r.ts <= 7200000).length;
   document.getElementById('scCommunity').innerHTML = probText +
-    `<div style="font-size:0.66rem;color:var(--muted);margin-top:3px">מבוסס על ${spotsNow + 4} דיווחי קהילה + ${pangoNum} אירועי פנגו + דפוסי שעה</div>`;
+    `<div style="font-size:0.66rem;color:var(--muted);margin-top:3px">מבוסס על ${spotsNow + 4} דיווחי קהילה + ${pangoNum} אירועי פנגו + דפוסי שעה</div>` +
+    (commCount > 0 ? `<div style="font-size:0.66rem;color:var(--green);margin-top:2px">📡 דיווחי קהילה בפועל (COMMUNITY_REPORT): ${commCount} דיווחים · מדד משוקלל ${commScore.toFixed(1)} (דעיכה חצי כל 15 דק')</div>` : '');
   scheduleFoundPrompt(idx);
 
   // Mini bar chart
@@ -1977,6 +1992,7 @@ function doReportLeaving(count, xpGain) {
   // Update street availability
   const idx = selectedStreetIdx !== null ? selectedStreetIdx : Math.floor(Math.random()*STREETS_DEF.length);
   STREETS_DEF[idx].avail = Math.min(100, STREETS_DEF[idx].avail + count * 8);
+  PW_COMMUNITY_REPORTS.push({ ts: Date.now(), delta: count, streetIdx: idx }); // COMMUNITY_REPORT
   userScore += xpGain;
   updateXP(xpGain);
   renderAll();
