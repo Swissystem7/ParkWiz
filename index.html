@@ -657,6 +657,14 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
         <input type="range" min="1" max="3" value="1" oninput="document.getElementById('sliderVal').textContent=this.value" id="spotsSlider">
         <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px"><span>1</span><span>2</span><span>3+</span></div>
       </div>
+      <!-- optional plate, normalized+validated by normalizePlate (FACT-PW-1) -->
+      <div style="margin-top:10px">
+        <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">🔢 מספר רכב שיצא (רשות):</div>
+        <input id="leavingPlate" inputmode="numeric" maxlength="12" placeholder="12-345-67"
+          oninput="pwPlateFormat(this)"
+          style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border,#334155);background:transparent;color:inherit;font-size:0.95rem;letter-spacing:1px">
+        <div id="leavingPlateHint" style="font-size:0.66rem;color:var(--muted);margin-top:3px;min-height:14px"></div>
+      </div>
       <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="leavingSubmit()">שלח דיווח ✅</button>
       <button class="cancel-btn" onclick="cancelLeaving()">ביטול</button>
     </div>
@@ -1899,8 +1907,38 @@ function leavingPickType(type, btn) {
   }, 280);
 }
 
+// normalizePlate (FACT-PW-1) — factory-tested module, inlined for the browser
+function normalizePlate(input){
+  const invalid={valid:false,plate:null,formatted:null};
+  if(typeof input!=='string'&&typeof input!=='number')return invalid;
+  const plate=String(input).replace(/[\s-]/g,'');
+  if(!/^\d{7,8}$/.test(plate))return invalid;
+  const formatted=plate.length===7
+    ? `${plate.slice(0,2)}-${plate.slice(2,5)}-${plate.slice(5)}`
+    : `${plate.slice(0,3)}-${plate.slice(3,5)}-${plate.slice(5)}`;
+  return {valid:true,plate,formatted};
+}
+function pwPlateFormat(el){
+  const hint=document.getElementById('leavingPlateHint');
+  if(!el.value.trim()){hint.textContent='';hint.style.color='';return;}
+  const r=normalizePlate(el.value.replace(/[^\d-]/g,''));
+  if(r.valid){el.value=r.formatted;hint.textContent='✓ מספר תקין';hint.style.color='var(--green)';}
+  else{hint.textContent='מספר לא תקין (7 או 8 ספרות)';hint.style.color='#f87171';}
+}
+
 function leavingSubmit() {
   const count = parseInt(document.getElementById('spotsSlider').value);
+  const plateEl = document.getElementById('leavingPlate');
+  const plateRaw = plateEl ? plateEl.value.trim() : '';
+  if (plateRaw) {
+    const pr = normalizePlate(plateRaw);
+    if (!pr.valid) {
+      const h = document.getElementById('leavingPlateHint');
+      h.textContent = 'מספר לא תקין — תקן או השאר ריק'; h.style.color = '#f87171';
+      return;
+    }
+    window.__lastLeavingPlate = pr.formatted; // recorded with the report
+  }
   if (leavingDelayMin > 0) { addFutureReport(count); return; }
   document.getElementById('leavingStep2').style.display = 'none';
   document.getElementById('leavingStep3').style.display = 'block';
