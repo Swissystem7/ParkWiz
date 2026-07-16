@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ParkWiz">
+  <rect width="512" height="512" rx="112" fill="#0a0f0a"/>
+  <path d="M256 96c-79.5 0-144 60.5-144 135 0 96 144 185 144 185s144-89 144-185c0-74.5-64.5-135-144-135z" fill="#22c55e"/>
+  <circle cx="256" cy="231" r="96" fill="#0a0f0a"/>
+  <text x="256" y="266" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="800" font-size="128" fill="#22c55e">P</text>
+</svg>

@@ -1,0 +1,16 @@
+{
+  "name": "ParkWiz — חניה חכמה בעיר",
+  "short_name": "ParkWiz",
+  "description": "מנוע חיזוי חניה שמחשב סיכויי חניה פנויה ומדריך אותך לחניון הקרוב.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0f0a",
+  "theme_color": "#22c55e",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
