@@ -1153,13 +1153,13 @@ function payRent(i) {
   const p = PRIVATE_SPOTS[i];
   const h = +document.getElementById('rentHours').value;
   const btn = document.getElementById('rentPayBtn');
-  btn.disabled = true; btn.textContent = '🔒 מעבד תשלום מאובטח...';
+  btn.disabled = true; btn.textContent = '🧪 מדמה תשלום (הדגמה)...';
   setTimeout(() => {
     p.booked = true;
     p.until = rentUntil(h);
     if (privMarkers[i]) { privMarkers[i].setStyle({ fillColor:'#6b7280' }); privMarkers[i].setPopupContent(privPopupHtml(i)); }
     document.getElementById('rentOverlay').classList.remove('show');
-    showToast(`✅ שולם! החניה של ${p.owner} שלך עד ${p.until} — קבלה נשלחה למייל`);
+    showToast(`🧪 סימולציה: ״שולם״ — החניה של ${p.owner} עד ${p.until} (הדגמה, אין חיוב וקבלה אמיתיים)`);
     renderPrivateList();
   }, 1400);
 }
@@ -2104,7 +2104,7 @@ function closeReserve() {
 }
 function confirmReserve() {
   closeReserve();
-  showToast('✅ המקום הוזמן! יש לך 30 דקות. 💳 ₪4.50 יחויב בסיום');
+  showToast('🧪 סימולציה: המקום ״הוזמן״ (הדגמה — אין שריון וחיוב אמיתיים)');
 }
 
 function updateXP(gained) {
