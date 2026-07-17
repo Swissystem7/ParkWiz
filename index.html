@@ -1723,7 +1723,7 @@ function renderStreetCard(idx, schedulePrompt) {
   const color = availColor(predictedPct);
   const chancePct = getCurrentHourAvailabilityPct(idx);
   const label = predictedPct>=70?'קל למציאה':predictedPct>=30?'בינוני':'קשה — עמוס';
-  const spotsNow = Math.round(predictedPct/100 * (8 + Math.floor(Math.random()*6)));
+  // הוסר מונה קהילה מדומה (Math.random) - נשאר commCount אמיתי + חיזוי הסתברותי
   const tariffLabel = parkingTariffLabel(s.type);
 
   document.getElementById('scName').textContent = 'רח\' ' + s.name;
@@ -1746,7 +1746,7 @@ function renderStreetCard(idx, schedulePrompt) {
   const commScore = pwWeightedAvailability(idx, Date.now());
   const commCount = PW_COMMUNITY_REPORTS.filter(r => r.streetIdx === idx && Date.now() - r.ts <= 7200000).length;
   document.getElementById('scCommunity').innerHTML = probText +
-    `<div style="font-size:0.66rem;color:var(--muted);margin-top:3px">מבוסס על ${spotsNow + 4} דיווחי קהילה + ${pangoNum} אירועי פנגו + דפוסי שעה</div>` +
+    `<div style="font-size:0.66rem;color:var(--muted);margin-top:3px">מבוסס על דפוסי-שעה + חיזוי הסתברותי · הערכה בלבד, לא מלאי מובטח</div>` +
     (commCount > 0 ? `<div style="font-size:0.66rem;color:var(--green);margin-top:2px">📡 דיווחי קהילה בפועל (COMMUNITY_REPORT): ${commCount} דיווחים · מדד משוקלל ${commScore.toFixed(1)} (דעיכה חצי כל 15 דק')</div>` : '');
   if (schedulePrompt) scheduleFoundPrompt(idx);
 
