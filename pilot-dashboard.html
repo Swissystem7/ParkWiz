@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'self'">
+<title>ParkWiz — ניהול חניה עירוני</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#111827; --muted:#6b7280;
+    --line:#e5e7eb; --brand:#0e7490; --brand2:#0891b2;
+    --free:#16a34a; --occ:#dc2626; --accent:#0e7490;
+    --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0b0f14; --panel:#111820; --ink:#e5e7eb; --muted:#9aa4b2;
+      --line:#1f2937; --brand:#22d3ee; --brand2:#67e8f9;
+      --free:#22c55e; --occ:#f87171; --accent:#22d3ee;
+      --shadow:0 1px 2px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans Hebrew","Arial Hebrew",sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px; margin:0 auto; padding:24px 20px 64px}
+  header.top{display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px}
+  .brand{display:flex; align-items:center; gap:12px}
+  .logo{width:40px;height:40px;flex:0 0 40px}
+  h1{font-size:22px; margin:0; font-weight:700; letter-spacing:-.2px}
+  .sub{color:var(--muted); font-size:13px; margin-top:2px}
+  .meta{text-align:left; color:var(--muted); font-size:12.5px}
+  .meta b{color:var(--ink); font-weight:600}
+  .grid{display:grid; gap:16px}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px 18px 16px; box-shadow:var(--shadow)}
+  .panel h2{font-size:14px; margin:0 0 14px; font-weight:600; color:var(--muted); letter-spacing:.2px}
+  .kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+  .kpi{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; box-shadow:var(--shadow)}
+  .kpi .n{font-size:30px; font-weight:700; letter-spacing:-1px}
+  .kpi .l{font-size:12.5px; color:var(--muted); margin-top:2px}
+  .kpi.cur .n{color:var(--accent)}
+  .tiles{display:flex; flex-wrap:wrap; gap:8px}
+  .tile{width:34px; height:34px; border-radius:8px; border:1px solid var(--line);
+        display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; font-weight:600}
+  .tile.free{background:var(--free)}
+  .tile.occ{background:var(--occ)}
+  .legend{display:flex; gap:16px; margin-top:12px; font-size:12.5px; color:var(--muted)}
+  .dot{display:inline-block; width:10px; height:10px; border-radius:3px; margin-inline-end:6px; vertical-align:middle}
+  .chartwrap{width:100%; overflow-x:auto}
+  svg.chart{display:block; width:100%; height:auto}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  button{
+    font:inherit; cursor:pointer; border:1px solid var(--line); background:var(--panel); color:var(--ink);
+    padding:9px 16px; border-radius:10px; font-weight:600; font-size:13.5px; box-shadow:var(--shadow)
+  }
+  button.primary{background:var(--brand); border-color:var(--brand); color:#fff}
+  button:hover{filter:brightness(1.03)}
+  details.data{margin-top:8px}
+  details.data summary{cursor:pointer; color:var(--muted); font-size:12.5px; list-style:none}
+  details.data summary::-webkit-details-marker{display:none}
+  textarea{
+    width:100%; min-height:120px; margin-top:10px; resize:vertical;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px;
+    border:1px solid var(--line); border-radius:10px; padding:10px; background:var(--bg); color:var(--ink)
+  }
+  .drop{border:1.5px dashed var(--line); border-radius:10px; padding:10px; text-align:center; color:var(--muted); font-size:12.5px; margin-top:8px}
+  .drop.over{border-color:var(--brand); color:var(--brand)}
+  .report{margin-top:16px}
+  .report .headline{font-size:17px; font-weight:700; margin:0 0 12px; line-height:1.4}
+  .report .row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed var(--line); font-size:13.5px}
+  .report .row:last-child{border-bottom:none}
+  .report .row span:first-child{color:var(--muted)}
+  .report .row span:last-child{font-weight:600}
+  .pill{display:inline-block; font-size:11.5px; padding:2px 9px; border-radius:99px; background:var(--bg); border:1px solid var(--line); color:var(--muted)}
+  .hidden{display:none}
+  .foot{margin-top:24px; color:var(--muted); font-size:11.5px; text-align:center}
+  @media(max-width:560px){ .kpis{grid-template-columns:1fr} h1{font-size:19px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="37" height="37" rx="9" fill="var(--brand)"/>
+        <path d="M14 29V11h7.2c3.6 0 5.9 2.2 5.9 5.6 0 3.4-2.4 5.6-6 5.6H18v6.8h-4z M18 18.9h2.8c1.6 0 2.5-.8 2.5-2.3 0-1.5-.9-2.3-2.5-2.3H18v4.6z" fill="#fff"/>
+      </svg>
+      <div>
+        <h1>ParkWiz — ניהול חניה עירוני</h1>
+        <div class="sub">רחוב <b id="streetName">—</b> · פיילוט עירוני</div>
+      </div>
+    </div>
+    <div class="meta">
+      <div>מקור נתונים: <b id="srcLabel">—</b></div>
+      <div>עודכן לאחרונה: <b id="lastUpdated">—</b></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button class="primary" id="btnReport">הפק דוח עירוני</button>
+    <span class="pill" id="recCount">— רשומות</span>
+  </div>
+
+  <div class="grid">
+
+    <section class="panel">
+      <h2>תפוסה חיה — מצב נוכחי</h2>
+      <div class="tiles" id="tiles"></div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--free)"></span>חניה פנויה</span>
+        <span><span class="dot" style="background:var(--occ)"></span>חניה תפוסה</span>
+      </div>
+    </section>
+
+    <div class="kpis">
+      <div class="kpi cur"><div class="n" id="kCur">—</div><div class="l">תפוסה נוכחית</div></div>
+      <div class="kpi"><div class="n" id="kPeak">—</div><div class="l">שיא תפוסה</div></div>
+      <div class="kpi"><div class="n" id="kAvg">—</div><div class="l">תפוסה ממוצעת</div></div>
+    </div>
+
+    <section class="panel">
+      <h2>תפוסה לאורך זמן</h2>
+      <div class="chartwrap"><div id="chart"></div></div>
+    </section>
+
+    <section class="panel report hidden" id="reportPanel">
+      <h2>דוח עירוני — תובנות</h2>
+      <p class="headline" id="repHeadline"></p>
+      <div id="repRows"></div>
+    </section>
+
+    <section class="panel">
+      <details class="data">
+        <summary>הזנת נתונים ידנית (JSONL / JSON)</summary>
+        <div class="drop" id="drop">גררו קובץ occupancy לכאן, או הדביקו למטה</div>
+        <textarea id="ta" placeholder='{"ts":"2026-07-18T09:00:00","street":"שדרות ניצה","totalSpots":24,"occupiedSpots":10,"occupancyRate":0.42}
+... שורה לכל רשומה (JSONL), או מערך JSON'></textarea>
+        <div style="margin-top:8px"><button id="btnLoad">טען נתונים</button></div>
+      </details>
+    </section>
+
+  </div>
+
+  <div class="foot">ParkWiz · פיילוט חניה חכמה · נתונים אנונימיים ברמת הרחוב</div>
+</div>
+
+<script>
+"use strict";
+
+// ---- embedded sample so the demo always renders ----
+const SAMPLE = (() => {
+  const street = "שדרות ניצה";
+  const total = 24;
+  // occupancy fraction per hour, realistic daytime curve
+  const curve = [0.25,0.30,0.42,0.55,0.68,0.79,0.88,0.83,0.71,0.60,0.52,0.44,0.38];
+  const startH = 7;
+  return curve.map((r,i)=>{
+    const h = startH+i;
+    const occ = Math.round(r*total);
+    return {
+      ts:`2026-07-18T${String(h).padStart(2,"0")}:00:00`,
+      street, totalSpots:total, occupiedSpots:occ, occupancyRate:occ/total
+    };
+  });
+})();
+
+let RECORDS = [];
+
+// ---- parse: accept JSONL (one obj/line) or a JSON array ----
+function parseData(text){
+  text = (text||"").trim();
+  if(!text) return [];
+  // try full JSON array first
+  if(text[0]==="["){
+    try{ const a=JSON.parse(text); if(Array.isArray(a)) return a.map(norm).filter(Boolean); }catch(e){}
+  }
+  // JSONL
+  const out=[];
+  for(const line of text.split(/\r?\n/)){
+    const s=line.trim(); if(!s) continue;
+    try{ const o=JSON.parse(s); const n=norm(o); if(n) out.push(n); }catch(e){}
+  }
+  return out;
+}
+
+function norm(o){
+  if(!o || typeof o!=="object") return null;
+  const total = num(o.totalSpots);
+  let occ = num(o.occupiedSpots);
+  let rate = (o.occupancyRate!=null) ? num(o.occupancyRate) : null;
+  if(rate!=null && rate>1) rate/=100; // tolerate 0-100 form (before deriving spots)
+  if(rate==null && total>0 && occ!=null) rate = occ/total;
+  if(occ==null && total>0 && rate!=null) occ = Math.round(rate*total);
+  if(rate==null) return null;
+  return {
+    ts: o.ts!=null ? String(o.ts) : "",
+    street: o.street!=null ? String(o.street) : "—",
+    totalSpots: total||0,
+    occupiedSpots: occ||0,
+    occupancyRate: Math.max(0,Math.min(1,rate))
+  };
+}
+const num = v => { const n=Number(v); return Number.isFinite(n)?n:null; };
+const pct = r => Math.round(r*100)+"%";
+
+function fmtTime(ts){
+  const d=new Date(ts);
+  if(!isNaN(d)) return d.toLocaleString("he-IL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  return ts||"—";
+}
+function hourOf(ts){ const d=new Date(ts); return isNaN(d)?null:d.getHours(); }
+
+// ---- render ----
+function render(){
+  if(!RECORDS.length){ RECORDS = SAMPLE; }
+  const last = RECORDS[RECORDS.length-1];
+  document.getElementById("streetName").textContent = last.street;
+  document.getElementById("lastUpdated").textContent = fmtTime(last.ts);
+  document.getElementById("recCount").textContent = RECORDS.length+" רשומות";
+
+  // live tiles
+  const tiles=document.getElementById("tiles"); tiles.innerHTML="";
+  const t=last.totalSpots||0, occ=last.occupiedSpots||0;
+  for(let i=0;i<t;i++){
+    const free = i>=occ; // fill occupied first
+    const el=document.createElement("div");
+    el.className="tile "+(free?"free":"occ");
+    el.textContent=i+1;
+    el.title=free?"פנוי":"תפוס";
+    tiles.appendChild(el);
+  }
+
+  // KPIs
+  const rates=RECORDS.map(r=>r.occupancyRate);
+  const peak=Math.max(...rates);
+  const avg=rates.reduce((a,b)=>a+b,0)/rates.length;
+  document.getElementById("kCur").textContent=pct(last.occupancyRate);
+  document.getElementById("kPeak").textContent=pct(peak);
+  document.getElementById("kAvg").textContent=pct(avg);
+
+  drawChart(RECORDS);
+}
+
+// ---- inline SVG area chart, no libs ----
+function drawChart(recs){
+  const W=920,H=280, m={t:16,r:16,b:38,l:40};
+  const iw=W-m.l-m.r, ih=H-m.t-m.b;
+  const n=recs.length;
+  const x=i=> n<=1 ? m.l+iw/2 : m.l + (i/(n-1))*iw;
+  const y=r=> m.t + (1-r)*ih;
+
+  let grid="", labels="";
+  for(let g=0;g<=100;g+=25){
+    const yy=y(g/100);
+    grid+=`<line x1="${m.l}" y1="${yy.toFixed(1)}" x2="${m.l+iw}" y2="${yy.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`;
+    labels+=`<text x="${m.l-8}" y="${(yy+4).toFixed(1)}" text-anchor="end" font-size="11" fill="var(--muted)">${g}%</text>`;
+  }
+
+  // x labels: hour of each record, thinned to ~8
+  const step=Math.max(1,Math.ceil(n/8));
+  let xlab="";
+  for(let i=0;i<n;i+=step){
+    const h=hourOf(recs[i].ts);
+    const lbl = h!=null ? String(h).padStart(2,"0")+":00" : (i+1);
+    xlab+=`<text x="${x(i).toFixed(1)}" y="${H-14}" text-anchor="middle" font-size="11" fill="var(--muted)">${lbl}</text>`;
+  }
+
+  const line = recs.map((r,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(r.occupancyRate).toFixed(1)}`).join(" ");
+  const area = `M${x(0).toFixed(1)},${y(0).toFixed(1)} `
+    + recs.map((r,i)=>`L${x(i).toFixed(1)},${y(r.occupancyRate).toFixed(1)}`).join(" ")
+    + ` L${x(n-1).toFixed(1)},${y(0).toFixed(1)} Z`;
+
+  const dots = recs.map((r,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(r.occupancyRate).toFixed(1)}" r="2.5" fill="var(--brand)"><title>${fmtTime(r.ts)} · ${pct(r.occupancyRate)}</title></circle>`).join("");
+
+  document.getElementById("chart").innerHTML =
+  `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="גרף תפוסה לאורך זמן">
+    <defs><linearGradient id="ar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--brand)" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="var(--brand)" stop-opacity="0.02"/>
+    </linearGradient></defs>
+    ${grid}
+    <path d="${area}" fill="url(#ar)"/>
+    <path d="${line}" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}${labels}${xlab}
+  </svg>`;
+}
+
+// ---- city report: peak window + headline ----
+function makeReport(){
+  if(!RECORDS.length){ RECORDS = SAMPLE; render(); } // guard: click before data loaded -> no -Infinity
+  const recs=RECORDS;
+  const rates=recs.map(r=>r.occupancyRate);
+  const avg=rates.reduce((a,b)=>a+b,0)/rates.length;
+  const peakIdx=rates.indexOf(Math.max(...rates));
+  const peak=recs[peakIdx];
+  const low=recs[rates.indexOf(Math.min(...rates))];
+
+  // peak 2-hour window (by hour buckets if timestamps present)
+  let headline;
+  const ph=hourOf(peak.ts);
+  if(ph!=null){
+    const h2=(ph+2)%24;
+    headline=`בין ${String(ph).padStart(2,"0")}:00–${String(h2).padStart(2,"0")}:00 נרשמה תפוסת שיא של ${pct(peak.occupancyRate)} ברחוב ${peak.street}.`;
+  }else{
+    headline=`תפוסת השיא ברחוב ${peak.street} הגיעה ל-${pct(peak.occupancyRate)}.`;
+  }
+
+  const rows=[
+    ["תפוסה ממוצעת לאורך היום", pct(avg)],
+    ["תפוסת שיא", `${pct(peak.occupancyRate)} · ${fmtTime(peak.ts)}`],
+    ["תפוסה מינימלית", `${pct(low.occupancyRate)} · ${fmtTime(low.ts)}`],
+    ["מספר מקומות ברחוב", String(peak.totalSpots)],
+    ["חלון עומס מומלץ לאכיפה/תמרור", ph!=null?`${String(ph).padStart(2,"0")}:00–${String((ph+2)%24).padStart(2,"0")}:00`:"—"],
+    ["נקודות מדידה", String(recs.length)]
+  ];
+
+  document.getElementById("repHeadline").textContent=headline;
+  document.getElementById("repRows").innerHTML=rows.map(([a,b])=>
+    `<div class="row"><span>${a}</span><span>${b}</span></div>`).join("");
+  const p=document.getElementById("reportPanel");
+  p.classList.remove("hidden");
+  p.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+// ---- data loading ----
+function loadFrom(text,label){
+  const parsed=parseData(text);
+  if(parsed.length){ RECORDS=parsed; document.getElementById("srcLabel").textContent=label; render(); return true; }
+  return false;
+}
+
+document.getElementById("btnReport").addEventListener("click",makeReport);
+document.getElementById("btnLoad").addEventListener("click",()=>{
+  if(!loadFrom(document.getElementById("ta").value,"הזנה ידנית")) alert("לא נמצאו רשומות תקינות. בדקו את הפורמט.");
+});
+
+// drag & drop
+const drop=document.getElementById("drop"), ta=document.getElementById("ta");
+["dragover","dragenter"].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop",ev=>{
+  const f=ev.dataTransfer.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ ta.value=rd.result; if(!loadFrom(rd.result,"קובץ: "+f.name)) alert("קובץ לא נקרא כרשומות תקינות."); };
+  rd.readAsText(f);
+});
+
+// on load: try fetch, else sample
+(function init(){
+  document.getElementById("srcLabel").textContent="טוען…";
+  fetch("occupancy.json").then(r=>{ if(!r.ok) throw 0; return r.text(); })
+    .then(t=>{ if(!loadFrom(t,"occupancy.json")){ throw 0; } })
+    .catch(()=>{ RECORDS=SAMPLE; document.getElementById("srcLabel").textContent="נתוני הדגמה"; render(); });
+})();
+</script>
+</body>
+</html>
