@@ -1,0 +1,330 @@
+{
+  "communities": {
+    "0": [
+      "availability_prediction",
+      "factory_evidence_current_state_audit_md",
+      "factory_feature_truth_matrix_md",
+      "gamification",
+      "github_workflows_sentinel_yml",
+      "github_workflows_validate_yml",
+      "google_maps_integration",
+      "index_html",
+      "marketplace",
+      "pango_cellopark_integration",
+      "parking_zones_etl",
+      "payment_escrow",
+      "spec_v2_municipal_integration_md",
+      "test_evidence_md",
+      "vehicle_fit_engine",
+      "waze_integration"
+    ],
+    "1": [
+      "manifest",
+      "manifest_background_color",
+      "manifest_description",
+      "manifest_dir",
+      "manifest_display",
+      "manifest_icons",
+      "manifest_lang",
+      "manifest_name",
+      "manifest_orientation",
+      "manifest_scope",
+      "manifest_short_name",
+      "manifest_start_url",
+      "manifest_theme_color"
+    ],
+    "2": [
+      "lib_haversinemeters",
+      "lib_haversinemeters_haversinemeters",
+      "lib_haversinemeters_test",
+      "lib_haversinemeters_test_anti",
+      "lib_haversinemeters_test_assert",
+      "lib_haversinemeters_test_cross",
+      "lib_haversinemeters_test_haversinemeters",
+      "lib_haversinemeters_test_onedeglat",
+      "lib_haversinemeters_test_onedeglng",
+      "lib_haversinemeters_test_tlvjlm",
+      "lib_haversinemeters_torad"
+    ],
+    "3": [
+      "lib_aggregateanonymizeddata",
+      "lib_aggregateanonymizeddata_aggregateanonymizeddata",
+      "lib_aggregateanonymizeddata_test",
+      "lib_aggregateanonymizeddata_test_aggregateanonymizeddata",
+      "lib_aggregateanonymizeddata_test_assert",
+      "lib_aggregateanonymizeddata_test_bin8",
+      "lib_aggregateanonymizeddata_test_merged",
+      "lib_aggregateanonymizeddata_test_out",
+      "lib_aggregateanonymizeddata_test_recs",
+      "lib_aggregateanonymizeddata_test_twoloc"
+    ],
+    "4": [
+      "lib_estimatesearchtrafficreduction",
+      "lib_estimatesearchtrafficreduction_estimatesearchtrafficreduction",
+      "lib_estimatesearchtrafficreduction_test",
+      "lib_estimatesearchtrafficreduction_test_assert",
+      "lib_estimatesearchtrafficreduction_test_estimatesearchtrafficreduction",
+      "lib_estimatesearchtrafficreduction_test_r1",
+      "lib_estimatesearchtrafficreduction_test_r2",
+      "lib_estimatesearchtrafficreduction_test_r3",
+      "lib_estimatesearchtrafficreduction_test_r4",
+      "lib_estimatesearchtrafficreduction_test_rows"
+    ],
+    "5": [
+      "aviram_swisa",
+      "frame_grabber",
+      "gemini_flash_vision",
+      "netanya_outreach_md",
+      "occupancy_jsonl",
+      "parkwiz_system",
+      "pilot_dashboard_html",
+      "pilot_readme_md",
+      "vision_bridge"
+    ],
+    "6": [
+      "factory_lib_normalizeplate",
+      "factory_lib_normalizeplate_normalizeplate",
+      "factory_lib_test",
+      "factory_lib_test_assert",
+      "factory_lib_test_normalizeplate",
+      "factory_lib_test_weightedavailability",
+      "factory_lib_weightedavailability",
+      "factory_lib_weightedavailability_weightedavailability"
+    ],
+    "7": [
+      "lib_bookingpayload",
+      "lib_bookingpayload_buildbookingpayload",
+      "lib_bookingpayload_num",
+      "lib_bookingpayload_round2",
+      "lib_bookingpayload_test",
+      "lib_bookingpayload_test_assert",
+      "lib_bookingpayload_test_buildbookingpayload",
+      "lib_bookingpayload_todate"
+    ],
+    "8": [
+      "lib_apiclient",
+      "lib_apiclient_createclient",
+      "lib_apiclient_test",
+      "lib_apiclient_test_assert",
+      "lib_apiclient_test_createclient_validationerror",
+      "lib_apiclient_test_mockfetch",
+      "lib_apiclient_validationerror"
+    ],
+    "9": [
+      "lib_logenforcementaction",
+      "lib_logenforcementaction_logenforcementaction",
+      "lib_logenforcementaction_test",
+      "lib_logenforcementaction_test_assert",
+      "lib_logenforcementaction_test_logenforcementaction",
+      "lib_logenforcementaction_test_result",
+      "lib_logenforcementaction_test_resultnometa"
+    ],
+    "10": [
+      "lib_spotpayload",
+      "lib_spotpayload_buildspotpayload",
+      "lib_spotpayload_num",
+      "lib_spotpayload_test",
+      "lib_spotpayload_test_assert",
+      "lib_spotpayload_test_buildspotpayload",
+      "lib_spotpayload_test_withopts"
+    ],
+    "11": [
+      "lib_normalizeplate",
+      "lib_normalizeplate_normalizeplate",
+      "lib_normalizeplate_test",
+      "lib_normalizeplate_test_assert",
+      "lib_normalizeplate_test_invalid",
+      "lib_normalizeplate_test_normalizeplate"
+    ],
+    "12": [
+      "lib_weightedavailability",
+      "lib_weightedavailability_test",
+      "lib_weightedavailability_test_assert",
+      "lib_weightedavailability_test_mixed",
+      "lib_weightedavailability_test_weightedavailability",
+      "lib_weightedavailability_weightedavailability"
+    ],
+    "13": [
+      "github_workflows_factory_ci_yml",
+      "lib_readme_md",
+      "normalize_plate",
+      "spot_payload",
+      "weighted_availability"
+    ],
+    "14": [
+      "lib_formatduration",
+      "lib_formatduration_test",
+      "lib_formatduration_test_a",
+      "lib_formatduration_test_formatduration"
+    ],
+    "15": [
+      "pw_patch",
+      "pw_patch_fs",
+      "pw_patch_s"
+    ],
+    "16": [
+      "lib_buildmunicipalreport",
+      "lib_buildmunicipalreport_buildmunicipalreport"
+    ],
+    "17": [
+      "lib_debounceoccupancy",
+      "lib_debounceoccupancy_debounceoccupancy"
+    ],
+    "18": [
+      "lib_enforcementroute",
+      "lib_enforcementroute_enforcementroute"
+    ],
+    "19": [
+      "lib_occupancyheatmap",
+      "lib_occupancyheatmap_occupancyheatmap"
+    ],
+    "20": [
+      "lib_permitzonematch",
+      "lib_permitzonematch_permitzonematch"
+    ],
+    "21": [
+      "icon_svg"
+    ],
+    "22": [
+      "readme_md"
+    ]
+  },
+  "cohesion": {
+    "0": 0.19166666666666668,
+    "1": 0.15384615384615385,
+    "2": 0.21818181818181817,
+    "3": 0.2222222222222222,
+    "4": 0.2222222222222222,
+    "5": 0.3333333333333333,
+    "6": 0.32142857142857145,
+    "7": 0.39285714285714285,
+    "8": 0.42857142857142855,
+    "9": 0.3333333333333333,
+    "10": 0.38095238095238093,
+    "11": 0.4,
+    "12": 0.4,
+    "13": 0.6,
+    "14": 0.5,
+    "15": 0.6666666666666666,
+    "16": 1.0,
+    "17": 1.0,
+    "18": 1.0,
+    "19": 1.0,
+    "20": 1.0,
+    "21": 1.0,
+    "22": 1.0
+  },
+  "gods": [
+    {
+      "id": "index_html",
+      "label": "index.html (Main App)",
+      "degree": 14
+    },
+    {
+      "id": "spec_v2_municipal_integration_md",
+      "label": "Spec v2 Municipal Integration",
+      "degree": 10
+    },
+    {
+      "id": "pilot_readme_md",
+      "label": "Pilot README",
+      "degree": 7
+    },
+    {
+      "id": "parkwiz_system",
+      "label": "ParkWiz System",
+      "degree": 6
+    },
+    {
+      "id": "lib_bookingpayload_buildbookingpayload",
+      "label": "buildBookingPayload()",
+      "degree": 5
+    },
+    {
+      "id": "aviram_swisa",
+      "label": "Aviram Swisa",
+      "degree": 4
+    },
+    {
+      "id": "lib_apiclient_validationerror",
+      "label": "ValidationError()",
+      "degree": 3
+    },
+    {
+      "id": "lib_apiclient_createclient",
+      "label": "createClient()",
+      "degree": 3
+    },
+    {
+      "id": "lib_haversinemeters_haversinemeters",
+      "label": "haversineMeters()",
+      "degree": 3
+    },
+    {
+      "id": "lib_spotpayload_buildspotpayload",
+      "label": "buildSpotPayload()",
+      "degree": 3
+    }
+  ],
+  "surprises": [
+    {
+      "source": "Netanya Outreach Draft",
+      "target": "ParkWiz System",
+      "source_files": [
+        "NETANYA_OUTREACH.md",
+        "PILOT_README.md"
+      ],
+      "confidence": "INFERRED",
+      "relation": "references",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; peripheral node `Netanya Outreach Draft` unexpectedly reaches hub `ParkWiz System`"
+    },
+    {
+      "source": "Spec v2 Municipal Integration",
+      "target": "ParkWiz System",
+      "source_files": [
+        "SPEC-v2-municipal-integration.md",
+        "PILOT_README.md"
+      ],
+      "confidence": "INFERRED",
+      "relation": "references",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "Aviram Swisa",
+      "target": "index.html (Main App)",
+      "source_files": [
+        "NETANYA_OUTREACH.md",
+        "index.html"
+      ],
+      "confidence": "INFERRED",
+      "relation": "references",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "validate workflow",
+      "target": "index.html (Main App)",
+      "source_files": [
+        ".github/workflows/validate.yml",
+        "index.html"
+      ],
+      "confidence": "INFERRED",
+      "relation": "references",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; peripheral node `validate workflow` unexpectedly reaches hub `index.html (Main App)`"
+    },
+    {
+      "source": "Aviram Swisa",
+      "target": "Pilot README",
+      "source_files": [
+        "NETANYA_OUTREACH.md",
+        "PILOT_README.md"
+      ],
+      "confidence": "INFERRED",
+      "relation": "references",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    }
+  ],
+  "tokens": {
+    "input": 25130,
+    "output": 13448
+  }
+}
