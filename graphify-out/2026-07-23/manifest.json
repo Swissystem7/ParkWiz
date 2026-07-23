@@ -215,9 +215,9 @@
     "semantic_hash": "5d24d4555734251bb9977596756d2f02"
   },
   "index.html": {
-    "mtime": 1784747211.8497856,
-    "ast_hash": "546330fa31a3188e70459efbfd883bc0",
-    "semantic_hash": ""
+    "mtime": 1784397903.3517444,
+    "ast_hash": "c28471900d21f6790b4333890ce0b53e",
+    "semantic_hash": "c28471900d21f6790b4333890ce0b53e"
   },
   "lib/README.md": {
     "mtime": 1784397870.0317266,
@@ -233,25 +233,5 @@
     "mtime": 1784200864.188048,
     "ast_hash": "bc7e8a716c407d6467cc558f3901dcff",
     "semantic_hash": "bc7e8a716c407d6467cc558f3901dcff"
-  },
-  "lib/bookingEscrow.js": {
-    "mtime": 1784747211.7738264,
-    "ast_hash": "e4fd188b29022f2bded95a2971128f60",
-    "semantic_hash": ""
-  },
-  "lib/bookingEscrow.test.js": {
-    "mtime": 1784747211.8067822,
-    "ast_hash": "94ae7f4a4c2301194a57f98ce2635c21",
-    "semantic_hash": ""
-  },
-  "lib/hostListing.js": {
-    "mtime": 1784747211.8077931,
-    "ast_hash": "36321a0c4cbf71af762e58d925b3c2cd",
-    "semantic_hash": ""
-  },
-  "lib/hostListing.test.js": {
-    "mtime": 1784747211.809811,
-    "ast_hash": "6db9ced6ce5c3793e62c21d8df5daeac",
-    "semantic_hash": ""
   }
 }

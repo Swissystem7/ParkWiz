@@ -39,10 +39,10 @@
       "source_file": "_pw_patch.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "pw_patch",
       "community": 15,
-      "community_name": "_pw_patch.js",
-      "norm_label": "_pw_patch.js"
+      "norm_label": "_pw_patch.js",
+      "id": "pw_patch",
+      "community_name": "_pw_patch.js"
     },
     {
       "label": "fs",
@@ -50,10 +50,10 @@
       "source_file": "_pw_patch.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "pw_patch_fs",
       "community": 15,
-      "community_name": "_pw_patch.js",
-      "norm_label": "fs"
+      "norm_label": "fs",
+      "id": "pw_patch_fs",
+      "community_name": "_pw_patch.js"
     },
     {
       "label": "s",
@@ -61,10 +61,10 @@
       "source_file": "_pw_patch.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "pw_patch_s",
       "community": 15,
-      "community_name": "_pw_patch.js",
-      "norm_label": "s"
+      "norm_label": "s",
+      "id": "pw_patch_s",
+      "community_name": "_pw_patch.js"
     },
     {
       "label": "factory/lib/normalizePlate.js",
@@ -72,10 +72,10 @@
       "source_file": "factory/lib/normalizePlate.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "factory_lib_normalizeplate",
       "community": 6,
-      "community_name": "test.js",
-      "norm_label": "factory/lib/normalizeplate.js"
+      "norm_label": "factory/lib/normalizeplate.js",
+      "id": "factory_lib_normalizeplate",
+      "community_name": "test.js"
     },
     {
       "label": "normalizePlate()",
@@ -83,10 +83,10 @@
       "source_file": "factory/lib/normalizePlate.js",
       "source_location": "L2",
       "_origin": "ast",
-      "id": "factory_lib_normalizeplate_normalizeplate",
       "community": 6,
-      "community_name": "test.js",
-      "norm_label": "normalizeplate()"
+      "norm_label": "normalizeplate()",
+      "id": "factory_lib_normalizeplate_normalizeplate",
+      "community_name": "test.js"
     },
     {
       "label": "test.js",
@@ -94,10 +94,10 @@
       "source_file": "factory/lib/test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "factory_lib_test",
       "community": 6,
-      "community_name": "test.js",
-      "norm_label": "test.js"
+      "norm_label": "test.js",
+      "id": "factory_lib_test",
+      "community_name": "test.js"
     },
     {
       "label": "assert",
@@ -105,10 +105,10 @@
       "source_file": "factory/lib/test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "factory_lib_test_assert",
       "community": 6,
-      "community_name": "test.js",
-      "norm_label": "assert"
+      "norm_label": "assert",
+      "id": "factory_lib_test_assert",
+      "community_name": "test.js"
     },
     {
       "label": "{ normalizePlate }",
@@ -116,10 +116,10 @@
       "source_file": "factory/lib/test.js",
       "source_location": "L2",
       "_origin": "ast",
-      "id": "factory_lib_test_normalizeplate",
       "community": 6,
-      "community_name": "test.js",
-      "norm_label": "{ normalizeplate }"
+      "norm_label": "{ normalizeplate }",
+      "id": "factory_lib_test_normalizeplate",
+      "community_name": "test.js"
     },
     {
       "label": "{ weightedAvailability }",
@@ -127,10 +127,10 @@
       "source_file": "factory/lib/test.js",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "factory_lib_test_weightedavailability",
       "community": 6,
-      "community_name": "test.js",
-      "norm_label": "{ weightedavailability }"
+      "norm_label": "{ weightedavailability }",
+      "id": "factory_lib_test_weightedavailability",
+      "community_name": "test.js"
     },
     {
       "label": "factory/lib/weightedAvailability.js",
@@ -138,10 +138,10 @@
       "source_file": "factory/lib/weightedAvailability.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "factory_lib_weightedavailability",
       "community": 6,
-      "community_name": "test.js",
-      "norm_label": "factory/lib/weightedavailability.js"
+      "norm_label": "factory/lib/weightedavailability.js",
+      "id": "factory_lib_weightedavailability",
+      "community_name": "test.js"
     },
     {
       "label": "weightedAvailability()",
@@ -149,10 +149,10 @@
       "source_file": "factory/lib/weightedAvailability.js",
       "source_location": "L2",
       "_origin": "ast",
-      "id": "factory_lib_weightedavailability_weightedavailability",
       "community": 6,
-      "community_name": "test.js",
-      "norm_label": "weightedavailability()"
+      "norm_label": "weightedavailability()",
+      "id": "factory_lib_weightedavailability_weightedavailability",
+      "community_name": "test.js"
     },
     {
       "label": "aggregateAnonymizedData.js",
@@ -160,10 +160,10 @@
       "source_file": "lib/aggregateAnonymizedData.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_aggregateanonymizeddata",
       "community": 3,
-      "community_name": "aggregateAnonymizedData.test.js",
-      "norm_label": "aggregateanonymizeddata.js"
+      "norm_label": "aggregateanonymizeddata.js",
+      "id": "lib_aggregateanonymizeddata",
+      "community_name": "aggregateAnonymizedData.test.js"
     },
     {
       "label": "aggregateAnonymizedData()",
@@ -171,10 +171,10 @@
       "source_file": "lib/aggregateAnonymizedData.js",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "lib_aggregateanonymizeddata_aggregateanonymizeddata",
       "community": 3,
-      "community_name": "aggregateAnonymizedData.test.js",
-      "norm_label": "aggregateanonymizeddata()"
+      "norm_label": "aggregateanonymizeddata()",
+      "id": "lib_aggregateanonymizeddata_aggregateanonymizeddata",
+      "community_name": "aggregateAnonymizedData.test.js"
     },
     {
       "label": "aggregateAnonymizedData.test.js",
@@ -182,10 +182,10 @@
       "source_file": "lib/aggregateAnonymizedData.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_aggregateanonymizeddata_test",
       "community": 3,
-      "community_name": "aggregateAnonymizedData.test.js",
-      "norm_label": "aggregateanonymizeddata.test.js"
+      "norm_label": "aggregateanonymizeddata.test.js",
+      "id": "lib_aggregateanonymizeddata_test",
+      "community_name": "aggregateAnonymizedData.test.js"
     },
     {
       "label": "assert",
@@ -193,10 +193,10 @@
       "source_file": "lib/aggregateAnonymizedData.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_aggregateanonymizeddata_test_assert",
       "community": 3,
-      "community_name": "aggregateAnonymizedData.test.js",
-      "norm_label": "assert"
+      "norm_label": "assert",
+      "id": "lib_aggregateanonymizeddata_test_assert",
+      "community_name": "aggregateAnonymizedData.test.js"
     },
     {
       "label": "{ aggregateAnonymizedData }",
@@ -204,10 +204,10 @@
       "source_file": "lib/aggregateAnonymizedData.test.js",
       "source_location": "L2",
       "_origin": "ast",
-      "id": "lib_aggregateanonymizeddata_test_aggregateanonymizeddata",
       "community": 3,
-      "community_name": "aggregateAnonymizedData.test.js",
-      "norm_label": "{ aggregateanonymizeddata }"
+      "norm_label": "{ aggregateanonymizeddata }",
+      "id": "lib_aggregateanonymizeddata_test_aggregateanonymizeddata",
+      "community_name": "aggregateAnonymizedData.test.js"
     },
     {
       "label": "recs",
@@ -215,10 +215,10 @@
       "source_file": "lib/aggregateAnonymizedData.test.js",
       "source_location": "L13",
       "_origin": "ast",
-      "id": "lib_aggregateanonymizeddata_test_recs",
       "community": 3,
-      "community_name": "aggregateAnonymizedData.test.js",
-      "norm_label": "recs"
+      "norm_label": "recs",
+      "id": "lib_aggregateanonymizeddata_test_recs",
+      "community_name": "aggregateAnonymizedData.test.js"
     },
     {
       "label": "out",
@@ -226,10 +226,10 @@
       "source_file": "lib/aggregateAnonymizedData.test.js",
       "source_location": "L18",
       "_origin": "ast",
-      "id": "lib_aggregateanonymizeddata_test_out",
       "community": 3,
-      "community_name": "aggregateAnonymizedData.test.js",
-      "norm_label": "out"
+      "norm_label": "out",
+      "id": "lib_aggregateanonymizeddata_test_out",
+      "community_name": "aggregateAnonymizedData.test.js"
     },
     {
       "label": "bin8",
@@ -237,10 +237,10 @@
       "source_file": "lib/aggregateAnonymizedData.test.js",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "lib_aggregateanonymizeddata_test_bin8",
       "community": 3,
-      "community_name": "aggregateAnonymizedData.test.js",
-      "norm_label": "bin8"
+      "norm_label": "bin8",
+      "id": "lib_aggregateanonymizeddata_test_bin8",
+      "community_name": "aggregateAnonymizedData.test.js"
     },
     {
       "label": "merged",
@@ -248,10 +248,10 @@
       "source_file": "lib/aggregateAnonymizedData.test.js",
       "source_location": "L26",
       "_origin": "ast",
-      "id": "lib_aggregateanonymizeddata_test_merged",
       "community": 3,
-      "community_name": "aggregateAnonymizedData.test.js",
-      "norm_label": "merged"
+      "norm_label": "merged",
+      "id": "lib_aggregateanonymizeddata_test_merged",
+      "community_name": "aggregateAnonymizedData.test.js"
     },
     {
       "label": "twoLoc",
@@ -259,10 +259,10 @@
       "source_file": "lib/aggregateAnonymizedData.test.js",
       "source_location": "L31",
       "_origin": "ast",
-      "id": "lib_aggregateanonymizeddata_test_twoloc",
       "community": 3,
-      "community_name": "aggregateAnonymizedData.test.js",
-      "norm_label": "twoloc"
+      "norm_label": "twoloc",
+      "id": "lib_aggregateanonymizeddata_test_twoloc",
+      "community_name": "aggregateAnonymizedData.test.js"
     },
     {
       "label": "apiClient.js",
@@ -270,10 +270,10 @@
       "source_file": "lib/apiClient.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_apiclient",
       "community": 8,
-      "community_name": "apiClient.test.js",
-      "norm_label": "apiclient.js"
+      "norm_label": "apiclient.js",
+      "id": "lib_apiclient",
+      "community_name": "apiClient.test.js"
     },
     {
       "label": "ValidationError()",
@@ -281,10 +281,10 @@
       "source_file": "lib/apiClient.js",
       "source_location": "L27",
       "_origin": "ast",
-      "id": "lib_apiclient_validationerror",
       "community": 8,
-      "community_name": "apiClient.test.js",
-      "norm_label": "validationerror()"
+      "norm_label": "validationerror()",
+      "id": "lib_apiclient_validationerror",
+      "community_name": "apiClient.test.js"
     },
     {
       "label": "createClient()",
@@ -292,10 +292,10 @@
       "source_file": "lib/apiClient.js",
       "source_location": "L34",
       "_origin": "ast",
-      "id": "lib_apiclient_createclient",
       "community": 8,
-      "community_name": "apiClient.test.js",
-      "norm_label": "createclient()"
+      "norm_label": "createclient()",
+      "id": "lib_apiclient_createclient",
+      "community_name": "apiClient.test.js"
     },
     {
       "label": "apiClient.test.js",
@@ -303,10 +303,10 @@
       "source_file": "lib/apiClient.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_apiclient_test",
       "community": 8,
-      "community_name": "apiClient.test.js",
-      "norm_label": "apiclient.test.js"
+      "norm_label": "apiclient.test.js",
+      "id": "lib_apiclient_test",
+      "community_name": "apiClient.test.js"
     },
     {
       "label": "assert",
@@ -314,10 +314,10 @@
       "source_file": "lib/apiClient.test.js",
       "source_location": "L2",
       "_origin": "ast",
-      "id": "lib_apiclient_test_assert",
       "community": 8,
-      "community_name": "apiClient.test.js",
-      "norm_label": "assert"
+      "norm_label": "assert",
+      "id": "lib_apiclient_test_assert",
+      "community_name": "apiClient.test.js"
     },
     {
       "label": "{ createClient, ValidationError }",
@@ -325,10 +325,10 @@
       "source_file": "lib/apiClient.test.js",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "lib_apiclient_test_createclient_validationerror",
       "community": 8,
-      "community_name": "apiClient.test.js",
-      "norm_label": "{ createclient, validationerror }"
+      "norm_label": "{ createclient, validationerror }",
+      "id": "lib_apiclient_test_createclient_validationerror",
+      "community_name": "apiClient.test.js"
     },
     {
       "label": "mockFetch()",
@@ -336,142 +336,10 @@
       "source_file": "lib/apiClient.test.js",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "lib_apiclient_test_mockfetch",
       "community": 8,
-      "community_name": "apiClient.test.js",
-      "norm_label": "mockfetch()"
-    },
-    {
-      "label": "bookingEscrow.js",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "lib_bookingescrow",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "bookingescrow.js"
-    },
-    {
-      "label": "positiveNumber()",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L5",
-      "_origin": "ast",
-      "id": "lib_bookingescrow_positivenumber",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "positivenumber()"
-    },
-    {
-      "label": "nonEmpty()",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L9",
-      "_origin": "ast",
-      "id": "lib_bookingescrow_nonempty",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "nonempty()"
-    },
-    {
-      "label": "demoCommission()",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L14",
-      "_origin": "ast",
-      "id": "lib_bookingescrow_democommission",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "democommission()"
-    },
-    {
-      "label": "createBooking()",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L19",
-      "_origin": "ast",
-      "id": "lib_bookingescrow_createbooking",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "createbooking()"
-    },
-    {
-      "label": "ensureHeld()",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L39",
-      "_origin": "ast",
-      "id": "lib_bookingescrow_ensureheld",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "ensureheld()"
-    },
-    {
-      "label": "releaseFunds()",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L43",
-      "_origin": "ast",
-      "id": "lib_bookingescrow_releasefunds",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "releasefunds()"
-    },
-    {
-      "label": "refund()",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L50",
-      "_origin": "ast",
-      "id": "lib_bookingescrow_refund",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "refund()"
-    },
-    {
-      "label": "bookingEscrow.test.js",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "lib_bookingescrow_test",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "bookingescrow.test.js"
-    },
-    {
-      "label": "assert",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L2",
-      "_origin": "ast",
-      "id": "lib_bookingescrow_test_assert",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "assert"
-    },
-    {
-      "label": "{ createBooking, releaseFunds, refund, demoCommission }",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L3",
-      "_origin": "ast",
-      "id": "lib_bookingescrow_test_createbooking_releasefunds_refund_democommission",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "{ createbooking, releasefunds, refund, democommission }"
-    },
-    {
-      "label": "held",
-      "file_type": "code",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L4",
-      "_origin": "ast",
-      "id": "lib_bookingescrow_test_held",
-      "community": 23,
-      "community_name": "bookingEscrow.js",
-      "norm_label": "held"
+      "norm_label": "mockfetch()",
+      "id": "lib_apiclient_test_mockfetch",
+      "community_name": "apiClient.test.js"
     },
     {
       "label": "bookingPayload.js",
@@ -479,10 +347,10 @@
       "source_file": "lib/bookingPayload.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_bookingpayload",
       "community": 7,
-      "community_name": "bookingPayload.js",
-      "norm_label": "bookingpayload.js"
+      "norm_label": "bookingpayload.js",
+      "id": "lib_bookingpayload",
+      "community_name": "bookingPayload.js"
     },
     {
       "label": "num()",
@@ -490,10 +358,10 @@
       "source_file": "lib/bookingPayload.js",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "lib_bookingpayload_num",
       "community": 7,
-      "community_name": "bookingPayload.js",
-      "norm_label": "num()"
+      "norm_label": "num()",
+      "id": "lib_bookingpayload_num",
+      "community_name": "bookingPayload.js"
     },
     {
       "label": "round2()",
@@ -501,10 +369,10 @@
       "source_file": "lib/bookingPayload.js",
       "source_location": "L21",
       "_origin": "ast",
-      "id": "lib_bookingpayload_round2",
       "community": 7,
-      "community_name": "bookingPayload.js",
-      "norm_label": "round2()"
+      "norm_label": "round2()",
+      "id": "lib_bookingpayload_round2",
+      "community_name": "bookingPayload.js"
     },
     {
       "label": "toDate()",
@@ -512,10 +380,10 @@
       "source_file": "lib/bookingPayload.js",
       "source_location": "L26",
       "_origin": "ast",
-      "id": "lib_bookingpayload_todate",
       "community": 7,
-      "community_name": "bookingPayload.js",
-      "norm_label": "todate()"
+      "norm_label": "todate()",
+      "id": "lib_bookingpayload_todate",
+      "community_name": "bookingPayload.js"
     },
     {
       "label": "buildBookingPayload()",
@@ -523,10 +391,10 @@
       "source_file": "lib/bookingPayload.js",
       "source_location": "L39",
       "_origin": "ast",
-      "id": "lib_bookingpayload_buildbookingpayload",
       "community": 7,
-      "community_name": "bookingPayload.js",
-      "norm_label": "buildbookingpayload()"
+      "norm_label": "buildbookingpayload()",
+      "id": "lib_bookingpayload_buildbookingpayload",
+      "community_name": "bookingPayload.js"
     },
     {
       "label": "bookingPayload.test.js",
@@ -534,10 +402,10 @@
       "source_file": "lib/bookingPayload.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_bookingpayload_test",
       "community": 7,
-      "community_name": "bookingPayload.js",
-      "norm_label": "bookingpayload.test.js"
+      "norm_label": "bookingpayload.test.js",
+      "id": "lib_bookingpayload_test",
+      "community_name": "bookingPayload.js"
     },
     {
       "label": "assert",
@@ -545,10 +413,10 @@
       "source_file": "lib/bookingPayload.test.js",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "lib_bookingpayload_test_assert",
       "community": 7,
-      "community_name": "bookingPayload.js",
-      "norm_label": "assert"
+      "norm_label": "assert",
+      "id": "lib_bookingpayload_test_assert",
+      "community_name": "bookingPayload.js"
     },
     {
       "label": "{ buildBookingPayload }",
@@ -556,10 +424,10 @@
       "source_file": "lib/bookingPayload.test.js",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "lib_bookingpayload_test_buildbookingpayload",
       "community": 7,
-      "community_name": "bookingPayload.js",
-      "norm_label": "{ buildbookingpayload }"
+      "norm_label": "{ buildbookingpayload }",
+      "id": "lib_bookingpayload_test_buildbookingpayload",
+      "community_name": "bookingPayload.js"
     },
     {
       "label": "buildMunicipalReport.js",
@@ -567,10 +435,10 @@
       "source_file": "lib/buildMunicipalReport.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_buildmunicipalreport",
       "community": 16,
-      "community_name": "buildMunicipalReport.js",
-      "norm_label": "buildmunicipalreport.js"
+      "norm_label": "buildmunicipalreport.js",
+      "id": "lib_buildmunicipalreport",
+      "community_name": "buildMunicipalReport.js"
     },
     {
       "label": "buildMunicipalReport()",
@@ -578,10 +446,10 @@
       "source_file": "lib/buildMunicipalReport.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_buildmunicipalreport_buildmunicipalreport",
       "community": 16,
-      "community_name": "buildMunicipalReport.js",
-      "norm_label": "buildmunicipalreport()"
+      "norm_label": "buildmunicipalreport()",
+      "id": "lib_buildmunicipalreport_buildmunicipalreport",
+      "community_name": "buildMunicipalReport.js"
     },
     {
       "label": "debounceOccupancy.js",
@@ -589,10 +457,10 @@
       "source_file": "lib/debounceOccupancy.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_debounceoccupancy",
       "community": 17,
-      "community_name": "debounceOccupancy.js",
-      "norm_label": "debounceoccupancy.js"
+      "norm_label": "debounceoccupancy.js",
+      "id": "lib_debounceoccupancy",
+      "community_name": "debounceOccupancy.js"
     },
     {
       "label": "debounceOccupancy()",
@@ -600,10 +468,10 @@
       "source_file": "lib/debounceOccupancy.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_debounceoccupancy_debounceoccupancy",
       "community": 17,
-      "community_name": "debounceOccupancy.js",
-      "norm_label": "debounceoccupancy()"
+      "norm_label": "debounceoccupancy()",
+      "id": "lib_debounceoccupancy_debounceoccupancy",
+      "community_name": "debounceOccupancy.js"
     },
     {
       "label": "enforcementRoute.js",
@@ -611,10 +479,10 @@
       "source_file": "lib/enforcementRoute.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_enforcementroute",
       "community": 18,
-      "community_name": "enforcementRoute.js",
-      "norm_label": "enforcementroute.js"
+      "norm_label": "enforcementroute.js",
+      "id": "lib_enforcementroute",
+      "community_name": "enforcementRoute.js"
     },
     {
       "label": "enforcementRoute()",
@@ -622,10 +490,10 @@
       "source_file": "lib/enforcementRoute.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_enforcementroute_enforcementroute",
       "community": 18,
-      "community_name": "enforcementRoute.js",
-      "norm_label": "enforcementroute()"
+      "norm_label": "enforcementroute()",
+      "id": "lib_enforcementroute_enforcementroute",
+      "community_name": "enforcementRoute.js"
     },
     {
       "label": "estimateSearchTrafficReduction.js",
@@ -633,10 +501,10 @@
       "source_file": "lib/estimateSearchTrafficReduction.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_estimatesearchtrafficreduction",
       "community": 4,
-      "community_name": "estimateSearchTrafficReduction.test.js",
-      "norm_label": "estimatesearchtrafficreduction.js"
+      "norm_label": "estimatesearchtrafficreduction.js",
+      "id": "lib_estimatesearchtrafficreduction",
+      "community_name": "estimateSearchTrafficReduction.test.js"
     },
     {
       "label": "estimateSearchTrafficReduction()",
@@ -644,10 +512,10 @@
       "source_file": "lib/estimateSearchTrafficReduction.js",
       "source_location": "L10",
       "_origin": "ast",
-      "id": "lib_estimatesearchtrafficreduction_estimatesearchtrafficreduction",
       "community": 4,
-      "community_name": "estimateSearchTrafficReduction.test.js",
-      "norm_label": "estimatesearchtrafficreduction()"
+      "norm_label": "estimatesearchtrafficreduction()",
+      "id": "lib_estimatesearchtrafficreduction_estimatesearchtrafficreduction",
+      "community_name": "estimateSearchTrafficReduction.test.js"
     },
     {
       "label": "estimateSearchTrafficReduction.test.js",
@@ -655,10 +523,10 @@
       "source_file": "lib/estimateSearchTrafficReduction.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_estimatesearchtrafficreduction_test",
       "community": 4,
-      "community_name": "estimateSearchTrafficReduction.test.js",
-      "norm_label": "estimatesearchtrafficreduction.test.js"
+      "norm_label": "estimatesearchtrafficreduction.test.js",
+      "id": "lib_estimatesearchtrafficreduction_test",
+      "community_name": "estimateSearchTrafficReduction.test.js"
     },
     {
       "label": "assert",
@@ -666,10 +534,10 @@
       "source_file": "lib/estimateSearchTrafficReduction.test.js",
       "source_location": "L2",
       "_origin": "ast",
-      "id": "lib_estimatesearchtrafficreduction_test_assert",
       "community": 4,
-      "community_name": "estimateSearchTrafficReduction.test.js",
-      "norm_label": "assert"
+      "norm_label": "assert",
+      "id": "lib_estimatesearchtrafficreduction_test_assert",
+      "community_name": "estimateSearchTrafficReduction.test.js"
     },
     {
       "label": "{ estimateSearchTrafficReduction }",
@@ -677,10 +545,10 @@
       "source_file": "lib/estimateSearchTrafficReduction.test.js",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "lib_estimatesearchtrafficreduction_test_estimatesearchtrafficreduction",
       "community": 4,
-      "community_name": "estimateSearchTrafficReduction.test.js",
-      "norm_label": "{ estimatesearchtrafficreduction }"
+      "norm_label": "{ estimatesearchtrafficreduction }",
+      "id": "lib_estimatesearchtrafficreduction_test_estimatesearchtrafficreduction",
+      "community_name": "estimateSearchTrafficReduction.test.js"
     },
     {
       "label": "r1",
@@ -688,10 +556,10 @@
       "source_file": "lib/estimateSearchTrafficReduction.test.js",
       "source_location": "L16",
       "_origin": "ast",
-      "id": "lib_estimatesearchtrafficreduction_test_r1",
       "community": 4,
-      "community_name": "estimateSearchTrafficReduction.test.js",
-      "norm_label": "r1"
+      "norm_label": "r1",
+      "id": "lib_estimatesearchtrafficreduction_test_r1",
+      "community_name": "estimateSearchTrafficReduction.test.js"
     },
     {
       "label": "r2",
@@ -699,10 +567,10 @@
       "source_file": "lib/estimateSearchTrafficReduction.test.js",
       "source_location": "L23",
       "_origin": "ast",
-      "id": "lib_estimatesearchtrafficreduction_test_r2",
       "community": 4,
-      "community_name": "estimateSearchTrafficReduction.test.js",
-      "norm_label": "r2"
+      "norm_label": "r2",
+      "id": "lib_estimatesearchtrafficreduction_test_r2",
+      "community_name": "estimateSearchTrafficReduction.test.js"
     },
     {
       "label": "rows",
@@ -710,10 +578,10 @@
       "source_file": "lib/estimateSearchTrafficReduction.test.js",
       "source_location": "L29",
       "_origin": "ast",
-      "id": "lib_estimatesearchtrafficreduction_test_rows",
       "community": 4,
-      "community_name": "estimateSearchTrafficReduction.test.js",
-      "norm_label": "rows"
+      "norm_label": "rows",
+      "id": "lib_estimatesearchtrafficreduction_test_rows",
+      "community_name": "estimateSearchTrafficReduction.test.js"
     },
     {
       "label": "r3",
@@ -721,10 +589,10 @@
       "source_file": "lib/estimateSearchTrafficReduction.test.js",
       "source_location": "L30",
       "_origin": "ast",
-      "id": "lib_estimatesearchtrafficreduction_test_r3",
       "community": 4,
-      "community_name": "estimateSearchTrafficReduction.test.js",
-      "norm_label": "r3"
+      "norm_label": "r3",
+      "id": "lib_estimatesearchtrafficreduction_test_r3",
+      "community_name": "estimateSearchTrafficReduction.test.js"
     },
     {
       "label": "r4",
@@ -732,10 +600,10 @@
       "source_file": "lib/estimateSearchTrafficReduction.test.js",
       "source_location": "L35",
       "_origin": "ast",
-      "id": "lib_estimatesearchtrafficreduction_test_r4",
       "community": 4,
-      "community_name": "estimateSearchTrafficReduction.test.js",
-      "norm_label": "r4"
+      "norm_label": "r4",
+      "id": "lib_estimatesearchtrafficreduction_test_r4",
+      "community_name": "estimateSearchTrafficReduction.test.js"
     },
     {
       "label": "formatDuration.js",
@@ -743,10 +611,10 @@
       "source_file": "lib/formatDuration.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_formatduration",
       "community": 14,
-      "community_name": "formatDuration.test.js",
-      "norm_label": "formatduration.js"
+      "norm_label": "formatduration.js",
+      "id": "lib_formatduration",
+      "community_name": "formatDuration.test.js"
     },
     {
       "label": "formatDuration.test.js",
@@ -754,10 +622,10 @@
       "source_file": "lib/formatDuration.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_formatduration_test",
       "community": 14,
-      "community_name": "formatDuration.test.js",
-      "norm_label": "formatduration.test.js"
+      "norm_label": "formatduration.test.js",
+      "id": "lib_formatduration_test",
+      "community_name": "formatDuration.test.js"
     },
     {
       "label": "a",
@@ -765,10 +633,10 @@
       "source_file": "lib/formatDuration.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_formatduration_test_a",
       "community": 14,
-      "community_name": "formatDuration.test.js",
-      "norm_label": "a"
+      "norm_label": "a",
+      "id": "lib_formatduration_test_a",
+      "community_name": "formatDuration.test.js"
     },
     {
       "label": "{formatDuration}",
@@ -776,10 +644,10 @@
       "source_file": "lib/formatDuration.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_formatduration_test_formatduration",
       "community": 14,
-      "community_name": "formatDuration.test.js",
-      "norm_label": "{formatduration}"
+      "norm_label": "{formatduration}",
+      "id": "lib_formatduration_test_formatduration",
+      "community_name": "formatDuration.test.js"
     },
     {
       "label": "haversineMeters.js",
@@ -787,10 +655,10 @@
       "source_file": "lib/haversineMeters.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_haversinemeters",
       "community": 2,
-      "community_name": "haversineMeters.test.js",
-      "norm_label": "haversinemeters.js"
+      "norm_label": "haversinemeters.js",
+      "id": "lib_haversinemeters",
+      "community_name": "haversineMeters.test.js"
     },
     {
       "label": "toRad()",
@@ -798,10 +666,10 @@
       "source_file": "lib/haversineMeters.js",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "lib_haversinemeters_torad",
       "community": 2,
-      "community_name": "haversineMeters.test.js",
-      "norm_label": "torad()"
+      "norm_label": "torad()",
+      "id": "lib_haversinemeters_torad",
+      "community_name": "haversineMeters.test.js"
     },
     {
       "label": "haversineMeters()",
@@ -809,10 +677,10 @@
       "source_file": "lib/haversineMeters.js",
       "source_location": "L9",
       "_origin": "ast",
-      "id": "lib_haversinemeters_haversinemeters",
       "community": 2,
-      "community_name": "haversineMeters.test.js",
-      "norm_label": "haversinemeters()"
+      "norm_label": "haversinemeters()",
+      "id": "lib_haversinemeters_haversinemeters",
+      "community_name": "haversineMeters.test.js"
     },
     {
       "label": "haversineMeters.test.js",
@@ -820,10 +688,10 @@
       "source_file": "lib/haversineMeters.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_haversinemeters_test",
       "community": 2,
-      "community_name": "haversineMeters.test.js",
-      "norm_label": "haversinemeters.test.js"
+      "norm_label": "haversinemeters.test.js",
+      "id": "lib_haversinemeters_test",
+      "community_name": "haversineMeters.test.js"
     },
     {
       "label": "assert",
@@ -831,10 +699,10 @@
       "source_file": "lib/haversineMeters.test.js",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "lib_haversinemeters_test_assert",
       "community": 2,
-      "community_name": "haversineMeters.test.js",
-      "norm_label": "assert"
+      "norm_label": "assert",
+      "id": "lib_haversinemeters_test_assert",
+      "community_name": "haversineMeters.test.js"
     },
     {
       "label": "{ haversineMeters }",
@@ -842,10 +710,10 @@
       "source_file": "lib/haversineMeters.test.js",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "lib_haversinemeters_test_haversinemeters",
       "community": 2,
-      "community_name": "haversineMeters.test.js",
-      "norm_label": "{ haversinemeters }"
+      "norm_label": "{ haversinemeters }",
+      "id": "lib_haversinemeters_test_haversinemeters",
+      "community_name": "haversineMeters.test.js"
     },
     {
       "label": "oneDegLng",
@@ -853,10 +721,10 @@
       "source_file": "lib/haversineMeters.test.js",
       "source_location": "L10",
       "_origin": "ast",
-      "id": "lib_haversinemeters_test_onedeglng",
       "community": 2,
-      "community_name": "haversineMeters.test.js",
-      "norm_label": "onedeglng"
+      "norm_label": "onedeglng",
+      "id": "lib_haversinemeters_test_onedeglng",
+      "community_name": "haversineMeters.test.js"
     },
     {
       "label": "oneDegLat",
@@ -864,10 +732,10 @@
       "source_file": "lib/haversineMeters.test.js",
       "source_location": "L14",
       "_origin": "ast",
-      "id": "lib_haversinemeters_test_onedeglat",
       "community": 2,
-      "community_name": "haversineMeters.test.js",
-      "norm_label": "onedeglat"
+      "norm_label": "onedeglat",
+      "id": "lib_haversinemeters_test_onedeglat",
+      "community_name": "haversineMeters.test.js"
     },
     {
       "label": "tlvJlm",
@@ -875,10 +743,10 @@
       "source_file": "lib/haversineMeters.test.js",
       "source_location": "L18",
       "_origin": "ast",
-      "id": "lib_haversinemeters_test_tlvjlm",
       "community": 2,
-      "community_name": "haversineMeters.test.js",
-      "norm_label": "tlvjlm"
+      "norm_label": "tlvjlm",
+      "id": "lib_haversinemeters_test_tlvjlm",
+      "community_name": "haversineMeters.test.js"
     },
     {
       "label": "anti",
@@ -886,10 +754,10 @@
       "source_file": "lib/haversineMeters.test.js",
       "source_location": "L22",
       "_origin": "ast",
-      "id": "lib_haversinemeters_test_anti",
       "community": 2,
-      "community_name": "haversineMeters.test.js",
-      "norm_label": "anti"
+      "norm_label": "anti",
+      "id": "lib_haversinemeters_test_anti",
+      "community_name": "haversineMeters.test.js"
     },
     {
       "label": "cross",
@@ -897,76 +765,10 @@
       "source_file": "lib/haversineMeters.test.js",
       "source_location": "L33",
       "_origin": "ast",
-      "id": "lib_haversinemeters_test_cross",
       "community": 2,
-      "community_name": "haversineMeters.test.js",
-      "norm_label": "cross"
-    },
-    {
-      "label": "hostListing.js",
-      "file_type": "code",
-      "source_file": "lib/hostListing.js",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "lib_hostlisting",
-      "community": 24,
-      "community_name": "hostListing.test.js",
-      "norm_label": "hostlisting.js"
-    },
-    {
-      "label": "ALLOWED_TYPES",
-      "file_type": "code",
-      "source_file": "lib/hostListing.js",
-      "source_location": "L3",
-      "_origin": "ast",
-      "id": "lib_hostlisting_allowed_types",
-      "community": 24,
-      "community_name": "hostListing.test.js",
-      "norm_label": "allowed_types"
-    },
-    {
-      "label": "validateListing()",
-      "file_type": "code",
-      "source_file": "lib/hostListing.js",
-      "source_location": "L5",
-      "_origin": "ast",
-      "id": "lib_hostlisting_validatelisting",
-      "community": 24,
-      "community_name": "hostListing.test.js",
-      "norm_label": "validatelisting()"
-    },
-    {
-      "label": "hostListing.test.js",
-      "file_type": "code",
-      "source_file": "lib/hostListing.test.js",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "lib_hostlisting_test",
-      "community": 24,
-      "community_name": "hostListing.test.js",
-      "norm_label": "hostlisting.test.js"
-    },
-    {
-      "label": "assert",
-      "file_type": "code",
-      "source_file": "lib/hostListing.test.js",
-      "source_location": "L2",
-      "_origin": "ast",
-      "id": "lib_hostlisting_test_assert",
-      "community": 24,
-      "community_name": "hostListing.test.js",
-      "norm_label": "assert"
-    },
-    {
-      "label": "{ validateListing }",
-      "file_type": "code",
-      "source_file": "lib/hostListing.test.js",
-      "source_location": "L3",
-      "_origin": "ast",
-      "id": "lib_hostlisting_test_validatelisting",
-      "community": 24,
-      "community_name": "hostListing.test.js",
-      "norm_label": "{ validatelisting }"
+      "norm_label": "cross",
+      "id": "lib_haversinemeters_test_cross",
+      "community_name": "haversineMeters.test.js"
     },
     {
       "label": "logEnforcementAction.js",
@@ -974,10 +776,10 @@
       "source_file": "lib/logEnforcementAction.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_logenforcementaction",
       "community": 9,
-      "community_name": "logEnforcementAction.test.js",
-      "norm_label": "logenforcementaction.js"
+      "norm_label": "logenforcementaction.js",
+      "id": "lib_logenforcementaction",
+      "community_name": "logEnforcementAction.test.js"
     },
     {
       "label": "logEnforcementAction()",
@@ -985,10 +787,10 @@
       "source_file": "lib/logEnforcementAction.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_logenforcementaction_logenforcementaction",
       "community": 9,
-      "community_name": "logEnforcementAction.test.js",
-      "norm_label": "logenforcementaction()"
+      "norm_label": "logenforcementaction()",
+      "id": "lib_logenforcementaction_logenforcementaction",
+      "community_name": "logEnforcementAction.test.js"
     },
     {
       "label": "logEnforcementAction.test.js",
@@ -996,10 +798,10 @@
       "source_file": "lib/logEnforcementAction.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_logenforcementaction_test",
       "community": 9,
-      "community_name": "logEnforcementAction.test.js",
-      "norm_label": "logenforcementaction.test.js"
+      "norm_label": "logenforcementaction.test.js",
+      "id": "lib_logenforcementaction_test",
+      "community_name": "logEnforcementAction.test.js"
     },
     {
       "label": "assert",
@@ -1007,10 +809,10 @@
       "source_file": "lib/logEnforcementAction.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_logenforcementaction_test_assert",
       "community": 9,
-      "community_name": "logEnforcementAction.test.js",
-      "norm_label": "assert"
+      "norm_label": "assert",
+      "id": "lib_logenforcementaction_test_assert",
+      "community_name": "logEnforcementAction.test.js"
     },
     {
       "label": "{ logEnforcementAction }",
@@ -1018,10 +820,10 @@
       "source_file": "lib/logEnforcementAction.test.js",
       "source_location": "L2",
       "_origin": "ast",
-      "id": "lib_logenforcementaction_test_logenforcementaction",
       "community": 9,
-      "community_name": "logEnforcementAction.test.js",
-      "norm_label": "{ logenforcementaction }"
+      "norm_label": "{ logenforcementaction }",
+      "id": "lib_logenforcementaction_test_logenforcementaction",
+      "community_name": "logEnforcementAction.test.js"
     },
     {
       "label": "result",
@@ -1029,10 +831,10 @@
       "source_file": "lib/logEnforcementAction.test.js",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "lib_logenforcementaction_test_result",
       "community": 9,
-      "community_name": "logEnforcementAction.test.js",
-      "norm_label": "result"
+      "norm_label": "result",
+      "id": "lib_logenforcementaction_test_result",
+      "community_name": "logEnforcementAction.test.js"
     },
     {
       "label": "resultNoMeta",
@@ -1040,10 +842,10 @@
       "source_file": "lib/logEnforcementAction.test.js",
       "source_location": "L97",
       "_origin": "ast",
-      "id": "lib_logenforcementaction_test_resultnometa",
       "community": 9,
-      "community_name": "logEnforcementAction.test.js",
-      "norm_label": "resultnometa"
+      "norm_label": "resultnometa",
+      "id": "lib_logenforcementaction_test_resultnometa",
+      "community_name": "logEnforcementAction.test.js"
     },
     {
       "label": "lib/normalizePlate.js",
@@ -1051,10 +853,10 @@
       "source_file": "lib/normalizePlate.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_normalizeplate",
       "community": 11,
-      "community_name": "normalizePlate.test.js",
-      "norm_label": "lib/normalizeplate.js"
+      "norm_label": "lib/normalizeplate.js",
+      "id": "lib_normalizeplate",
+      "community_name": "normalizePlate.test.js"
     },
     {
       "label": "normalizePlate()",
@@ -1062,10 +864,10 @@
       "source_file": "lib/normalizePlate.js",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "lib_normalizeplate_normalizeplate",
       "community": 11,
-      "community_name": "normalizePlate.test.js",
-      "norm_label": "normalizeplate()"
+      "norm_label": "normalizeplate()",
+      "id": "lib_normalizeplate_normalizeplate",
+      "community_name": "normalizePlate.test.js"
     },
     {
       "label": "normalizePlate.test.js",
@@ -1073,10 +875,10 @@
       "source_file": "lib/normalizePlate.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_normalizeplate_test",
       "community": 11,
-      "community_name": "normalizePlate.test.js",
-      "norm_label": "normalizeplate.test.js"
+      "norm_label": "normalizeplate.test.js",
+      "id": "lib_normalizeplate_test",
+      "community_name": "normalizePlate.test.js"
     },
     {
       "label": "assert",
@@ -1084,10 +886,10 @@
       "source_file": "lib/normalizePlate.test.js",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "lib_normalizeplate_test_assert",
       "community": 11,
-      "community_name": "normalizePlate.test.js",
-      "norm_label": "assert"
+      "norm_label": "assert",
+      "id": "lib_normalizeplate_test_assert",
+      "community_name": "normalizePlate.test.js"
     },
     {
       "label": "{ normalizePlate }",
@@ -1095,10 +897,10 @@
       "source_file": "lib/normalizePlate.test.js",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "lib_normalizeplate_test_normalizeplate",
       "community": 11,
-      "community_name": "normalizePlate.test.js",
-      "norm_label": "{ normalizeplate }"
+      "norm_label": "{ normalizeplate }",
+      "id": "lib_normalizeplate_test_normalizeplate",
+      "community_name": "normalizePlate.test.js"
     },
     {
       "label": "INVALID",
@@ -1106,10 +908,10 @@
       "source_file": "lib/normalizePlate.test.js",
       "source_location": "L29",
       "_origin": "ast",
-      "id": "lib_normalizeplate_test_invalid",
       "community": 11,
-      "community_name": "normalizePlate.test.js",
-      "norm_label": "invalid"
+      "norm_label": "invalid",
+      "id": "lib_normalizeplate_test_invalid",
+      "community_name": "normalizePlate.test.js"
     },
     {
       "label": "occupancyHeatmap.js",
@@ -1117,10 +919,10 @@
       "source_file": "lib/occupancyHeatmap.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_occupancyheatmap",
       "community": 19,
-      "community_name": "occupancyHeatmap.js",
-      "norm_label": "occupancyheatmap.js"
+      "norm_label": "occupancyheatmap.js",
+      "id": "lib_occupancyheatmap",
+      "community_name": "occupancyHeatmap.js"
     },
     {
       "label": "occupancyHeatmap()",
@@ -1128,10 +930,10 @@
       "source_file": "lib/occupancyHeatmap.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_occupancyheatmap_occupancyheatmap",
       "community": 19,
-      "community_name": "occupancyHeatmap.js",
-      "norm_label": "occupancyheatmap()"
+      "norm_label": "occupancyheatmap()",
+      "id": "lib_occupancyheatmap_occupancyheatmap",
+      "community_name": "occupancyHeatmap.js"
     },
     {
       "label": "permitZoneMatch.js",
@@ -1139,10 +941,10 @@
       "source_file": "lib/permitZoneMatch.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_permitzonematch",
       "community": 20,
-      "community_name": "permitZoneMatch.js",
-      "norm_label": "permitzonematch.js"
+      "norm_label": "permitzonematch.js",
+      "id": "lib_permitzonematch",
+      "community_name": "permitZoneMatch.js"
     },
     {
       "label": "permitZoneMatch()",
@@ -1150,10 +952,10 @@
       "source_file": "lib/permitZoneMatch.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_permitzonematch_permitzonematch",
       "community": 20,
-      "community_name": "permitZoneMatch.js",
-      "norm_label": "permitzonematch()"
+      "norm_label": "permitzonematch()",
+      "id": "lib_permitzonematch_permitzonematch",
+      "community_name": "permitZoneMatch.js"
     },
     {
       "label": "spotPayload.js",
@@ -1161,10 +963,10 @@
       "source_file": "lib/spotPayload.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_spotpayload",
       "community": 10,
-      "community_name": "spotPayload.test.js",
-      "norm_label": "spotpayload.js"
+      "norm_label": "spotpayload.js",
+      "id": "lib_spotpayload",
+      "community_name": "spotPayload.test.js"
     },
     {
       "label": "num()",
@@ -1172,10 +974,10 @@
       "source_file": "lib/spotPayload.js",
       "source_location": "L8",
       "_origin": "ast",
-      "id": "lib_spotpayload_num",
       "community": 10,
-      "community_name": "spotPayload.test.js",
-      "norm_label": "num()"
+      "norm_label": "num()",
+      "id": "lib_spotpayload_num",
+      "community_name": "spotPayload.test.js"
     },
     {
       "label": "buildSpotPayload()",
@@ -1183,10 +985,10 @@
       "source_file": "lib/spotPayload.js",
       "source_location": "L14",
       "_origin": "ast",
-      "id": "lib_spotpayload_buildspotpayload",
       "community": 10,
-      "community_name": "spotPayload.test.js",
-      "norm_label": "buildspotpayload()"
+      "norm_label": "buildspotpayload()",
+      "id": "lib_spotpayload_buildspotpayload",
+      "community_name": "spotPayload.test.js"
     },
     {
       "label": "spotPayload.test.js",
@@ -1194,10 +996,10 @@
       "source_file": "lib/spotPayload.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_spotpayload_test",
       "community": 10,
-      "community_name": "spotPayload.test.js",
-      "norm_label": "spotpayload.test.js"
+      "norm_label": "spotpayload.test.js",
+      "id": "lib_spotpayload_test",
+      "community_name": "spotPayload.test.js"
     },
     {
       "label": "assert",
@@ -1205,10 +1007,10 @@
       "source_file": "lib/spotPayload.test.js",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "lib_spotpayload_test_assert",
       "community": 10,
-      "community_name": "spotPayload.test.js",
-      "norm_label": "assert"
+      "norm_label": "assert",
+      "id": "lib_spotpayload_test_assert",
+      "community_name": "spotPayload.test.js"
     },
     {
       "label": "{ buildSpotPayload }",
@@ -1216,10 +1018,10 @@
       "source_file": "lib/spotPayload.test.js",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "lib_spotpayload_test_buildspotpayload",
       "community": 10,
-      "community_name": "spotPayload.test.js",
-      "norm_label": "{ buildspotpayload }"
+      "norm_label": "{ buildspotpayload }",
+      "id": "lib_spotpayload_test_buildspotpayload",
+      "community_name": "spotPayload.test.js"
     },
     {
       "label": "withOpts",
@@ -1227,10 +1029,10 @@
       "source_file": "lib/spotPayload.test.js",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "lib_spotpayload_test_withopts",
       "community": 10,
-      "community_name": "spotPayload.test.js",
-      "norm_label": "withopts"
+      "norm_label": "withopts",
+      "id": "lib_spotpayload_test_withopts",
+      "community_name": "spotPayload.test.js"
     },
     {
       "label": "lib/weightedAvailability.js",
@@ -1238,10 +1040,10 @@
       "source_file": "lib/weightedAvailability.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_weightedavailability",
       "community": 12,
-      "community_name": "weightedAvailability.test.js",
-      "norm_label": "lib/weightedavailability.js"
+      "norm_label": "lib/weightedavailability.js",
+      "id": "lib_weightedavailability",
+      "community_name": "weightedAvailability.test.js"
     },
     {
       "label": "weightedAvailability()",
@@ -1249,10 +1051,10 @@
       "source_file": "lib/weightedAvailability.js",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "lib_weightedavailability_weightedavailability",
       "community": 12,
-      "community_name": "weightedAvailability.test.js",
-      "norm_label": "weightedavailability()"
+      "norm_label": "weightedavailability()",
+      "id": "lib_weightedavailability_weightedavailability",
+      "community_name": "weightedAvailability.test.js"
     },
     {
       "label": "weightedAvailability.test.js",
@@ -1260,10 +1062,10 @@
       "source_file": "lib/weightedAvailability.test.js",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_weightedavailability_test",
       "community": 12,
-      "community_name": "weightedAvailability.test.js",
-      "norm_label": "weightedavailability.test.js"
+      "norm_label": "weightedavailability.test.js",
+      "id": "lib_weightedavailability_test",
+      "community_name": "weightedAvailability.test.js"
     },
     {
       "label": "assert",
@@ -1271,10 +1073,10 @@
       "source_file": "lib/weightedAvailability.test.js",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "lib_weightedavailability_test_assert",
       "community": 12,
-      "community_name": "weightedAvailability.test.js",
-      "norm_label": "assert"
+      "norm_label": "assert",
+      "id": "lib_weightedavailability_test_assert",
+      "community_name": "weightedAvailability.test.js"
     },
     {
       "label": "{ weightedAvailability }",
@@ -1282,10 +1084,10 @@
       "source_file": "lib/weightedAvailability.test.js",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "lib_weightedavailability_test_weightedavailability",
       "community": 12,
-      "community_name": "weightedAvailability.test.js",
-      "norm_label": "{ weightedavailability }"
+      "norm_label": "{ weightedavailability }",
+      "id": "lib_weightedavailability_test_weightedavailability",
+      "community_name": "weightedAvailability.test.js"
     },
     {
       "label": "mixed",
@@ -1293,10 +1095,10 @@
       "source_file": "lib/weightedAvailability.test.js",
       "source_location": "L34",
       "_origin": "ast",
-      "id": "lib_weightedavailability_test_mixed",
       "community": 12,
-      "community_name": "weightedAvailability.test.js",
-      "norm_label": "mixed"
+      "norm_label": "mixed",
+      "id": "lib_weightedavailability_test_mixed",
+      "community_name": "weightedAvailability.test.js"
     },
     {
       "label": "manifest.json",
@@ -1304,10 +1106,10 @@
       "source_file": "manifest.json",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "manifest",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "manifest.json"
+      "norm_label": "manifest.json",
+      "id": "manifest",
+      "community_name": "manifest.json"
     },
     {
       "label": "name",
@@ -1315,10 +1117,10 @@
       "source_file": "manifest.json",
       "source_location": "L2",
       "_origin": "ast",
-      "id": "manifest_name",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "name"
+      "norm_label": "name",
+      "id": "manifest_name",
+      "community_name": "manifest.json"
     },
     {
       "label": "short_name",
@@ -1326,10 +1128,10 @@
       "source_file": "manifest.json",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "manifest_short_name",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "short_name"
+      "norm_label": "short_name",
+      "id": "manifest_short_name",
+      "community_name": "manifest.json"
     },
     {
       "label": "description",
@@ -1337,10 +1139,10 @@
       "source_file": "manifest.json",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "manifest_description",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "description"
+      "norm_label": "description",
+      "id": "manifest_description",
+      "community_name": "manifest.json"
     },
     {
       "label": "lang",
@@ -1348,10 +1150,10 @@
       "source_file": "manifest.json",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "manifest_lang",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "lang"
+      "norm_label": "lang",
+      "id": "manifest_lang",
+      "community_name": "manifest.json"
     },
     {
       "label": "dir",
@@ -1359,10 +1161,10 @@
       "source_file": "manifest.json",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "manifest_dir",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "dir"
+      "norm_label": "dir",
+      "id": "manifest_dir",
+      "community_name": "manifest.json"
     },
     {
       "label": "start_url",
@@ -1370,10 +1172,10 @@
       "source_file": "manifest.json",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "manifest_start_url",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "start_url"
+      "norm_label": "start_url",
+      "id": "manifest_start_url",
+      "community_name": "manifest.json"
     },
     {
       "label": "scope",
@@ -1381,10 +1183,10 @@
       "source_file": "manifest.json",
       "source_location": "L8",
       "_origin": "ast",
-      "id": "manifest_scope",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "scope"
+      "norm_label": "scope",
+      "id": "manifest_scope",
+      "community_name": "manifest.json"
     },
     {
       "label": "display",
@@ -1392,10 +1194,10 @@
       "source_file": "manifest.json",
       "source_location": "L9",
       "_origin": "ast",
-      "id": "manifest_display",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "display"
+      "norm_label": "display",
+      "id": "manifest_display",
+      "community_name": "manifest.json"
     },
     {
       "label": "orientation",
@@ -1403,10 +1205,10 @@
       "source_file": "manifest.json",
       "source_location": "L10",
       "_origin": "ast",
-      "id": "manifest_orientation",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "orientation"
+      "norm_label": "orientation",
+      "id": "manifest_orientation",
+      "community_name": "manifest.json"
     },
     {
       "label": "background_color",
@@ -1414,10 +1216,10 @@
       "source_file": "manifest.json",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "manifest_background_color",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "background_color"
+      "norm_label": "background_color",
+      "id": "manifest_background_color",
+      "community_name": "manifest.json"
     },
     {
       "label": "theme_color",
@@ -1425,10 +1227,10 @@
       "source_file": "manifest.json",
       "source_location": "L12",
       "_origin": "ast",
-      "id": "manifest_theme_color",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "theme_color"
+      "norm_label": "theme_color",
+      "id": "manifest_theme_color",
+      "community_name": "manifest.json"
     },
     {
       "label": "icons",
@@ -1436,10 +1238,10 @@
       "source_file": "manifest.json",
       "source_location": "L13",
       "_origin": "ast",
-      "id": "manifest_icons",
       "community": 1,
-      "community_name": "manifest.json",
-      "norm_label": "icons"
+      "norm_label": "icons",
+      "id": "manifest_icons",
+      "community_name": "manifest.json"
     },
     {
       "label": "Netanya Outreach Draft",
@@ -1452,8 +1254,8 @@
       "contributor": null,
       "community": 5,
       "norm_label": "netanya outreach draft",
-      "community_name": "Pilot README",
-      "id": "netanya_outreach_md"
+      "id": "netanya_outreach_md",
+      "community_name": "Pilot README"
     },
     {
       "label": "Pilot README",
@@ -1466,8 +1268,8 @@
       "contributor": null,
       "community": 5,
       "norm_label": "pilot readme",
-      "community_name": "Pilot README",
-      "id": "pilot_readme_md"
+      "id": "pilot_readme_md",
+      "community_name": "Pilot README"
     },
     {
       "label": "README",
@@ -1480,8 +1282,8 @@
       "contributor": null,
       "community": 22,
       "norm_label": "readme",
-      "community_name": "README",
-      "id": "readme_md"
+      "id": "readme_md",
+      "community_name": "README"
     },
     {
       "label": "Spec v2 Municipal Integration",
@@ -1494,8 +1296,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "spec v2 municipal integration",
-      "community_name": "index.html (Main App)",
-      "id": "spec_v2_municipal_integration_md"
+      "id": "spec_v2_municipal_integration_md",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "Test Evidence",
@@ -1508,8 +1310,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "test evidence",
-      "community_name": "index.html (Main App)",
-      "id": "test_evidence_md"
+      "id": "test_evidence_md",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "index.html (Main App)",
@@ -1522,8 +1324,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "index.html (main app)",
-      "community_name": "index.html (Main App)",
-      "id": "index_html"
+      "id": "index_html",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "pilot-dashboard.html",
@@ -1536,8 +1338,8 @@
       "contributor": null,
       "community": 5,
       "norm_label": "pilot-dashboard.html",
-      "community_name": "Pilot README",
-      "id": "pilot_dashboard_html"
+      "id": "pilot_dashboard_html",
+      "community_name": "Pilot README"
     },
     {
       "label": "icon.svg",
@@ -1550,8 +1352,8 @@
       "contributor": null,
       "community": 21,
       "norm_label": "icon.svg",
-      "community_name": "icon.svg",
-      "id": "icon_svg"
+      "id": "icon_svg",
+      "community_name": "icon.svg"
     },
     {
       "label": "factory-ci workflow",
@@ -1564,8 +1366,8 @@
       "contributor": null,
       "community": 13,
       "norm_label": "factory-ci workflow",
-      "community_name": "factory-ci workflow",
-      "id": "github_workflows_factory_ci_yml"
+      "id": "github_workflows_factory_ci_yml",
+      "community_name": "factory-ci workflow"
     },
     {
       "label": "sentinel workflow",
@@ -1578,8 +1380,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "sentinel workflow",
-      "community_name": "index.html (Main App)",
-      "id": "github_workflows_sentinel_yml"
+      "id": "github_workflows_sentinel_yml",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "validate workflow",
@@ -1592,8 +1394,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "validate workflow",
-      "community_name": "index.html (Main App)",
-      "id": "github_workflows_validate_yml"
+      "id": "github_workflows_validate_yml",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "Feature Truth Matrix",
@@ -1606,8 +1408,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "feature truth matrix",
-      "community_name": "index.html (Main App)",
-      "id": "factory_feature_truth_matrix_md"
+      "id": "factory_feature_truth_matrix_md",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "Current State Audit",
@@ -1620,8 +1422,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "current state audit",
-      "community_name": "index.html (Main App)",
-      "id": "factory_evidence_current_state_audit_md"
+      "id": "factory_evidence_current_state_audit_md",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "lib README",
@@ -1634,8 +1436,8 @@
       "contributor": null,
       "community": 13,
       "norm_label": "lib readme",
-      "community_name": "factory-ci workflow",
-      "id": "lib_readme_md"
+      "id": "lib_readme_md",
+      "community_name": "factory-ci workflow"
     },
     {
       "label": "Aviram Swisa",
@@ -1648,8 +1450,8 @@
       "contributor": null,
       "community": 5,
       "norm_label": "aviram swisa",
-      "community_name": "Pilot README",
-      "id": "aviram_swisa"
+      "id": "aviram_swisa",
+      "community_name": "Pilot README"
     },
     {
       "label": "ParkWiz System",
@@ -1662,8 +1464,8 @@
       "contributor": null,
       "community": 5,
       "norm_label": "parkwiz system",
-      "community_name": "Pilot README",
-      "id": "parkwiz_system"
+      "id": "parkwiz_system",
+      "community_name": "Pilot README"
     },
     {
       "label": "frame-grabber.js",
@@ -1676,8 +1478,8 @@
       "contributor": null,
       "community": 5,
       "norm_label": "frame-grabber.js",
-      "community_name": "Pilot README",
-      "id": "frame_grabber"
+      "id": "frame_grabber",
+      "community_name": "Pilot README"
     },
     {
       "label": "vision-bridge.js",
@@ -1690,8 +1492,8 @@
       "contributor": null,
       "community": 5,
       "norm_label": "vision-bridge.js",
-      "community_name": "Pilot README",
-      "id": "vision_bridge"
+      "id": "vision_bridge",
+      "community_name": "Pilot README"
     },
     {
       "label": "Gemini Flash Vision",
@@ -1704,8 +1506,8 @@
       "contributor": null,
       "community": 5,
       "norm_label": "gemini flash vision",
-      "community_name": "Pilot README",
-      "id": "gemini_flash_vision"
+      "id": "gemini_flash_vision",
+      "community_name": "Pilot README"
     },
     {
       "label": "occupancy.jsonl",
@@ -1718,8 +1520,8 @@
       "contributor": null,
       "community": 5,
       "norm_label": "occupancy.jsonl",
-      "community_name": "Pilot README",
-      "id": "occupancy_jsonl"
+      "id": "occupancy_jsonl",
+      "community_name": "Pilot README"
     },
     {
       "label": "Parking Zones ETL",
@@ -1732,8 +1534,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "parking zones etl",
-      "community_name": "index.html (Main App)",
-      "id": "parking_zones_etl"
+      "id": "parking_zones_etl",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "Availability Prediction",
@@ -1746,8 +1548,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "availability prediction",
-      "community_name": "index.html (Main App)",
-      "id": "availability_prediction"
+      "id": "availability_prediction",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "Vehicle Fit Engine",
@@ -1760,8 +1562,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "vehicle fit engine",
-      "community_name": "index.html (Main App)",
-      "id": "vehicle_fit_engine"
+      "id": "vehicle_fit_engine",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "Waze Integration",
@@ -1774,8 +1576,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "waze integration",
-      "community_name": "index.html (Main App)",
-      "id": "waze_integration"
+      "id": "waze_integration",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "Google Maps Integration",
@@ -1788,8 +1590,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "google maps integration",
-      "community_name": "index.html (Main App)",
-      "id": "google_maps_integration"
+      "id": "google_maps_integration",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "Pango/Cellopark Integration",
@@ -1802,8 +1604,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "pango/cellopark integration",
-      "community_name": "index.html (Main App)",
-      "id": "pango_cellopark_integration"
+      "id": "pango_cellopark_integration",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "Marketplace",
@@ -1816,8 +1618,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "marketplace",
-      "community_name": "index.html (Main App)",
-      "id": "marketplace"
+      "id": "marketplace",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "Payment Escrow",
@@ -1830,8 +1632,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "payment escrow",
-      "community_name": "index.html (Main App)",
-      "id": "payment_escrow"
+      "id": "payment_escrow",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "Gamification",
@@ -1844,8 +1646,8 @@
       "contributor": null,
       "community": 0,
       "norm_label": "gamification",
-      "community_name": "index.html (Main App)",
-      "id": "gamification"
+      "id": "gamification",
+      "community_name": "index.html (Main App)"
     },
     {
       "label": "normalizePlate.js",
@@ -1858,8 +1660,8 @@
       "contributor": null,
       "community": 13,
       "norm_label": "normalizeplate.js",
-      "community_name": "factory-ci workflow",
-      "id": "normalize_plate"
+      "id": "normalize_plate",
+      "community_name": "factory-ci workflow"
     },
     {
       "label": "weightedAvailability.js",
@@ -1872,8 +1674,8 @@
       "contributor": null,
       "community": 13,
       "norm_label": "weightedavailability.js",
-      "community_name": "factory-ci workflow",
-      "id": "weighted_availability"
+      "id": "weighted_availability",
+      "community_name": "factory-ci workflow"
     },
     {
       "label": "spotPayload.js",
@@ -1886,8 +1688,8 @@
       "contributor": null,
       "community": 13,
       "norm_label": "spotpayload.js",
-      "community_name": "factory-ci workflow",
-      "id": "spot_payload"
+      "id": "spot_payload",
+      "community_name": "factory-ci workflow"
     }
   ],
   "links": [
@@ -1898,9 +1700,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "pw_patch",
-      "target": "pw_patch_fs",
-      "confidence_score": 1.0
+      "target": "pw_patch_fs"
     },
     {
       "relation": "contains",
@@ -1909,9 +1711,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "pw_patch",
-      "target": "pw_patch_s",
-      "confidence_score": 1.0
+      "target": "pw_patch_s"
     },
     {
       "relation": "indirect_call",
@@ -1921,9 +1723,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "factory_lib_normalizeplate",
-      "target": "factory_lib_normalizeplate_normalizeplate",
-      "confidence_score": 0.5
+      "target": "factory_lib_normalizeplate_normalizeplate"
     },
     {
       "relation": "imports_from",
@@ -1933,9 +1735,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "factory_lib_test",
-      "target": "factory_lib_normalizeplate",
-      "confidence_score": 1.0
+      "target": "factory_lib_normalizeplate"
     },
     {
       "relation": "imports",
@@ -1945,9 +1747,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "factory_lib_test",
-      "target": "factory_lib_normalizeplate_normalizeplate",
-      "confidence_score": 1.0
+      "target": "factory_lib_normalizeplate_normalizeplate"
     },
     {
       "relation": "contains",
@@ -1956,9 +1758,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "factory_lib_test",
-      "target": "factory_lib_test_assert",
-      "confidence_score": 1.0
+      "target": "factory_lib_test_assert"
     },
     {
       "relation": "contains",
@@ -1967,9 +1769,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "factory_lib_test",
-      "target": "factory_lib_test_normalizeplate",
-      "confidence_score": 1.0
+      "target": "factory_lib_test_normalizeplate"
     },
     {
       "relation": "contains",
@@ -1978,9 +1780,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "factory_lib_test",
-      "target": "factory_lib_test_weightedavailability",
-      "confidence_score": 1.0
+      "target": "factory_lib_test_weightedavailability"
     },
     {
       "relation": "imports_from",
@@ -1990,9 +1792,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "factory_lib_test",
-      "target": "factory_lib_weightedavailability",
-      "confidence_score": 1.0
+      "target": "factory_lib_weightedavailability"
     },
     {
       "relation": "imports",
@@ -2002,9 +1804,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "factory_lib_test",
-      "target": "factory_lib_weightedavailability_weightedavailability",
-      "confidence_score": 1.0
+      "target": "factory_lib_weightedavailability_weightedavailability"
     },
     {
       "relation": "indirect_call",
@@ -2014,9 +1816,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "factory_lib_weightedavailability",
-      "target": "factory_lib_weightedavailability_weightedavailability",
-      "confidence_score": 0.5
+      "target": "factory_lib_weightedavailability_weightedavailability"
     },
     {
       "relation": "indirect_call",
@@ -2026,9 +1828,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_aggregateanonymizeddata",
-      "target": "lib_aggregateanonymizeddata_aggregateanonymizeddata",
-      "confidence_score": 0.5
+      "target": "lib_aggregateanonymizeddata_aggregateanonymizeddata"
     },
     {
       "relation": "imports_from",
@@ -2038,9 +1840,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_aggregateanonymizeddata_test",
-      "target": "lib_aggregateanonymizeddata",
-      "confidence_score": 1.0
+      "target": "lib_aggregateanonymizeddata"
     },
     {
       "relation": "imports",
@@ -2050,9 +1852,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_aggregateanonymizeddata_test",
-      "target": "lib_aggregateanonymizeddata_aggregateanonymizeddata",
-      "confidence_score": 1.0
+      "target": "lib_aggregateanonymizeddata_aggregateanonymizeddata"
     },
     {
       "relation": "contains",
@@ -2061,9 +1863,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_aggregateanonymizeddata_test",
-      "target": "lib_aggregateanonymizeddata_test_aggregateanonymizeddata",
-      "confidence_score": 1.0
+      "target": "lib_aggregateanonymizeddata_test_aggregateanonymizeddata"
     },
     {
       "relation": "contains",
@@ -2072,9 +1874,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_aggregateanonymizeddata_test",
-      "target": "lib_aggregateanonymizeddata_test_assert",
-      "confidence_score": 1.0
+      "target": "lib_aggregateanonymizeddata_test_assert"
     },
     {
       "relation": "contains",
@@ -2083,9 +1885,9 @@
       "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_aggregateanonymizeddata_test",
-      "target": "lib_aggregateanonymizeddata_test_bin8",
-      "confidence_score": 1.0
+      "target": "lib_aggregateanonymizeddata_test_bin8"
     },
     {
       "relation": "contains",
@@ -2094,9 +1896,9 @@
       "source_location": "L26",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_aggregateanonymizeddata_test",
-      "target": "lib_aggregateanonymizeddata_test_merged",
-      "confidence_score": 1.0
+      "target": "lib_aggregateanonymizeddata_test_merged"
     },
     {
       "relation": "contains",
@@ -2105,9 +1907,9 @@
       "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_aggregateanonymizeddata_test",
-      "target": "lib_aggregateanonymizeddata_test_out",
-      "confidence_score": 1.0
+      "target": "lib_aggregateanonymizeddata_test_out"
     },
     {
       "relation": "contains",
@@ -2116,9 +1918,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_aggregateanonymizeddata_test",
-      "target": "lib_aggregateanonymizeddata_test_recs",
-      "confidence_score": 1.0
+      "target": "lib_aggregateanonymizeddata_test_recs"
     },
     {
       "relation": "contains",
@@ -2127,9 +1929,9 @@
       "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_aggregateanonymizeddata_test",
-      "target": "lib_aggregateanonymizeddata_test_twoloc",
-      "confidence_score": 1.0
+      "target": "lib_aggregateanonymizeddata_test_twoloc"
     },
     {
       "relation": "contains",
@@ -2138,9 +1940,9 @@
       "source_location": "L34",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_apiclient",
-      "target": "lib_apiclient_createclient",
-      "confidence_score": 1.0
+      "target": "lib_apiclient_createclient"
     },
     {
       "relation": "contains",
@@ -2149,9 +1951,9 @@
       "source_location": "L27",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_apiclient",
-      "target": "lib_apiclient_validationerror",
-      "confidence_score": 1.0
+      "target": "lib_apiclient_validationerror"
     },
     {
       "relation": "imports_from",
@@ -2161,9 +1963,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_apiclient_test",
-      "target": "lib_apiclient",
-      "confidence_score": 1.0
+      "target": "lib_apiclient"
     },
     {
       "relation": "calls",
@@ -2173,9 +1975,9 @@
       "source_location": "L85",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_apiclient_createclient",
-      "target": "lib_apiclient_validationerror",
-      "confidence_score": 1.0
+      "target": "lib_apiclient_validationerror"
     },
     {
       "relation": "imports",
@@ -2185,9 +1987,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_apiclient_test",
-      "target": "lib_apiclient_validationerror",
-      "confidence_score": 1.0
+      "target": "lib_apiclient_validationerror"
     },
     {
       "relation": "imports",
@@ -2197,9 +1999,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_apiclient_test",
-      "target": "lib_apiclient_createclient",
-      "confidence_score": 1.0
+      "target": "lib_apiclient_createclient"
     },
     {
       "relation": "contains",
@@ -2208,9 +2010,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_apiclient_test",
-      "target": "lib_apiclient_test_assert",
-      "confidence_score": 1.0
+      "target": "lib_apiclient_test_assert"
     },
     {
       "relation": "contains",
@@ -2219,9 +2021,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_apiclient_test",
-      "target": "lib_apiclient_test_createclient_validationerror",
-      "confidence_score": 1.0
+      "target": "lib_apiclient_test_createclient_validationerror"
     },
     {
       "relation": "contains",
@@ -2230,243 +2032,9 @@
       "source_location": "L6",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_apiclient_test",
-      "target": "lib_apiclient_test_mockfetch",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "indirect_call",
-      "confidence": "INFERRED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L55",
-      "weight": 1.0,
-      "_origin": "ast",
-      "context": "collection",
-      "source": "lib_bookingescrow",
-      "target": "lib_bookingescrow_createbooking",
-      "confidence_score": 0.5
-    },
-    {
-      "relation": "indirect_call",
-      "confidence": "INFERRED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L55",
-      "weight": 1.0,
-      "_origin": "ast",
-      "context": "collection",
-      "source": "lib_bookingescrow",
-      "target": "lib_bookingescrow_democommission",
-      "confidence_score": 0.5
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L39",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow",
-      "target": "lib_bookingescrow_ensureheld",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L9",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow",
-      "target": "lib_bookingescrow_nonempty",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow",
-      "target": "lib_bookingescrow_positivenumber",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "indirect_call",
-      "confidence": "INFERRED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L55",
-      "weight": 1.0,
-      "_origin": "ast",
-      "context": "collection",
-      "source": "lib_bookingescrow",
-      "target": "lib_bookingescrow_refund",
-      "confidence_score": 0.5
-    },
-    {
-      "relation": "indirect_call",
-      "confidence": "INFERRED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L55",
-      "weight": 1.0,
-      "_origin": "ast",
-      "context": "collection",
-      "source": "lib_bookingescrow",
-      "target": "lib_bookingescrow_releasefunds",
-      "confidence_score": 0.5
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_test",
-      "target": "lib_bookingescrow",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L23",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_createbooking",
-      "target": "lib_bookingescrow_positivenumber",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L15",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_democommission",
-      "target": "lib_bookingescrow_positivenumber",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L20",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_createbooking",
-      "target": "lib_bookingescrow_nonempty",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_test",
-      "target": "lib_bookingescrow_democommission",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_test",
-      "target": "lib_bookingescrow_createbooking",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L51",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_refund",
-      "target": "lib_bookingescrow_ensureheld",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.js",
-      "source_location": "L44",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_releasefunds",
-      "target": "lib_bookingescrow_ensureheld",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_test",
-      "target": "lib_bookingescrow_releasefunds",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_test",
-      "target": "lib_bookingescrow_refund",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_test",
-      "target": "lib_bookingescrow_test_assert",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_test",
-      "target": "lib_bookingescrow_test_createbooking_releasefunds_refund_democommission",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/bookingEscrow.test.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_bookingescrow_test",
-      "target": "lib_bookingescrow_test_held",
-      "confidence_score": 1.0
+      "target": "lib_apiclient_test_mockfetch"
     },
     {
       "relation": "indirect_call",
@@ -2476,9 +2044,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_bookingpayload",
-      "target": "lib_bookingpayload_buildbookingpayload",
-      "confidence_score": 0.5
+      "target": "lib_bookingpayload_buildbookingpayload"
     },
     {
       "relation": "contains",
@@ -2487,9 +2055,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_bookingpayload",
-      "target": "lib_bookingpayload_num",
-      "confidence_score": 1.0
+      "target": "lib_bookingpayload_num"
     },
     {
       "relation": "contains",
@@ -2498,9 +2066,9 @@
       "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_bookingpayload",
-      "target": "lib_bookingpayload_round2",
-      "confidence_score": 1.0
+      "target": "lib_bookingpayload_round2"
     },
     {
       "relation": "contains",
@@ -2509,9 +2077,9 @@
       "source_location": "L26",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_bookingpayload",
-      "target": "lib_bookingpayload_todate",
-      "confidence_score": 1.0
+      "target": "lib_bookingpayload_todate"
     },
     {
       "relation": "imports_from",
@@ -2521,9 +2089,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_bookingpayload_test",
-      "target": "lib_bookingpayload",
-      "confidence_score": 1.0
+      "target": "lib_bookingpayload"
     },
     {
       "relation": "calls",
@@ -2533,9 +2101,9 @@
       "source_location": "L44",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_bookingpayload_buildbookingpayload",
-      "target": "lib_bookingpayload_num",
-      "confidence_score": 1.0
+      "target": "lib_bookingpayload_num"
     },
     {
       "relation": "calls",
@@ -2545,9 +2113,9 @@
       "source_location": "L62",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_bookingpayload_buildbookingpayload",
-      "target": "lib_bookingpayload_round2",
-      "confidence_score": 1.0
+      "target": "lib_bookingpayload_round2"
     },
     {
       "relation": "calls",
@@ -2557,9 +2125,9 @@
       "source_location": "L48",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_bookingpayload_buildbookingpayload",
-      "target": "lib_bookingpayload_todate",
-      "confidence_score": 1.0
+      "target": "lib_bookingpayload_todate"
     },
     {
       "relation": "imports",
@@ -2569,9 +2137,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_bookingpayload_test",
-      "target": "lib_bookingpayload_buildbookingpayload",
-      "confidence_score": 1.0
+      "target": "lib_bookingpayload_buildbookingpayload"
     },
     {
       "relation": "contains",
@@ -2580,9 +2148,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_bookingpayload_test",
-      "target": "lib_bookingpayload_test_assert",
-      "confidence_score": 1.0
+      "target": "lib_bookingpayload_test_assert"
     },
     {
       "relation": "contains",
@@ -2591,9 +2159,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_bookingpayload_test",
-      "target": "lib_bookingpayload_test_buildbookingpayload",
-      "confidence_score": 1.0
+      "target": "lib_bookingpayload_test_buildbookingpayload"
     },
     {
       "relation": "indirect_call",
@@ -2603,9 +2171,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_buildmunicipalreport",
-      "target": "lib_buildmunicipalreport_buildmunicipalreport",
-      "confidence_score": 0.5
+      "target": "lib_buildmunicipalreport_buildmunicipalreport"
     },
     {
       "relation": "indirect_call",
@@ -2615,9 +2183,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_debounceoccupancy",
-      "target": "lib_debounceoccupancy_debounceoccupancy",
-      "confidence_score": 0.5
+      "target": "lib_debounceoccupancy_debounceoccupancy"
     },
     {
       "relation": "indirect_call",
@@ -2627,9 +2195,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_enforcementroute",
-      "target": "lib_enforcementroute_enforcementroute",
-      "confidence_score": 0.5
+      "target": "lib_enforcementroute_enforcementroute"
     },
     {
       "relation": "indirect_call",
@@ -2639,9 +2207,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_estimatesearchtrafficreduction",
-      "target": "lib_estimatesearchtrafficreduction_estimatesearchtrafficreduction",
-      "confidence_score": 0.5
+      "target": "lib_estimatesearchtrafficreduction_estimatesearchtrafficreduction"
     },
     {
       "relation": "imports_from",
@@ -2651,9 +2219,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_estimatesearchtrafficreduction_test",
-      "target": "lib_estimatesearchtrafficreduction",
-      "confidence_score": 1.0
+      "target": "lib_estimatesearchtrafficreduction"
     },
     {
       "relation": "imports",
@@ -2663,9 +2231,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_estimatesearchtrafficreduction_test",
-      "target": "lib_estimatesearchtrafficreduction_estimatesearchtrafficreduction",
-      "confidence_score": 1.0
+      "target": "lib_estimatesearchtrafficreduction_estimatesearchtrafficreduction"
     },
     {
       "relation": "contains",
@@ -2674,9 +2242,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_estimatesearchtrafficreduction_test",
-      "target": "lib_estimatesearchtrafficreduction_test_assert",
-      "confidence_score": 1.0
+      "target": "lib_estimatesearchtrafficreduction_test_assert"
     },
     {
       "relation": "contains",
@@ -2685,9 +2253,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_estimatesearchtrafficreduction_test",
-      "target": "lib_estimatesearchtrafficreduction_test_estimatesearchtrafficreduction",
-      "confidence_score": 1.0
+      "target": "lib_estimatesearchtrafficreduction_test_estimatesearchtrafficreduction"
     },
     {
       "relation": "contains",
@@ -2696,9 +2264,9 @@
       "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_estimatesearchtrafficreduction_test",
-      "target": "lib_estimatesearchtrafficreduction_test_r1",
-      "confidence_score": 1.0
+      "target": "lib_estimatesearchtrafficreduction_test_r1"
     },
     {
       "relation": "contains",
@@ -2707,9 +2275,9 @@
       "source_location": "L23",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_estimatesearchtrafficreduction_test",
-      "target": "lib_estimatesearchtrafficreduction_test_r2",
-      "confidence_score": 1.0
+      "target": "lib_estimatesearchtrafficreduction_test_r2"
     },
     {
       "relation": "contains",
@@ -2718,9 +2286,9 @@
       "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_estimatesearchtrafficreduction_test",
-      "target": "lib_estimatesearchtrafficreduction_test_r3",
-      "confidence_score": 1.0
+      "target": "lib_estimatesearchtrafficreduction_test_r3"
     },
     {
       "relation": "contains",
@@ -2729,9 +2297,9 @@
       "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_estimatesearchtrafficreduction_test",
-      "target": "lib_estimatesearchtrafficreduction_test_r4",
-      "confidence_score": 1.0
+      "target": "lib_estimatesearchtrafficreduction_test_r4"
     },
     {
       "relation": "contains",
@@ -2740,9 +2308,9 @@
       "source_location": "L29",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_estimatesearchtrafficreduction_test",
-      "target": "lib_estimatesearchtrafficreduction_test_rows",
-      "confidence_score": 1.0
+      "target": "lib_estimatesearchtrafficreduction_test_rows"
     },
     {
       "relation": "imports_from",
@@ -2752,9 +2320,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_formatduration_test",
-      "target": "lib_formatduration",
-      "confidence_score": 1.0
+      "target": "lib_formatduration"
     },
     {
       "relation": "contains",
@@ -2763,9 +2331,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_formatduration_test",
-      "target": "lib_formatduration_test_a",
-      "confidence_score": 1.0
+      "target": "lib_formatduration_test_a"
     },
     {
       "relation": "contains",
@@ -2774,9 +2342,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_formatduration_test",
-      "target": "lib_formatduration_test_formatduration",
-      "confidence_score": 1.0
+      "target": "lib_formatduration_test_formatduration"
     },
     {
       "relation": "indirect_call",
@@ -2786,9 +2354,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_haversinemeters",
-      "target": "lib_haversinemeters_haversinemeters",
-      "confidence_score": 0.5
+      "target": "lib_haversinemeters_haversinemeters"
     },
     {
       "relation": "contains",
@@ -2797,9 +2365,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_haversinemeters",
-      "target": "lib_haversinemeters_torad",
-      "confidence_score": 1.0
+      "target": "lib_haversinemeters_torad"
     },
     {
       "relation": "imports_from",
@@ -2809,9 +2377,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_haversinemeters_test",
-      "target": "lib_haversinemeters",
-      "confidence_score": 1.0
+      "target": "lib_haversinemeters"
     },
     {
       "relation": "calls",
@@ -2821,9 +2389,9 @@
       "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_haversinemeters_haversinemeters",
-      "target": "lib_haversinemeters_torad",
-      "confidence_score": 1.0
+      "target": "lib_haversinemeters_torad"
     },
     {
       "relation": "imports",
@@ -2833,9 +2401,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_haversinemeters_test",
-      "target": "lib_haversinemeters_haversinemeters",
-      "confidence_score": 1.0
+      "target": "lib_haversinemeters_haversinemeters"
     },
     {
       "relation": "contains",
@@ -2844,9 +2412,9 @@
       "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_haversinemeters_test",
-      "target": "lib_haversinemeters_test_anti",
-      "confidence_score": 1.0
+      "target": "lib_haversinemeters_test_anti"
     },
     {
       "relation": "contains",
@@ -2855,9 +2423,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_haversinemeters_test",
-      "target": "lib_haversinemeters_test_assert",
-      "confidence_score": 1.0
+      "target": "lib_haversinemeters_test_assert"
     },
     {
       "relation": "contains",
@@ -2866,9 +2434,9 @@
       "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_haversinemeters_test",
-      "target": "lib_haversinemeters_test_cross",
-      "confidence_score": 1.0
+      "target": "lib_haversinemeters_test_cross"
     },
     {
       "relation": "contains",
@@ -2877,9 +2445,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_haversinemeters_test",
-      "target": "lib_haversinemeters_test_haversinemeters",
-      "confidence_score": 1.0
+      "target": "lib_haversinemeters_test_haversinemeters"
     },
     {
       "relation": "contains",
@@ -2888,9 +2456,9 @@
       "source_location": "L14",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_haversinemeters_test",
-      "target": "lib_haversinemeters_test_onedeglat",
-      "confidence_score": 1.0
+      "target": "lib_haversinemeters_test_onedeglat"
     },
     {
       "relation": "contains",
@@ -2899,9 +2467,9 @@
       "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_haversinemeters_test",
-      "target": "lib_haversinemeters_test_onedeglng",
-      "confidence_score": 1.0
+      "target": "lib_haversinemeters_test_onedeglng"
     },
     {
       "relation": "contains",
@@ -2910,90 +2478,9 @@
       "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "lib_haversinemeters_test",
-      "target": "lib_haversinemeters_test_tlvjlm",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/hostListing.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_hostlisting",
-      "target": "lib_hostlisting_allowed_types",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "indirect_call",
-      "confidence": "INFERRED",
-      "source_file": "lib/hostListing.js",
-      "source_location": "L19",
-      "weight": 1.0,
-      "_origin": "ast",
-      "context": "collection",
-      "source": "lib_hostlisting",
-      "target": "lib_hostlisting_validatelisting",
-      "confidence_score": 0.5
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/hostListing.test.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_hostlisting_test",
-      "target": "lib_hostlisting",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "references",
-      "context": "call",
-      "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "lib/hostListing.js",
-      "source_location": "L8",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_hostlisting_validatelisting",
-      "target": "lib_hostlisting_allowed_types"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/hostListing.test.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_hostlisting_test",
-      "target": "lib_hostlisting_validatelisting",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/hostListing.test.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_hostlisting_test",
-      "target": "lib_hostlisting_test_assert",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/hostListing.test.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "lib_hostlisting_test",
-      "target": "lib_hostlisting_test_validatelisting",
-      "confidence_score": 1.0
+      "source": "lib_haversinemeters_test",
+      "target": "lib_haversinemeters_test_tlvjlm"
     },
     {
       "relation": "indirect_call",
@@ -3003,9 +2490,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_logenforcementaction",
-      "target": "lib_logenforcementaction_logenforcementaction",
-      "confidence_score": 0.5
+      "target": "lib_logenforcementaction_logenforcementaction"
     },
     {
       "relation": "imports_from",
@@ -3015,9 +2502,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_logenforcementaction_test",
-      "target": "lib_logenforcementaction",
-      "confidence_score": 1.0
+      "target": "lib_logenforcementaction"
     },
     {
       "relation": "imports",
@@ -3027,9 +2514,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_logenforcementaction_test",
-      "target": "lib_logenforcementaction_logenforcementaction",
-      "confidence_score": 1.0
+      "target": "lib_logenforcementaction_logenforcementaction"
     },
     {
       "relation": "contains",
@@ -3038,9 +2525,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_logenforcementaction_test",
-      "target": "lib_logenforcementaction_test_assert",
-      "confidence_score": 1.0
+      "target": "lib_logenforcementaction_test_assert"
     },
     {
       "relation": "contains",
@@ -3049,9 +2536,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_logenforcementaction_test",
-      "target": "lib_logenforcementaction_test_logenforcementaction",
-      "confidence_score": 1.0
+      "target": "lib_logenforcementaction_test_logenforcementaction"
     },
     {
       "relation": "contains",
@@ -3060,9 +2547,9 @@
       "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_logenforcementaction_test",
-      "target": "lib_logenforcementaction_test_result",
-      "confidence_score": 1.0
+      "target": "lib_logenforcementaction_test_result"
     },
     {
       "relation": "contains",
@@ -3071,9 +2558,9 @@
       "source_location": "L97",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_logenforcementaction_test",
-      "target": "lib_logenforcementaction_test_resultnometa",
-      "confidence_score": 1.0
+      "target": "lib_logenforcementaction_test_resultnometa"
     },
     {
       "relation": "indirect_call",
@@ -3083,9 +2570,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_normalizeplate",
-      "target": "lib_normalizeplate_normalizeplate",
-      "confidence_score": 0.5
+      "target": "lib_normalizeplate_normalizeplate"
     },
     {
       "relation": "imports_from",
@@ -3095,9 +2582,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_normalizeplate_test",
-      "target": "lib_normalizeplate",
-      "confidence_score": 1.0
+      "target": "lib_normalizeplate"
     },
     {
       "relation": "imports",
@@ -3107,9 +2594,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_normalizeplate_test",
-      "target": "lib_normalizeplate_normalizeplate",
-      "confidence_score": 1.0
+      "target": "lib_normalizeplate_normalizeplate"
     },
     {
       "relation": "contains",
@@ -3118,9 +2605,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_normalizeplate_test",
-      "target": "lib_normalizeplate_test_assert",
-      "confidence_score": 1.0
+      "target": "lib_normalizeplate_test_assert"
     },
     {
       "relation": "contains",
@@ -3129,9 +2616,9 @@
       "source_location": "L29",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_normalizeplate_test",
-      "target": "lib_normalizeplate_test_invalid",
-      "confidence_score": 1.0
+      "target": "lib_normalizeplate_test_invalid"
     },
     {
       "relation": "contains",
@@ -3140,9 +2627,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_normalizeplate_test",
-      "target": "lib_normalizeplate_test_normalizeplate",
-      "confidence_score": 1.0
+      "target": "lib_normalizeplate_test_normalizeplate"
     },
     {
       "relation": "indirect_call",
@@ -3152,9 +2639,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_occupancyheatmap",
-      "target": "lib_occupancyheatmap_occupancyheatmap",
-      "confidence_score": 0.5
+      "target": "lib_occupancyheatmap_occupancyheatmap"
     },
     {
       "relation": "indirect_call",
@@ -3164,9 +2651,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_permitzonematch",
-      "target": "lib_permitzonematch_permitzonematch",
-      "confidence_score": 0.5
+      "target": "lib_permitzonematch_permitzonematch"
     },
     {
       "relation": "indirect_call",
@@ -3176,9 +2663,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_spotpayload",
-      "target": "lib_spotpayload_buildspotpayload",
-      "confidence_score": 0.5
+      "target": "lib_spotpayload_buildspotpayload"
     },
     {
       "relation": "contains",
@@ -3187,9 +2674,9 @@
       "source_location": "L8",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_spotpayload",
-      "target": "lib_spotpayload_num",
-      "confidence_score": 1.0
+      "target": "lib_spotpayload_num"
     },
     {
       "relation": "imports_from",
@@ -3199,9 +2686,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_spotpayload_test",
-      "target": "lib_spotpayload",
-      "confidence_score": 1.0
+      "target": "lib_spotpayload"
     },
     {
       "relation": "calls",
@@ -3211,9 +2698,9 @@
       "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_spotpayload_buildspotpayload",
-      "target": "lib_spotpayload_num",
-      "confidence_score": 1.0
+      "target": "lib_spotpayload_num"
     },
     {
       "relation": "imports",
@@ -3223,9 +2710,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_spotpayload_test",
-      "target": "lib_spotpayload_buildspotpayload",
-      "confidence_score": 1.0
+      "target": "lib_spotpayload_buildspotpayload"
     },
     {
       "relation": "contains",
@@ -3234,9 +2721,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_spotpayload_test",
-      "target": "lib_spotpayload_test_assert",
-      "confidence_score": 1.0
+      "target": "lib_spotpayload_test_assert"
     },
     {
       "relation": "contains",
@@ -3245,9 +2732,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_spotpayload_test",
-      "target": "lib_spotpayload_test_buildspotpayload",
-      "confidence_score": 1.0
+      "target": "lib_spotpayload_test_buildspotpayload"
     },
     {
       "relation": "contains",
@@ -3256,9 +2743,9 @@
       "source_location": "L24",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_spotpayload_test",
-      "target": "lib_spotpayload_test_withopts",
-      "confidence_score": 1.0
+      "target": "lib_spotpayload_test_withopts"
     },
     {
       "relation": "indirect_call",
@@ -3268,9 +2755,9 @@
       "weight": 1.0,
       "_origin": "ast",
       "context": "collection",
+      "confidence_score": 0.5,
       "source": "lib_weightedavailability",
-      "target": "lib_weightedavailability_weightedavailability",
-      "confidence_score": 0.5
+      "target": "lib_weightedavailability_weightedavailability"
     },
     {
       "relation": "imports_from",
@@ -3280,9 +2767,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_weightedavailability_test",
-      "target": "lib_weightedavailability",
-      "confidence_score": 1.0
+      "target": "lib_weightedavailability"
     },
     {
       "relation": "imports",
@@ -3292,9 +2779,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_weightedavailability_test",
-      "target": "lib_weightedavailability_weightedavailability",
-      "confidence_score": 1.0
+      "target": "lib_weightedavailability_weightedavailability"
     },
     {
       "relation": "contains",
@@ -3303,9 +2790,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_weightedavailability_test",
-      "target": "lib_weightedavailability_test_assert",
-      "confidence_score": 1.0
+      "target": "lib_weightedavailability_test_assert"
     },
     {
       "relation": "contains",
@@ -3314,9 +2801,9 @@
       "source_location": "L34",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_weightedavailability_test",
-      "target": "lib_weightedavailability_test_mixed",
-      "confidence_score": 1.0
+      "target": "lib_weightedavailability_test_mixed"
     },
     {
       "relation": "contains",
@@ -3325,9 +2812,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "lib_weightedavailability_test",
-      "target": "lib_weightedavailability_test_weightedavailability",
-      "confidence_score": 1.0
+      "target": "lib_weightedavailability_test_weightedavailability"
     },
     {
       "relation": "contains",
@@ -3336,9 +2823,9 @@
       "source_location": "L11",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_background_color",
-      "confidence_score": 1.0
+      "target": "manifest_background_color"
     },
     {
       "relation": "contains",
@@ -3347,9 +2834,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_description",
-      "confidence_score": 1.0
+      "target": "manifest_description"
     },
     {
       "relation": "contains",
@@ -3358,9 +2845,9 @@
       "source_location": "L6",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_dir",
-      "confidence_score": 1.0
+      "target": "manifest_dir"
     },
     {
       "relation": "contains",
@@ -3369,9 +2856,9 @@
       "source_location": "L9",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_display",
-      "confidence_score": 1.0
+      "target": "manifest_display"
     },
     {
       "relation": "contains",
@@ -3380,9 +2867,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_icons",
-      "confidence_score": 1.0
+      "target": "manifest_icons"
     },
     {
       "relation": "contains",
@@ -3391,9 +2878,9 @@
       "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_lang",
-      "confidence_score": 1.0
+      "target": "manifest_lang"
     },
     {
       "relation": "contains",
@@ -3402,9 +2889,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_name",
-      "confidence_score": 1.0
+      "target": "manifest_name"
     },
     {
       "relation": "contains",
@@ -3413,9 +2900,9 @@
       "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_orientation",
-      "confidence_score": 1.0
+      "target": "manifest_orientation"
     },
     {
       "relation": "contains",
@@ -3424,9 +2911,9 @@
       "source_location": "L8",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_scope",
-      "confidence_score": 1.0
+      "target": "manifest_scope"
     },
     {
       "relation": "contains",
@@ -3435,9 +2922,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_short_name",
-      "confidence_score": 1.0
+      "target": "manifest_short_name"
     },
     {
       "relation": "contains",
@@ -3446,9 +2933,9 @@
       "source_location": "L7",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_start_url",
-      "confidence_score": 1.0
+      "target": "manifest_start_url"
     },
     {
       "relation": "contains",
@@ -3457,9 +2944,9 @@
       "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "manifest",
-      "target": "manifest_theme_color",
-      "confidence_score": 1.0
+      "target": "manifest_theme_color"
     },
     {
       "relation": "references",
@@ -3931,5 +3418,5 @@
       "source_file": "factory/FEATURE_TRUTH_MATRIX.md"
     }
   ],
-  "built_at_commit": "1236624a86ebb5a0fa750b80d70b772caf3c8ad0"
+  "built_at_commit": "d73b2a0561997c0eb174ee77f4f2032eb75369c5"
 }

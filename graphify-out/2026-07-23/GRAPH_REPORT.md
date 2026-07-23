@@ -1,16 +1,15 @@
-# Graph Report - ParkWiz  (2026-07-23)
+# Graph Report - .  (2026-07-21)
 
 ## Corpus Check
-- 45 files · ~16,316 words
-- Verdict: corpus is large enough that graph structure adds value.
+- cluster-only mode — file stats not available
 
 ## Summary
-- 160 nodes · 181 edges · 25 communities (22 shown, 3 thin omitted)
-- Extraction: 83% EXTRACTED · 17% INFERRED · 0% AMBIGUOUS · INFERRED: 31 edges (avg confidence: 0.57)
+- 142 nodes · 154 edges · 23 communities (20 shown, 3 thin omitted)
+- Extraction: 83% EXTRACTED · 17% INFERRED · 0% AMBIGUOUS · INFERRED: 26 edges (avg confidence: 0.58)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1236624a`
+- Built from commit: `d73b2a05`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,8 +31,6 @@
 - formatDuration.test.js
 - _pw_patch.js
 - README
-- bookingEscrow.js
-- hostListing.test.js
 
 ## God Nodes (most connected - your core abstractions)
 1. `index.html (Main App)` - 14 edges
@@ -41,11 +38,11 @@
 3. `Pilot README` - 7 edges
 4. `ParkWiz System` - 6 edges
 5. `buildBookingPayload()` - 5 edges
-6. `createBooking()` - 4 edges
-7. `Aviram Swisa` - 4 edges
-8. `ValidationError()` - 3 edges
-9. `createClient()` - 3 edges
-10. `positiveNumber()` - 3 edges
+6. `Aviram Swisa` - 4 edges
+7. `ValidationError()` - 3 edges
+8. `createClient()` - 3 edges
+9. `haversineMeters()` - 3 edges
+10. `buildSpotPayload()` - 3 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Netanya Outreach Draft` --references--> `ParkWiz System`  [INFERRED]
@@ -66,7 +63,7 @@
 - **Pilot Pipeline** — frame_grabber, vision_bridge, gemini_flash_vision, occupancy_jsonl, pilot_dashboard_html [EXTRACTED 0.90]
 - **Truth Matrix and Audit** — factory_feature_truth_matrix_md, factory_evidence_current_state_audit_md [EXTRACTED 0.90]
 
-## Communities (25 total, 3 thin omitted)
+## Communities (23 total, 3 thin omitted)
 
 ### Community 0 - "index.html (Main App)"
 Cohesion: 0.19
@@ -124,16 +121,8 @@ Nodes (4): assert, mixed, { weightedAvailability }, weightedAvailability()
 Cohesion: 0.60
 Nodes (5): factory-ci workflow, lib README, normalizePlate.js, spotPayload.js, weightedAvailability.js
 
-### Community 23 - "bookingEscrow.js"
-Cohesion: 0.30
-Nodes (10): createBooking(), demoCommission(), ensureHeld(), nonEmpty(), positiveNumber(), refund(), releaseFunds(), assert (+2 more)
-
-### Community 24 - "hostListing.test.js"
-Cohesion: 0.47
-Nodes (4): ALLOWED_TYPES, assert, { validateListing }, validateListing()
-
 ## Knowledge Gaps
-- **69 isolated node(s):** `fs`, `s`, `assert`, `{ normalizePlate }`, `{ weightedAvailability }` (+64 more)
+- **64 isolated node(s):** `fs`, `s`, `assert`, `{ normalizePlate }`, `{ weightedAvailability }` (+59 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -141,9 +130,9 @@ Nodes (4): ALLOWED_TYPES, assert, { validateListing }, validateListing()
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `index.html (Main App)` connect `index.html (Main App)` to `Pilot README`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Why does `ParkWiz System` connect `Pilot README` to `index.html (Main App)`?**
-  _High betweenness centrality (0.007) - this node is a cross-community bridge._
+  _High betweenness centrality (0.009) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `index.html (Main App)` (e.g. with `Aviram Swisa` and `validate workflow`) actually correct?**
   _`index.html (Main App)` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 2 inferred relationships involving `Pilot README` (e.g. with `Aviram Swisa` and `ParkWiz System`) actually correct?**
@@ -151,4 +140,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 4 inferred relationships involving `ParkWiz System` (e.g. with `Aviram Swisa` and `Netanya Outreach Draft`) actually correct?**
   _`ParkWiz System` has 4 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `fs`, `s`, `assert` to the rest of the system?**
-  _69 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _64 weakly-connected nodes found - possible documentation gaps or missing edges._
