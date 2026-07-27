@@ -2885,6 +2885,12 @@ function formatIls(amount) {
   let formattedAmount = amount.toFixed(2);
   return `₪${formattedAmount}`;
 }
+function walkMinutesLabel(minutes) {
+  if (minutes < 0) throw new RangeError("Negative input");
+  if (minutes === 0) return "פחות מדקה";
+  if (minutes === 1) return "דקה אחת";
+  return `${minutes} דקות הליכה`;
+}
 </script>
 </body>
 </html>
