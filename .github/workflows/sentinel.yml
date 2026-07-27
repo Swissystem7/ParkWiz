@@ -40,10 +40,18 @@ jobs:
 
       - name: "בדיקה 3: האתר החי נושם ומעודכן"
         run: |
-          code=$(curl -s -o /tmp/live.html -w "%{http_code}" https://swissystem7.github.io/ParkWiz/)
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            code=$(curl -s -o /tmp/live.html -w "%{http_code}" https://swissystem7.github.io/ParkWiz/)
+            if [ "$code" = "200" ] && grep -q "leaflet" /tmp/live.html; then
+              echo "OK: live site up with current stack (attempt $attempt)"
+              exit 0
+            fi
+            echo "attempt $attempt: HTTP $code — waiting for Pages to publish"
+            sleep 20
+          done
           [ "$code" = "200" ] || { echo "::error::Pages down (HTTP $code)"; exit 1; }
-          grep -q "leaflet" /tmp/live.html || { echo "::error::Live site missing Leaflet (stale?)"; exit 1; }
-          echo "OK: live site up with current stack"
+          echo "::error::Live site missing Leaflet after ~200s (stale deploy or regression?)"
+          exit 1
 
       - name: "בדיקה 4: אין חזרה של טענות זמן-אמת (PW-004)"
         run: |
