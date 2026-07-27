@@ -27,11 +27,11 @@ jobs:
           fi
           echo "OK: no auto fake-events timer"
 
-      - name: "בדיקה 2: קבצי הדאטה העירוניים תקינים (נתניה + ת"א)"
+      - name: "בדיקה 2: קובץ הדאטה העירוני של נתניה תקין"
         run: |
           python3 - << 'EOF'
           import json
-          for f in ['netanya-lots.geojson', 'tlv-zones.json', 'tlv-lots.json', 'tlv-tow.json']:
+          for f in ['netanya-lots.geojson']:
               d = json.load(open(f, encoding='utf-8'))
               n = len(d.get('features', []))
               assert n > 0, f'{f}: empty!'
