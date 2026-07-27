@@ -6,7 +6,7 @@
 <title>ParkWiz — העוזר החכם לחניה ברחוב</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<meta name="description" content="ParkWiz — הערכת סיכוי למצוא חניה בתל אביב לפי דיווחי קהילה ונתוני עירייה. חיזוי הסתברותי, לא הבטחה. חסוך זמן, דלק ועצבים.">
+<meta name="description" content="ParkWiz — הערכת סיכוי למצוא חניה בנתניה לפי דיווחי קהילה ונתוני עירייה. חיזוי הסתברותי, לא הבטחה. חסוך זמן, דלק ועצבים.">
 <meta property="og:title" content="ParkWiz — הערכת סיכוי לחניית רחוב">
 <meta property="og:description" content="מפת סיכויי חניה מבוססת קהילה ונתוני עירייה: הערכה לפי רחוב, דיווחי 'אני עוזב' והזמנת מקום מראש.">
 <meta property="og:type" content="website">
@@ -408,7 +408,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 <div class="street-card-overlay" id="streetCardOverlay" onclick="closeStreetCard(event)">
   <div class="street-card" id="streetCard">
     <div class="sc-handle"></div>
-    <div class="sc-name" id="scName">רחוב דיזנגוף</div>
+    <div class="sc-name" id="scName">רחוב הרצל</div>
     <div class="sc-avail">
       <div class="sc-avail-pct" id="scPct" style="color:var(--green)">45%</div>
       <div class="sc-bar-track" style="flex:1"><div class="sc-bar-fill" id="scBarFill" style="width:45%;background:var(--green)"></div></div>
@@ -439,7 +439,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
   </div>
   <span class="free-pill" id="planPill">FREE</span>
   <div class="search-wrap">
-    <input class="search-box" id="searchInput" placeholder="חפש רחוב בתל אביב..." autocomplete="off" oninput="onSearch(this.value)" onblur="setTimeout(closeAC,200)">
+    <input class="search-box" id="searchInput" placeholder="חפש רחוב בנתניה..." autocomplete="off" oninput="onSearch(this.value)" onblur="setTimeout(closeAC,200)">
     <div class="autocomplete" id="autocomplete"></div>
   </div>
   <button class="btn btn-ghost" onclick="liveParkingEvent()">DEMO</button>
@@ -464,7 +464,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
     <canvas id="mapCanvas"></canvas>
     <canvas id="heatmapCanvas"></canvas>
     <div id="realMap" style="position:absolute;inset:0;z-index:4;background:transparent"></div>
-    <div id="tlvBtn" onclick="toggleTlvLayer()" style="position:absolute;bottom:14px;right:12px;z-index:11;background:rgba(10,15,10,.92);border:1px solid rgba(56,189,248,.5);border-radius:10px;padding:8px 11px;font-size:.72rem;cursor:pointer;opacity:.65">🏛 נתוני אמת עיריית ת"א</div>
+    <div id="tlvBtn" onclick="toggleTlvLayer()" style="position:absolute;bottom:14px;right:12px;z-index:11;background:rgba(10,15,10,.92);border:1px solid rgba(56,189,248,.5);border-radius:10px;padding:8px 11px;font-size:.72rem;cursor:pointer;opacity:.65">🏛 נתוני אמת · מגרשי חניה נתניה</div>
     <div class="map-loading" id="mapLoading">
       <div class="skeleton-grid">
         <div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div>
@@ -520,11 +520,11 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
       <div class="feed-title" style="color:#fbbf24">🏖 מצב חופשה — תכנן חניה מראש</div>
       <div style="display:flex;gap:6px;margin-bottom:6px">
         <select id="vacDest" style="flex:2;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
-          <option value="0">חוף גורדון</option>
-          <option value="1">נמל תל אביב</option>
-          <option value="2">שוק הכרמל</option>
-          <option value="3">שדרות רוטשילד</option>
-          <option value="4">דיזנגוף סנטר</option>
+          <option value="0">עיריית נתניה</option>
+          <option value="1">קניון השרון</option>
+          <option value="2">קניון הדרים</option>
+          <option value="3">כיכר האחדות</option>
+          <option value="4">מרכז קניות קרית השרון</option>
         </select>
         <select id="vacHour" style="flex:1;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
           <option value="0">08:00</option><option value="1">10:00</option><option value="2" selected>12:00</option>
@@ -555,7 +555,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
     </div>
     <!-- מד צפיפות קהילה: הפתרון לביצה-ותרנגולת — שכונה אחת בכל פעם -->
     <div class="live-feed" style="border-color:rgba(56,189,248,.35)">
-      <div class="feed-title" style="color:#38bdf8">📡 צפיפות דיווח — לב תל אביב</div>
+      <div class="feed-title" style="color:#38bdf8">📡 צפיפות דיווח — מרכז נתניה</div>
       <div style="display:flex;align-items:center;gap:8px;margin:4px 0">
         <div style="flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden"><div style="width:68%;height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e)"></div></div>
         <b style="font-size:.75rem">34/50</b>
@@ -606,7 +606,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
       <div class="ch-progress"><div class="ch-fill" style="width:60%"></div></div>
     </div>
     <div class="challenge-item">
-      <div class="ch-title">חנה ברחוב דיזנגוף</div>
+      <div class="ch-title">חנה ברחוב הרצל</div>
       <div style="color:var(--muted);font-size:0.65rem">0/1 הושלמו</div>
       <div class="ch-progress"><div class="ch-fill" style="width:0%"></div></div>
     </div>
@@ -784,7 +784,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 <div class="reserve-modal" id="reserveModal">
   <div class="reserve-box">
     <h3>🅿️ הזמן מקום חניה</h3>
-    <div style="font-size:0.82rem;color:var(--muted)" id="reserveAddr">רחוב דיזנגוף 142</div>
+    <div style="font-size:0.82rem;color:var(--muted)" id="reserveAddr">רחוב הרצל 42</div>
     <div class="reserve-price">₪4.50</div>
     <div class="reserve-sub">30 דקות · תשלום בסיום</div>
     <div style="font-size:0.68rem;color:#eab308;background:rgba(234,179,8,.1);border-radius:8px;padding:5px 8px;margin-bottom:12px">🧪 סימולציה — אין חיוב ואין שריון מקום אמיתי בגרסת הדגמה זו</div>
@@ -801,15 +801,15 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 // ─── Street Data ──────────────────────────────────────────────────
 // Each street: name, availability (0-100), type (blue/free/timed), isH, ratio position
 const STREETS_DEF = [
-  { name:'רוטשילד',    avail:78, type:'blue',  isH:true,  pos:0.18, lat:32.0663, lng:34.7748, a:[32.0623,34.7700], b:[32.0703,34.7797] },
-  { name:'דיזנגוף',   avail:42, type:'free',  isH:true,  pos:0.36, lat:32.0807, lng:34.7738, a:[32.0755,34.7738], b:[32.0900,34.7748] },
-  { name:'בן יהודה',  avail:15, type:'blue',  isH:true,  pos:0.55, lat:32.0809, lng:34.7690, a:[32.0730,34.7672], b:[32.0895,34.7715] },
-  { name:'אלנבי',     avail:63, type:'timed', isH:true,  pos:0.74, lat:32.0669, lng:34.7702, red:true, a:[32.0736,34.7642], b:[32.0620,34.7760] },
-  { name:'ארלוזורוב', avail:88, type:'free',  isH:false, pos:0.12, lat:32.0871, lng:34.7754, a:[32.0872,34.7720], b:[32.0855,34.7900] },
-  { name:'ז\'בוטינסקי',avail:28, type:'blue',  isH:false, pos:0.30, lat:32.0862, lng:34.7800, a:[32.0895,34.7745], b:[32.0875,34.7930] },
-  { name:'ביאליק',    avail:55, type:'free',  isH:false, pos:0.50, lat:32.0731, lng:34.7690, a:[32.0715,34.7690], b:[32.0745,34.7705] },
-  { name:'הרצל',      avail:8,  type:'blue',  isH:false, pos:0.68, lat:32.0577, lng:34.7702, red:true, a:[32.0680,34.7702], b:[32.0560,34.7700] },
-  { name:'נורדאו',    avail:70, type:'timed', isH:false, pos:0.86, lat:32.0930, lng:34.7735, a:[32.0930,34.7715], b:[32.0918,34.7830] },
+  { name:"הרצל", avail:62, type:'blue', isH:true, pos:0.1, lat:32.3274, lng:34.8605, a:[32.3282,34.8582], b:[32.3266,34.8628] },
+  { name:"שדרות בנימין", avail:45, type:'free', isH:false, pos:0.2, lat:32.3204, lng:34.8555, a:[32.3282,34.8582], b:[32.3125,34.8529] },
+  { name:"שדרות ויצמן", avail:30, type:'blue', isH:false, pos:0.3, lat:32.3352, lng:34.8593, a:[32.3421,34.8603], b:[32.3282,34.8583] },
+  { name:"רזיאל", avail:71, type:'free', isH:false, pos:0.4, lat:32.3298, lng:34.8631, a:[32.3326,34.8646], b:[32.327,34.8615] },
+  { name:"בן גוריון", avail:25, type:'timed', isH:false, pos:0.5, lat:32.3098, lng:34.8468, a:[32.3195,34.8482], b:[32.3001,34.8453] },
+  { name:"שדרות בן צבי יצחק", avail:58, type:'free', isH:false, pos:0.6, lat:32.3054, lng:34.8545, a:[32.2984,34.8536], b:[32.3123,34.8554] },
+  { name:"האר\"י", avail:80, type:'timed', isH:true, pos:0.7, lat:32.3122, lng:34.8638, a:[32.3121,34.8723], b:[32.3122,34.8552] },
+  { name:"פתח-תקווה", avail:18, type:'blue', isH:false, pos:0.8, lat:32.3224, lng:34.8595, a:[32.3175,34.8576], b:[32.3272,34.8614] },
+  { name:"דן שומרון", avail:66, type:'free', isH:false, pos:0.9, lat:32.3105, lng:34.8613, a:[32.3087,34.8612], b:[32.3122,34.8614] },
 ];
 
 // ─── מפה אמיתית (Leaflet + OpenStreetMap) עם סימוני חניה ─────────
@@ -888,18 +888,18 @@ function arrivalMode(lat, lng, name) {
 }
 // ─── מצב חופשה: תכנון חניה מראש ליעד ושעה (חיזוי לפי דפוסי שעה + חניונים אמיתיים) ───
 const VAC_DESTS = [
-  { name:'חוף גורדון',     lat:32.0838, lng:34.7669 },
-  { name:'נמל תל אביב',    lat:32.0965, lng:34.7748 },
-  { name:'שוק הכרמל',      lat:32.0680, lng:34.7688 },
-  { name:'שדרות רוטשילד',  lat:32.0663, lng:34.7748 },
-  { name:'דיזנגוף סנטר',   lat:32.0751, lng:34.7752 },
+  { name:'עיריית נתניה',        lat:32.3288, lng:34.8545 },
+  { name:'קניון השרון',          lat:32.3263, lng:34.8620 },
+  { name:'קניון הדרים',          lat:32.3228, lng:34.8715 },
+  { name:'כיכר האחדות',          lat:32.3123, lng:34.8726 },
+  { name:'מרכז קניות קרית השרון', lat:32.3069, lng:34.8691 },
 ];
 const VAC_HOURS = ['08:00','10:00','12:00','14:00','16:00','18:00','20:00'];
 let vacLots = null;
 async function planVacation() {
   const d = VAC_DESTS[+document.getElementById('vacDest').value];
   const hi = +document.getElementById('vacHour').value;
-  if (!vacLots) { try { vacLots = (await fetch('tlv-lots.json').then(r=>r.json())).features; } catch(e) { vacLots = []; } }
+  if (!vacLots) { try { vacLots = (await fetch('netanya-lots.geojson').then(r=>r.json())).features; } catch(e) { vacLots = []; } }
 
   // רחובות בטווח 500 מ' — הסתברות לפי דפוס השעה
   const opts = STREETS_DEF.map((s, i) => {
@@ -929,7 +929,7 @@ async function planVacation() {
     <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">התוכנית ל<b style="color:#fbbf24">${d.name}</b> בשעה ${VAC_HOURS[hi]}:</div>
     ${rows || '<div style="font-size:.7rem;color:var(--muted)">אין רחובות מנוטרים ברדיוס — ראה חניון</div>'}
     ${priv ? `<div onclick="openRent(${priv.i})" style="padding:6px 8px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);border-radius:8px;margin-bottom:4px;font-size:.72rem;cursor:pointer">🏠 <b>שריין מראש</b>: חניה פרטית של ${priv.p.owner} · ₪${priv.p.price}/שעה · ${priv.d} מ' — מובטחת, בלי חיפושים</div>` : ''}
-    ${lot ? `<div style="padding:6px 8px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.3);border-radius:8px;font-size:.72rem">🛟 <b>תוכנית ב' בטוחה</b>: חניון ${lot.shem_chenyon} (${lot.ktovet||''}) · ${Math.round(lotD)} מ' — נתוני עיריית ת"א (יובאו 07/2026)</div>` : ''}
+    ${lot ? `<div style="padding:6px 8px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.3);border-radius:8px;font-size:.72rem">🛟 <b>תוכנית ב' בטוחה</b>: ${lot.NAME || 'מגרש חניה'} · ${Math.round(lotD)} מ' — מגרשי חניה נתניה, המרכז למיפוי ישראל (יובאו 07/2026) · מיקום בלבד, לא תפוסה</div>` : ''}
     <div style="display:flex;gap:6px;margin-top:5px">
       <button onclick="window.open('https://waze.com/ul?ll=${d.lat},${d.lng}&navigate=yes','_blank')" style="flex:1;background:#33ccff22;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:5px;font-size:.7rem;cursor:pointer">🚗 Waze ליעד</button>
       <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}','_blank')" style="flex:1;background:#22c55e22;color:#4ade80;border:1px solid #22c55e55;border-radius:8px;padding:5px;font-size:.7rem;cursor:pointer">🗺 Google Maps</button>
@@ -937,25 +937,18 @@ async function planVacation() {
   arrivalMode(d.lat, d.lng, d.name);
 }
 
-// ─── שכבת אמת: GIS עיריית ת"א (ETL ראשון — אזורי חניה + חניוני אחוזות החוף) ───
+// ─── שכבת אמת: שכבת מגרשי חניה — נתניה (ETL ראשון — אזורי חניה + חניוני אחוזות החוף) ───
 let tlvLayer = null, tlvOn = false;
 async function toggleTlvLayer() {
   const btn = document.getElementById('tlvBtn');
   if (tlvOn) { tlvLayer.remove(); tlvOn = false; btn.style.opacity = .65; return; }
   if (!tlvLayer) {
     try {
-      const [zones, lots] = await Promise.all([
-        fetch('tlv-zones.json').then(r => r.json()),
-        fetch('tlv-lots.json').then(r => r.json()),
-      ]);
+      const lots = await fetch('netanya-lots.geojson').then(r => r.json());
       tlvLayer = L.layerGroup([
-        L.geoJSON(zones, {
-          style: { color:'#38bdf8', weight:2, fillOpacity:0.04, dashArray:'6 4' },
-          onEachFeature: (f, l) => l.bindTooltip('🏛 ' + (f.properties.LABEL || 'אזור חניה') + ' — תו תושב (נתון עירוני)', {sticky:true}),
-        }),
         L.geoJSON(lots, {
           pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius:5, color:'#fff', weight:1, fillColor:'#0ea5e9', fillOpacity:.9 })
-            .bindPopup(`<div style="direction:rtl"><b>🅿 חניון ${f.properties.shem_chenyon}</b><br>${f.properties.ktovet || ''}<br><span style="font-size:.7rem;color:#888">אחוזות החוף · נתוני עיריית ת"א (יובאו 07/2026)</span></div>`),
+            .bindPopup('<div style="direction:rtl"><b>🅿 ' + (f.properties.NAME || 'מגרש חניה') + '</b><br>' + (f.properties.SETL_NAME || 'נתניה') + '<br><span style="font-size:.7rem;color:#888">שכבת מגרשי חניה · המרכז למיפוי ישראל דרך odata.org.il (יובאה 07/2026) · נתון סטטי, לא תפוסה חיה</span></div>'),
         }),
       ]).addTo(realMap);
     } catch(e) { showToast('⚠ שכבת העירייה לא נטענה'); return; }
@@ -967,14 +960,14 @@ function clearArrival() {
   if (destMarker) { destMarker.remove(); destCircle.remove(); destMarker = destCircle = null; }
   const p = document.getElementById('arrivalPanel');
   p.style.display = 'none';
-  realMap.setView([32.076, 34.776], 14);
+  realMap.setView([32.3192, 34.8583], 14);
 }
 
 function initRealMap() {
   if (!window.L || realMap) return;
   const el = document.getElementById('realMap');
   if (!el) return;
-  realMap = L.map('realMap', { zoomControl:false, attributionControl:true }).setView([32.076, 34.776], 14);
+  realMap = L.map('realMap', { zoomControl:false, attributionControl:true }).setView([32.3192, 34.8583], 14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '© OpenStreetMap'
   }).addTo(realMap);
@@ -1007,7 +1000,7 @@ function initRealMap() {
   realMap.on('click', (e) => arrivalMode(e.latlng.lat, e.latlng.lng, 'היעד שלך'));
 
   // המשתמש
-  L.circleMarker([32.0745, 34.7715], { radius:8, color:'#fff', weight:2, fillColor:'#38bdf8', fillOpacity:1 })
+  L.circleMarker([32.3192, 34.8583], { radius:8, color:'#fff', weight:2, fillColor:'#38bdf8', fillOpacity:1 })
     .addTo(realMap).bindTooltip('אתה כאן');
   initPrivateSpots();
   const ud = document.getElementById('userDot');
@@ -1085,11 +1078,11 @@ function liveParkingEvent() {
 }
 // ─── השכרת חניות פרטיות — המרקטפלייס ───
 const PRIVATE_SPOTS = [
-  { owner:'דנה',  addr:"רוטשילד 22 (חניון בניין)",  lat:32.0648, lng:34.7730, price:12, len:5.0, booked:false },
-  { owner:'אבי',  addr:"דיזנגוף 118 (חצר)",         lat:32.0832, lng:34.7742, price:10, len:4.6, booked:false },
-  { owner:'משה',  addr:"בן יהודה 77 (שער חשמלי)",   lat:32.0810, lng:34.7692, price:15, len:5.4, booked:false },
-  { owner:'רותם', addr:"ארלוזורוב 40 (מקורה)",       lat:32.0866, lng:34.7800, price:18, len:4.8, booked:false },
-  { owner:'יעל',  addr:"נורדאו 15 (פרטית)",          lat:32.0925, lng:34.7760, price:9,  len:4.3, booked:false },
+  { owner:'דנה',  addr:"הרצל 42 (חניון בניין)",        lat:32.3274, lng:34.8605, price:12, len:5.0, booked:false },
+  { owner:'אבי',  addr:"שדרות בנימין 18 (חצר)",        lat:32.3204, lng:34.8555, price:10, len:4.6, booked:false },
+  { owner:'משה',  addr:"רזיאל 9 (שער חשמלי)",          lat:32.3298, lng:34.8631, price:15, len:5.4, booked:false },
+  { owner:'רותם', addr:"שדרות ויצמן 60 (מקורה)",       lat:32.3352, lng:34.8593, price:18, len:4.8, booked:false },
+  { owner:'יעל',  addr:"דן שומרון 4 (פרטית)",          lat:32.3105, lng:34.8613, price:9,  len:4.3, booked:false },
 ];
 let privMarkers = [];
 function privPopupHtml(i) {
@@ -1228,14 +1221,14 @@ const STREET_HOURLY = STREETS_DEF.map((s, i) => genHourlyPattern(s.avail, i));
 const HOURLY_SLOTS = [8,10,12,14,16,18,20];
 
 const COMMUNITY_FEED = [
-  { msg:'👤 משתמש דיווח: חניה פנתה בדיזנגוף 45', street:'דיזנגוף' },
-  { msg:'👤 רוטשילד פנויה בקצה הצפוני', street:'רוטשילד' },
-  { msg:'👤 אלנבי 72 — 2 מקומות התפנו', street:'אלנבי' },
-  { msg:'👤 ביאליק קרוב לפינת הרצל — פנוי!', street:'ביאליק' },
-  { msg:'👤 ז\'בוטינסקי עמוס, נסה ארלוזורוב', street:'ז\'בוטינסקי' },
-  { msg:'👤 נורדאו ליד פארק — 3 מקומות', street:'נורדאו' },
-  { msg:'👤 בן יהודה מלא, הגיעו מוקדם!', street:'בן יהודה' },
-  { msg:'👤 ארלוזורוב — מקום נפתח ליד 12', street:'ארלוזורוב' },
+  { msg:'👤 משתמש דיווח: חניה פנתה בהרצל 45', street:'הרצל' },
+  { msg:'👤 שדרות בנימין פנויה בקצה הצפוני', street:'שדרות בנימין' },
+  { msg:'👤 רזיאל 12 — 2 מקומות התפנו', street:'רזיאל' },
+  { msg:'👤 דן שומרון קרוב לפינת הרצל — פנוי!', street:'דן שומרון' },
+  { msg:'👤 פתח-תקווה עמוס, נסה שדרות ויצמן', street:'פתח-תקווה' },
+  { msg:'👤 האר"י ליד הפארק — 3 מקומות', street:'האר"י' },
+  { msg:'👤 בן גוריון מלא, הגיעו מוקדם!', street:'בן גוריון' },
+  { msg:'👤 שדרות בן צבי — מקום נפתח ליד 12', street:'שדרות בן צבי יצחק' },
 ];
 let feedIdx = 0;
 let feedSecondsAgo = 0;
@@ -1249,14 +1242,14 @@ const LEADERBOARD = [
 ];
 
 const HISTORY = [
-  {addr:'רח\' דיזנגוף 88', time:'אמש 19:23', saved:'4 דקות', pts:25},
-  {addr:'שד\' רוטשילד 30', time:'א\' 08:15', saved:'7 דקות', pts:40},
-  {addr:'רח\' אלנבי 52', time:'ב\' 13:00', saved:'2 דקות', pts:15},
-  {addr:'שד\' ביאליק 10', time:'ג\' 10:30', saved:'9 דקות', pts:50},
-  {addr:'רח\' נורדאו 4', time:'ה\' 17:45', saved:'3 דקות', pts:20},
+  {addr:'רח\' הרצל 88', time:'אמש 19:23', saved:'4 דקות', pts:25},
+  {addr:'שד\' בנימין 30', time:'א\' 08:15', saved:'7 דקות', pts:40},
+  {addr:'רח\' רזיאל 52', time:'ב\' 13:00', saved:'2 דקות', pts:15},
+  {addr:'שד\' ויצמן 10', time:'ג\' 10:30', saved:'9 דקות', pts:50},
+  {addr:'רח\' דן שומרון 4', time:'ה\' 17:45', saved:'3 דקות', pts:20},
 ];
 
-const TA_STREETS = ['רחוב דיזנגוף','שדרות רוטשילד','רחוב הרצל','רחוב אלנבי','שדרות נורדאו','רחוב ארלוזורוב','רחוב ביאליק','שדרות ז\'בוטינסקי','רחוב בן יהודה'];
+const TA_STREETS = ['רחוב הרצל','שדרות בנימין','שדרות ויצמן','רחוב רזיאל','שדרות בן גוריון','שדרות בן צבי יצחק','רחוב האר"י','רחוב פתח-תקווה','רחוב דן שומרון'];
 
 let selectedStreetIdx = null;
 // Real community reports (COMMUNITY_REPORT) — evidence-based, mirrors tested lib/weightedAvailability.js, no Math.random.
@@ -1789,7 +1782,7 @@ function closeStreetCard(e) {
 function shareWaze() {
   if (selectedStreetIdx === null) return;
   const s = STREETS_DEF[selectedStreetIdx];
-  window.open(`https://waze.com/ul?q=${encodeURIComponent('רחוב '+s.name+' תל אביב')}`, '_blank');
+  window.open(`https://waze.com/ul?q=${encodeURIComponent('רחוב '+s.name+' נתניה')}`, '_blank');
 }
 
 function shareWhatsApp() {
@@ -1801,10 +1794,10 @@ function shareWhatsApp() {
 
 function navigateToStreet() {
   const btn = document.getElementById('scNavBtn');
-  const street = btn.dataset.street || 'תל אביב';
-  window.open(`waze://ul?q=${encodeURIComponent('רחוב '+street+' תל אביב')}`, '_blank');
+  const street = btn.dataset.street || 'נתניה';
+  window.open(`waze://ul?q=${encodeURIComponent('רחוב '+street+' נתניה')}`, '_blank');
   setTimeout(()=>{
-    window.open(`https://waze.com/ul?q=${encodeURIComponent('רחוב '+street+' תל אביב')}`, '_blank');
+    window.open(`https://waze.com/ul?q=${encodeURIComponent('רחוב '+street+' נתניה')}`, '_blank');
   }, 500);
 }
 
@@ -2834,7 +2827,7 @@ function pwOpenLegal(kind) {
 
 /* ── Onboarding ── */
 const PW_OB_STEPS = [
-  { icon: '🅿️', title: 'ברוך הבא ל-ParkWiz!', text: 'הערכת סיכוי לחניה בתל אביב — לפי דיווחי קהילה ונתוני עירייה. ירוק = סיכוי גבוה, צהוב = בינוני, אדום = נמוך. חיזוי, לא הבטחה.' },
+  { icon: '🅿️', title: 'ברוך הבא ל-ParkWiz!', text: 'הערכת סיכוי לחניה בנתניה — לפי דיווחי קהילה ונתוני עירייה. ירוק = סיכוי גבוה, צהוב = בינוני, אדום = נמוך. חיזוי, לא הבטחה.' },
   { icon: '🚗', title: 'איך משתמשים?', text: 'לחץ על רחוב במפה כדי לראות זמינות לפי שעות. עוזב חניה? לחץ "אני עוזב!" למטה — תעזור לקהילה ותצבור XP 🏆.' },
   { icon: '⚡', title: 'מה מקבלים ב-Premium?', text: 'הזמנת מקום חניה מראש, התראות push כשמתפנה מקום ברחוב שלך, ללא פרסומות ועדיפות בהתראות — רק ₪14.90 לחודש.' },
 ];
