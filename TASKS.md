@@ -6,5 +6,5 @@ topmost open task, injects the function into index.html, and marks it done.
 
 - [x] Write function formatIls(amount) that returns a Hebrew-friendly price string like "₪32" for 32 and "₪32.50" for 32.5, throwing TypeError on non-finite input.  <!-- formatIls -->
 - [x] Write function walkMinutesLabel(minutes) returning "פחות מדקה" for values under 1, "דקה אחת" for exactly 1, and "N דקות הליכה" otherwise; throw RangeError on negative input.  <!-- walkMinutesLabel -->
-- [ ] Write function bookingWindowRemaining(nowMs, releaseAtMs) returning whole minutes left, 0 when the window has passed, throwing TypeError if either argument is not a finite number.
+- [x] Write function bookingWindowRemaining(nowMs, releaseAtMs) returning whole minutes left, 0 when the window has passed, throwing TypeError if either argument is not a finite number.  <!-- bookingWindowRemaining via qwen2.5-coder:3b -->
 - [ ] Write function summarizeBooking(booking) taking {id, priceIls, windowMins} and returning a one-line Hebrew summary string; throw TypeError when a required field is missing.

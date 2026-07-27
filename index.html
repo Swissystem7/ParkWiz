@@ -2891,6 +2891,13 @@ function walkMinutesLabel(minutes) {
   if (minutes === 1) return "דקה אחת";
   return `${minutes} דקות הליכה`;
 }
+function bookingWindowRemaining(nowMs, releaseAtMs) {
+  if (typeof nowMs !== 'number' || !isFinite(nowMs)) throw new TypeError('nowMs must be a finite number');
+  if (typeof releaseAtMs !== 'number' || !isFinite(releaseAtMs)) throw new TypeError('releaseAtMs must be a finite number');
+
+  const remainingTime = Math.max(0, releaseAtMs - nowMs);
+  return Math.floor(remainingTime / (1000 * 60));
+}
 </script>
 </body>
 </html>
