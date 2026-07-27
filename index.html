@@ -2886,6 +2886,12 @@ function pwSubmitFeedback() {
 }
 
 track('app_open');
+function formatIls(amount) {
+  if (!Number.isFinite(amount)) throw new TypeError("Input must be a finite number.");
+  
+  let formattedAmount = amount.toFixed(2);
+  return `₪${formattedAmount}`;
+}
 </script>
 </body>
 </html>
