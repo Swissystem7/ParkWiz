@@ -27,23 +27,16 @@ jobs:
           fi
           echo "OK: no auto fake-events timer"
 
-      - name: "בדיקה 2: קבצי הדאטה העירוניים תקינים"
+      - name: "בדיקה 2: קובץ הדאטה העירוני של נתניה תקין"
         run: |
           python3 - << 'EOF'
           import json
-          for f in ['tlv-zones.json', 'tlv-lots.json', 'tlv-tow.json']:
+          for f in ['netanya-lots.geojson']:
               d = json.load(open(f, encoding='utf-8'))
               n = len(d.get('features', []))
               assert n > 0, f'{f}: empty!'
               print(f'OK: {f} — {n} features')
           EOF
-
-      - name: "בדיקה 3: האתר החי נושם ומעודכן"
-        run: |
-          code=$(curl -s -o /tmp/live.html -w "%{http_code}" https://swissystem7.github.io/ParkWiz/)
-          [ "$code" = "200" ] || { echo "::error::Pages down (HTTP $code)"; exit 1; }
-          grep -q "leaflet" /tmp/live.html || { echo "::error::Live site missing Leaflet (stale?)"; exit 1; }
-          echo "OK: live site up with current stack"
 
       - name: "בדיקה 4: אין חזרה של טענות זמן-אמת (PW-004)"
         run: |

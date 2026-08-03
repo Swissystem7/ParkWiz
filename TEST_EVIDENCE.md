@@ -31,3 +31,13 @@ The attempted local headless smoke test could not start because the bundled
 `playwright` package is missing its `playwright-core` dependency. No browser
 smoke pass is claimed. The draft PR must remain unmerged until GitHub checks and
 a browser review confirm the four arrival chips, chance badges, and tariff labels.
+
+## PW-001 deterministic availability scoring
+
+Date: 2026-07-23 (Asia/Jerusalem)
+
+- `node --check` passed for every JavaScript file outside generated graph output.
+- All 14 `lib/*.test.js` files passed.
+- `git diff --check` passed.
+- `availabilityScoring.test.js` covers identical-input determinism, demo metadata
+  exclusion, real-report confidence, and the active/expired TTL boundary.
