@@ -27,7 +27,9 @@ jobs:
         run: |
           node -e "const fs=require('fs');const h=fs.readFileSync('index.html','utf8');const s=[...h.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)].map(m=>m[1]);if(!s.length){throw new Error('no scripts found')}s.forEach(x=>new Function(x));console.log('OK: '+s.length+' inline scripts parse cleanly')"
       - name: Syntax-check the shared logic modules
-        run: for f in src/lib/*.js; do node --check "$f"; done && echo "OK: all modules parse cleanly"
+        run: |
+          for f in src/lib/*.js; do node --check "$f"; done
+          echo "OK: all modules parse cleanly"
       - name: Confirm every module index.html loads actually exists
         run: |
           node -e "
