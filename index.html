@@ -797,6 +797,12 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 
 <div class="toast" id="toast"></div>
 
+<!-- Tested logic modules. Same files run under `node --test`; here they attach
+     to the global scope so the classic script below can use them unchanged. -->
+<script src="src/lib/plate.js"></script>
+<script src="src/lib/availability.js"></script>
+<script src="src/lib/predict.js"></script>
+
 <script>
 // ─── Street Data ──────────────────────────────────────────────────
 // Each street: name, availability (0-100), type (blue/free/timed), isH, ratio position
@@ -1201,24 +1207,9 @@ function navGmaps(idx, ev) {
   window.open(`https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`, '_blank');
 }
 
-// חיזוי הסתברותי דטרמיניסטי (PW-005): אותו רחוב+שעה → תמיד אותו סיכוי.
-// נוסחה שקופה: base(זמינות) + rush(דפוס-שעה) + var(וריאציה יציבה לפי רחוב+שעה, ללא Math.random).
-// המשקלים קבועים ומתועדים; בגרסה אמיתית base יבוא מהיסטוריית דיווחים, לא מ-avail הדמו.
-const RUSH_WEIGHT = { 8:-0.25, 18:-0.25, 20:-0.25, 12:-0.12, 14:-0.12 };
-function stableVar(streetIdx, hour) {           // דטרמיניסטי, טווח ~±0.075
-  const x = Math.sin((streetIdx + 1) * 12.9898 + hour * 78.233) * 43758.5453;
-  return ((x - Math.floor(x)) - 0.5) * 0.15;
-}
-function genHourlyPattern(avail, streetIdx) {
-  const base = avail / 100;
-  return [8,10,12,14,16,18,20].map(h => {
-    const rush = RUSH_WEIGHT[h] || 0;
-    return +Math.max(0.05, Math.min(1, base + rush + stableVar(streetIdx, h))).toFixed(3);
-  });
-}
-
+// חיזוי הסתברותי דטרמיניסטי (PW-005) — הלוגיקה ב-src/lib/predict.js, מכוסה בטסטים.
+// genHourlyPattern, stableVar, RUSH_WEIGHT ו-HOURLY_SLOTS מגיעים משם.
 const STREET_HOURLY = STREETS_DEF.map((s, i) => genHourlyPattern(s.avail, i));
-const HOURLY_SLOTS = [8,10,12,14,16,18,20];
 
 const COMMUNITY_FEED = [
   { msg:'👤 משתמש דיווח: חניה פנתה בהרצל 45', street:'הרצל' },
@@ -1252,17 +1243,14 @@ const HISTORY = [
 const TA_STREETS = ['רחוב הרצל','שדרות בנימין','שדרות ויצמן','רחוב רזיאל','שדרות בן גוריון','שדרות בן צבי יצחק','רחוב האר"י','רחוב פתח-תקווה','רחוב דן שומרון'];
 
 let selectedStreetIdx = null;
-// Real community reports (COMMUNITY_REPORT) — evidence-based, mirrors tested lib/weightedAvailability.js, no Math.random.
+// Real community reports (COMMUNITY_REPORT) — evidence-based, no Math.random.
+// דעיכת הזמן עצמה חיה ב-src/lib/availability.js ומכוסה בטסטים; כאן רק סינון לפי רחוב.
 const PW_COMMUNITY_REPORTS = [];
 function pwWeightedAvailability(streetIdx, nowMs) {
-  let sum = 0;
-  for (const r of PW_COMMUNITY_REPORTS) {
-    if (r.streetIdx !== streetIdx) continue;
-    const age = nowMs - r.ts;
-    if (age > 7200000) continue; // ignore reports older than 2h
-    sum += r.delta * Math.pow(0.5, age / 900000); // weight halves every 15 min
-  }
-  return sum;
+  return weightedAvailability(
+    PW_COMMUNITY_REPORTS.filter(r => r.streetIdx === streetIdx),
+    nowMs
+  );
 }
 let activeFilters = { blue:true, free:true, timed:true };
 let userScore = 340;
@@ -2022,17 +2010,7 @@ function leavingPickType(type, btn) {
   }, 280);
 }
 
-// normalizePlate (FACT-PW-1) — factory-tested module, inlined for the browser
-function normalizePlate(input){
-  const invalid={valid:false,plate:null,formatted:null};
-  if(typeof input!=='string'&&typeof input!=='number')return invalid;
-  const plate=String(input).replace(/[\s-]/g,'');
-  if(!/^\d{7,8}$/.test(plate))return invalid;
-  const formatted=plate.length===7
-    ? `${plate.slice(0,2)}-${plate.slice(2,5)}-${plate.slice(5)}`
-    : `${plate.slice(0,3)}-${plate.slice(3,5)}-${plate.slice(5)}`;
-  return {valid:true,plate,formatted};
-}
+// normalizePlate (FACT-PW-1) — הלוגיקה ב-src/lib/plate.js, מכוסה בטסטים.
 function pwPlateFormat(el){
   const hint=document.getElementById('leavingPlateHint');
   if(!el.value.trim()){hint.textContent='';hint.style.color='';return;}

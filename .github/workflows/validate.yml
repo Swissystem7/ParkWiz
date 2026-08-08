@@ -1,9 +1,22 @@
 name: validate
 on:
   push:
+  pull_request:
   workflow_dispatch:
 jobs:
+  test:
+    name: unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run unit tests
+        run: node --test
+
   syntax:
+    name: browser bundle
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,5 +26,19 @@ jobs:
       - name: Syntax-check inline scripts in index.html
         run: |
           node -e "const fs=require('fs');const h=fs.readFileSync('index.html','utf8');const s=[...h.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)].map(m=>m[1]);if(!s.length){throw new Error('no scripts found')}s.forEach(x=>new Function(x));console.log('OK: '+s.length+' inline scripts parse cleanly')"
-      - name: Confirm single-file app present
+      - name: Syntax-check the shared logic modules
+        run: |
+          for f in src/lib/*.js; do node --check "$f"; done
+          echo "OK: all modules parse cleanly"
+      - name: Confirm every module index.html loads actually exists
+        run: |
+          node -e "
+            const fs=require('fs');
+            const html=fs.readFileSync('index.html','utf8');
+            const srcs=[...html.matchAll(/<script src=\"(src\/[^\"]+)\"/g)].map(m=>m[1]);
+            if(!srcs.length) throw new Error('index.html no longer loads any src/ module');
+            for(const s of srcs){ if(!fs.existsSync(s)) throw new Error('missing module: '+s); }
+            console.log('OK: '+srcs.length+' modules referenced and present');
+          "
+      - name: Confirm the app entry point is present
         run: test -f index.html && echo "index.html present"

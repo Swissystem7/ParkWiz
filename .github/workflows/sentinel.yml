@@ -50,11 +50,13 @@ jobs:
         run: |
           python3 - << 'EOF'
           import re
-          src = open('index.html', encoding='utf-8').read()
-          m = re.search(r'function genHourlyPattern.*?\n}', src, re.S)
-          assert m, 'genHourlyPattern not found'
-          assert 'Math.random' not in m.group(0), 'REGRESSION: prediction uses Math.random again!'
-          print('OK: prediction is deterministic (no Math.random in genHourlyPattern)')
+          src = open('src/lib/predict.js', encoding='utf-8').read()
+          assert 'function genHourlyPattern' in src, 'genHourlyPattern not found in src/lib/predict.js'
+          code = '\n'.join(l for l in src.split('\n') if not l.strip().startswith('//'))
+          assert 'Math.random' not in code, 'REGRESSION: prediction uses Math.random again!'
+          assert not re.search(r'function genHourlyPattern', open('index.html', encoding='utf-8').read()), \
+              'REGRESSION: genHourlyPattern was inlined back into index.html — it belongs in src/lib/predict.js'
+          print('OK: prediction is deterministic and lives in one tested module')
           EOF
 
       - name: "בדיקה 6: מדד כנות — ספירת randomness"
