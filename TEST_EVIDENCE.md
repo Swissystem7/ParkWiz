@@ -65,6 +65,6 @@ $ node --check availability-model.js
 OK
 
 $ grep sentinel checks on index.html
-sentinel-check-1: OK (no setInterval(liveParkingEvent)
+sentinel-check-1: OK (no setInterval(liveParkingEvent))
 sentinel-check-4: OK (no forbidden real-time claims)
 ```

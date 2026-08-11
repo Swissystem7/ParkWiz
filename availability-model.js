@@ -8,12 +8,28 @@
   const MAX_TTL_MS = 7 * 60 * 1000;
   const BASE_CONFIDENCE = 0.35;
   const MAX_CONFIDENCE = 0.8;
+  const WEEKDAY_TO_NUM = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
+  function modelLocalDayHour(date) {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Jerusalem',
+      weekday: 'short',
+      hour: '2-digit',
+      hour12: false,
+    }).formatToParts(date);
+    let weekday = 'Sun';
+    let hour = 0;
+    for (const part of parts) {
+      if (part.type === 'weekday') weekday = part.value;
+      if (part.type === 'hour') hour = Number(part.value);
+    }
+    return { day: WEEKDAY_TO_NUM[weekday] ?? 0, hour: Number.isFinite(hour) ? hour : 0 };
+  }
+
   function timeAdjustment(date) {
-    const day = date.getDay();
-    const hour = date.getHours();
+    const { day, hour } = modelLocalDayHour(date);
     if (hour >= 23 || hour < 6) return { delta: 12, label: 'שעות לילה מאוחרות: +12' };
     if (day >= 1 && day <= 4 && hour >= 17 && hour <= 20) return { delta: -20, label: 'ערב אמצע שבוע: -20' };
     if (day === 5 && hour >= 8 && hour <= 12) return { delta: -8, label: 'בוקר יום שישי: -8' };
@@ -27,6 +43,7 @@
     return byStreet || byArea;
   }
 
+  // Product contract: only reports created with a 3–7 minute TTL are valid.
   function validReports(reports, streetIdx, areaKey, nowMs) {
     return (reports || []).filter((report) => {
       const createdAt = Number(report.createdAt);
@@ -58,6 +75,7 @@
     const date = now instanceof Date ? now : new Date(nowMs);
     const baselineScore = Number.isFinite(Number(baseline)) ? Number(baseline) : 0;
     const time = timeAdjustment(date);
+    const modelClock = modelLocalDayHour(date);
     const activeReports = validReports(reports, streetIdx, areaKey, nowMs);
     const reportBoostRaw = activeReports.reduce((sum, report) => {
       const weight = Number(report.count ?? 1) * Number(report.confidence);
@@ -79,7 +97,7 @@
       modelVersion: MODEL_VERSION,
       factors: [
         { type: 'baseline', label: 'קו בסיס רחוב/אזור', delta: Math.round(baselineScore), value: Math.round(baselineScore) },
-        { type: 'time', label: time.label, delta: time.delta, day: date.getDay(), hour: date.getHours() },
+        { type: 'time', label: time.label, delta: time.delta, day: modelClock.day, hour: modelClock.hour },
         {
           type: 'user_reports',
           label: activeReports.length ? `דיווחי משתמש תקפים: +${reportBoost}` : 'אין דיווח משתמש תקף',
@@ -98,6 +116,7 @@
     MAX_CONFIDENCE,
     calculate,
     timeAdjustment,
+    modelLocalDayHour,
     validReports,
   };
 });

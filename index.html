@@ -2096,15 +2096,16 @@ function cancelLeaving() {
 function doReportLeaving(count, xpGain) {
   // Update street availability
   const idx = selectedStreetIdx !== null ? selectedStreetIdx : Math.floor(Math.random()*STREETS_DEF.length);
-  STREETS_DEF[idx].avail = Math.min(100, STREETS_DEF[idx].avail + count * 8);
+  const reportCount = Math.max(1, Math.min(3, Number(count) || 1));
+  STREETS_DEF[idx].avail = Math.min(100, STREETS_DEF[idx].avail + reportCount * 8);
   const nowMs = Date.now();
-  PW_COMMUNITY_REPORTS.push({ ts: nowMs, delta: count, streetIdx: idx }); // COMMUNITY_REPORT
+  PW_COMMUNITY_REPORTS.push({ ts: nowMs, delta: reportCount, streetIdx: idx }); // COMMUNITY_REPORT
   USER_REPORTS.push({
     source: 'user',
     streetIdx: idx,
     areaKey: 'netanya-center',
-    count,
-    confidence: Math.max(0.5, Math.min(0.9, 0.45 + count * 0.15)),
+    count: reportCount,
+    confidence: Math.min(0.9, 0.45 + reportCount * 0.15),
     createdAt: nowMs,
     expiresAt: nowMs + 5 * 60 * 1000,
   });

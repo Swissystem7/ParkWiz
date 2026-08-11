@@ -7,7 +7,7 @@ const baselineInput = {
   streetIdx: 1,
   areaKey: 'netanya-center',
   reports: [],
-  now: new Date('2026-07-14T18:00:00Z'),
+  now: new Date('2026-07-14T18:00:00+03:00'),
 };
 
 test('same input always returns identical output', () => {
@@ -18,21 +18,22 @@ test('same input always returns identical output', () => {
 });
 
 test('weekday evening, Friday morning, and late night produce different scores with reasons', () => {
-  const weekdayEvening = model.calculate({ ...baselineInput, now: new Date('2026-07-14T18:00:00Z') });
-  const fridayMorning = model.calculate({ ...baselineInput, now: new Date('2026-07-17T09:00:00Z') });
-  const lateNight = model.calculate({ ...baselineInput, now: new Date('2026-07-15T23:30:00Z') });
+  const weekdayEvening = model.calculate({ ...baselineInput, now: new Date('2026-07-14T18:00:00+03:00') });
+  const fridayMorning = model.calculate({ ...baselineInput, now: new Date('2026-07-17T09:00:00+03:00') });
+  const lateNight = model.calculate({ ...baselineInput, now: new Date('2026-07-15T23:30:00+03:00') });
 
-  assert.notEqual(weekdayEvening.score, fridayMorning.score);
-  assert.notEqual(weekdayEvening.score, lateNight.score);
-  assert.notEqual(fridayMorning.score, lateNight.score);
+  assert.equal(weekdayEvening.score, 50);
+  assert.equal(fridayMorning.score, 62);
+  assert.equal(lateNight.score, 82);
 
-  assert.match(weekdayEvening.factors[1].label, /ערב אמצע שבוע/);
-  assert.match(fridayMorning.factors[1].label, /בוקר יום שישי/);
-  assert.match(lateNight.factors[1].label, /שעות לילה מאוחרות/);
+  const labelFor = (result) => result.factors.find((factor) => factor.type === 'time').label;
+  assert.match(labelFor(weekdayEvening), /ערב אמצע שבוע/);
+  assert.match(labelFor(fridayMorning), /בוקר יום שישי/);
+  assert.match(labelFor(lateNight), /שעות לילה מאוחרות/);
 });
 
 test('expired report has zero impact on score', () => {
-  const createdAt = Date.parse('2026-07-14T17:55:00Z');
+  const createdAt = Date.parse('2026-07-14T17:55:00+03:00');
   const expired = {
     source: 'user',
     streetIdx: 1,
@@ -52,7 +53,7 @@ test('expired report has zero impact on score', () => {
 });
 
 test('confidence rises only when there is a valid unexpired report', () => {
-  const createdAt = Date.parse('2026-07-14T17:58:00Z');
+  const createdAt = Date.parse('2026-07-14T17:58:00+03:00');
   const valid = {
     source: 'user',
     streetIdx: 1,
@@ -75,25 +76,17 @@ test('confidence rises only when there is a valid unexpired report', () => {
 
 test('score is always clamped to legal range', () => {
   const high = model.calculate({
-    baseline: 99,
+    baseline: 200,
     streetIdx: 1,
     areaKey: 'netanya-center',
-    now: new Date('2026-07-15T23:30:00Z'),
-    reports: [{
-      source: 'user',
-      streetIdx: 1,
-      areaKey: 'netanya-center',
-      count: 3,
-      confidence: 1,
-      createdAt: Date.parse('2026-07-15T23:27:00Z'),
-      expiresAt: Date.parse('2026-07-15T23:33:00Z'),
-    }],
+    now: new Date('2026-07-18T13:00:00Z'),
+    reports: [],
   });
   const low = model.calculate({
-    baseline: 2,
+    baseline: -40,
     streetIdx: 1,
     areaKey: 'netanya-center',
-    now: new Date('2026-07-14T18:00:00Z'),
+    now: new Date('2026-07-18T13:00:00Z'),
     reports: [],
   });
 
