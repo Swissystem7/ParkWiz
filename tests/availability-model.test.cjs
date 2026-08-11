@@ -52,6 +52,32 @@ test('expired report has zero impact on score', () => {
   assert.equal(withExpired.validReportCount, 0);
 });
 
+test('report for one street does not affect another street in the same area', () => {
+  const createdAt = Date.parse('2026-07-14T17:58:00+03:00');
+  const reportForStreetZero = {
+    source: 'user',
+    streetIdx: 0,
+    areaKey: 'netanya-center',
+    count: 2,
+    confidence: 0.8,
+    createdAt,
+    expiresAt: createdAt + 5 * 60 * 1000,
+  };
+  const now = new Date(createdAt + 3 * 60 * 1000);
+
+  const baseStreetOne = model.calculate({ baseline: 70, streetIdx: 1, areaKey: 'netanya-center', reports: [], now });
+  const withOtherStreetReport = model.calculate({
+    baseline: 70,
+    streetIdx: 1,
+    areaKey: 'netanya-center',
+    reports: [reportForStreetZero],
+    now,
+  });
+
+  assert.equal(withOtherStreetReport.score, baseStreetOne.score);
+  assert.equal(withOtherStreetReport.validReportCount, 0);
+});
+
 test('confidence rises only when there is a valid unexpired report', () => {
   const createdAt = Date.parse('2026-07-14T17:58:00+03:00');
   const valid = {

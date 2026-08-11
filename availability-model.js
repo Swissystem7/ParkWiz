@@ -38,9 +38,8 @@
   }
 
   function reportMatchesStreet(report, streetIdx, areaKey) {
-    const byStreet = Number.isInteger(streetIdx) && report.streetIdx === streetIdx;
-    const byArea = areaKey && report.areaKey === areaKey;
-    return byStreet || byArea;
+    if (Number.isInteger(streetIdx)) return report.streetIdx === streetIdx;
+    return Boolean(areaKey) && report.areaKey === areaKey;
   }
 
   // Product contract: only reports created with a 3–7 minute TTL are valid.
