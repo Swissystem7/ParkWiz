@@ -914,7 +914,8 @@ async function planVacation() {
   // רחובות בטווח 500 מ' — הסתברות לפי דפוס השעה
   const opts = STREETS_DEF.map((s, i) => {
     const mid = [ (s.a[0]+s.b[0])/2, (s.a[1]+s.b[1])/2 ];
-    return { s, i, dist: Math.round(distM([d.lat,d.lng], mid)), prob: Math.round(STREET_HOURLY[i][hi]*100) };
+    // אותו מודל זמינות (PW-009) שמזין את המסך הראשי — כדי שמתכנן היציאה לא יציג מספר אחר.
+    return { s, i, dist: Math.round(distM([d.lat,d.lng], mid)), prob: getStreetHourlyModelSeries(i)[hi] };
   }).filter(o => o.dist <= 900).sort((a,b) => (b.prob - b.dist/15) - (a.prob - a.dist/15)).slice(0,2);
 
   // החניון האמיתי הקרוב ביותר (אחוזות החוף) — תוכנית ב' בטוחה
@@ -1212,8 +1213,9 @@ function navGmaps(idx, ev) {
 }
 
 // חיזוי הסתברותי דטרמיניסטי (PW-005) — הלוגיקה ב-src/lib/predict.js, מכוסה בטסטים.
-// genHourlyPattern, stableVar, RUSH_WEIGHT ו-HOURLY_SLOTS מגיעים משם.
-const STREET_HOURLY = STREETS_DEF.map((s, i) => genHourlyPattern(s.avail, i));
+// HOURLY_SLOTS ו-getHourlySlotIndex עדיין משמשים לאינדוקס משבצות השעה בגרף.
+// דפוסי genHourlyPattern הוחלפו במודל הזמינות של PW-009 (availability-model.js),
+// כדי שלא יהיו שני מודלים שמחזירים מספרים שונים לאותו רחוב באותה שעה.
 const STREET_BASELINE_AVAILABILITY = STREETS_DEF.map((s) => Math.max(0, Math.min(100, Math.round(s.avail || 0))));
 const AVAILABILITY_MODEL = window.ParkWizAvailability;
 let USER_REPORTS = [];
