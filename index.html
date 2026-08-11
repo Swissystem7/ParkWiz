@@ -348,6 +348,9 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 <div class="park-pricing-overlay" id="parkPricingOverlay">
   <div class="park-pricing-box">
     <div style="font-size:1.2rem;font-weight:900;text-align:center;margin-bottom:4px">🅿️ ParkWiz Premium</div>
+    <div style="margin:0 0 14px;padding:10px 12px;border-radius:14px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.35);color:#fde68a;text-align:center;font-size:0.82rem;font-weight:700">
+      ⚠️ זוהי גרסת הדגמה בלבד — לא מתבצעת גבייה אמיתית
+    </div>
     <div style="text-align:center;color:var(--muted);font-size:0.82rem;margin-bottom:22px">בחר תוכנית שמתאימה לך</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px">
       <div class="pp2">
@@ -369,7 +372,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
           <li>ללא פרסומות</li>
           <li>Priority alerts</li>
         </ul>
-        <button class="btn btn-primary" style="width:100%;margin-top:10px;font-size:0.78rem" onclick="activatePremium()">שדרג</button>
+        <button class="btn btn-primary" style="width:100%;margin-top:10px;font-size:0.78rem" onclick="activatePremium()">הפעל פרמיום (הדגמה)</button>
       </div>
       <div class="pp2">
         <div class="pp2-name">עסק</div>
@@ -2233,7 +2236,7 @@ function activatePremium() {
   pill.style.cssText = 'background:linear-gradient(135deg,#a855f7,#3b82f6);color:#fff;border-color:transparent;border-radius:12px;padding:4px 10px;font-size:0.68rem;font-weight:800;letter-spacing:.4px;white-space:nowrap';
   document.querySelector('.premium-btn').textContent = '✅ Premium פעיל';
   document.querySelector('.premium-btn').style.background = 'rgba(168,85,247,.2)';
-  showToast('🎉 ParkWiz Premium הופעל! הזמנות מראש זמינות.');
+  showToast('🎉 פרמיום הופעל! (לא בוצע חיוב — זוהי הדגמה)');
 }
 
 // ─── "3 רחובות מומלצים" ──────────────────────────────────────────
@@ -2807,7 +2810,7 @@ function pwOpenLegal(kind) {
 const PW_OB_STEPS = [
   { icon: '🅿️', title: 'ברוך הבא ל-ParkWiz!', text: 'הערכת סיכוי לחניה בנתניה — לפי דיווחי קהילה ונתוני עירייה. ירוק = סיכוי גבוה, צהוב = בינוני, אדום = נמוך. חיזוי, לא הבטחה.' },
   { icon: '🚗', title: 'איך משתמשים?', text: 'לחץ על רחוב במפה כדי לראות זמינות לפי שעות. עוזב חניה? לחץ "אני עוזב!" למטה — תעזור לקהילה ותצבור XP 🏆.' },
-  { icon: '⚡', title: 'מה מקבלים ב-Premium?', text: 'הזמנת מקום חניה מראש, התראות push כשמתפנה מקום ברחוב שלך, ללא פרסומות ועדיפות בהתראות — רק ₪14.90 לחודש.' },
+  { icon: '⚡', title: 'מה מקבלים ב-Premium?', text: 'הזמנת מקום חניה מראש, התראות push כשמתפנה מקום ברחוב שלך, ללא פרסומות ועדיפות בהתראות — רק ₪14.90 לחודש (ללא חיוב).' },
 ];
 let pwObStep = 0;
 function pwRenderOb() {
