@@ -21,7 +21,8 @@ for (const heading of [
 test('RESEARCH.md explicitly acknowledges the README/index mismatch', () => {
   assert.match(research, /README\.md/);
   assert.match(research, /index\.html/);
-  assert.match(research, /two overlapping product stories|transitioning from a consumer parking demo toward a municipal CCTV occupancy pilot/);
+  assert.match(research, /consumer parking demo/);
+  assert.match(research, /municipal CCTV occupancy pilot/);
 });
 
 test('RESEARCH.md includes sourced market data and explicit gaps', () => {
