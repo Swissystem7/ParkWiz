@@ -805,6 +805,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 <script src="src/lib/plate.js"></script>
 <script src="src/lib/availability.js"></script>
 <script src="src/lib/predict.js"></script>
+<script src="availability-model.js"></script>
 
 <script>
 // ─── Street Data ──────────────────────────────────────────────────
@@ -913,7 +914,8 @@ async function planVacation() {
   // רחובות בטווח 500 מ' — הסתברות לפי דפוס השעה
   const opts = STREETS_DEF.map((s, i) => {
     const mid = [ (s.a[0]+s.b[0])/2, (s.a[1]+s.b[1])/2 ];
-    return { s, i, dist: Math.round(distM([d.lat,d.lng], mid)), prob: Math.round(STREET_HOURLY[i][hi]*100) };
+    // אותו מודל זמינות (PW-009) שמזין את המסך הראשי — כדי שמתכנן היציאה לא יציג מספר אחר.
+    return { s, i, dist: Math.round(distM([d.lat,d.lng], mid)), prob: getStreetHourlyModelSeries(i)[hi] };
   }).filter(o => o.dist <= 900).sort((a,b) => (b.prob - b.dist/15) - (a.prob - a.dist/15)).slice(0,2);
 
   // החניון האמיתי הקרוב ביותר (אחוזות החוף) — תוכנית ב' בטוחה
@@ -1211,8 +1213,45 @@ function navGmaps(idx, ev) {
 }
 
 // חיזוי הסתברותי דטרמיניסטי (PW-005) — הלוגיקה ב-src/lib/predict.js, מכוסה בטסטים.
-// genHourlyPattern, stableVar, RUSH_WEIGHT ו-HOURLY_SLOTS מגיעים משם.
-const STREET_HOURLY = STREETS_DEF.map((s, i) => genHourlyPattern(s.avail, i));
+// HOURLY_SLOTS ו-getHourlySlotIndex עדיין משמשים לאינדוקס משבצות השעה בגרף.
+// דפוסי genHourlyPattern הוחלפו במודל הזמינות של PW-009 (availability-model.js),
+// כדי שלא יהיו שני מודלים שמחזירים מספרים שונים לאותו רחוב באותה שעה.
+const STREET_BASELINE_AVAILABILITY = STREETS_DEF.map((s) => Math.max(0, Math.min(100, Math.round(s.avail || 0))));
+const AVAILABILITY_MODEL = window.ParkWizAvailability;
+let USER_REPORTS = [];
+
+function pruneUserReports(nowMs = Date.now()) {
+  USER_REPORTS = USER_REPORTS.filter((report) => Number(report.expiresAt) > nowMs);
+}
+
+function getModelOutput(streetIdx, targetDate = new Date()) {
+  const now = targetDate instanceof Date ? targetDate : new Date(targetDate);
+  pruneUserReports(now.getTime());
+  return AVAILABILITY_MODEL.calculate({
+    baseline: STREET_BASELINE_AVAILABILITY[streetIdx],
+    streetIdx,
+    areaKey: 'netanya-center',
+    reports: USER_REPORTS,
+    now,
+  });
+}
+
+function getStreetHourlyModelSeries(streetIdx, referenceDate = new Date()) {
+  const fallback = Math.max(0, Math.min(100, Math.round(STREETS_DEF[streetIdx].avail || 0)));
+  if (!AVAILABILITY_MODEL || typeof AVAILABILITY_MODEL.calculate !== 'function') {
+    return [fallback, fallback, fallback, fallback, fallback, fallback, fallback];
+  }
+  const baseDate = referenceDate instanceof Date ? new Date(referenceDate.getTime()) : new Date(referenceDate);
+  const slotHours = [8, 10, 12, 14, 16, 18, 20];
+  return slotHours.map((hour) => {
+    const slotDate = new Date(baseDate.getTime());
+    slotDate.setHours(hour, 0, 0, 0);
+    if (slotDate.getTime() < baseDate.getTime()) slotDate.setDate(slotDate.getDate() + 1);
+    const model = getModelOutput(streetIdx, slotDate);
+    if (!model || typeof model.score !== 'number') return fallback;
+    return Math.max(0, Math.min(100, Math.round(model.score)));
+  });
+}
 
 const COMMUNITY_FEED = [
   { msg:'👤 משתמש דיווח: חניה פנתה בהרצל 45', street:'הרצל' },
@@ -1327,13 +1366,11 @@ function getArrivalLabel(offsetMin = selectedArrivalOffsetMin) {
 
 function getCurrentHourAvailabilityPct(streetIdx, offsetMinutes = selectedArrivalOffsetMin) {
   const fallback = Math.max(0, Math.min(100, Math.round(STREETS_DEF[streetIdx].avail || 0)));
-  const hourly = STREET_HOURLY[streetIdx];
-  if (!hourly || !hourly.length) return fallback;
+  if (!AVAILABILITY_MODEL || typeof AVAILABILITY_MODEL.calculate !== 'function') return fallback;
   const targetDate = new Date(Date.now() + offsetMinutes * 60000);
-  const slot = getHourlySlotIndex(targetDate, hourly.length);
-  const slotVal = hourly[slot];
-  if (typeof slotVal !== 'number') return fallback;
-  return Math.max(0, Math.min(100, Math.round(slotVal * 100)));
+  const model = getModelOutput(streetIdx, targetDate);
+  if (!model || typeof model.score !== 'number') return fallback;
+  return Math.max(0, Math.min(100, Math.round(model.score)));
 }
 
 function chanceLevel(pct) {
@@ -1708,7 +1745,7 @@ function renderSidePanel() {
 // ─── Street Card ─────────────────────────────────────────────────
 function renderStreetCard(idx, schedulePrompt) {
   const s = STREETS_DEF[idx];
-  const hourly = STREET_HOURLY[idx];
+  const hourly = getStreetHourlyModelSeries(idx, new Date(Date.now() + selectedArrivalOffsetMin * 60000));
   const predictedPct = getCurrentHourAvailabilityPct(idx);
   const color = availColor(predictedPct);
   const chancePct = getCurrentHourAvailabilityPct(idx);
@@ -1735,18 +1772,24 @@ function renderStreetCard(idx, schedulePrompt) {
   const pangoNum = 2 + (typeof pangoEvents !== 'undefined' ? pangoEvents.filter(ev=>ev.streetIdx===idx).length : 0);
   const commScore = pwWeightedAvailability(idx, Date.now());
   const commCount = PW_COMMUNITY_REPORTS.filter(r => r.streetIdx === idx && Date.now() - r.ts <= 7200000).length;
+  const model = getModelOutput(idx, new Date(Date.now() + selectedArrivalOffsetMin * 60000));
+  const confidencePct = Math.round(model.confidence * 100);
+  const modelFactors = model.factors.map((factor) => factor.label).join(' · ');
   document.getElementById('scCommunity').innerHTML = probText +
-    `<div style="font-size:0.66rem;color:var(--muted);margin-top:3px">מבוסס על דפוסי-שעה + חיזוי הסתברותי · הערכה בלבד, לא מלאי מובטח</div>` +
-    (commCount > 0 ? `<div style="font-size:0.66rem;color:var(--green);margin-top:2px">📡 דיווחי קהילה בפועל (COMMUNITY_REPORT): ${commCount} דיווחים · מדד משוקלל ${commScore.toFixed(1)} (דעיכה חצי כל 15 דק')</div>` : '');
+    `<div style="font-size:0.66rem;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid rgba(148,163,184,.25)">🗺️ <b>נתוני GIS עירוניים:</b> שכבת מגרשי חניה סטטית מ-GeoJSON (מיקום בלבד, ללא מדידת תפוסה).</div>` +
+    `<div style="font-size:0.66rem;color:var(--muted);margin-top:4px">🧠 <b>פלט מודל הזמינות:</b> ציון ${model.score}% · ודאות ${confidencePct}% · ${model.modelVersion}</div>` +
+    `<div style="font-size:0.62rem;color:var(--muted);margin-top:2px">גורמים: ${modelFactors}</div>` +
+    `<div style="font-size:0.66rem;color:#eab308;margin-top:4px">🧪 <b>נתוני הדגמה קבועים:</b> ${pangoNum} אירועי סימולציה לתצוגה בלבד.</div>` +
+    `<div style="font-size:0.66rem;color:var(--green);margin-top:4px">👥 <b>דיווחי משתמשים:</b> ${model.validReportCount} תקפים · COMMUNITY_REPORT ${commCount} · מדד משוקלל ${commScore.toFixed(1)} (דעיכה חצי כל 15 דק').</div>`;
   if (schedulePrompt) scheduleFoundPrompt(idx);
 
   // Mini bar chart
   const hours = ['08','10','12','14','16','18','20'];
   const targetSlot = getHourlySlotIndex(new Date(Date.now() + selectedArrivalOffsetMin * 60000), hourly.length);
-  const maxH = Math.max(...hourly);
+  const maxH = Math.max(1, ...hourly);
   document.getElementById('scMiniChart').innerHTML = hourly.map((v,i)=> {
     const h = Math.max(6, Math.round(v/maxH * 36));
-    const c = availColor(Math.round(v*100));
+    const c = availColor(v);
     return `<div class="sc-mini-bar" style="height:${h}px;background:${c};opacity:${i===targetSlot?1:0.65}"></div>`;
   }).join('');
   document.getElementById('scMiniLabels').innerHTML = hours.map(h=>`<div class="sc-mini-label">${h}</div>`).join('');
@@ -2072,8 +2115,18 @@ function cancelLeaving() {
 function doReportLeaving(count, xpGain) {
   // Update street availability
   const idx = selectedStreetIdx !== null ? selectedStreetIdx : Math.floor(Math.random()*STREETS_DEF.length);
-  STREETS_DEF[idx].avail = Math.min(100, STREETS_DEF[idx].avail + count * 8);
-  PW_COMMUNITY_REPORTS.push({ ts: Date.now(), delta: count, streetIdx: idx }); // COMMUNITY_REPORT
+  const reportCount = Math.max(1, Math.min(3, Number(count) || 1));
+  const nowMs = Date.now();
+  PW_COMMUNITY_REPORTS.push({ ts: nowMs, delta: reportCount, streetIdx: idx }); // COMMUNITY_REPORT
+  USER_REPORTS.push({
+    source: 'user',
+    streetIdx: idx,
+    areaKey: 'netanya-center',
+    count: reportCount,
+    confidence: Math.min(0.9, 0.45 + reportCount * 0.15),
+    createdAt: nowMs,
+    expiresAt: nowMs + 5 * 60 * 1000,
+  });
   userScore += xpGain;
   updateXP(xpGain);
   renderAll();

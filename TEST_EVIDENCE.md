@@ -41,3 +41,30 @@ Date: 2026-07-23 (Asia/Jerusalem)
 - `git diff --check` passed.
 - `availabilityScoring.test.js` covers identical-input determinism, demo metadata
   exclusion, real-report confidence, and the active/expired TTL boundary.
+
+## PW-009 deterministic transparent availability model
+
+Date: 2026-08-11 (UTC)
+
+Commands and results:
+
+```text
+$ node tests/availability-model.test.cjs
+PASS: 5/5 tests
+
+$ node --test test/predict.test.js
+PASS: 9/9 tests
+
+$ node --test test/availability.test.js
+PASS: 9/9 tests
+
+$ python (extract inline scripts from index.html) + node --check /tmp/parkwiz-inline-1.js /tmp/parkwiz-inline-2.js
+OK: 2 inline scripts parse cleanly
+
+$ node --check availability-model.js
+OK
+
+$ grep sentinel checks on index.html
+sentinel-check-1: OK (no setInterval(liveParkingEvent))
+sentinel-check-4: OK (no forbidden real-time claims)
+```
