@@ -17,8 +17,9 @@ As checked in `README.md` and `index.html`, the repository currently shows two o
 - Tel Aviv-Yafo says the city is divided into **9 parking zones**; from **2025-02-02**, paid blue-and-white parking starts at **08:00** instead of **09:00**; resident permit holders get the first **2 cumulative hours per day** free outside their own zone via parking apps; the resident discount outside the home zone is **30%**; the resident discount in municipal parking lots remains **75%**.
   - Source: Tel Aviv-Yafo Municipality, 2024-11-26, https://www.tel-aviv.gov.il/en/Pages/MainItemPage.aspx?WebID=9336473c-1537-4ab6-8a69-d299b5db8bcc&ListID=b4eda22c-a69a-4bef-9479-05d5a832ad16&ItemID=308
 
-- The Israeli Privacy Protection Authority said on **2026-04-26** that municipalities may not use **LPR** cameras for parking enforcement without explicit legal authorization.
-  - Source: Privacy Protection Authority (Ministry of Justice, Israel), 2026-04-26, https://www.gov.il/he/pages/license_plate_cctv
+- An Israeli District Court ruled on **2025-12-09** that local authorities may **not** use **LPR** (license-plate recognition) cameras to enforce parking offences without explicit statutory authorization. The judgment was given in administrative petition **עת"מ 12825-12-24, Safer Place Ltd. v. Ramat Gan Municipality**, and the court accepted the State's position, based on the Deputy Attorney General's opinion. The Privacy Protection Authority published the clarification on its site.
+  - Source: Privacy Protection Authority (Ministry of Justice, Israel), https://www.gov.il/he/pages/license_plate_cctv
+  - This is the single most load-bearing external fact for ParkWiz's positioning: the no-license-plate design is not only a privacy preference, it is the only lawful option for a municipal parking product in Israel absent new legislation.
 
 - **לא נמצא נתון מאומת** על גודל שוק החניה החכמה בישראל בלבד מתוך מקור ציבורי קביל וזמין לציטוט חופשי.
 
@@ -48,7 +49,7 @@ As checked in `README.md` and `index.html`, the repository currently shows two o
   - Difference from ParkWiz: Pango is a payment/app layer, not a camera-based occupancy-detection layer.
 
 ## בידול
-- The repo's strongest clear differentiation is **privacy-first occupancy detection without license-plate recognition**. That is stated in `README.md` and `PILOT_README.md`, and it aligns with the Israeli Privacy Protection Authority's 2026 restriction on municipal LPR parking enforcement.
+- The repo's strongest clear differentiation is **privacy-first occupancy detection without license-plate recognition**. That is stated in `README.md` and `PILOT_README.md`, and it aligns with the December 2025 District Court ruling barring municipal LPR parking enforcement without statutory authorization.
 - The stated deployment model is **reuse of existing municipal CCTV instead of new curb hardware**. That is a meaningful difference from sensor-heavy competitors such as Pumba.
 - The checked-in municipal surface is **simple and lightweight**: `pilot-dashboard.html` reads occupancy JSON/JSONL and turns it into occupancy tiles, KPIs, a time-series chart, and a municipal summary, instead of requiring a full operator stack.
 - The repo also shows a current limitation: the differentiation is strongest in product positioning and pilot UX, not in a fully shipped end-to-end production system.
