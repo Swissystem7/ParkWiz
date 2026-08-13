@@ -16,6 +16,7 @@
     accuracy: 'pw_pilot_accuracy',
     pairs: 'pw_pilot_pairs',
     log: 'pw_pilot_log',
+    calibration: 'pw_pilot_calibration',
   });
 
   function num(v) {

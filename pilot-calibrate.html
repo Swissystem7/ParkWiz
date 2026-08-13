@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — כיול מהיר ל־3 דקות</title>
+<meta name="description" content="אשף כיול לעובד עירייה: תמונה, מלבנים, פריים ריק, בדיקה. יעד 3 דקות. היוריסטיקה, לא בינה מלאכותית.">
+<meta name="theme-color" content="#0e7490">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="pilot/shell.css">
+<link rel="stylesheet" href="pilot/print.css">
+<style>
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 72px}
+h1{font-size:1.35rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.steps{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:0;list-style:none}
+.steps li{flex:1;min-width:140px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;font-size:.78rem}
+.steps li .n{font-weight:800;color:var(--brand)}
+.steps li[aria-current="step"]{border-color:var(--brand);box-shadow:0 0 0 2px rgba(14,116,144,.2)}
+.timerbox{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+#timer{font-variant-numeric:tabular-nums;font-weight:800;font-size:1.4rem;color:var(--brand)}
+#timer.over{color:var(--occ)}
+.stage{position:relative;background:#1f2937;border-radius:12px;overflow:hidden;min-height:180px;user-select:none;touch-action:none}
+.stage img{display:block;width:100%;height:auto;pointer-events:none}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.hint{font-size:.78rem;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+@media(max-width:640px){.kpis{grid-template-columns:1fr 1fr}}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.kpi .n{font-size:1.25rem;font-weight:800}
+.kpi .l{font-size:.7rem;color:var(--muted)}
+input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit}
+.panel h2{font-size:.95rem;margin:0 0 8px}
+.hidden{display:none}
+.spot-list{max-height:200px;overflow:auto;font-size:.8rem}
+.spot-item{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid var(--line)}
+.badge{font-size:.7rem;font-weight:800;padding:1px 7px;border-radius:99px}
+.badge.free{background:#dcfce7;color:#166534}
+.badge.occ{background:#fee2e2;color:#991b1b}
+.badge.unk{background:#f3f4f6;color:#374151}
+.navrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">דלג לתוכן</a>
+<div id="pwSurfaceNav" data-active="calibrate"></div>
+<div class="wrap" id="main">
+  <h1>כיול מהיר — יעד 3 דקות</h1>
+  <p class="sub">ארבעה צעדים לעובד עירייה: תמונה, מלבני חניה, פריים ייחוס ריק, בדיקה. בלי שרת ובלי מצלמה חיה.</p>
+  <div class="banner">
+    <b>היוריסטיקה, לא בינה מלאכותית.</b>
+    הכיול שומר מלבנים וסטטיסטיקת פריים ריק לכל מקום. אין אימון מודל, אין לוחיות, ואין הזנה ממצלמת עירייה בריפו.
+    אפשר לסיים על דוגמת הריפו בלי מצלמה.
+  </div>
+
+  <div class="timerbox">
+    <div>
+      <div id="timer" role="timer" aria-live="polite">03:00</div>
+      <div class="hint" id="timerNote">השעון מתחיל בלחיצה על «התחל כיול». היעד הוא 3 דקות, לא SLA.</div>
+    </div>
+    <div class="row" style="margin:0">
+      <button type="button" class="primary" id="btnStart">התחל כיול</button>
+      <button type="button" id="btnDemo">מלא מדוגמת הריפו</button>
+    </div>
+  </div>
+
+  <ol class="steps" id="stepList"></ol>
+
+  <section class="panel" id="panel-image">
+    <h2>1. תמונת snapshot</h2>
+    <p class="hint">העלו צילום מהזווית הקבועה, או טענו את דוגמת הרצל שכלולה בריפו.</p>
+    <div class="row">
+      <label class="hint">רחוב / אתר</label>
+      <input type="text" id="streetName" value="הרצל, נתניה" autocomplete="street-address">
+    </div>
+    <div class="row">
+      <button type="button" id="btnSampleSnap">טען דוגמת יום</button>
+      <label class="hint">צילום נוכחי <input type="file" id="fileSnap" accept="image/*"></label>
+    </div>
+    <div class="stage" id="stage">
+      <img id="snapImg" alt="צילום מגרש חניה לכיול">
+      <canvas id="calCanvas" aria-label="סימון מלבני חניה על התמונה"></canvas>
+    </div>
+    <p class="hint">בשלב 2 גררו על התמונה כדי לסמן מלבן. המלבנים נשמרים כשברים (0–1).</p>
+  </section>
+
+  <section class="panel hidden" id="panel-spots">
+    <h2>2. סימון מלבנים</h2>
+    <p class="hint">מלבן אחד לכל מקום שנמדוד. אפשר לטעון את 12 מקומות הדוגמה.</p>
+    <div class="row">
+      <button type="button" id="btnSampleSpots">טען מלבני דוגמה</button>
+      <button type="button" id="btnUndo">בטל אחרון</button>
+      <button type="button" class="danger" id="btnClear">נקה</button>
+    </div>
+    <div class="spot-list" id="spotList"></div>
+  </section>
+
+  <section class="panel hidden" id="panel-empty">
+    <h2>3. פריים ייחוס ריק</h2>
+    <p class="hint">אותה זווית בלי רכבים. ייחוס לילה הוא רשות — משפר לילה, לא חובה לסיום.</p>
+    <div class="row">
+      <button type="button" id="btnSampleEmpty">טען ייחוס יום</button>
+      <button type="button" id="btnSampleNight">טען ייחוס לילה (רשות)</button>
+      <label class="hint">פריים ריק <input type="file" id="fileEmpty" accept="image/*"></label>
+      <label class="hint">פריים לילה ריק <input type="file" id="fileNight" accept="image/*"></label>
+    </div>
+    <p class="hint" id="emptyNote">עדיין אין ייחוס ריק.</p>
+  </section>
+
+  <section class="panel hidden" id="panel-check">
+    <h2>4. בדיקה ושמירה</h2>
+    <div class="row">
+      <button type="button" class="primary" id="btnEstimate">חשב תפוסה (היוריסטיקה)</button>
+      <button type="button" id="btnSave">שמור כיול בדפדפן + JSON</button>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="kTotal">0</div><div class="l">מקומות</div></div>
+      <div class="kpi"><div class="n" id="kOcc" style="color:var(--occ)">0</div><div class="l">תפוסים (הערכה)</div></div>
+      <div class="kpi"><div class="n" id="kFree" style="color:var(--free)">0</div><div class="l">פנויים (הערכה)</div></div>
+      <div class="kpi"><div class="n" id="kLight">—</div><div class="l">תאורה מסווגת</div></div>
+    </div>
+    <p class="hint" id="estNote">עדיין לא חושב. אחרי הייחוס הריק — «חשב תפוסה».</p>
+  </section>
+
+  <div class="navrow">
+    <button type="button" id="btnPrev">חזרה</button>
+    <button type="button" class="primary" id="btnNext">המשך</button>
+    <a href="./pilot-method.html">מתודולוגיה</a>
+    <a href="./pilot-eval.html">דיוק דמו</a>
+    <a href="./pilot-kit.html">ערכת הפיילוט המלאה</a>
+  </div>
+  <div class="foot">ParkWiz · אשף כיול מקומי · יעד 3 דקות · בלי CDN</div>
+</div>
+<script src="src/lib/occupancy.js"></script>
+<script src="src/lib/heuristic.js"></script>
+<script src="src/lib/calibrate.js"></script>
+<script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
+<script>
+"use strict";
+
+const OCC = window.ParkWizOccupancy;
+const HEU = window.ParkWizHeuristic;
+const CAL = window.ParkWizCalibrate;
+
+const state = {
+  step: 0,
+  startedAt: 0,
+  tick: null,
+  spots: [],
+  estimates: [],
+  drag: null,
+  snap: null,
+  empty: null,
+  night: null,
+  hasEmpty: false,
+  hasNight: false,
+  lastLot: null,
+};
+
+const snapImg = document.getElementById("snapImg");
+const canvas = document.getElementById("calCanvas");
+const ctx = canvas.getContext("2d");
+
+function street() {
+  return document.getElementById("streetName").value.trim() || "רחוב לא צוין";
+}
+
+function download(name, text) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 800);
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("image load failed"));
+    img.src = src;
+  });
+}
+
+function waitImg() {
+  return new Promise((resolve) => {
+    if (snapImg.complete && snapImg.naturalWidth) { resolve(); return; }
+    snapImg.onload = () => resolve();
+  });
+}
+
+function renderSteps() {
+  const ol = document.getElementById("stepList");
+  ol.replaceChildren();
+  CAL.STEPS.forEach((st, i) => {
+    const li = document.createElement("li");
+    if (i === state.step) li.setAttribute("aria-current", "step");
+    const n = document.createElement("div");
+    n.className = "n";
+    n.textContent = (i + 1) + ". " + st.label;
+    const s = document.createElement("div");
+    s.className = "hint";
+    s.textContent = "כ־" + st.seconds + " שנ׳";
+    li.appendChild(n);
+    li.appendChild(s);
+    ol.appendChild(li);
+  });
+  ["image", "spots", "empty", "check"].forEach((id, i) => {
+    document.getElementById("panel-" + id).classList.toggle("hidden", i !== state.step);
+  });
+  document.getElementById("btnPrev").disabled = state.step === 0;
+  document.getElementById("btnNext").textContent = state.step === 3 ? "סיים" : "המשך";
+}
+
+function tickClock() {
+  if (!state.startedAt) return;
+  const elapsed = Date.now() - state.startedAt;
+  const left = CAL.TARGET_SEC * 1000 - elapsed;
+  const el = document.getElementById("timer");
+  if (left >= 0) {
+    el.textContent = CAL.formatClock(left);
+    el.classList.remove("over");
+    document.getElementById("timerNote").textContent = "נשארו מתוך יעד 3 הדקות.";
+  } else {
+    el.textContent = "+" + CAL.formatClock(-left);
+    el.classList.add("over");
+    document.getElementById("timerNote").textContent = "עברתם 3 דקות — עדיין אפשר לשמור. זה יעד, לא SLA.";
+  }
+}
+
+function startClock() {
+  if (state.startedAt) return;
+  state.startedAt = Date.now();
+  state.tick = setInterval(tickClock, 250);
+  tickClock();
+}
+
+function resizeCanvas() {
+  canvas.width = Math.round(snapImg.clientWidth || 1);
+  canvas.height = Math.round(snapImg.clientHeight || 1);
+}
+
+function drawOverlay() {
+  if (!snapImg.naturalWidth) return;
+  resizeCanvas();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  state.spots.forEach((s, i) => {
+    const x = s.x * canvas.width, y = s.y * canvas.height;
+    const w = s.w * canvas.width, h = s.h * canvas.height;
+    const est = state.estimates[i];
+    let fill = "rgba(255,255,255,.12)";
+    let stroke = "#e5e7eb";
+    if (est && est.occupied) { fill = "rgba(220,38,38,.35)"; stroke = "#fecaca"; }
+    if (est && est.occupied === false) { fill = "rgba(22,163,74,.35)"; stroke = "#bbf7d0"; }
+    ctx.fillStyle = fill;
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 2;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 12px sans-serif";
+    ctx.fillText(String(i + 1), x + 6, y + 16);
+  });
+  if (state.drag) {
+    const x = Math.min(state.drag.x0, state.drag.x1) * canvas.width;
+    const y = Math.min(state.drag.y0, state.drag.y1) * canvas.height;
+    const w = Math.abs(state.drag.x1 - state.drag.x0) * canvas.width;
+    const h = Math.abs(state.drag.y1 - state.drag.y0) * canvas.height;
+    ctx.strokeStyle = "#67e8f9";
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(x, y, w, h);
+    ctx.setLineDash([]);
+  }
+}
+
+function eventFrac(ev) {
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)),
+    y: Math.max(0, Math.min(1, (ev.clientY - r.top) / r.height)),
+  };
+}
+
+canvas.addEventListener("pointerdown", (ev) => {
+  if (state.step !== 1 || !snapImg.naturalWidth) return;
+  canvas.setPointerCapture(ev.pointerId);
+  const p = eventFrac(ev);
+  state.drag = { x0: p.x, y0: p.y, x1: p.x, y1: p.y };
+  drawOverlay();
+});
+canvas.addEventListener("pointermove", (ev) => {
+  if (!state.drag) return;
+  const p = eventFrac(ev);
+  state.drag.x1 = p.x; state.drag.y1 = p.y;
+  drawOverlay();
+});
+canvas.addEventListener("pointerup", () => {
+  if (!state.drag) return;
+  const x = Math.min(state.drag.x0, state.drag.x1);
+  const y = Math.min(state.drag.y0, state.drag.y1);
+  const w = Math.abs(state.drag.x1 - state.drag.x0);
+  const h = Math.abs(state.drag.y1 - state.drag.y0);
+  state.drag = null;
+  if (w > 0.02 && h > 0.02) {
+    state.spots.push({ id: "s" + Date.now(), x, y, w, h });
+    state.estimates = [];
+  }
+  drawOverlay();
+  renderSpotList();
+});
+
+function renderSpotList() {
+  const el = document.getElementById("spotList");
+  if (!state.spots.length) {
+    el.innerHTML = '<p class="hint">אין מלבנים עדיין.</p>';
+    return;
+  }
+  el.replaceChildren();
+  state.spots.forEach((s, i) => {
+    const est = state.estimates[i];
+    const row = document.createElement("div");
+    row.className = "spot-item";
+    const name = document.createElement("span");
+    name.textContent = "מקום " + (i + 1);
+    const badge = document.createElement("span");
+    badge.className = "badge " + (est ? (est.occupied ? "occ" : "free") : "unk");
+    badge.textContent = est ? (est.occupied ? "תפוס · היוריסטיקה" : "פנוי · היוריסטיקה") : "לא חושב";
+    row.appendChild(name);
+    row.appendChild(badge);
+    el.appendChild(row);
+  });
+}
+
+function rgbaForRect(img, spot) {
+  const c = document.createElement("canvas");
+  c.width = img.naturalWidth || img.width;
+  c.height = img.naturalHeight || img.height;
+  const g = c.getContext("2d");
+  g.drawImage(img, 0, 0, c.width, c.height);
+  const x = Math.max(0, Math.floor(spot.x * c.width));
+  const y = Math.max(0, Math.floor(spot.y * c.height));
+  const w = Math.max(1, Math.floor(spot.w * c.width));
+  const h = Math.max(1, Math.floor(spot.h * c.height));
+  return g.getImageData(x, y, Math.min(w, c.width - x), Math.min(h, c.height - y)).data;
+}
+
+function refFromImg(img, spot) {
+  if (!img) return null;
+  const st = HEU.statsFromRgba(rgbaForRect(img, spot), HEU.SAMPLE_STRIDE);
+  st.lighting = HEU.classifyLighting(st.mean);
+  return st;
+}
+
+function currentPack() {
+  return CAL.buildPack({
+    street: street(),
+    hasEmpty: state.hasEmpty,
+    hasNightEmpty: state.hasNight,
+    lighting: state.lastLot ? state.lastLot.lighting : "",
+    spots: state.spots.map((s) => ({
+      ...s,
+      emptyRef: state.hasEmpty ? refFromImg(state.empty, s) : null,
+      nightRef: state.hasNight ? refFromImg(state.night, s) : null,
+    })),
+  });
+}
+
+function computeEstimate() {
+  if (!state.snap || !state.spots.length) {
+    document.getElementById("estNote").textContent = "חסרים תמונה או מלבנים.";
+    return;
+  }
+  const items = state.spots.map((spot) => {
+    const curData = rgbaForRect(state.snap, spot);
+    const emptyData = state.hasEmpty && state.empty ? rgbaForRect(state.empty, spot) : null;
+    const nightData = state.hasNight && state.night ? rgbaForRect(state.night, spot) : null;
+    return {
+      id: spot.id,
+      cur: HEU.statsFromRgba(curData, HEU.SAMPLE_STRIDE),
+      empty: emptyData ? HEU.statsFromRgba(emptyData, HEU.SAMPLE_STRIDE) : null,
+      emptyNight: nightData ? HEU.statsFromRgba(nightData, HEU.SAMPLE_STRIDE) : null,
+      curSamples: HEU.lumaSamples(curData, HEU.SAMPLE_STRIDE),
+      emptySamples: emptyData ? HEU.lumaSamples(emptyData, HEU.SAMPLE_STRIDE) : null,
+      emptyNightSamples: nightData ? HEU.lumaSamples(nightData, HEU.SAMPLE_STRIDE) : null,
+    };
+  });
+  const lot = HEU.estimateLot(items);
+  state.lastLot = lot;
+  state.estimates = lot.estimates;
+  document.getElementById("kTotal").textContent = String(lot.total);
+  document.getElementById("kOcc").textContent = String(lot.occupied);
+  document.getElementById("kFree").textContent = String(lot.total - lot.occupied);
+  const lightHe = lot.lighting === "night" ? "לילה" : lot.lighting === "dusk" ? "דמדומים" : "יום";
+  document.getElementById("kLight").textContent = lightHe;
+  const method = lot.estimates[0] ? HEU.methodLabelHe(lot.estimates[0].method) : "—";
+  document.getElementById("estNote").textContent =
+    "הערכה היוריסטית בשיטת «" + method + "», תאורה " + lightHe +
+    ", confidence=" + lot.confidence.toFixed(2) +
+    ". זה לא דיוק מדוד מול פקח.";
+  const rec = {
+    ts: new Date().toISOString(),
+    street: street(),
+    total: lot.total,
+    occupied: lot.occupied,
+    source: "heuristic-occupancy",
+    confidence: lot.confidence,
+  };
+  try {
+    const prev = OCC.loadStoredOccupancy();
+    prev.push(rec);
+    OCC.saveOccupancy(prev);
+    localStorage.setItem(OCC.LS.estimate, JSON.stringify(lot.estimates));
+    localStorage.setItem(OCC.LS.street, street());
+  } catch (e) { /* private mode */ }
+  drawOverlay();
+  renderSpotList();
+}
+
+function savePack() {
+  const pack = currentPack();
+  try {
+    localStorage.setItem(OCC.LS.calibration, JSON.stringify(pack));
+    localStorage.setItem(OCC.LS.spots, JSON.stringify({
+      version: 1,
+      street: street(),
+      savedAt: pack.savedAt,
+      note: "מלבני כיול מהאשף. לא מדידת עירייה חיה.",
+      spots: state.spots,
+    }));
+  } catch (e) { /* quota */ }
+  download("calibration.json", JSON.stringify(pack, null, 2));
+  const elapsed = state.startedAt ? Date.now() - state.startedAt : 0;
+  const clock = CAL.formatClock(elapsed);
+  document.getElementById("estNote").textContent =
+    (CAL.underTarget(elapsed) ? "כיול נשמר תוך " : "כיול נשמר אחרי ") +
+    clock + ". הקובץ מסומן heuristic-occupancy.";
+}
+
+async function loadUrl(path) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(path);
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
+}
+
+async function setSnap(url) {
+  state.snap = await loadImage(url);
+  snapImg.src = url;
+  state.estimates = [];
+  await waitImg();
+  drawOverlay();
+}
+
+async function fillDemo() {
+  startClock();
+  await setSnap(await loadUrl("pilot/sample-lot.svg"));
+  state.empty = await loadImage(await loadUrl("pilot/sample-empty.svg"));
+  state.hasEmpty = true;
+  try {
+    state.night = await loadImage(await loadUrl("pilot/sample-empty-night.svg"));
+    state.hasNight = true;
+  } catch (e) { state.hasNight = false; }
+  const raw = await (await fetch("pilot/sample-spots.json")).json();
+  state.spots = (raw.spots || []).map((s, i) => ({
+    id: s.id || ("s" + (i + 1)), x: s.x, y: s.y, w: s.w, h: s.h,
+  }));
+  document.getElementById("streetName").value = raw.street || "הרצל, נתניה";
+  document.getElementById("emptyNote").textContent =
+    "ייחוס יום" + (state.hasNight ? " + ייחוס לילה" : "") + " מהדוגמה שבריפו.";
+  state.step = 3;
+  renderSteps();
+  renderSpotList();
+  drawOverlay();
+  computeEstimate();
+}
+
+function showEmptyNote() {
+  const parts = [];
+  if (state.hasEmpty) parts.push("יש ייחוס יום");
+  if (state.hasNight) parts.push("יש ייחוס לילה");
+  document.getElementById("emptyNote").textContent = parts.length ? parts.join(" · ") : "עדיין אין ייחוס ריק.";
+}
+
+document.getElementById("btnStart").addEventListener("click", () => {
+  startClock();
+  state.step = 0;
+  renderSteps();
+});
+document.getElementById("btnDemo").addEventListener("click", () => fillDemo().catch(() => {
+  document.getElementById("estNote").textContent = "לא ניתן לטעון את הדוגמה (נסו דרך שרת מקומי / GitHub Pages).";
+}));
+document.getElementById("btnSampleSnap").addEventListener("click", async () => {
+  startClock();
+  await setSnap(await loadUrl("pilot/sample-lot.svg"));
+});
+document.getElementById("fileSnap").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  startClock();
+  await setSnap(await fileToDataUrl(f));
+});
+document.getElementById("btnSampleSpots").addEventListener("click", async () => {
+  const raw = await (await fetch("pilot/sample-spots.json")).json();
+  state.spots = (raw.spots || []).map((s, i) => ({
+    id: s.id || ("s" + (i + 1)), x: s.x, y: s.y, w: s.w, h: s.h,
+  }));
+  state.estimates = [];
+  renderSpotList();
+  drawOverlay();
+});
+document.getElementById("btnUndo").addEventListener("click", () => {
+  state.spots.pop(); state.estimates = []; renderSpotList(); drawOverlay();
+});
+document.getElementById("btnClear").addEventListener("click", () => {
+  state.spots = []; state.estimates = []; renderSpotList(); drawOverlay();
+});
+document.getElementById("btnSampleEmpty").addEventListener("click", async () => {
+  state.empty = await loadImage(await loadUrl("pilot/sample-empty.svg"));
+  state.hasEmpty = true;
+  showEmptyNote();
+});
+document.getElementById("btnSampleNight").addEventListener("click", async () => {
+  state.night = await loadImage(await loadUrl("pilot/sample-empty-night.svg"));
+  state.hasNight = true;
+  showEmptyNote();
+});
+document.getElementById("fileEmpty").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  state.empty = await loadImage(await fileToDataUrl(f));
+  state.hasEmpty = true;
+  showEmptyNote();
+});
+document.getElementById("fileNight").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  state.night = await loadImage(await fileToDataUrl(f));
+  state.hasNight = true;
+  showEmptyNote();
+});
+document.getElementById("btnEstimate").addEventListener("click", computeEstimate);
+document.getElementById("btnSave").addEventListener("click", savePack);
+document.getElementById("btnPrev").addEventListener("click", () => {
+  if (state.step > 0) { state.step -= 1; renderSteps(); }
+});
+document.getElementById("btnNext").addEventListener("click", () => {
+  startClock();
+  if (state.step < 3) { state.step += 1; renderSteps(); }
+});
+window.addEventListener("resize", drawOverlay);
+
+renderSteps();
+renderSpotList();
+</script>
+</body>
+</html>

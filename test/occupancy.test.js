@@ -70,6 +70,12 @@ test('hour heatmap uses the recorded clock hour, not the machine timezone', () =
   assert.match(svg, /<rect/);
 });
 
+test('calibration pack shares the occupancy localStorage namespace', () => {
+  assert.equal(occ.LS.calibration, 'pw_pilot_calibration');
+  assert.ok(occ.LS.spots);
+  assert.ok(occ.LS.log);
+});
+
 test('inspector accuracy is 1 minus absolute error over total', () => {
   assert.equal(occ.inspectorAccuracy(7, 7, 12), 1);
   assert.equal(occ.inspectorAccuracy(7, 5, 10), 0.8);
