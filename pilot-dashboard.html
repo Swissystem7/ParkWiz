@@ -83,6 +83,9 @@
 </style>
 </head>
 <body>
+<a class="skip-link" href="#tiles" style="position:absolute;top:-40px;right:8px;z-index:400;background:var(--brand);color:#fff;padding:8px 12px;border-radius:8px;font-weight:700;text-decoration:none">דלג לתוכן</a>
+<style>.skip-link:focus{top:8px}:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.banner{background:#fffbeb;border:1px solid #f59e0b;color:#92400e;border-radius:12px;padding:10px 14px;font-size:.86rem;margin-bottom:16px}</style>
 <div id="pwSurfaceNav" data-active="dash"></div>
 <div class="wrap">
 
@@ -93,8 +96,8 @@
         <path d="M14 29V11h7.2c3.6 0 5.9 2.2 5.9 5.6 0 3.4-2.4 5.6-6 5.6H18v6.8h-4z M18 18.9h2.8c1.6 0 2.5-.8 2.5-2.3 0-1.5-.9-2.3-2.5-2.3H18v4.6z" fill="#fff"/>
       </svg>
       <div>
-        <h1>ParkWiz — ניהול חניה עירוני</h1>
-        <div class="sub">רחוב <b id="streetName">—</b> · פיילוט עירוני</div>
+        <h1>ParkWiz — דשבורד תפוסה (דמו)</h1>
+        <div class="sub">רחוב <b id="streetName">—</b> · קובץ occupancy / דוגמה מובנית</div>
       </div>
     </div>
     <div class="meta">
@@ -102,6 +105,11 @@
       <div>עודכן לאחרונה: <b id="lastUpdated">—</b></div>
     </div>
   </header>
+
+  <div class="banner" role="note">
+    <b>לא מצלמה חיה ולא הזנה עירונית.</b>
+    הדשבורד מציג occupancy.json / דוגמה מקומית. אין צינור מצלמה בריפו ואין אכיפה.
+  </div>
 
   <div class="toolbar">
     <button class="primary" id="btnReport">הפק דוח עירוני</button>
@@ -148,7 +156,7 @@
 
   </div>
 
-  <div class="foot">ParkWiz · פיילוט חניה חכמה · נתונים אנונימיים ברמת הרחוב</div>
+  <div class="foot">ParkWiz · דשבורד דמו · occupancy מקומי / sample · לא מצלמה חיה</div>
 </div>
 
 <script src="src/lib/occupancy.js"></script>

@@ -2,13 +2,13 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>ParkWiz — העוזר החכם לחניה ברחוב</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParkWiz — הדגמת חניית רחוב בנתניה</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<meta name="description" content="ParkWiz — הערכת סיכוי למצוא חניה בנתניה לפי דיווחי קהילה ונתוני עירייה. חיזוי הסתברותי, לא הבטחה. חסוך זמן, דלק ועצבים.">
-<meta property="og:title" content="ParkWiz — הערכת סיכוי לחניית רחוב">
-<meta property="og:description" content="מפת סיכויי חניה מבוססת קהילה ונתוני עירייה: הערכה לפי רחוב, דיווחי 'אני עוזב' והזמנת מקום מראש.">
+<meta name="description" content="ParkWiz — דמו דפדפן להערכת סיכוי חניה בנתניה. נתוני בסיס מקומיים + דיווח «אני עוזב» בדפדפן. חיזוי הסתברותי, לא הבטחה, לא הזנה עירונית חיה.">
+<meta property="og:title" content="ParkWiz — הדגמת חניית רחוב בנתניה">
+<meta property="og:description" content="מפת סיכויי חניה להדגמה: בסיס מקומי לפי רחוב, דיווחי «אני עוזב» בדפדפן, וערכת פיילוט תפוסה לעירייה. אין סליקה ואין הזנה עירונית חיה.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#22c55e">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -433,8 +433,8 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
     </div>
     <span style="display:block;text-align:center;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline" onclick="closeParkPricing()">המשך עם Free</span>
     <div style="text-align:center;margin-top:10px;font-size:0.68rem;color:var(--muted)">
-      <span style="cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('terms')">תנאי שימוש</span> ·
-      <span style="cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('privacy')">מדיניות פרטיות</span>
+      <button type="button" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('terms')">תנאי שימוש (דמו)</button> ·
+      <button type="button" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('privacy')">מדיניות פרטיות (דמו)</button>
     </div>
   </div>
 </div>
@@ -550,7 +550,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
     </button>
     <div class="panel-header">
       <h3>🛣️ רחובות קרובים</h3>
-      <p id="panelSub">הערכה לפי דיווחי קהילה ונתוני עירייה</p>
+      <p id="panelSub">הערכה לפי בסיס דמו מקומי + דיווחי «אני עוזב» בדפדפן (לא הזנה עירונית)</p>
     </div>
     <div class="arrival-row" id="arrivalRow">
       <button class="arrival-chip active" data-offset="0" onclick="setArrivalOffset(0)" aria-pressed="true">עכשיו</button>
@@ -585,32 +585,32 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
     </div>
     <!-- Arrival mode: curb map around destination -->
     <div class="live-feed" id="arrivalPanel" style="display:none;border-color:rgba(74,222,128,.4)"></div>
-    <!-- Live community feed -->
+    <!-- Demo community feed (canned sample messages — not a live network) -->
     <div class="live-feed">
-      <div class="feed-title"><span class="live-dot"></span>עדכוני קהילה אחרונים</div>
-      <div id="feedItem" class="feed-item">טוען...</div>
+      <div class="feed-title"><span class="live-dot" style="background:var(--yellow)"></span>הודעות דמו לדוגמה <span style="font-size:.6rem;color:#eab308;background:rgba(234,179,8,.12);border-radius:6px;padding:1px 5px;font-weight:600">לא קהילה חיה</span></div>
+      <div id="feedItem" class="feed-item" aria-live="polite">טוען...</div>
       <div id="feedTime" class="feed-time"></div>
       <div style="display:flex;gap:6px;margin-top:5px">
-        <button onclick="confirmFeed(true)" style="flex:1;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.4);border-radius:8px;padding:4px;font-size:.68rem;cursor:pointer">👍 עדיין פנוי (+5 XP)</button>
-        <button onclick="confirmFeed(false)" style="flex:1;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:4px;font-size:.68rem;cursor:pointer">👎 כבר תפוס (+5 XP)</button>
+        <button type="button" onclick="confirmFeed(true)" style="flex:1;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.4);border-radius:8px;padding:4px;font-size:.68rem;cursor:pointer">👍 עדיין פנוי (+5 XP)</button>
+        <button type="button" onclick="confirmFeed(false)" style="flex:1;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:4px;font-size:.68rem;cursor:pointer">👎 כבר תפוס (+5 XP)</button>
       </div>
     </div>
-    <!-- Private parking marketplace -->
+    <!-- Private parking marketplace (demo inventory only) -->
     <div class="live-feed" style="border-color:rgba(168,85,247,.35)">
-      <div class="feed-title" style="color:#c084fc">🏠 חניות פרטיות להשכרה</div>
+      <div class="feed-title" style="color:#c084fc">🏠 חניות פרטיות להשכרה <span style="font-size:.6rem;color:#eab308;background:rgba(234,179,8,.12);border-radius:6px;padding:1px 5px;font-weight:600">מלאי דמו</span></div>
       <div id="privList"></div>
-      <div style="font-size:.65rem;color:var(--muted)">יש לך חניה פרטית? <b style="color:#c084fc;cursor:pointer" onclick="showToast('🏠 בקרוב: פרסם את החניה שלך והרווח ₪ כשאתה לא בבית!')">השכר אותה →</b></div>
-      <div style="font-size:.62rem;color:var(--muted);margin-top:3px">🔒 נסחרות כאן רק חניות פרטיות. חניה ציבורית לא נמכרת ולא תימכר — זה גם לא חוקי.</div>
+      <div style="font-size:.65rem;color:var(--muted)">יש לך חניה פרטית? <button type="button" style="background:none;border:none;color:#c084fc;cursor:pointer;font:inherit;font-weight:700;text-decoration:underline;padding:0" onclick="showToast('🏠 הדגמה: אין פרסום חי — ראו marketplace.html')">השכר אותה (דמו) →</button></div>
+      <div style="font-size:.62rem;color:var(--muted);margin-top:3px">🔒 בדמו: רק רשומות מקומיות. חניה ציבורית לא נמכרת — ואין סליקה אמיתית.</div>
     </div>
     <!-- מד צפיפות קהילה: הפתרון לביצה-ותרנגולת — שכונה אחת בכל פעם -->
     <div class="live-feed" style="border-color:rgba(56,189,248,.35)">
-      <div class="feed-title" style="color:#38bdf8">📡 צפיפות דיווח — מרכז נתניה <span style="font-size:.6rem;color:#eab308;background:rgba(234,179,8,.12);border-radius:6px;padding:1px 5px;font-weight:600">הדגמה</span></div>
+      <div class="feed-title" style="color:#38bdf8">📡 צפיפות דיווח — מרכז נתניה <span style="font-size:.6rem;color:#eab308;background:rgba(234,179,8,.12);border-radius:6px;padding:1px 5px;font-weight:600">מספרי דמו קבועים</span></div>
       <div style="display:flex;align-items:center;gap:8px;margin:4px 0">
-        <div style="flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden"><div style="width:68%;height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e)"></div></div>
+        <div style="flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden" role="img" aria-label="מד דמו: 34 מתוך 50"><div style="width:68%;height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e)"></div></div>
         <b style="font-size:.75rem">34/50</b>
       </div>
-      <div style="font-size:.68rem;color:var(--muted)">34 מדווחים פעילים בשכונה · דיוק חיזוי מוערך: 68%. עוד 16 שכנים = דיוק מלא.</div>
-      <div style="text-align:center;margin-top:5px"><b style="font-size:.72rem;color:#38bdf8;cursor:pointer" onclick="showToast('📲 קישור הזמנה הועתק — שתף בקבוצת הוואטסאפ השכונתית!')">+ הזמן שכן ולקבל 50 XP</b></div>
+      <div style="font-size:.68rem;color:var(--muted)">מספרים מוצגים להמחשת ממשק בלבד — אין מונה משתמשים חי ואין דיוק שדה נמדד.</div>
+      <div style="text-align:center;margin-top:5px"><button type="button" style="background:none;border:none;font-size:.72rem;color:#38bdf8;cursor:pointer;font-weight:700;font-family:inherit;text-decoration:underline" onclick="showToast('📲 הדגמה: קישור הזמנה לא הועתק — אין שרת הזמנות')">+ הזמן שכן (הדגמה, +50 XP)</button></div>
     </div>
     <!-- Departure helper -->
     <div class="departure-panel" id="departurePanel">
@@ -645,24 +645,24 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
       <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:68%"></div></div>
     </div>
 
-    <div class="leaderboard-title">🏆 דירוג שבועי</div>
-    <div id="leaderboard"></div>
+    <div class="leaderboard-title">🏆 דירוג שבועי <span style="font-weight:600;color:var(--yellow);font-size:0.62rem">(דמו)</span></div>
+    <div id="leaderboard" aria-label="לוח מובילים להדגמה — שמות ומספרים קבועים"></div>
 
-    <div class="challenges-title">🎯 אתגרים</div>
+    <div class="challenges-title">🎯 אתגרים <span style="font-weight:600;color:var(--yellow);font-size:0.62rem">(דמו)</span></div>
     <div class="challenge-item">
       <div class="ch-title">דווח 5 חניות היום</div>
-      <div style="color:var(--muted);font-size:0.65rem">3/5 הושלמו</div>
-      <div class="ch-progress"><div class="ch-fill" style="width:60%"></div></div>
+      <div style="color:var(--muted);font-size:0.65rem">התקדמות דמו: 3/5</div>
+      <div class="ch-progress" role="progressbar" aria-valuenow="3" aria-valuemin="0" aria-valuemax="5" aria-label="אתגר דמו: 3 מתוך 5"><div class="ch-fill" style="width:60%"></div></div>
     </div>
     <div class="challenge-item">
       <div class="ch-title">חנה ברחוב הרצל</div>
-      <div style="color:var(--muted);font-size:0.65rem">0/1 הושלמו</div>
-      <div class="ch-progress"><div class="ch-fill" style="width:0%"></div></div>
+      <div style="color:var(--muted);font-size:0.65rem">התקדמות דמו: 0/1</div>
+      <div class="ch-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1" aria-label="אתגר דמו: 0 מתוך 1"><div class="ch-fill" style="width:0%"></div></div>
     </div>
     <div class="challenge-item">
       <div class="ch-title">שבוע רצוף דיווחים</div>
-      <div style="color:var(--muted);font-size:0.65rem">4/7 ימים</div>
-      <div class="ch-progress"><div class="ch-fill" style="width:57%;background:var(--purple)"></div></div>
+      <div style="color:var(--muted);font-size:0.65rem">התקדמות דמו: 4/7 ימים</div>
+      <div class="ch-progress" role="progressbar" aria-valuenow="4" aria-valuemin="0" aria-valuemax="7" aria-label="אתגר דמו: 4 מתוך 7"><div class="ch-fill" style="width:57%;background:var(--purple)"></div></div>
     </div>
   </div>
 </div>
@@ -1141,12 +1141,13 @@ function liveParkingEvent() {
   renderAll();
 }
 // ─── השכרת חניות פרטיות — המרקטפלייס ───
+// Fixed demo private inventory — not a live marketplace.
 const PRIVATE_SPOTS = [
-  { owner:'דנה',  addr:"הרצל 42 (חניון בניין)",        lat:32.3274, lng:34.8605, price:12, len:5.0, booked:false },
-  { owner:'אבי',  addr:"שדרות בנימין 18 (חצר)",        lat:32.3204, lng:34.8555, price:10, len:4.6, booked:false },
-  { owner:'משה',  addr:"רזיאל 9 (שער חשמלי)",          lat:32.3298, lng:34.8631, price:15, len:5.4, booked:false },
-  { owner:'רותם', addr:"שדרות ויצמן 60 (מקורה)",       lat:32.3352, lng:34.8593, price:18, len:4.8, booked:false },
-  { owner:'יעל',  addr:"דן שומרון 4 (פרטית)",          lat:32.3105, lng:34.8613, price:9,  len:4.3, booked:false },
+  { owner:'דנה (דמו)',  addr:"הרצל 42 (חניון בניין)",        lat:32.3274, lng:34.8605, price:12, len:5.0, booked:false },
+  { owner:'אבי (דמו)',  addr:"שדרות בנימין 18 (חצר)",        lat:32.3204, lng:34.8555, price:10, len:4.6, booked:false },
+  { owner:'משה (דמו)',  addr:"רזיאל 9 (שער חשמלי)",          lat:32.3298, lng:34.8631, price:15, len:5.4, booked:false },
+  { owner:'רותם (דמו)', addr:"שדרות ויצמן 60 (מקורה)",       lat:32.3352, lng:34.8593, price:18, len:4.8, booked:false },
+  { owner:'יעל (דמו)',  addr:"דן שומרון 4 (פרטית)",          lat:32.3105, lng:34.8613, price:9,  len:4.3, booked:false },
 ];
 let privMarkers = [];
 function privPopupHtml(i) {
@@ -1311,33 +1312,36 @@ function getStreetHourlyModelSeries(streetIdx, referenceDate = new Date()) {
   });
 }
 
+// Canned demo messages only — not a live community network.
 const COMMUNITY_FEED = [
-  { msg:'👤 משתמש דיווח: חניה פנתה בהרצל 45', street:'הרצל' },
-  { msg:'👤 שדרות בנימין פנויה בקצה הצפוני', street:'שדרות בנימין' },
-  { msg:'👤 רזיאל 12 — 2 מקומות התפנו', street:'רזיאל' },
-  { msg:'👤 דן שומרון קרוב לפינת הרצל — פנוי!', street:'דן שומרון' },
-  { msg:'👤 פתח-תקווה עמוס, נסה שדרות ויצמן', street:'פתח-תקווה' },
-  { msg:'👤 האר"י ליד הפארק — 3 מקומות', street:'האר"י' },
-  { msg:'👤 בן גוריון מלא, הגיעו מוקדם!', street:'בן גוריון' },
-  { msg:'👤 שדרות בן צבי — מקום נפתח ליד 12', street:'שדרות בן צבי יצחק' },
+  { msg:'[דמו] 👤 חניה פנתה בהרצל 45', street:'הרצל' },
+  { msg:'[דמו] 👤 שדרות בנימין פנויה בקצה הצפוני', street:'שדרות בנימין' },
+  { msg:'[דמו] 👤 רזיאל 12 — 2 מקומות התפנו', street:'רזיאל' },
+  { msg:'[דמו] 👤 דן שומרון קרוב לפינת הרצל — פנוי', street:'דן שומרון' },
+  { msg:'[דמו] 👤 פתח-תקווה עמוס, נסה שדרות ויצמן', street:'פתח-תקווה' },
+  { msg:'[דמו] 👤 האר"י ליד הפארק — 3 מקומות', street:'האר"י' },
+  { msg:'[דמו] 👤 בן גוריון מלא, הגיעו מוקדם', street:'בן גוריון' },
+  { msg:'[דמו] 👤 שדרות בן צבי — מקום נפתח ליד 12', street:'שדרות בן צבי יצחק' },
 ];
 let feedIdx = 0;
 let feedSecondsAgo = 0;
 
+// Fixed demo names and scores — not a real ranking service.
 const LEADERBOARD = [
-  {name:'יוסי כ.', pts:820},
-  {name:'מיכל ל.', pts:750},
-  {name:'אתה', pts:340, me:true},
-  {name:'רונן מ.', pts:280},
-  {name:'שרית ד.', pts:195},
+  {name:'יוסי כ. (דמו)', pts:820},
+  {name:'מיכל ל. (דמו)', pts:750},
+  {name:'אתה (דמו)', pts:340, me:true},
+  {name:'רונן מ. (דמו)', pts:280},
+  {name:'שרית ד. (דמו)', pts:195},
 ];
 
+// Seed history for the demo UI — not a saved account history.
 const HISTORY = [
-  {addr:'רח\' הרצל 88', time:'אמש 19:23', saved:'4 דקות', pts:25},
-  {addr:'שד\' בנימין 30', time:'א\' 08:15', saved:'7 דקות', pts:40},
-  {addr:'רח\' רזיאל 52', time:'ב\' 13:00', saved:'2 דקות', pts:15},
-  {addr:'שד\' ויצמן 10', time:'ג\' 10:30', saved:'9 דקות', pts:50},
-  {addr:'רח\' דן שומרון 4', time:'ה\' 17:45', saved:'3 דקות', pts:20},
+  {addr:'רח\' הרצל 88 (דמו)', time:'אמש 19:23', saved:'4 דקות', pts:25},
+  {addr:'שד\' בנימין 30 (דמו)', time:'א\' 08:15', saved:'7 דקות', pts:40},
+  {addr:'רח\' רזיאל 52 (דמו)', time:'ב\' 13:00', saved:'2 דקות', pts:15},
+  {addr:'שד\' ויצמן 10 (דמו)', time:'ג\' 10:30', saved:'9 דקות', pts:50},
+  {addr:'רח\' דן שומרון 4 (דמו)', time:'ה\' 17:45', saved:'3 דקות', pts:20},
 ];
 
 const TA_STREETS = ['רחוב הרצל','שדרות בנימין','שדרות ויצמן','רחוב רזיאל','שדרות בן גוריון','שדרות בן צבי יצחק','רחוב האר"י','רחוב פתח-תקווה','רחוב דן שומרון'];
@@ -2131,15 +2135,15 @@ function confirmFeed(stillFree) {
 function updateFeed() {
   const item = COMMUNITY_FEED[feedIdx % COMMUNITY_FEED.length];
   document.getElementById('feedItem').textContent = item.msg;
-  // ודאות דועכת עם הזמן — דיווח חניה "נרקב" תוך דקות
+  // Demo-only confidence decay for UI practice — not a live feed clock.
   let conf = '';
   if (item.t) {
     const ageS = Math.round((Date.now() - item.t) / 1000);
     const pct = Math.max(0, Math.round(100 - ageS / 1.8)); // 100% → 0% תוך 3 דק'
-    conf = ` · ודאות ${pct}%` + (pct < 40 ? ' ⚠' : '');
+    conf = ` · ודאות דמו ${pct}%` + (pct < 40 ? ' ⚠' : '');
   }
   document.getElementById('feedTime').textContent =
-    (feedSecondsAgo === 0 ? 'עכשיו' : `לפני ${feedSecondsAgo} שניות`) + conf;
+    'סיבוב הודעות דמו · ' + (feedSecondsAgo === 0 ? 'החלפה עכשיו' : `החלפה בעוד ${4 - feedSecondsAgo} שנ׳`) + conf;
 }
 
 function toggleHistory() {
@@ -2311,7 +2315,7 @@ function answerFound(ans) {
 
 // ─── באנר קהילת WhatsApp ─────────────────────────────────────────
 function joinWaCommunity() {
-  const msg = '🅿️ הצטרפתי לקהילת החניה של השכונה ב-ParkWiz! בואו נעזור אחד לשני למצוא חניה — הסתברויות אמיתיות, לא הבטחות: https://swissystem7.github.io/ParkWiz/';
+  const msg = 'ParkWiz — דמו חניית רחוב בנתניה (הערכת סיכוי, לא הבטחה, לא הזנה עירונית חיה): https://swissystem7.github.io/ParkWiz/';
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 function closeWaBanner() {
@@ -2773,20 +2777,20 @@ activatePremium = function() { track('upgrade_click', { plan: 'premium' }); _pwO
 
 /* ── Legal ── */
 const PW_LEGAL = {
-  terms: { title: 'תנאי שימוש', html: `
-<p><strong>1. כללי.</strong> ברוכים הבאים ל-ParkWiz, פלטפורמה קהילתית לאיתור חניות רחוב. השימוש באפליקציה, במפה ובדיווחי הקהילה כפוף לתנאים אלו. עצם השימוש מהווה הסכמה מלאה להם.</p>
-<p><strong>2. אופי המידע.</strong> נתוני הזמינות מבוססים על דיווחי משתמשים ואומדנים סטטיסטיים. ParkWiz אינה מתחייבת שחניה שדווחה כפנויה אכן תהיה זמינה בהגעתך, ואינה אחראית לדוחות חניה, גרירה או כל נזק הנובע מהסתמכות על המידע.</p>
-<p><strong>3. שימוש בזמן נהיגה.</strong> אין להשתמש באפליקציה תוך כדי נהיגה. הדיווח והחיפוש ייעשו רק כשהרכב חונה או על ידי נוסע. האחריות לציות לחוקי התנועה חלה עליך בלבד.</p>
-<p><strong>4. דיווחי קהילה.</strong> הנך מתחייב לדווח מידע אמין בלבד. דיווחים כוזבים או שימוש לרעה עלולים להוביל להשעיית החשבון ואיפוס נקודות ה-XP.</p>
-<p><strong>5. מנוי Premium.</strong> תוכנית Premium מחויבת חודשית וניתנת לביטול בכל עת דרך הגדרות החשבון. הזמנת מקום מראש כפופה לזמינות בפועל ואינה מובטחת.</p>
-<p><strong>6. הגבלת אחריות ודין.</strong> השירות ניתן כפי שהוא (AS-IS). הדין החל הוא דין מדינת ישראל, וסמכות השיפוט הבלעדית נתונה לבתי המשפט המוסמכים בתל אביב-יפו.</p>` },
-  privacy: { title: 'מדיניות פרטיות', html: `
-<p><strong>1. איזה מידע נאסף.</strong> בעת הרשמה נאספים שם ואימייל. במהלך השימוש נאספים דיווחי חניה, רחובות שנצפו ונתוני שימוש כלליים לצורך שיפור דיוק המפה.</p>
-<p><strong>2. נתוני מיקום.</strong> ככל שתאשר גישה למיקום, הוא ישמש להצגת רחובות קרובים ולשיוך דיווחים בלבד. איננו עוקבים אחר מסלולי נסיעה ואיננו משתפים מיקום עם מפרסמים.</p>
-<p><strong>3. שימוש במידע.</strong> המידע משמש לתפעול השירות, חישוב הערכת סיכוי לחניה, ניקוד XP ולוח מובילים. דיווחים מוצגים לקהילה באופן אנונימי.</p>
-<p><strong>4. אחסון מקומי.</strong> העדפות, היסטוריה ומשוב נשמרים בדפדפן שלך (localStorage). מחיקת נתוני הדפדפן תמחק מידע זה.</p>
-<p><strong>5. זכויותיך.</strong> באפשרותך לבקש עיון, תיקון או מחיקה של המידע האישי שלך, וכן לסגור את החשבון בכל עת בפנייה לתמיכה.</p>
-<p><strong>6. עדכונים.</strong> מדיניות זו עשויה להתעדכן. שינוי מהותי יוצג באפליקציה, והמשך שימוש מהווה הסכמה לנוסח המעודכן.</p>` }
+  terms: { title: 'תנאי שימוש (דמו)', html: `
+<p><strong>1. זה דמו.</strong> ParkWiz בדפדפן זה הוא הדגמת ממשק וערכת פיילוט — לא שירות חניה חי, לא מוצר מסחרי, ולא הזנה עירונית.</p>
+<p><strong>2. אופי המידע.</strong> אחוזי הזמינות מבוססים על בסיס דמו מקומי, מודל שעתי דטרמיניסטי, ודיווחי «אני עוזב» שנשמרים בדפדפן. אין הבטחה שחניה תהיה פנויה, ואין אחריות לקנסות או גרירה.</p>
+<p><strong>3. שימוש בזמן נהיגה.</strong> אין להשתמש במפה תוך כדי נהיגה. חיפוש ודיווח — רק כשהרכב חונה או על ידי נוסע.</p>
+<p><strong>4. דיווחי קהילה בדמו.</strong> דיווח «אני עוזב» מעדכן את האחוז המוצג מקומית. אין שרת קהילה ואין חשבון משתמש.</p>
+<p><strong>5. Premium.</strong> כפתורי Premium והזמנה הם סימולציה בלבד — אין סליקה, אין מנוי, ואין שריון מקום.</p>
+<p><strong>6. הגבלת אחריות.</strong> הדמו ניתן כפי שהוא (AS-IS). הדין החל הוא דין מדינת ישראל.</p>` },
+  privacy: { title: 'מדיניות פרטיות (דמו)', html: `
+<p><strong>1. אין הרשמה.</strong> הדמו אינו אוסף שם או אימייל לשרת. אין חשבון ענן.</p>
+<p><strong>2. מיקום.</strong> אם תאשר/י גישה למיקום בדפדפן, הוא משמש להצגת «אתה כאן» במפה בלבד. אין מעקב מסלול ואין שיתוף עם מפרסמים.</p>
+<p><strong>3. מה נשמר מקומית.</strong> העדפות, דיווחים, משוב ומצב Premium-דמו נשמרים ב־localStorage בדפדפן שלך. מחיקת נתוני האתר מוחקת אותם.</p>
+<p><strong>4. אנליטיקה.</strong> אירועי track (אם קיימים) הם מקומיים להדגמה — אין שרת אנליטיקה בריפו.</p>
+<p><strong>5. פיילוט מצלמה.</strong> מדידת תפוסה אנונימית ממצלמה עירונית אינה רצה בריפו זה; ראו <a href="./pilot-privacy.html">בקשת גישה / פרטיות</a>.</p>
+<p><strong>6. עדכונים.</strong> נוסח זה מתאר את הדמו כפי שהוא בריפו. שינוי מהותי יופיע כאן.</p>` }
 };
 function pwOpenLegal(kind) {
   document.getElementById('pwLegalTitle').textContent = PW_LEGAL[kind].title;
@@ -2796,9 +2800,9 @@ function pwOpenLegal(kind) {
 
 /* ── Onboarding ── */
 const PW_OB_STEPS = [
-  { icon: '🅿️', title: 'ברוך הבא ל-ParkWiz!', text: 'הערכת סיכוי לחניה בנתניה — לפי דיווחי קהילה ונתוני עירייה. ירוק = סיכוי גבוה, צהוב = בינוני, אדום = נמוך. חיזוי, לא הבטחה.' },
-  { icon: '🚗', title: 'איך משתמשים?', text: 'לחץ על רחוב במפה כדי לראות זמינות לפי שעות. עוזב חניה? לחץ "אני עוזב!" למטה — תעזור לקהילה ותצבור XP 🏆.' },
-  { icon: '⚡', title: 'מה מקבלים ב-Premium?', text: 'הזמנת מקום חניה מראש, התראות push כשמתפנה מקום ברחוב שלך, ללא פרסומות ועדיפות בהתראות — רק ₪14.90 לחודש (ללא חיוב).' },
+  { icon: '🅿️', title: 'ברוך הבא ל-ParkWiz!', text: 'זו הדגמת ממשק לחניית רחוב בנתניה — בסיס דמו מקומי + דיווח «אני עוזב» בדפדפן. ירוק = סיכוי גבוה, צהוב = בינוני, אדום = נמוך. חיזוי, לא הבטחה, לא הזנה עירונית חיה.' },
+  { icon: '🚗', title: 'איך משתמשים?', text: 'לחץ על רחוב במפה כדי לראות זמינות לפי שעות. עוזב חניה? לחץ «אני עוזב!» למטה — האחוז המוצג מתעדכן מקומית, ומצטבר XP בדמו 🏆.' },
+  { icon: '⚡', title: 'Premium בדמו בלבד', text: 'הזמנה מראש, התראות push ומחיר ₪14.90 לחודש מוצגים להמחשה בלבד — אין חיוב, אין שרת ואין שריון מקום אמיתי.' },
 ];
 let pwObStep = 0;
 function pwRenderOb() {
