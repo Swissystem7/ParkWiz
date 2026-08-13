@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — בקשת גישה למצלמה והצהרת פרטיות</title>
+<style>
+:root{
+  --bg:#f4f6f8; --panel:#fff; --ink:#111827; --muted:#6b7280;
+  --line:#e5e7eb; --brand:#0e7490; --warn:#92400e; --warnbg:#fffbeb;
+  --shadow:0 1px 2px rgba(16,24,40,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:system-ui,"Segoe UI",Roboto,"Noto Sans Hebrew",Arial,sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.55;
+}
+nav.pw-surface-nav{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;
+  padding:7px 12px;background:#0f1420;border-bottom:1px solid rgba(255,255,255,.08);
+  font:600 0.78rem system-ui,sans-serif;
+}
+nav a{color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none}
+nav a.here{color:#fff;background:rgba(14,116,144,.45);border-color:rgba(103,232,249,.45)}
+.wrap{max-width:800px;margin:0 auto;padding:20px 16px 72px}
+h1{font-size:1.35rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.banner{
+  background:var(--warnbg);border:1px solid #f59e0b;color:var(--warn);
+  border-radius:12px;padding:10px 14px;font-size:.86rem;margin-bottom:16px;
+}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+button{
+  font:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;
+  padding:7px 12px;border-radius:10px;font-weight:600;font-size:.82rem;
+}
+button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);margin-bottom:14px}
+.panel h2{font-size:.95rem;margin:0 0 10px}
+label{display:block;font-size:.78rem;color:var(--muted);margin:8px 0 3px}
+input,textarea{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;
+}
+textarea{min-height:70px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+ul.check{list-style:none;padding:0;margin:0}
+ul.check li{padding:6px 0 6px 0;border-bottom:1px solid var(--line);font-size:.88rem}
+ul.check li:last-child{border:none}
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:18px}
+.line{border-top:1px solid #111;margin-top:48px;padding-top:6px;font-size:.78rem;color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:16px}
+a{color:var(--brand)}
+
+@media print{
+  nav.pw-surface-nav,.toolbar,.no-print{display:none!important}
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  .panel{box-shadow:none;break-inside:avoid}
+  input,textarea{border:none;border-bottom:1px solid #111;border-radius:0;padding:2px 0}
+}
+</style>
+</head>
+<body>
+<nav class="pw-surface-nav">
+  <span style="color:#8ba3c7">ParkWiz</span>
+  <a href="./">מפת חניה עירונית</a>
+  <a href="./pilot-kit.html">ערכת פיילוט</a>
+  <a href="./pilot-report.html">דוח פיילוט</a>
+  <a class="here" href="./pilot-privacy.html">בקשת גישה / פרטיות</a>
+  <a href="./pilot-dashboard.html">דשבורד פיילוט עירוני</a>
+</nav>
+<div class="wrap">
+  <h1>בקשת גישה ל־snapshot + הצהרת פרטיות</h1>
+  <p class="sub">מסמך להדפסה ליחידת חדשנות / יועמ״ש / אגף תנועה בנתניה. ממלאים, מדפיסים, מעבירים לאישור — בלי מכרז ובלי תשלום.</p>
+  <div class="banner">
+    <b>טיוטת בקשה, לא ייעוץ משפטי ולא הסכם חתום.</b>
+    אין בריפו צינור מצלמה חי. הבקשה היא ל־snapshot אחד ממצלמה קיימת, ל־30 יום, חינם.
+    ParkWiz לא מזהה לוחיות ולא פנים. אחרי פס״ד LPR (עת״מ 12825-12-24) המדידה המבוקשת היא תפוס/פנוי בלבד — לא אכיפה.
+  </div>
+
+  <div class="toolbar no-print">
+    <button type="button" class="primary" id="btnPrint">הדפס / PDF</button>
+    <button type="button" id="btnFill30">מלא 30 יום מהיום</button>
+  </div>
+
+  <section class="panel">
+    <h2>1. מה מתבקש</h2>
+    <p style="margin:0;font-size:.92rem">
+      פיילוט טכני חינם ל־30 יום: גישת קריאה ל־snapshot (תמונה בודדת, לא זרם וידאו)
+      ממצלמה עירונית <b>אחת</b> שכבר מותקנת. בסוף התקופה העירייה מקבלת
+      <a href="./pilot-report.html">דוח מדידה</a> (תפוסה מול ספירת פקח). אין החלפת פנגו/סלו, אין חומרה חדשה, אין חיוב.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>2. פרטי הבקשה</h2>
+    <div class="grid2">
+      <div>
+        <label for="org">גוף מבקש</label>
+        <input id="org" value="ParkWiz — אבירן סוויסה">
+      </div>
+      <div>
+        <label for="contact">איש קשר / טלפון / דוא״ל</label>
+        <input id="contact" placeholder="שם, טלפון, מייל">
+      </div>
+      <div>
+        <label for="cityUnit">יחידה בעירייה</label>
+        <input id="cityUnit" value="יחידת חדשנות / אגף תנועה וחניה, עיריית נתניה">
+      </div>
+      <div>
+        <label for="cam">מצלמה מבוקשת (מיקום / מזהה)</label>
+        <input id="cam" placeholder="למשל: הרצל פינת שדרות בנימין, מצלמת צומת מס׳ —">
+      </div>
+      <div>
+        <label for="start">תחילת פיילוט</label>
+        <input id="start" type="date">
+      </div>
+      <div>
+        <label for="end">סיום פיילוט</label>
+        <input id="end" type="date">
+      </div>
+    </div>
+    <label for="notes">הערות (רשות)</label>
+    <textarea id="notes" placeholder="שעת snapshot, איש קשר טכני ב־VMS, מגבלות זווית…"></textarea>
+  </section>
+
+  <section class="panel">
+    <h2>3. מה לא ייעשה — התחייבות למסמך</h2>
+    <ul class="check">
+      <li>לא יישמר וידאו רציף. רק תמונת snapshot לצורך ספירת תפוס/פנוי.</li>
+      <li>לא יזוהו לוחיות רישוי (LPR). לא יזוהו פנים.</li>
+      <li>הפלט הוא מספרים: סך מקומות, כמה תפוסים, חותמת זמן, רחוב. בלי תמונת רכב בדוח.</li>
+      <li>אין אכיפה, אין קנס, אין «המלצת גרירה» כחלק מהפיילוט.</li>
+      <li>מצלמה אחת, רחוב אחד, 30 יום, ללא עלות וללא התחייבות להמשך.</li>
+      <li>בסיום: מחיקת הגישה והעתקי ה־snapshot לפי הוראת העירייה.</li>
+    </ul>
+    <p style="font-size:.8rem;color:var(--muted);margin:10px 0 0">
+      הקשר הרגולטורי (לא ייעוץ): הבהרת הרשות להגנת הפרטיות על
+      <a href="https://www.gov.il/he/pages/license_plate_cctv">שימוש ב־LPR לאכיפת חניה</a>
+      ורוח תיקון 13. המסלול המבוקש הוא מדידה אנונימית, לא אכיפה במצלמות.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>4. רשימת בדיקה ליועמ״ש / אבטחת מידע</h2>
+    <ul class="check">
+      <li>☐ אין גישת כתיבה למצלמה / VMS — קריאה בלבד.</li>
+      <li>☐ אין חיבור לרשת אכיפה או למאגר לוחיות.</li>
+      <li>☐ מוגדר איש קשר בעירייה שמאשר כל הרחבה מעבר למצלמה אחת.</li>
+      <li>☐ הדוח הסופי הוא <a href="./pilot-report.html">מסמך מדידה</a> שניתן להדפיס, לא מערכת הפעלה חיה.</li>
+      <li>☐ יש תוכנית מחיקה ביום 30.</li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h2>5. חתימות (ידניות אחרי הדפסה)</h2>
+    <div class="sign">
+      <div class="line">מבקש הפיילוט · תאריך</div>
+      <div class="line">מאשר/ת מטעם העירייה · תפקיד · תאריך</div>
+    </div>
+  </section>
+
+  <div class="foot">ParkWiz · בקשת גישה ל־snapshot · טיוטה להדפסה · לא הסכם ולא ייעוץ משפטי</div>
+</div>
+<script>
+"use strict";
+function fill30() {
+  const a = new Date();
+  const b = new Date(a.getTime() + 30 * 24 * 3600 * 1000);
+  const iso = (d) => d.toISOString().slice(0, 10);
+  document.getElementById("start").value = iso(a);
+  document.getElementById("end").value = iso(b);
+}
+document.getElementById("btnFill30").addEventListener("click", fill30);
+document.getElementById("btnPrint").addEventListener("click", () => window.print());
+fill30();
+["org","contact","cityUnit","cam","start","end","notes"].forEach((id) => {
+  const el = document.getElementById(id);
+  try {
+    const v = localStorage.getItem("pw_priv_" + id);
+    if (v) el.value = v;
+  } catch (e) {}
+  el.addEventListener("change", () => {
+    try { localStorage.setItem("pw_priv_" + id, el.value); } catch (e) {}
+  });
+});
+</script>
+</body>
+</html>
