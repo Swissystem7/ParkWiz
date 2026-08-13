@@ -71,10 +71,23 @@ test('occupancy parse still accepts the kit schema used by export', () => {
   assert.match(csv, /הרצל/);
 });
 
+test('field-log CSV keeps empty days as blank cells', () => {
+  const csv = exp.logToCsv([
+    { day: 1, date: '2026-08-01', lighting: 'לילה', total: 12, systemOccupied: 4, manualOccupied: 5, note: 'פקח, "לילה"', source: 'sample' },
+    { day: 2, date: '2026-08-02', lighting: '', total: null, systemOccupied: null, manualOccupied: null, note: '', source: '' },
+  ]);
+  const lines = csv.split('\n');
+  assert.equal(lines[0], 'day,date,lighting,total,systemOccupied,manualOccupied,note,source');
+  assert.match(lines[1], /"פקח, ""לילה"""/);
+  assert.match(lines[2], /^2,2026-08-02,,,,,,$/);
+});
+
 test('README names the comparison, summary, and field PWA honestly', () => {
   const readme = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
   assert.match(readme, /pilot-compare\.html/);
   assert.match(readme, /pilot-summary\.html/);
+  assert.match(readme, /pilot-log\.html/);
+  assert.match(readme, /pilot-brief\.html/);
   assert.match(readme, /PWA/);
   assert.match(readme, /sample/);
 });

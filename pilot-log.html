@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — יומן שדה 30 יום</title>
+<meta name="description" content="יומן יומי לפיילוט תפוסה אנונימית בנתניה. כלל עצירה מ־RESEARCH.md, בלי מצלמה חיה ובלי לוחיות.">
+<meta name="theme-color" content="#0e7490">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="pilot/shell.css">
+<link rel="stylesheet" href="pilot/print.css">
+<style>
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 88px}
+h1{font-size:1.35rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+@media(max-width:720px){.kpis{grid-template-columns:1fr 1fr}}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.kpi .n{font-size:1.25rem;font-weight:800}
+.kpi .l{font-size:.7rem;color:var(--muted)}
+.verdict{border-radius:12px;padding:12px 14px;margin-top:12px;border:1px solid var(--line)}
+.verdict.SAMPLE_ONLY,.verdict.INSUFFICIENT{background:#fffbeb;border-color:#f59e0b}
+.verdict.CONTINUE{background:#ecfdf5;border-color:#6ee7b7}
+.verdict.PARK_ACCURACY,.verdict.PARK_NO_ACCESS{background:#fef2f2;border-color:#fecaca}
+.verdict h3{margin:0 0 6px;font-size:.95rem}
+.verdict ul{margin:6px 0 0;padding-inline-start:18px;font-size:.84rem}
+.flags{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:640px){.flags{grid-template-columns:1fr}}
+label{display:block;font-size:.8rem;color:var(--muted);margin:8px 0 4px}
+input[type=text],input[type=date],input[type=number],select,textarea{
+  width:100%;max-width:280px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;
+}
+textarea{min-height:64px;resize:vertical}
+.check{display:flex;align-items:flex-start;gap:8px;font-size:.86rem;margin:8px 0}
+.check input{margin-top:3px}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.day{
+  border:1px solid var(--line);border-radius:10px;padding:8px 8px 6px;background:#fff;
+  cursor:pointer;text-align:center;font:inherit;width:100%;
+}
+.day:hover,.day:focus-visible{border-color:var(--brand)}
+.day.on{border-color:var(--brand);box-shadow:0 0 0 2px rgba(14,116,144,.25)}
+.day .d{font-weight:800;font-size:.95rem}
+.day .dt{font-size:.68rem;color:var(--muted)}
+.day .st{font-size:.68rem;font-weight:700;margin-top:4px}
+.day.filled .st{color:#166534}
+.day.gap .st{color:#92400e}
+.day.sample .st{color:#9a3412}
+.editor{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:720px){.editor{grid-template-columns:1fr 1fr}}
+.hint{font-size:.78rem;color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+#pwInstallBtn{display:none}
+#pwInstallBtn.show{display:inline-block}
+.status{min-height:1.3em;font-size:.86rem;font-weight:700;margin:8px 0 0}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">דלג לתוכן</a>
+<div id="pwSurfaceNav" data-active="log"></div>
+<div class="wrap" id="main">
+  <h1>יומן שדה — 30 יום על מצלמה אחת</h1>
+  <p class="sub">הפרוטוקול שהמחקר דרש: ספירת פקח מול הערכה, תאורה, ימים חסרים, וכלל עצירה שרץ על המספרים. בלי שרת. נשמר בדפדפן זה.</p>
+  <div class="banner">
+    <b>זה יומן שדה, לא הזנה חיה.</b>
+    אין בריפו מצלמת עירייה. יום בלי ספירה נשאר ריק — לא ממלאים אקראית.
+    סדרת הדוגמה מסומנת <code>sample</code> ואינה פסק דין שטח. אין לוחיות ואין אכיפה.
+  </div>
+
+  <div class="toolbar no-print">
+    <button type="button" class="primary" id="btnSample">טען יומן דוגמה</button>
+    <button type="button" id="btnFromPairs">יבא מהשוואת דיוק</button>
+    <label class="no-print" style="margin:0;max-width:none">טען יומן JSON
+      <input type="file" id="fileLog" accept=".json,application/json">
+    </label>
+    <button type="button" id="btnCsv">ייצוא CSV</button>
+    <button type="button" id="btnJson">ייצוא JSON</button>
+    <button type="button" id="pwInstallBtn">הוסף למסך הבית</button>
+    <button type="button" id="btnClear">מחק יומן בדפדפן זה</button>
+  </div>
+  <p class="status" id="status" role="status"></p>
+
+  <section class="panel">
+    <h2>פסק הדין לפי כלל העצירה</h2>
+    <p class="hint" style="margin-top:0">
+      מ־<a href="./RESEARCH.md">RESEARCH.md</a>: מתחת להצהרת יצרן (~96% Camlytics) בלי תוכנית כיול — PARK.
+      30 יום מהפנייה בלי גישת snapshot ובלי בקשת דמו — PARK. סדרת דוגמה לא מחליטה.
+    </p>
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="kDays">0</div><div class="l">ימים עם ספירה</div></div>
+      <div class="kpi"><div class="n" id="kRate">—</div><div class="l">הסכם מול פקח</div></div>
+      <div class="kpi"><div class="n" id="kCi">—</div><div class="l">רווח סמך 95% (Wilson)</div></div>
+      <div class="kpi"><div class="n" id="kBias">—</div><div class="l">הטיה (מערכת − פקח)</div></div>
+    </div>
+    <div class="verdict INSUFFICIENT" id="verdictBox">
+      <h3 id="verdictLabel">אין עדיין מספיק תצפיות לפסק דין.</h3>
+      <ul id="verdictReasons"></ul>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>תנאי הפיילוט (ידניים, כנים)</h2>
+    <div class="flags">
+      <div>
+        <label for="streetName">רחוב / אתר</label>
+        <input type="text" id="streetName" value="הרצל, נתניה">
+        <label for="startDate">יום 1 ביומן</label>
+        <input type="date" id="startDate" value="2026-08-01">
+        <label for="outreach">תאריך שליחת הפנייה (אם נשלחה)</label>
+        <input type="date" id="outreach">
+      </div>
+      <div>
+        <label class="check"><input type="checkbox" id="calPlan"> יש תוכנית כיול פר־מצלמה כתובה (לא סיסמה)</label>
+        <label class="check"><input type="checkbox" id="camAccess"> התקבלה גישת snapshot למצלמה אחת</label>
+        <label class="check"><input type="checkbox" id="integrator"> אינטגרטור / פומבה ביקשו דמו טכני</label>
+        <p class="hint">התיבות האלה לא מסומנות כברירת מחדל. אין גישת מצלמה בריפו.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>30 הימים</h2>
+    <p class="hint">לחצו על יום כדי למלא ספירה. ירוק = יש זוג. כתום = אין ספירה. חום = דוגמה.</p>
+    <div class="days" id="dayGrid"></div>
+  </section>
+
+  <section class="panel" id="editorPanel">
+    <h2 id="editorTitle">עריכת יום</h2>
+    <div class="editor">
+      <div>
+        <label for="eDate">תאריך</label>
+        <input type="date" id="eDate">
+      </div>
+      <div>
+        <label for="eLight">תאורה / מזג אוויר</label>
+        <select id="eLight">
+          <option value="">לא צוין</option>
+        </select>
+      </div>
+      <div>
+        <label for="eTotal">סך מקומות מסומנים</label>
+        <input type="number" id="eTotal" min="1" step="1">
+      </div>
+      <div>
+        <label for="eSys">תפוסים — הערכת מערכת</label>
+        <input type="number" id="eSys" min="0" step="1">
+      </div>
+      <div>
+        <label for="eMan">תפוסים — ספירת פקח</label>
+        <input type="number" id="eMan" min="0" step="1">
+      </div>
+      <div>
+        <label for="eNote">הערה</label>
+        <input type="text" id="eNote" placeholder="משמרת, זווית מצלמה…">
+      </div>
+    </div>
+    <div class="toolbar" style="margin-top:12px;margin-bottom:0">
+      <button type="button" class="primary" id="btnSaveDay">שמור יום</button>
+      <button type="button" id="btnClearDay">נקה יום זה</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>מפת חום שעתית (מתפוסה שמורה)</h2>
+    <p class="hint">אם יש occupancy בערכת הפיילוט — מתי הרחוב מלא, בלי המלצת אכיפה.</p>
+    <div id="heat"></div>
+  </section>
+
+  <div class="foot">ParkWiz · יומן שדה מקומי · כלל עצירה מהמחקר · בלי מצלמה חיה</div>
+</div>
+<script src="src/lib/occupancy.js"></script>
+<script src="src/lib/compare.js"></script>
+<script src="src/lib/protocol.js"></script>
+<script src="src/lib/export.js"></script>
+<script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
+<script>
+"use strict";
+
+const OCC = window.ParkWizOccupancy;
+const CMP = window.ParkWizCompare;
+const PRO = window.ParkWizProtocol;
+const EXP = window.ParkWizExport;
+const LS_META = "pw_pilot_log_meta";
+
+const state = {
+  days: PRO.buildCalendar("2026-08-01", 30),
+  selected: 1,
+  meta: {
+    street: "הרצל, נתניה",
+    startDate: "2026-08-01",
+    outreachSentAt: "",
+    hasCalibrationPlan: false,
+    cameraAccess: false,
+    integratorAsk: false,
+  },
+};
+
+const lightSel = document.getElementById("eLight");
+PRO.LIGHTING.forEach((name) => {
+  const o = document.createElement("option");
+  o.value = name;
+  o.textContent = name;
+  lightSel.appendChild(o);
+});
+
+function setStatus(text) {
+  document.getElementById("status").textContent = text || "";
+}
+
+function persist() {
+  PRO.saveLog(state.days);
+  try { localStorage.setItem(LS_META, JSON.stringify(state.meta)); } catch (e) {}
+}
+
+function readFlags() {
+  state.meta.street = document.getElementById("streetName").value.trim() || "רחוב לא צוין";
+  state.meta.startDate = document.getElementById("startDate").value || state.meta.startDate;
+  state.meta.outreachSentAt = document.getElementById("outreach").value || "";
+  state.meta.hasCalibrationPlan = document.getElementById("calPlan").checked;
+  state.meta.cameraAccess = document.getElementById("camAccess").checked;
+  state.meta.integratorAsk = document.getElementById("integrator").checked;
+}
+
+function writeFlags() {
+  document.getElementById("streetName").value = state.meta.street;
+  document.getElementById("startDate").value = state.meta.startDate;
+  document.getElementById("outreach").value = state.meta.outreachSentAt || "";
+  document.getElementById("calPlan").checked = !!state.meta.hasCalibrationPlan;
+  document.getElementById("camAccess").checked = !!state.meta.cameraAccess;
+  document.getElementById("integrator").checked = !!state.meta.integratorAsk;
+}
+
+function currentDay() {
+  return state.days.find((d) => d.day === state.selected) || state.days[0];
+}
+
+function renderEditor() {
+  const d = currentDay();
+  document.getElementById("editorTitle").textContent = "עריכת יום " + d.day;
+  document.getElementById("eDate").value = d.date || "";
+  document.getElementById("eLight").value = d.lighting || "";
+  document.getElementById("eTotal").value = d.total == null ? "" : d.total;
+  document.getElementById("eSys").value = d.systemOccupied == null ? "" : d.systemOccupied;
+  document.getElementById("eMan").value = d.manualOccupied == null ? "" : d.manualOccupied;
+  document.getElementById("eNote").value = d.note || "";
+}
+
+function renderGrid() {
+  const host = document.getElementById("dayGrid");
+  host.replaceChildren();
+  state.days.forEach((d) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    const filled = d.total != null && d.systemOccupied != null && d.manualOccupied != null;
+    btn.className = "day" + (filled ? " filled" : " gap") + (d.source === "sample" ? " sample" : "") + (d.day === state.selected ? " on" : "");
+    btn.setAttribute("aria-pressed", d.day === state.selected ? "true" : "false");
+    btn.setAttribute("aria-label", "יום " + d.day + (d.date ? ", " + d.date : "") + (filled ? ", יש ספירה" : ", ריק"));
+    const n = document.createElement("div");
+    n.className = "d";
+    n.textContent = String(d.day);
+    const dt = document.createElement("div");
+    dt.className = "dt";
+    dt.textContent = d.date ? d.date.slice(5) : "—";
+    const st = document.createElement("div");
+    st.className = "st";
+    if (!filled) st.textContent = "ריק";
+    else if (d.source === "sample") st.textContent = "דוגמה";
+    else st.textContent = d.systemOccupied + "/" + d.manualOccupied;
+    btn.appendChild(n);
+    btn.appendChild(dt);
+    btn.appendChild(st);
+    btn.addEventListener("click", () => {
+      state.selected = d.day;
+      render();
+    });
+    host.appendChild(btn);
+  });
+}
+
+function renderVerdict() {
+  readFlags();
+  const pairs = PRO.logToPairs(state.days, state.meta.street);
+  const v = PRO.decidePilot({
+    pairs,
+    hasCalibrationPlan: state.meta.hasCalibrationPlan,
+    cameraAccess: state.meta.cameraAccess,
+    integratorAsk: state.meta.integratorAsk,
+    outreachSentAt: state.meta.outreachSentAt,
+    now: new Date(),
+  });
+  document.getElementById("kDays").textContent = String(PRO.filledDays(state.days).length);
+  document.getElementById("kRate").textContent = v.pooled.rate == null ? "—" : OCC.pct(v.pooled.rate);
+  if (v.pooled.wilson) {
+    document.getElementById("kCi").textContent = OCC.pct(v.pooled.wilson.lo) + "–" + OCC.pct(v.pooled.wilson.hi);
+  } else {
+    document.getElementById("kCi").textContent = "—";
+  }
+  const bias = v.pooled.meanSignedError;
+  document.getElementById("kBias").textContent = bias == null ? "—" : ((bias > 0 ? "+" : "") + bias.toFixed(2));
+
+  const box = document.getElementById("verdictBox");
+  box.className = "verdict " + v.code;
+  document.getElementById("verdictLabel").textContent = v.label;
+  const ul = document.getElementById("verdictReasons");
+  ul.replaceChildren();
+  v.reasons.forEach((t) => {
+    const li = document.createElement("li");
+    li.textContent = t;
+    ul.appendChild(li);
+  });
+}
+
+function renderHeat() {
+  const recs = OCC.loadStoredOccupancy();
+  const host = document.getElementById("heat");
+  if (!recs.length) {
+    host.innerHTML = '<p class="hint">אין occupancy שמור בערכת הפיילוט בדפדפן זה.</p>';
+    return;
+  }
+  host.innerHTML = OCC.hourHeatmapSvg(recs);
+}
+
+function render() {
+  renderGrid();
+  renderEditor();
+  renderVerdict();
+  renderHeat();
+}
+
+function applyLog(days, meta) {
+  const start = (meta && meta.startDate) || (days[0] && days[0].date) || "2026-08-01";
+  state.days = PRO.mergeLog(PRO.buildCalendar(start, 30), days);
+  if (meta) state.meta = { ...state.meta, ...meta };
+  persist();
+  writeFlags();
+  render();
+}
+
+document.getElementById("btnSaveDay").addEventListener("click", () => {
+  const day = state.selected;
+  const next = PRO.normalizeDay({
+    day,
+    date: document.getElementById("eDate").value,
+    lighting: document.getElementById("eLight").value,
+    total: document.getElementById("eTotal").value,
+    systemOccupied: document.getElementById("eSys").value,
+    manualOccupied: document.getElementById("eMan").value,
+    note: document.getElementById("eNote").value.trim(),
+    source: "field",
+  });
+  if (!next) {
+    setStatus("חסר יום תקין. סך מקומות חייב להיות מספר חיובי כדי לשמור ספירה.");
+    return;
+  }
+  state.days = PRO.mergeLog(state.days, [next]);
+  persist();
+  setStatus("נשמר יום " + day + " כספירת שדה.");
+  render();
+});
+
+document.getElementById("btnClearDay").addEventListener("click", () => {
+  const prev = currentDay();
+  state.days = PRO.mergeLog(state.days, [PRO.emptyDay(prev.day, prev.date)]);
+  persist();
+  setStatus("יום " + prev.day + " רוקן.");
+  render();
+});
+
+["streetName", "startDate", "outreach", "calPlan", "camAccess", "integrator"].forEach((id) => {
+  document.getElementById(id).addEventListener("change", () => {
+    readFlags();
+    if (id === "startDate") {
+      const start = state.meta.startDate;
+      state.days = state.days.map((d, i) => ({ ...d, date: PRO.addDays(start, i) }));
+    }
+    persist();
+    render();
+  });
+});
+
+document.getElementById("btnSample").addEventListener("click", async () => {
+  try {
+    const res = await fetch("pilot/sample-log.json");
+    const doc = await res.json();
+    applyLog(doc.days, { street: doc.street, startDate: doc.startDate });
+    setStatus("נטען יומן דוגמה — לא ספירת פקח. פסק הדין חייב להיות SAMPLE_ONLY.");
+  } catch (e) {
+    setStatus("טעינת הדוגמה נכשלה — פתחו דרך GitHub Pages או שרת מקומי.");
+  }
+});
+
+document.getElementById("btnFromPairs").addEventListener("click", () => {
+  const pairs = CMP.loadStoredPairs();
+  if (!pairs.length) {
+    setStatus("אין זוגות שמורים בהשוואת הדיוק בדפדפן זה.");
+    return;
+  }
+  const incoming = pairs.slice(0, 30).map((p, i) => ({
+    day: i + 1,
+    date: String(p.ts).slice(0, 10),
+    lighting: "",
+    total: p.total,
+    systemOccupied: p.systemOccupied,
+    manualOccupied: p.manualOccupied,
+    note: p.note,
+    source: p.source || "field",
+  }));
+  applyLog(incoming, { street: pairs[0].street || state.meta.street });
+  setStatus("יובאו " + incoming.length + " זוגות להשוואה. מקור כל שורה נשמר.");
+});
+
+document.getElementById("fileLog").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const doc = JSON.parse(await f.text());
+  const days = Array.isArray(doc) ? doc : (doc.days || []);
+  applyLog(days, doc.street ? { street: doc.street, startDate: doc.startDate } : null);
+  setStatus("נטען יומן מהקובץ.");
+});
+
+document.getElementById("btnCsv").addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([EXP.logToCsv(state.days)], { type: "text/csv" }));
+  a.download = "pilot-log.csv";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 800);
+  setStatus("הורד CSV של היומן.");
+});
+
+document.getElementById("btnJson").addEventListener("click", () => {
+  const doc = {
+    version: 1,
+    kind: "parkwiz-field-log",
+    street: state.meta.street,
+    startDate: state.meta.startDate,
+    note: "יומן שדה מקומי מהדפדפן. אין מצלמה חיה ואין זיהוי לוחיות.",
+    days: state.days,
+    verdict: PRO.decidePilot({
+      pairs: PRO.logToPairs(state.days, state.meta.street),
+      ...state.meta,
+      now: new Date(),
+    }),
+  };
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
+  a.download = "pilot-log.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 800);
+  setStatus("הורד JSON של היומן כולל פסק הדין.");
+});
+
+document.getElementById("btnClear").addEventListener("click", () => {
+  state.days = PRO.buildCalendar(state.meta.startDate || "2026-08-01", 30);
+  persist();
+  setStatus("היומן רוקן בדפדפן זה.");
+  render();
+});
+
+(function init() {
+  try {
+    const raw = localStorage.getItem(LS_META);
+    if (raw) state.meta = { ...state.meta, ...JSON.parse(raw) };
+  } catch (e) {}
+  const stored = PRO.loadStoredLog();
+  if (stored.length) state.days = PRO.mergeLog(PRO.buildCalendar(state.meta.startDate, 30), stored);
+  writeFlags();
+  render();
+})();
+</script>
+</body>
+</html>

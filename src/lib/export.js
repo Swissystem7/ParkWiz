@@ -38,6 +38,13 @@
     );
   }
 
+  function logToCsv(days) {
+    return toCsv(
+      ['day', 'date', 'lighting', 'total', 'systemOccupied', 'manualOccupied', 'note', 'source'],
+      Array.isArray(days) ? days : []
+    );
+  }
+
   function buildPilotPacket(input) {
     const occupancy = Array.isArray(input && input.occupancy) ? input.occupancy : [];
     const pairs = Array.isArray(input && input.pairs) ? input.pairs : [];
@@ -122,6 +129,7 @@
     csvEscape,
     occupancyToCsv,
     pairsToCsv,
+    logToCsv,
     buildPilotPacket,
     encodeSharePayload,
     decodeSharePayload,
