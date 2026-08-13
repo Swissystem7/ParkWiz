@@ -75,6 +75,19 @@ button {
 }
 button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
 svg.chart { display: block; width: 100%; height: auto; }
+.skip-link {
+  position: absolute;
+  top: -40px;
+  right: 8px;
+  z-index: 400;
+  background: var(--brand);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.skip-link:focus { top: 8px; }
 :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

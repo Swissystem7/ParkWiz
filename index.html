@@ -30,6 +30,8 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 :focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .skip-link{position:absolute;top:-40px;right:8px;z-index:400;background:var(--green);color:#0a0f0a;padding:8px 12px;border-radius:8px;font-weight:700}
 .skip-link:focus{top:8px}
+.eval-banner{background:#0e7490;color:#ecfeff;padding:8px 12px;font-size:0.78rem;font-weight:600;text-align:center;z-index:31;flex-shrink:0;line-height:1.45}
+.eval-banner a{color:#fff;text-decoration:underline}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
@@ -372,6 +374,14 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 <body>
 <a class="skip-link" href="#searchInput">דלג לחיפוש</a>
 <div id="pwSurfaceNav" data-active="map" style="position:relative;z-index:9999"></div>
+<div class="eval-banner" role="note">
+  המפה למטה היא הדגמת ממשק (נתוני <b>הדגמה</b>). הפיילוט המדיד לעירייה:
+  <a href="./pilot-brief.html">תקציר לעירייה</a>
+  ·
+  <a href="./pilot-log.html">יומן 30 יום</a>
+  ·
+  <a href="./pilot-kit.html">ערכת תפוסה</a>
+</div>
 
 <!-- ParkWiz Pricing Modal -->
 <div class="park-pricing-overlay" id="parkPricingOverlay">

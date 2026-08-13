@@ -2,8 +2,10 @@
 (function (root) {
   const LINKS = [
     { id: 'map', href: './', label: 'מפת חניה עירונית' },
+    { id: 'brief', href: './pilot-brief.html', label: 'תקציר לעירייה' },
     { id: 'kit', href: './pilot-kit.html', label: 'ערכת פיילוט' },
     { id: 'compare', href: './pilot-compare.html', label: 'השוואת דיוק' },
+    { id: 'log', href: './pilot-log.html', label: 'יומן 30 יום' },
     { id: 'report', href: './pilot-report.html', label: 'דוח פיילוט' },
     { id: 'privacy', href: './pilot-privacy.html', label: 'בקשת גישה / פרטיות' },
     { id: 'dash', href: './pilot-dashboard.html', label: 'דשבורד פיילוט עירוני' },

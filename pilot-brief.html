@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — תקציר לעיריית נתניה</title>
+<meta name="description" content="עמוד אחד ליחידת חדשנות / אגף תנועה: מה מודדים בפיילוט 30 יום, מה לא, ואיך מחליטים.">
+<meta name="theme-color" content="#0e7490">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="pilot/shell.css">
+<link rel="stylesheet" href="pilot/print.css">
+<style>
+.wrap{max-width:820px;margin:0 auto;padding:20px 16px 72px}
+h1{font-size:1.4rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.panel h2{font-size:.95rem;margin:0 0 10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th,td{border-bottom:1px solid var(--line);padding:7px 4px;text-align:right;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.yes{color:#166534;font-weight:700}
+.no{color:#991b1b;font-weight:700}
+ol.steps{margin:0;padding-inline-start:20px;font-size:.9rem}
+ol.steps li{margin:6px 0}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:560px){.kpis{grid-template-columns:1fr}}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.kpi .n{font-size:1.05rem;font-weight:800;color:var(--brand)}
+.kpi .l{font-size:.72rem;color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+a{color:var(--brand)}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">דלג לתוכן</a>
+<div id="pwSurfaceNav" data-active="brief"></div>
+<div class="wrap" id="main">
+  <h1>תקציר לפיילוט — יחידת חדשנות / אגף תנועה, נתניה</h1>
+  <p class="sub">עמוד אחד להדפסה. לא הצעת מחיר, לא מכרז, לא אכיפה. הבקשה: snapshot אחד ממצלמה קיימת, 30 יום, חינם.</p>
+  <div class="banner">
+    <b>מה יש היום:</b> דמו ממשק + ערכת מדידה בדפדפן.
+    <b>מה אין:</b> צינור מצלמה חי, זיהוי לוחיות, סליקה, או דיוק שנמדד בשטח.
+    הטיוטה ב־<a href="./NETANYA_OUTREACH.md">NETANYA_OUTREACH.md</a> טרם נשלחה.
+  </div>
+
+  <div class="toolbar no-print">
+    <button type="button" class="primary" id="btnPrint">הדפס / שמור כ־PDF</button>
+    <a href="./pilot-log.html">יומן 30 יום</a>
+    <a href="./pilot-kit.html">ערכת הפיילוט</a>
+    <a href="./pilot-privacy.html">בקשת גישה / פרטיות</a>
+  </div>
+
+  <section class="panel">
+    <h2>הבקשה במשפט אחד</h2>
+    <p style="margin:0;font-size:.95rem">
+      למדוד תפוסה אנונימית (תפוס / פנוי) על מצלמה עירונית <b>שכבר קיימת</b>, בלי חומרה חדשה,
+      בלי LPR, בלי קנסות. בסוף 30 יום העירייה מקבלת אחוז הסכמה מול ספירת פקח — או פסק דין PARK כנה.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>מה בפנים / מה בחוץ</h2>
+    <table>
+      <thead><tr><th>נושא</th><th>בפיילוט</th><th>למה</th></tr></thead>
+      <tbody>
+        <tr><td>תפוס / פנוי על מלבנים שמסומנים מראש</td><td class="yes">כן</td><td>אפשר למדוד מול פקח בלי לזהות רכב</td></tr>
+        <tr><td>זיהוי לוחיות / פנים / שמירת וידאו</td><td class="no">לא</td><td>עת״מ 12825-12-24 חסם LPR לאכיפת כחול-לבן בלי חוק</td></tr>
+        <tr><td>המלצת קנס / «הפרות לשעה»</td><td class="no">לא</td><td>תפוסה אנונימית לא מחליפה אכיפה, ואין מנוע הפרות בריפו</td></tr>
+        <tr><td>מנוי נהגים / דיווח קהילה כשירות</td><td class="no">לא</td><td>המחקר פסק שאין קונה לזה בנתניה</td></tr>
+        <tr><td>מכרז תשלום (פנגו / סלו)</td><td class="no">לא</td><td>תנאי סף של 36 חודשים × 3 רשויות</td></tr>
+        <tr><td>דוח תכנון (שיא / שפל / שעה עמוסה)</td><td class="yes">כן</td><td>מדיניות חניה, לא קנסות</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>איך 30 הימים רצים</h2>
+    <ol class="steps">
+      <li>מסמנים מלבני חניה על snapshot (ערכת הפיילוט). ההערכה היא בהירות / שונות — לא בינה מלאכותית.</li>
+      <li>פקח סופר תפוסים באותם מקומות. זוג אחד = תצפית. המדד: 100% − |מערכת − פקח| / סך המקומות.</li>
+      <li>רושמים תאורה (יום / דמדומים / לילה / גשם). היוריסטיקה נחלשת בלילה ועל אספלט רטוב — זה מתועד, לא מוסתר.</li>
+      <li>אחרי מספיק זוגות (לפחות 8 תצפיות ו־100 השוואות מקום) רץ <b>כלל העצירה</b> מהמחקר.</li>
+      <li>העירייה מקבלת דוח להדפסה + CSV/JSON + קישור סיכום לקריאה בלבד. אין שרת שלנו באמצע.</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <h2>כלל העצירה (לא סיסמה)</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="n">&lt; 96% בלי כיול</div><div class="l">PARK מול הצהרת Camlytics (יצרן, לא רף מדעי)</div></div>
+      <div class="kpi"><div class="n">30 יום בלי snapshot</div><div class="l">PARK אם אין גישה ואין בקשת דמו מאינטגרטור</div></div>
+      <div class="kpi"><div class="n">סדרת sample</div><div class="l">לא פסק דין שטח — מסומן במפורש</div></div>
+    </div>
+    <p class="hint" style="margin:12px 0 0">הכלל רץ ב<a href="./pilot-log.html">יומן ה־30 יום</a> עם רווח סמך Wilson. הצהרות יצרן (Camlytics ~96%, Parklio 99%) מצוטטות כהצהרות, לא כהוכחה.</p>
+  </section>
+
+  <section class="panel">
+    <h2>למה זה זול לבדוק, ולמה זה לא מכרז</h2>
+    <div class="grid2">
+      <div>
+        <p style="margin:0;font-size:.88rem">
+          מחיר פומבי קרוב לקטגוריה: Camlytics מ־10 $ לערוץ לחודש (תוכנה כללית, לא חוזה נתניה).
+          הפיילוט כאן חינם. אין ערבות, אין SLA, אין מוקד.
+        </p>
+      </div>
+      <div>
+        <p style="margin:0;font-size:.88rem">
+          מכרז תשלום (חיפה 30/2026 כתבנית) דורש 36 חודשים ב־3 רשויות וערבות 50,000 ₪.
+          זה לא המסלול. המסלול הוא אישור משפטי ל־snapshot אחד.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>קישורים לעבודה</h2>
+    <ul style="margin:0;padding-inline-start:18px;font-size:.9rem">
+      <li><a href="./pilot-kit.html">ערכת כיול והיוריסטיקה</a></li>
+      <li><a href="./pilot-compare.html">השוואת דיוק מול פקח</a></li>
+      <li><a href="./pilot-log.html">יומן 30 יום + פסק דין</a></li>
+      <li><a href="./pilot-report.html">דוח להדפסה</a></li>
+      <li><a href="./pilot-privacy.html">בקשת גישה והצהרת פרטיות</a></li>
+      <li><a href="./RESEARCH.md">מחקר השוק ופסק דין PIVOT</a></li>
+    </ul>
+  </section>
+
+  <div class="foot">ParkWiz · תקציר מדידה אנונימית · להדפסה ליחידת חדשנות נתניה</div>
+</div>
+<script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
+<script>
+document.getElementById("btnPrint").addEventListener("click", () => window.print());
+</script>
+</body>
+</html>

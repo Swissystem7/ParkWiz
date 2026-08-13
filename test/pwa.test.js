@@ -21,8 +21,13 @@ test('service worker caches the field shell and not a third-party CDN', () => {
   const assetsBlock = sw.slice(sw.indexOf('const ASSETS'), sw.indexOf('];') + 2);
   assert.match(assetsBlock, /pilot-compare\.html/);
   assert.match(assetsBlock, /pilot-summary\.html/);
+  assert.match(assetsBlock, /pilot-log\.html/);
+  assert.match(assetsBlock, /pilot-brief\.html/);
   assert.match(assetsBlock, /sample-pairs\.json/);
+  assert.match(assetsBlock, /sample-log\.json/);
   assert.match(assetsBlock, /src\/lib\/compare\.js/);
+  assert.match(assetsBlock, /src\/lib\/protocol\.js/);
+  assert.match(assetsBlock, /src\/lib\/heuristic\.js/);
   assert.doesNotMatch(assetsBlock, /unpkg|leaflet|cdnjs/i);
   assert.match(sw, /url\.origin !== self\.location\.origin/);
 });

@@ -36,8 +36,16 @@ test('displayed chance uses the shared probability helper, not an inline clamp',
 test('pilot chrome and surface nav finish the a11y pass', () => {
   assert.match(shell, /prefers-reduced-motion/);
   assert.match(shell, /:focus-visible/);
+  assert.match(shell, /\.skip-link/);
   assert.match(nav, /aria-current',\s*'page'/);
   assert.match(report, /OCC\.inspectorAccuracy\(/);
+  const log = fs.readFileSync(path.join(root, 'pilot-log.html'), 'utf8');
+  const brief = fs.readFileSync(path.join(root, 'pilot-brief.html'), 'utf8');
+  assert.match(log, /class="skip-link"/);
+  assert.match(log, /aria-pressed/);
+  assert.match(brief, /class="skip-link"/);
+  assert.match(brief, /lang="he"/);
+  assert.match(brief, /dir="rtl"/);
 });
 
 test('npm test runs the test directory as a glob (Node 24 does not accept a bare "test" path)', () => {
