@@ -21,12 +21,18 @@
 <style>
 :root{
   --bg:#0a0f0a; --bg2:#0f1a0f; --card:#111a11;
-  --border:rgba(255,255,255,0.07); --text:#e0f0e0; --muted:#5a7a5a;
+  --border:rgba(255,255,255,0.07); --text:#e0f0e0; --muted:#93b493;
   --green:#22c55e; --yellow:#eab308; --red:#ef4444; --blue:#3b82f6;
   --purple:#a855f7;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.skip-link{position:absolute;top:-40px;right:8px;z-index:400;background:var(--green);color:#0a0f0a;padding:8px 12px;border-radius:8px;font-weight:700}
+.skip-link:focus{top:8px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
 
 /* top bar */
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;gap:8px;z-index:30;flex-shrink:0}
@@ -35,11 +41,13 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 .search-wrap{flex:1;position:relative;max-width:360px}
 .search-box{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:24px;padding:7px 14px;color:var(--text);font-size:0.85rem;font-family:inherit;direction:rtl}
 .search-box:focus{outline:none;border-color:var(--green)}
+.search-box:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .autocomplete{position:absolute;top:calc(100% + 4px);right:0;left:0;background:#151f15;border:1px solid var(--green);border-radius:12px;overflow:hidden;z-index:50;display:none}
 .autocomplete.open{display:block}
 .ac-item{padding:9px 14px;font-size:0.83rem;cursor:pointer;border-bottom:1px solid var(--border)}
 .ac-item:last-child{border:none}
-.ac-item:hover{background:rgba(34,197,94,.1);color:var(--green)}
+.ac-item:hover,.ac-item:focus-visible{background:rgba(34,197,94,.1);color:var(--green)}
+.ac-item:focus-visible{outline:2px solid var(--green);outline-offset:-2px}
 .btn{padding:7px 14px;border-radius:20px;border:none;cursor:pointer;font-size:0.8rem;font-weight:600;font-family:inherit;transition:all.2s;white-space:nowrap}
 .btn-primary{background:var(--green);color:#0a0f0a}
 .btn-ghost{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--border)}
@@ -362,6 +370,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 </style>
 </head>
 <body>
+<a class="skip-link" href="#searchInput">דלג לחיפוש</a>
 <div id="pwSurfaceNav" data-active="map" style="position:relative;z-index:9999"></div>
 
 <!-- ParkWiz Pricing Modal -->
@@ -462,12 +471,12 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
   </div>
   <span class="free-pill" id="planPill">FREE</span>
   <div class="search-wrap">
-    <input class="search-box" id="searchInput" placeholder="חפש רחוב בנתניה..." autocomplete="off" oninput="onSearch(this.value)" onblur="setTimeout(closeAC,200)">
-    <div class="autocomplete" id="autocomplete"></div>
+    <input class="search-box" id="searchInput" placeholder="חפש רחוב בנתניה..." autocomplete="off" oninput="onSearch(this.value)" onblur="setTimeout(closeAC,200)" aria-label="חיפוש רחוב בנתניה" aria-autocomplete="list" aria-controls="autocomplete" aria-expanded="false">
+    <div class="autocomplete" id="autocomplete" role="listbox" aria-label="הצעות רחובות"></div>
   </div>
-  <button class="btn btn-ghost" onclick="liveParkingEvent()">DEMO</button>
-  <button class="heatmap-btn" id="heatmapBtn" onclick="toggleHeatmap()">🌡️ חום</button>
-  <button class="premium-btn" onclick="showParkPricing()">ParkWiz Premium ⚡</button>
+  <button class="btn btn-ghost" onclick="liveParkingEvent()" aria-label="הוסף אירוע הדגמה למפה">DEMO</button>
+  <button class="heatmap-btn" id="heatmapBtn" onclick="toggleHeatmap()" aria-pressed="false" aria-label="הצג או הסתר שכבת חום">🌡️ חום</button>
+  <button class="premium-btn" onclick="showParkPricing()" aria-label="פתיחת מחירי פרמיום — הדגמה">ParkWiz Premium ⚡</button>
   <div class="pw-auth-area" id="pwAuthArea">
     <button class="btn btn-ghost" style="color:var(--green);border-color:rgba(34,197,94,.4)" onclick="pwOpenAuth('login')">התחבר</button>
   </div>
@@ -476,16 +485,16 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 <!-- Filter bar -->
 <div class="filter-bar">
   <span class="filter-label">סנן:</span>
-  <button class="filter-btn active" id="filt-blue" onclick="toggleFilter('blue')">🔵 כחול-לבן</button>
-  <button class="filter-btn active" id="filt-free" onclick="toggleFilter('free')">⚪ חינם</button>
-  <button class="filter-btn forbidden" onclick="showToast('❌ אזור אסור לחניה')">🚫 אסור</button>
-  <button class="filter-btn active" id="filt-timed" onclick="toggleFilter('timed')">⏱️ עד 3 שעות</button>
+  <button class="filter-btn active" id="filt-blue" onclick="toggleFilter('blue')" aria-pressed="true">🔵 כחול-לבן</button>
+  <button class="filter-btn active" id="filt-free" onclick="toggleFilter('free')" aria-pressed="true">⚪ חינם</button>
+  <button class="filter-btn forbidden" onclick="showToast('❌ אזור אסור לחניה')" aria-disabled="true">🚫 אסור</button>
+  <button class="filter-btn active" id="filt-timed" onclick="toggleFilter('timed')" aria-pressed="true">⏱️ עד 3 שעות</button>
 </div>
 
 <div class="main">
-  <div class="map-wrap" id="mapWrap">
-    <div id="realMap"></div>
-    <div id="tlvBtn" onclick="toggleTlvLayer()" style="position:absolute;bottom:14px;right:12px;z-index:11;background:rgba(10,15,10,.92);border:1px solid rgba(56,189,248,.5);border-radius:10px;padding:8px 11px;font-size:.72rem;cursor:pointer;opacity:.65">🏛 מגרשי חניה נתניה · מיקום בלבד</div>
+  <div class="map-wrap" id="mapWrap" role="region" aria-label="מפת חניה בנתניה">
+    <div id="realMap" role="application" aria-label="מפת OpenStreetMap של נתניה"></div>
+    <button type="button" id="tlvBtn" onclick="toggleTlvLayer()" aria-pressed="false" aria-label="הצג או הסתר מגרשי חניה עירוניים — מיקום בלבד" style="position:absolute;bottom:14px;right:12px;z-index:11;background:rgba(10,15,10,.92);color:var(--text);border:1px solid rgba(56,189,248,.5);border-radius:10px;padding:8px 11px;font-size:.72rem;cursor:pointer;opacity:.85;font-family:inherit">🏛 מגרשי חניה נתניה · מיקום בלבד</button>
     <div class="map-loading" id="mapLoading">
       <div class="skeleton-grid">
         <div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div><div class="skel-cell"></div>
@@ -519,7 +528,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 
   <!-- Side panel — spots list -->
   <div class="side-panel" id="sidePanel">
-    <button type="button" class="side-sheet-toggle" id="sideSheetToggle" onclick="toggleSideSheet()" aria-expanded="false">
+    <button type="button" class="side-sheet-toggle" id="sideSheetToggle" onclick="toggleSideSheet()" aria-expanded="false" aria-controls="sidePanel">
       <span class="side-sheet-handle" aria-hidden="true"></span>
       <span id="sideSheetToggleLabel">רחובות קרובים</span>
     </button>
@@ -528,10 +537,10 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
       <p id="panelSub">הערכה לפי דיווחי קהילה ונתוני עירייה</p>
     </div>
     <div class="arrival-row" id="arrivalRow">
-      <button class="arrival-chip active" data-offset="0" onclick="setArrivalOffset(0)">עכשיו</button>
-      <button class="arrival-chip" data-offset="30" onclick="setArrivalOffset(30)">בעוד 30 דק</button>
-      <button class="arrival-chip" data-offset="60" onclick="setArrivalOffset(60)">בעוד שעה</button>
-      <button class="arrival-chip" data-offset="120" onclick="setArrivalOffset(120)">בעוד שעתיים</button>
+      <button class="arrival-chip active" data-offset="0" onclick="setArrivalOffset(0)" aria-pressed="true">עכשיו</button>
+      <button class="arrival-chip" data-offset="30" onclick="setArrivalOffset(30)" aria-pressed="false">בעוד 30 דק</button>
+      <button class="arrival-chip" data-offset="60" onclick="setArrivalOffset(60)" aria-pressed="false">בעוד שעה</button>
+      <button class="arrival-chip" data-offset="120" onclick="setArrivalOffset(120)" aria-pressed="false">בעוד שעתיים</button>
     </div>
     <div class="arrival-note" id="arrivalNote">זמן הגעה נבחר: עכשיו</div>
     <div class="stats-row">
@@ -644,7 +653,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 
 <!-- Recommended 3 streets mini-card -->
 <div class="reco-card" id="recoCard">
-  <span class="reco-close" onclick="closeReco()">✕</span>
+  <button type="button" class="reco-close" onclick="closeReco()" aria-label="סגור המלצות">✕</button>
   <div class="reco-title" id="recoTitle">🎯 במקום להסתובב — נסה לפי הסדר:</div>
   <div id="recoList"></div>
 </div>
@@ -668,7 +677,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
   <span>💬</span>
   <span class="wa-banner-text">הצטרף לקהילת החניה של השכונה שלך ב-WhatsApp</span>
   <button class="wa-join-btn" onclick="joinWaCommunity()">הצטרף</button>
-  <span class="wa-close" onclick="closeWaBanner()">✕</span>
+  <button type="button" class="wa-close" onclick="closeWaBanner()" aria-label="סגור באנר קהילה">✕</button>
 </div>
 
 <!-- Bottom navigation -->
@@ -826,6 +835,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 <script src="src/lib/plate.js"></script>
 <script src="src/lib/availability.js"></script>
 <script src="src/lib/predict.js"></script>
+<script src="src/lib/probability.js"></script>
 <script src="src/lib/surface-nav.js"></script>
 <script src="availability-model.js"></script>
 
@@ -976,7 +986,7 @@ async function planVacation() {
 let tlvLayer = null, tlvOn = false;
 async function toggleTlvLayer() {
   const btn = document.getElementById('tlvBtn');
-  if (tlvOn) { tlvLayer.remove(); tlvOn = false; btn.style.opacity = .65; return; }
+  if (tlvOn) { tlvLayer.remove(); tlvOn = false; btn.style.opacity = .65; btn.setAttribute('aria-pressed', 'false'); return; }
   if (!tlvLayer) {
     try {
       const lots = await fetch('netanya-lots.geojson').then(r => r.json());
@@ -988,7 +998,7 @@ async function toggleTlvLayer() {
       ]).addTo(realMap);
     } catch(e) { showToast('⚠ שכבת העירייה לא נטענה'); return; }
   } else tlvLayer.addTo(realMap);
-  tlvOn = true; btn.style.opacity = 1;
+  tlvOn = true; btn.style.opacity = 1; btn.setAttribute('aria-pressed', 'true');
 }
 
 function clearArrival() {
@@ -1273,15 +1283,14 @@ function getStreetHourlyModelSeries(streetIdx, referenceDate = new Date()) {
     const slotDate = new Date(baseDate.getTime());
     slotDate.setHours(hour, 0, 0, 0);
     if (slotDate.getTime() < baseDate.getTime()) slotDate.setDate(slotDate.getDate() + 1);
-    const community = communityPctBoost(streetIdx, slotDate.getTime());
     if (!AVAILABILITY_MODEL || typeof AVAILABILITY_MODEL.calculate !== 'function') {
-      return Math.max(0, Math.min(100, Math.round(fallback + community)));
+      return combineDisplayedPct(fallback, streetIdx, slotDate.getTime());
     }
     const model = getModelOutput(streetIdx, slotDate);
     if (!model || typeof model.score !== 'number') {
-      return Math.max(0, Math.min(100, Math.round(fallback + community)));
+      return combineDisplayedPct(fallback, streetIdx, slotDate.getTime());
     }
-    return Math.max(0, Math.min(100, Math.round(model.score + community)));
+    return combineDisplayedPct(model.score, streetIdx, slotDate.getTime());
   });
 }
 
@@ -1329,6 +1338,13 @@ function pwWeightedAvailability(streetIdx, nowMs) {
 }
 function communityPctBoost(streetIdx, nowMs) {
   return pwWeightedAvailability(streetIdx, nowMs) * COMMUNITY_PCT_PER_UNIT;
+}
+function combineDisplayedPct(baseScore, streetIdx, nowMs) {
+  return displayedAvailabilityPct(
+    baseScore,
+    pwWeightedAvailability(streetIdx, nowMs),
+    COMMUNITY_PCT_PER_UNIT
+  );
 }
 let activeFilters = { blue:true, free:true, timed:true };
 let userScore = 340;
@@ -1402,15 +1418,14 @@ function getArrivalLabel(offsetMin = selectedArrivalOffsetMin) {
 function getCurrentHourAvailabilityPct(streetIdx, offsetMinutes = selectedArrivalOffsetMin) {
   const fallback = Math.max(0, Math.min(100, Math.round(STREETS_DEF[streetIdx].avail || 0)));
   const targetMs = Date.now() + offsetMinutes * 60000;
-  const community = communityPctBoost(streetIdx, targetMs);
   if (!AVAILABILITY_MODEL || typeof AVAILABILITY_MODEL.calculate !== 'function') {
-    return Math.max(0, Math.min(100, Math.round(fallback + community)));
+    return combineDisplayedPct(fallback, streetIdx, targetMs);
   }
   const model = getModelOutput(streetIdx, new Date(targetMs));
   if (!model || typeof model.score !== 'number') {
-    return Math.max(0, Math.min(100, Math.round(fallback + community)));
+    return combineDisplayedPct(fallback, streetIdx, targetMs);
   }
-  return Math.max(0, Math.min(100, Math.round(model.score + community)));
+  return combineDisplayedPct(model.score, streetIdx, targetMs);
 }
 
 function chanceLevel(pct) {
@@ -1555,21 +1570,27 @@ function updateLeafletOverlays() {
 
 function toggleHeatmap() {
   heatmapActive = !heatmapActive;
-  document.getElementById('heatmapBtn').classList.toggle('active', heatmapActive);
+  const btn = document.getElementById('heatmapBtn');
+  btn.classList.toggle('active', heatmapActive);
+  btn.setAttribute('aria-pressed', heatmapActive ? 'true' : 'false');
   updateRealMap();
 }
 
 // ─── Filter bar ───────────────────────────────────────────────────
 function toggleFilter(type) {
   activeFilters[type] = !activeFilters[type];
-  document.getElementById('filt-'+type).classList.toggle('active', activeFilters[type]);
+  const btn = document.getElementById('filt-'+type);
+  btn.classList.toggle('active', activeFilters[type]);
+  btn.setAttribute('aria-pressed', activeFilters[type] ? 'true' : 'false');
   renderAll();
 }
 
 function setArrivalOffset(offsetMin) {
   selectedArrivalOffsetMin = offsetMin;
   document.querySelectorAll('.arrival-chip').forEach(chip => {
-    chip.classList.toggle('active', Number(chip.dataset.offset) === offsetMin);
+    const on = Number(chip.dataset.offset) === offsetMin;
+    chip.classList.toggle('active', on);
+    chip.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
   renderSidePanel();
   if (selectedStreetIdx !== null && document.getElementById('streetCardOverlay').classList.contains('show')) {
@@ -1846,18 +1867,25 @@ function positionUserDot() {
 
 function onSearch(val) {
   const ac = document.getElementById('autocomplete');
+  const input = document.getElementById('searchInput');
   ac.replaceChildren();
-  if (!val.trim()) { ac.classList.remove('open'); return; }
+  if (!val.trim()) { ac.classList.remove('open'); if (input) input.setAttribute('aria-expanded', 'false'); return; }
   const matches = TA_STREETS.filter(s=>s.includes(val)).slice(0,5);
-  if (!matches.length) { ac.classList.remove('open'); return; }
+  if (!matches.length) { ac.classList.remove('open'); if (input) input.setAttribute('aria-expanded', 'false'); return; }
   matches.forEach(s => {
     const item = document.createElement('div');
     item.className = 'ac-item';
+    item.setAttribute('role', 'option');
+    item.tabIndex = 0;
     item.textContent = s;
     item.addEventListener('click', () => selectSearch(s));
+    item.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); selectSearch(s); }
+    });
     ac.appendChild(item);
   });
   ac.classList.add('open');
+  if (input) input.setAttribute('aria-expanded', 'true');
 }
 
 function selectSearch(street) {
@@ -2554,7 +2582,7 @@ init();
 .reco-name{font-weight:700}
 .reco-pct{font-weight:800;font-size:0.74rem}
 .reco-walk{font-size:0.66rem;color:var(--muted);white-space:nowrap}
-.reco-close{position:absolute;top:8px;left:10px;color:var(--muted);cursor:pointer;font-size:0.8rem}
+.reco-close{position:absolute;top:8px;left:10px;color:var(--muted);cursor:pointer;font-size:0.8rem;background:none;border:none;font-family:inherit}
 
 /* ── Future "leaving soon" (עתידי) ── */
 .leaving-when-btns{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
@@ -2572,7 +2600,7 @@ init();
 .wa-banner.hidden{display:none}
 .wa-banner-text{flex:1;color:var(--text);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wa-join-btn{padding:4px 12px;border-radius:14px;border:none;background:var(--green);color:#0a0f0a;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
-.wa-close{color:var(--muted);cursor:pointer;padding:0 4px;font-size:0.85rem}
+.wa-close{color:var(--muted);cursor:pointer;padding:0 4px;font-size:0.85rem;background:none;border:none;font-family:inherit}
 </style>
 
 <!-- Auth Modal -->

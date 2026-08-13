@@ -26,6 +26,17 @@
     return r.occupied / r.total;
   }
 
+  // Agreement between heuristic/system count and a manual inspector count.
+  function inspectorAccuracy(systemOccupied, manualOccupied, total) {
+    const t = Number(total);
+    const sys = Number(systemOccupied);
+    const man = Number(manualOccupied);
+    if (!Number.isFinite(t) || t <= 0 || !Number.isFinite(sys) || !Number.isFinite(man)) return null;
+    const s = Math.max(0, Math.min(t, sys));
+    const m = Math.max(0, Math.min(t, man));
+    return Math.max(0, 1 - Math.abs(s - m) / t);
+  }
+
   function pct(n) {
     return Math.round(n * 100) + '%';
   }
@@ -163,6 +174,7 @@
     normalize,
     parse,
     occupancyRate,
+    inspectorAccuracy,
     pct,
     formatTime,
     summarize,

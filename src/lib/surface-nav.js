@@ -33,8 +33,10 @@
     LINKS.forEach((item) => {
       const el = document.createElement(item.id === active ? 'span' : 'a');
       el.textContent = item.label;
-      if (item.id === active) el.className = 'here';
-      else el.href = item.href;
+      if (item.id === active) {
+        el.className = 'here';
+        el.setAttribute('aria-current', 'page');
+      } else el.href = item.href;
       host.appendChild(el);
     });
   }

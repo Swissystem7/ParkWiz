@@ -40,3 +40,21 @@ test('summarize and chart use one rate function', () => {
   assert.ok(occ.chartSvg(recs).includes('<path'));
   assert.ok(occ.planningNotes(s).some((n) => n.includes('המלצת אכיפה')));
 });
+
+test('schema validation: occupied is clamped to [0, total]', () => {
+  const over = occ.normalize({ ts: 't', street: 'הרצל', total: 10, occupied: 99 });
+  const under = occ.normalize({ ts: 't', street: 'הרצל', total: 10, occupied: -3 });
+  assert.equal(over.occupied, 10);
+  assert.equal(under.occupied, 0);
+  assert.equal(occ.normalize({ ts: 't', total: 'nope', occupied: 1 }), null);
+  assert.equal(occ.normalize({ ts: 't', total: 5 }), null);
+});
+
+test('inspector accuracy is 1 minus absolute error over total', () => {
+  assert.equal(occ.inspectorAccuracy(7, 7, 12), 1);
+  assert.equal(occ.inspectorAccuracy(7, 5, 10), 0.8);
+  assert.equal(occ.inspectorAccuracy(0, 10, 10), 0);
+  assert.equal(occ.inspectorAccuracy(3, 3, 0), null);
+  assert.equal(occ.inspectorAccuracy('x', 3, 10), null);
+});
+

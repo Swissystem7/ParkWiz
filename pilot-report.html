@@ -205,7 +205,7 @@ function computeAccuracy() {
     return;
   }
   const capped = Math.min(last.total, manual);
-  const acc = Math.max(0, 1 - Math.abs(last.occupied - capped) / last.total);
+  const acc = OCC.inspectorAccuracy(last.occupied, capped, last.total);
   const note = document.getElementById("manualNote").value.trim();
   out.textContent = "דיוק מול פקח ברשומה האחרונה: " + pct(acc) +
     " (מערכת " + last.occupied + "/" + last.total + ", פקח " + capped + "/" + last.total + ")" +

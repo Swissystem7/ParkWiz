@@ -1,0 +1,8 @@
+{
+  "name": "parkwiz",
+  "private": true,
+  "description": "Netanya street-parking demo and municipal occupancy pilot kit",
+  "scripts": {
+    "test": "node --test test"
+  }
+}
