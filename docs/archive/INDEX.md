@@ -14,5 +14,6 @@
 | `TEST_EVIDENCE.md` | יומן בדיקות יולי 2026, כולל קבצי `tlv-*.json` שכבר לא בריפו. |
 | `_pw_patch.js` | סקריפט חד-פעמי שערך את `index.html`; כבר הוחל. |
 | `factory/` | ביקורת מצב ועותקי עזר ישנים; לא קוד שרץ ב-Pages. |
+| `lib-unused/` | מודולי factory ישנים (`spotPayload`, `logEnforcementAction` וכו') שלא חוברו ל־`index.html` ולא רצים ב־Pages. הלוגיקה החיה נמצאת ב־`src/lib/`. |
 
 `VALIDATION.md` וקאש graphify **לא נמצאו** בעץ בזמן הארכיון. לא נמחק שום דבר שיש לו היסטוריה שימושית — רק הועבר לכאן.
