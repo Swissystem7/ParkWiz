@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — מתודולוגיית תפוסה</title>
+<meta name="description" content="איך מחושבת תפוסה בפיילוט: דגימת פיקסלים, נרמול תאורה, חיסור רקע, ספי יום/לילה. לבדיקת עירייה.">
+<meta name="theme-color" content="#0e7490">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="pilot/shell.css">
+<link rel="stylesheet" href="pilot/print.css">
+<style>
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 72px}
+h1{font-size:1.35rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.panel h2{font-size:.95rem;margin:0 0 8px}
+.panel h3{font-size:.88rem;margin:14px 0 6px}
+ol,ul{margin:0;padding-inline-start:20px}
+li{margin:5px 0}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:right;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+code,pre{font-family:ui-monospace,Consolas,monospace}
+pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overflow:auto;font-size:.75rem}
+.hint{font-size:.78rem;color:var(--muted)}
+.formula{background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:8px 10px;font-size:.84rem;margin:8px 0}
+.no{color:#991b1b;font-weight:700}
+.yes{color:#166534;font-weight:700}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">דלג לתוכן</a>
+<div id="pwSurfaceNav" data-active="method"></div>
+<div class="wrap" id="main">
+  <h1>מתודולוגיה — איך מחושבת תפוסה</h1>
+  <p class="sub">עמוד לביקורת עירייה. הקבועים למטה נקראים מ־<code>ParkWizHeuristic</code> בזמן טעינה, כדי שלא ייסחפו מהקוד.</p>
+  <div class="banner">
+    <b>כל הערכה היא היוריסטיקה.</b>
+    אין רשת נוירונים, אין זיהוי לוחיות, אין זיהוי פנים, ואין צינור מצלמה חי בריפו.
+    דיוק מול פקח בנתניה עדיין לא נמדד. מה שנמדד הוא הסכמה על <a href="./pilot-eval.html">מערך דמו מסונתז</a>.
+  </div>
+
+  <div class="toolbar no-print">
+    <button type="button" class="primary" id="btnPrint">הדפס / שמור כ־PDF</button>
+    <a href="./src/lib/heuristic.js">הקוד עצמו</a>
+    <a href="./pilot-eval.html">הרצת הדיוק</a>
+    <a href="./pilot-calibrate.html">אשף כיול</a>
+  </div>
+
+  <section class="panel">
+    <h2>1. מה מחושב</h2>
+    <p>לכל מלבן חניה שסומן מראש מחזירים <b>תפוס</b> או <b>פנוי</b>, ועוד שדות שקיפות:</p>
+    <ul>
+      <li><code>occupied</code> — כן/לא</li>
+      <li><code>method</code> — איזו שיטה ניצחה</li>
+      <li><code>confidence</code> — מספר קבוע לפי שיטה, לא הסתברות מכוילת</li>
+      <li><code>lighting</code> — יום / דמדומים / לילה לפי בהירות ממוצעת</li>
+      <li><code>heuristic: true</code> — תמיד</li>
+    </ul>
+    <p class="hint">ספירת התפוסה של המגרש היא מספר המלבנים עם <code>occupied === true</code>. אין מעקב אחרי רכב בין פריימים.</p>
+  </section>
+
+  <section class="panel">
+    <h2>2. צינור הפיקסלים</h2>
+    <ol>
+      <li>חותכים את מלבן המקום מתמונת ה־snapshot (ומפריים הייחוס הריק, אם יש).</li>
+      <li>קוראים RGBA. דוגמים כל פיקסל רביעי — צעד <code id="cStride">16</code> בבתים (4 ערוצים × 4 פיקסלים).</li>
+      <li>ממירים ללומה Rec. 709: <span class="formula">Y = 0.2126 R + 0.7152 G + 0.0722 B</span></li>
+      <li>מחשבים ממוצע, שונות, חציון, MAD, אחוזונים 10/90.</li>
+      <li>מסווגים תאורה לפי ממוצע הלומה של המגרש (חציון בין המקומות): לילה &lt; <span id="cDusk">35</span> ≤ דמדומים &lt; <span id="cDay">70</span> ≤ יום.</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <h2>3. שלוש שיטות, לפי מה שיש בכיול</h2>
+    <h3>א. חיסור רקע מנורמל־תאורה (עדיפות ראשונה)</h3>
+    <p>כשיש דגימות מיושרות מהפריים הריק ומהפריים הנוכחי:</p>
+    <div class="formula">gain = mean(empty) / max(mean(current), 1)</div>
+    <div class="formula">changed = |currentᵢ × gain − emptyᵢ| ≥ δ &nbsp; → &nbsp; occupied אם fraction ≥ τ</div>
+    <p class="hint">δ יום = <span id="cDelta">22</span>, δ לילה = <span id="cDeltaN">16</span>. τ יום = <span id="cTau">0.18</span>, τ לילה = <span id="cTauN">0.22</span>. confidence = <span id="cBg">0.58</span>.</p>
+    <p>ה־gain מבטל עמעום גלובלי (עננה, ערב). רכב נשאר כשינוי מקומי.</p>
+
+    <h3>ב. השוואה לפריים ריק אחרי נרמול (בלי דגימות מיושרות)</h3>
+    <p>כשיש רק סטטיסטיקה, לא פיקסלים מיושרים. אחרי אותו gain משווים סטיית תקן, MAD, וטווח P90−P10. סף יום <span id="cNorm">9.5</span>, סף לילה <span id="cNormN">7.5</span>. אם יש ייחוס לילה נפרד — משתמשים בו בלילה.</p>
+    <p class="hint">v1 השווה |Δmean| ונכשל כשהמגרש הריק פשוט החשיך. v2 בודק ניגודיות שאחרי הנרמול.</p>
+
+    <h3>ג. סף מוחלט לפי תאורה (בלי ייחוס בכלל)</h3>
+    <p>יום: תפוס אם mean &lt; <span id="cAbsM">95</span> או variance &gt; <span id="cAbsV">900</span>. לילה: <b>לא</b> משתמשים בסף בהירות — אספלט לילה כהה מספיק כדי לצבוע הכול תפוס. בלילה דורשים מבנה (שונות / MAD).</p>
+  </section>
+
+  <section class="panel">
+    <h2>4. מה confidence אומר — ומה לא</h2>
+    <table>
+      <thead><tr><th>שיטה</th><th>confidence</th><th>משמעות</th></tr></thead>
+      <tbody>
+        <tr><td>bg-subtract-normalized</td><td id="c1">0.58</td><td>יש ייחוס מיושר. עדיין היוריסטיקה.</td></tr>
+        <tr><td>vs-empty-normalized</td><td id="c2">0.52</td><td>יש ייחוס סטטיסטי.</td></tr>
+        <tr><td>vs-empty-frame (v1)</td><td id="c3">0.45</td><td>נשמר להשוואה, לא ברירת המחדל.</td></tr>
+        <tr><td>absolute-threshold</td><td id="c4">0.25</td><td>אין ייחוס. בלילה 0.16.</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">אלה קבועים שכתבנו. הם לא הסתברות מכוילת ואין מאחוריהם מודל בייס.</p>
+  </section>
+
+  <section class="panel">
+    <h2>5. איך עירייה מבקרת</h2>
+    <ol>
+      <li>קוראים את <a href="./src/lib/heuristic.js">src/lib/heuristic.js</a> — אין תלות חיצונית.</li>
+      <li>מריצים <code>npm test</code>. אין רשת, אין מפתחות.</li>
+      <li>פותחים את <a href="./pilot-eval.html">דף הדיוק</a> ומריצים את מערך הדמו.</li>
+      <li>משווים את הקבועים בעמוד הזה (נקראים מהמודול) לקוד.</li>
+      <li>בשטח: פקח ממלא את <a href="./pilot-compare.html">השוואת הדיוק</a>. רק אז יש דיוק שדה.</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <h2>6. כשלים ידועים — לא מוסתרים</h2>
+    <table>
+      <thead><tr><th>מצב</th><th>מה קורה</th><th>מה עושים</th></tr></thead>
+      <tbody>
+        <tr><td>צל על מקום ריק</td><td>חיסור רקע רואה שינוי → false positive</td><td>מתועד בסט הדמו (<code>shadow-false</code>). לא «תוקן» בהסתרה.</td></tr>
+        <tr><td>רכב בצבע אספלט</td><td>ניגודיות נמוכה אחרי נרמול</td><td>סצנת <code>camouflage-day</code>. דורש ייחוס טוב או פקח.</td></tr>
+        <tr><td>רכב קטן במלבן גדול</td><td>שבר הפיקסלים מתחת ל־τ</td><td>לכווץ את המלבן באשף הכיול.</td></tr>
+        <tr><td>לילה בלי ייחוס ריק</td><td>v1 מסמן הכול תפוס; v2 דורש מבנה</td><td>לצלם פריים לילה ריק.</td></tr>
+        <tr><td>גשם / רטוב</td><td>השתקפות יכולה לחקות רכב</td><td>נרשם ביומן השדה. לא מוסתר.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>7. מה לא מחושב</h2>
+    <table>
+      <thead><tr><th>דבר</th><th>באלגוריתם?</th></tr></thead>
+      <tbody>
+        <tr><td>זיהוי לוחית / LPR</td><td class="no">לא</td></tr>
+        <tr><td>זיהוי פנים או הולכי רגל</td><td class="no">לא</td></tr>
+        <tr><td>מעקב רכב בין פריימים</td><td class="no">לא</td></tr>
+        <tr><td>המלצת קנס / הפרה</td><td class="no">לא</td></tr>
+        <tr><td>שמירת וידאו בשרת שלנו</td><td class="no">אין שרת</td></tr>
+        <tr><td>תפוס / פנוי על מלבן מסומן</td><td class="yes">כן — היוריסטיקה</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>8. הקבועים החיים מהמודול</h2>
+    <p class="hint">אם הטבלה והקוד חלוקים — הקוד מנצח, והבלוק הזה חושף את זה.</p>
+    <pre id="constDump" aria-label="קבועי ההיוריסטיקה"></pre>
+  </section>
+
+  <div class="foot">ParkWiz · מתודולוגיה להדפסה · בלי CDN</div>
+</div>
+<script src="src/lib/heuristic.js"></script>
+<script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
+<script>
+"use strict";
+const H = window.ParkWizHeuristic;
+function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = String(v); }
+set("cStride", H.SAMPLE_STRIDE);
+set("cDusk", H.DUSK_LUMA_MIN);
+set("cDay", H.DAY_LUMA_MIN);
+set("cDelta", H.BG_PIXEL_DELTA);
+set("cDeltaN", H.BG_PIXEL_DELTA_NIGHT);
+set("cTau", H.BG_FRACTION_DAY);
+set("cTauN", H.BG_FRACTION_NIGHT);
+set("cBg", H.CONF_BG_SUBTRACT);
+set("cNorm", H.NORM_SCORE_CUTOFF);
+set("cNormN", H.NIGHT_NORM_SCORE_CUTOFF);
+set("cAbsM", H.ABS_MEAN_CUTOFF);
+set("cAbsV", H.ABS_VAR_CUTOFF);
+set("c1", H.CONF_BG_SUBTRACT);
+set("c2", H.CONF_VS_EMPTY_NORM);
+set("c3", H.CONF_VS_EMPTY);
+set("c4", H.CONF_ABSOLUTE);
+document.getElementById("constDump").textContent = JSON.stringify({
+  SAMPLE_STRIDE: H.SAMPLE_STRIDE,
+  DAY_LUMA_MIN: H.DAY_LUMA_MIN,
+  DUSK_LUMA_MIN: H.DUSK_LUMA_MIN,
+  NORM_SCORE_CUTOFF: H.NORM_SCORE_CUTOFF,
+  NIGHT_NORM_SCORE_CUTOFF: H.NIGHT_NORM_SCORE_CUTOFF,
+  BG_PIXEL_DELTA: H.BG_PIXEL_DELTA,
+  BG_PIXEL_DELTA_NIGHT: H.BG_PIXEL_DELTA_NIGHT,
+  BG_FRACTION_DAY: H.BG_FRACTION_DAY,
+  BG_FRACTION_NIGHT: H.BG_FRACTION_NIGHT,
+  ABS_MEAN_CUTOFF: H.ABS_MEAN_CUTOFF,
+  ABS_VAR_CUTOFF: H.ABS_VAR_CUTOFF,
+  NIGHT_ABS_VAR_CUTOFF: H.NIGHT_ABS_VAR_CUTOFF,
+  NIGHT_ABS_MAD_CUTOFF: H.NIGHT_ABS_MAD_CUTOFF,
+  CONF_BG_SUBTRACT: H.CONF_BG_SUBTRACT,
+  CONF_VS_EMPTY_NORM: H.CONF_VS_EMPTY_NORM,
+  CONF_VS_EMPTY: H.CONF_VS_EMPTY,
+  CONF_ABSOLUTE: H.CONF_ABSOLUTE,
+  CONF_ABSOLUTE_NIGHT: H.CONF_ABSOLUTE_NIGHT,
+}, null, 2);
+document.getElementById("btnPrint").addEventListener("click", () => window.print());
+</script>
+</body>
+</html>
