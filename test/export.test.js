@@ -88,6 +88,9 @@ test('README names the comparison, summary, and field PWA honestly', () => {
   assert.match(readme, /pilot-summary\.html/);
   assert.match(readme, /pilot-log\.html/);
   assert.match(readme, /pilot-brief\.html/);
+  assert.match(readme, /pilot-calibrate\.html/);
+  assert.match(readme, /pilot-eval\.html/);
+  assert.match(readme, /pilot-method\.html/);
   assert.match(readme, /PWA/);
   assert.match(readme, /sample/);
 });

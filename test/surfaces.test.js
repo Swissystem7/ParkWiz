@@ -7,12 +7,14 @@ const proto = require('../src/lib/protocol');
 const root = path.join(__dirname, '..');
 const log = fs.readFileSync(path.join(root, 'pilot-log.html'), 'utf8');
 const brief = fs.readFileSync(path.join(root, 'pilot-brief.html'), 'utf8');
+const method = fs.readFileSync(path.join(root, 'pilot-method.html'), 'utf8');
+const evalPage = fs.readFileSync(path.join(root, 'pilot-eval.html'), 'utf8');
 const outreach = fs.readFileSync(path.join(root, 'NETANYA_OUTREACH.md'), 'utf8');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const sampleLog = JSON.parse(fs.readFileSync(path.join(root, 'pilot', 'sample-log.json'), 'utf8'));
 
 test('new municipal surfaces are Hebrew RTL with an honesty banner', () => {
-  for (const html of [log, brief]) {
+  for (const html of [log, brief, method, evalPage]) {
     assert.match(html, /lang="he"/);
     assert.match(html, /dir="rtl"/);
     assert.match(html, /class="banner"/);
@@ -20,12 +22,16 @@ test('new municipal surfaces are Hebrew RTL with an honesty banner', () => {
   }
   assert.match(log, /לא ספירת פקח/);
   assert.match(brief, /אין מנוע הפרות|לא אכיפה/);
+  assert.match(method, /היוריסטיקה/);
+  assert.match(evalPage, /לא דיוק שדה/);
 });
 
 test('homepage evaluator banner points at the pilot, not a live feed', () => {
   assert.match(index, /class="eval-banner"/);
   assert.match(index, /pilot-brief\.html/);
   assert.match(index, /pilot-log\.html/);
+  assert.match(index, /pilot-eval\.html/);
+  assert.match(index, /pilot-method\.html/);
   assert.match(index, /נתוני <b>הדגמה<\/b>/);
 });
 

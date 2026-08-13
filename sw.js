@@ -1,9 +1,12 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v2';
+const CACHE = 'parkwiz-field-v3';
 const ASSETS = [
   './',
   './index.html',
   './pilot-kit.html',
+  './pilot-calibrate.html',
+  './pilot-eval.html',
+  './pilot-method.html',
   './pilot-compare.html',
   './pilot-report.html',
   './pilot-summary.html',
@@ -20,8 +23,19 @@ const ASSETS = [
   './pilot/sample-spots.json',
   './pilot/sample-pairs.json',
   './pilot/sample-log.json',
+  './pilot/sample-lot.svg',
+  './pilot/sample-empty.svg',
+  './pilot/sample-lot-dusk.svg',
+  './pilot/sample-lot-night.svg',
+  './pilot/sample-empty-night.svg',
+  './pilot/sample-lot-wet.svg',
+  './pilot/sample-lot-white.svg',
+  './pilot/dataset/manifest.json',
+  './pilot/dataset/labels.json',
   './src/lib/occupancy.js',
   './src/lib/heuristic.js',
+  './src/lib/dataset.js',
+  './src/lib/calibrate.js',
   './src/lib/compare.js',
   './src/lib/protocol.js',
   './src/lib/export.js',
