@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'self'">
 <title>ParkWiz — ניהול חניה עירוני</title>
+<link rel="stylesheet" href="pilot/print.css">
 <style>
   :root{
     --bg:#f6f7f9; --panel:#ffffff; --ink:#111827; --muted:#6b7280;
@@ -82,15 +83,7 @@
 </style>
 </head>
 <body>
-<nav class="pw-surface-nav" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:7px 12px;background:#0f1420;border-bottom:1px solid rgba(255,255,255,.08);font:600 0.78rem system-ui,sans-serif">
-  <span style="color:#8ba3c7">ParkWiz</span>
-  <a href="./" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">מפת חניה עירונית</a>
-  <a href="./pilot-kit.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">ערכת פיילוט</a>
-  <a href="./pilot-report.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">דוח פיילוט</a>
-  <a href="./pilot-privacy.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">בקשת גישה / פרטיות</a>
-  <span style="color:#fff;background:rgba(14,116,144,.45);border:1px solid rgba(103,232,249,.45);border-radius:14px;padding:3px 11px">דשבורד פיילוט עירוני</span>
-  <a href="./marketplace.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">שוק חניות פרטיות</a>
-</nav>
+<div id="pwSurfaceNav" data-active="dash"></div>
 <div class="wrap">
 
   <header class="top">
@@ -158,85 +151,32 @@
   <div class="foot">ParkWiz · פיילוט חניה חכמה · נתונים אנונימיים ברמת הרחוב</div>
 </div>
 
+<script src="src/lib/occupancy.js"></script>
+<script src="src/lib/surface-nav.js"></script>
 <script>
 "use strict";
 
-// ---- embedded sample so the demo always renders ----
-const SAMPLE = (() => {
-  const street = "שדרות ניצה";
-  const total = 24;
-  // occupancy fraction per hour, realistic daytime curve
-  const curve = [0.25,0.30,0.42,0.55,0.68,0.79,0.88,0.83,0.71,0.60,0.52,0.44,0.38];
-  const startH = 7;
-  return curve.map((r,i)=>{
-    const h = startH+i;
-    const occ = Math.round(r*total);
-    return {
-      ts:`2026-07-18T${String(h).padStart(2,"0")}:00:00`,
-      street, totalSpots:total, occupiedSpots:occ, occupancyRate:occ/total
-    };
-  });
-})();
-
+const OCC = window.ParkWizOccupancy;
+const pct = OCC.pct;
+const fmtTime = OCC.formatTime;
 let RECORDS = [];
 
-// ---- parse: accept JSONL (one obj/line) or a JSON array ----
-function parseData(text){
-  text = (text||"").trim();
-  if(!text) return [];
-  // try full JSON array first
-  if(text[0]==="["){
-    try{ const a=JSON.parse(text); if(Array.isArray(a)) return a.map(norm).filter(Boolean); }catch(e){}
-  }
-  // JSONL
-  const out=[];
-  for(const line of text.split(/\r?\n/)){
-    const s=line.trim(); if(!s) continue;
-    try{ const o=JSON.parse(s); const n=norm(o); if(n) out.push(n); }catch(e){}
-  }
-  return out;
-}
-
-function norm(o){
-  if(!o || typeof o!=="object") return null;
-  const total = num(o.total != null ? o.total : o.totalSpots);
-  let occ = num(o.occupied != null ? o.occupied : o.occupiedSpots);
-  let rate = (o.occupancyRate!=null) ? num(o.occupancyRate) : null;
-  if(rate!=null && rate>1) rate/=100; // tolerate 0-100 form (before deriving spots)
-  if(rate==null && total>0 && occ!=null) rate = occ/total;
-  if(occ==null && total>0 && rate!=null) occ = Math.round(rate*total);
-  if(rate==null) return null;
-  return {
-    ts: o.ts!=null ? String(o.ts) : "",
-    street: o.street!=null ? String(o.street) : "—",
-    totalSpots: total||0,
-    occupiedSpots: occ||0,
-    occupancyRate: Math.max(0,Math.min(1,rate))
-  };
-}
-const num = v => { const n=Number(v); return Number.isFinite(n)?n:null; };
-const pct = r => Math.round(r*100)+"%";
-
-function fmtTime(ts){
-  const d=new Date(ts);
-  if(!isNaN(d)) return d.toLocaleString("he-IL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-  return ts||"—";
-}
+function parseData(text){ return OCC.parse(text); }
 function hourOf(ts){ const d=new Date(ts); return isNaN(d)?null:d.getHours(); }
 
 // ---- render ----
 function render(){
-  if(!RECORDS.length){ RECORDS = SAMPLE; }
-  const last = RECORDS[RECORDS.length-1];
+  if(!RECORDS.length) return;
+  const sum = OCC.summarize(RECORDS);
+  const last = sum.last;
   document.getElementById("streetName").textContent = last.street;
   document.getElementById("lastUpdated").textContent = fmtTime(last.ts);
-  document.getElementById("recCount").textContent = RECORDS.length+" רשומות";
+  document.getElementById("recCount").textContent = sum.count+" רשומות";
 
-  // live tiles
   const tiles=document.getElementById("tiles"); tiles.innerHTML="";
-  const t=last.totalSpots||0, occ=last.occupiedSpots||0;
+  const t=last.total||0, occN=last.occupied||0;
   for(let i=0;i<t;i++){
-    const free = i>=occ; // fill occupied first
+    const free = i>=occN;
     const el=document.createElement("div");
     el.className="tile "+(free?"free":"occ");
     el.textContent=i+1;
@@ -244,88 +184,38 @@ function render(){
     tiles.appendChild(el);
   }
 
-  // KPIs
-  const rates=RECORDS.map(r=>r.occupancyRate);
-  const peak=Math.max(...rates);
-  const avg=rates.reduce((a,b)=>a+b,0)/rates.length;
-  document.getElementById("kCur").textContent=pct(last.occupancyRate);
-  document.getElementById("kPeak").textContent=pct(peak);
-  document.getElementById("kAvg").textContent=pct(avg);
+  document.getElementById("kCur").textContent=pct(OCC.occupancyRate(last));
+  document.getElementById("kPeak").textContent=pct(OCC.occupancyRate(sum.peak));
+  document.getElementById("kAvg").textContent=pct(sum.avg);
 
   drawChart(RECORDS);
 }
 
-// ---- inline SVG area chart, no libs ----
 function drawChart(recs){
-  const W=920,H=280, m={t:16,r:16,b:38,l:40};
-  const iw=W-m.l-m.r, ih=H-m.t-m.b;
-  const n=recs.length;
-  const x=i=> n<=1 ? m.l+iw/2 : m.l + (i/(n-1))*iw;
-  const y=r=> m.t + (1-r)*ih;
-
-  let grid="", labels="";
-  for(let g=0;g<=100;g+=25){
-    const yy=y(g/100);
-    grid+=`<line x1="${m.l}" y1="${yy.toFixed(1)}" x2="${m.l+iw}" y2="${yy.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`;
-    labels+=`<text x="${m.l-8}" y="${(yy+4).toFixed(1)}" text-anchor="end" font-size="11" fill="var(--muted)">${g}%</text>`;
-  }
-
-  // x labels: hour of each record, thinned to ~8
-  const step=Math.max(1,Math.ceil(n/8));
-  let xlab="";
-  for(let i=0;i<n;i+=step){
-    const h=hourOf(recs[i].ts);
-    const lbl = h!=null ? String(h).padStart(2,"0")+":00" : (i+1);
-    xlab+=`<text x="${x(i).toFixed(1)}" y="${H-14}" text-anchor="middle" font-size="11" fill="var(--muted)">${lbl}</text>`;
-  }
-
-  const line = recs.map((r,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(r.occupancyRate).toFixed(1)}`).join(" ");
-  const area = `M${x(0).toFixed(1)},${y(0).toFixed(1)} `
-    + recs.map((r,i)=>`L${x(i).toFixed(1)},${y(r.occupancyRate).toFixed(1)}`).join(" ")
-    + ` L${x(n-1).toFixed(1)},${y(0).toFixed(1)} Z`;
-
-  const dots = recs.map((r,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(r.occupancyRate).toFixed(1)}" r="2.5" fill="var(--brand)"><title>${fmtTime(r.ts)} · ${pct(r.occupancyRate)}</title></circle>`).join("");
-
-  document.getElementById("chart").innerHTML =
-  `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="גרף תפוסה לאורך זמן">
-    <defs><linearGradient id="ar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="var(--brand)" stop-opacity="0.28"/>
-      <stop offset="1" stop-color="var(--brand)" stop-opacity="0.02"/>
-    </linearGradient></defs>
-    ${grid}
-    <path d="${area}" fill="url(#ar)"/>
-    <path d="${line}" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-    ${dots}${labels}${xlab}
-  </svg>`;
+  document.getElementById("chart").innerHTML = OCC.chartSvg(recs, { width: 920, height: 260, stroke: "var(--brand)" });
 }
 
 // ---- city report: peak window + headline ----
 function makeReport(){
-  if(!RECORDS.length){ RECORDS = SAMPLE; render(); } // guard: click before data loaded -> no -Infinity
-  const recs=RECORDS;
-  const rates=recs.map(r=>r.occupancyRate);
-  const avg=rates.reduce((a,b)=>a+b,0)/rates.length;
-  const peakIdx=rates.indexOf(Math.max(...rates));
-  const peak=recs[peakIdx];
-  const low=recs[rates.indexOf(Math.min(...rates))];
-
-  // peak 2-hour window (by hour buckets if timestamps present)
-  let headline;
+  if(!RECORDS.length) return;
+  const sum = OCC.summarize(RECORDS);
+  const peak = sum.peak, low = sum.low;
   const ph=hourOf(peak.ts);
+  let headline;
   if(ph!=null){
     const h2=(ph+2)%24;
-    headline=`בין ${String(ph).padStart(2,"0")}:00–${String(h2).padStart(2,"0")}:00 נרשמה תפוסת שיא של ${pct(peak.occupancyRate)} ברחוב ${peak.street}.`;
+    headline=`בין ${String(ph).padStart(2,"0")}:00–${String(h2).padStart(2,"0")}:00 נרשמה תפוסת שיא של ${pct(OCC.occupancyRate(peak))} ברחוב ${peak.street}.`;
   }else{
-    headline=`תפוסת השיא ברחוב ${peak.street} הגיעה ל-${pct(peak.occupancyRate)}.`;
+    headline=`תפוסת השיא ברחוב ${peak.street} הגיעה ל-${pct(OCC.occupancyRate(peak))}.`;
   }
 
   const rows=[
-    ["תפוסה ממוצעת לאורך היום", pct(avg)],
-    ["תפוסת שיא", `${pct(peak.occupancyRate)} · ${fmtTime(peak.ts)}`],
-    ["תפוסה מינימלית", `${pct(low.occupancyRate)} · ${fmtTime(low.ts)}`],
-    ["מספר מקומות ברחוב", String(peak.totalSpots)],
-    ["חלון עומס מומלץ לאכיפה/תמרור", ph!=null?`${String(ph).padStart(2,"0")}:00–${String((ph+2)%24).padStart(2,"0")}:00`:"—"],
-    ["נקודות מדידה", String(recs.length)]
+    ["תפוסה ממוצעת לאורך היום", pct(sum.avg)],
+    ["תפוסת שיא", `${pct(OCC.occupancyRate(peak))} · ${fmtTime(peak.ts)}`],
+    ["תפוסה מינימלית", `${pct(OCC.occupancyRate(low))} · ${fmtTime(low.ts)}`],
+    ["מספר מקומות ברחוב", String(peak.total)],
+    ["חלון עומס לתכנון (לא אכיפה)", ph!=null?`${String(ph).padStart(2,"0")}:00–${String((ph+2)%24).padStart(2,"0")}:00`:"—"],
+    ["נקודות מדידה", String(sum.count)]
   ];
 
   document.getElementById("repHeadline").textContent=headline;
@@ -364,7 +254,9 @@ drop.addEventListener("drop",ev=>{
   document.getElementById("srcLabel").textContent="טוען…";
   fetch("pilot/sample-occupancy.json").then(r=>{ if(!r.ok) throw 0; return r.text(); })
     .then(t=>{ if(!loadFrom(t,"pilot/sample-occupancy.json (דוגמה)")){ throw 0; } })
-    .catch(()=>{ RECORDS=SAMPLE; document.getElementById("srcLabel").textContent="נתוני הדגמה"; render(); });
+    .catch(()=>{
+      document.getElementById("srcLabel").textContent="אין קובץ — טענו occupancy.json";
+    });
 })();
 </script>
 </body>

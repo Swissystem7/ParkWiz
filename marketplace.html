@@ -9,15 +9,7 @@
 </style>
 </head>
 <body>
-<nav class="pw-surface-nav" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:7px 12px;background:#0f1420;border-bottom:1px solid rgba(255,255,255,.08);font:600 0.78rem system-ui,sans-serif">
-  <span style="color:#8ba3c7">ParkWiz</span>
-  <a href="./" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">מפת חניה עירונית</a>
-  <a href="./pilot-kit.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">ערכת פיילוט</a>
-  <a href="./pilot-report.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">דוח פיילוט</a>
-  <a href="./pilot-privacy.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">בקשת גישה / פרטיות</a>
-  <a href="./pilot-dashboard.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">דשבורד פיילוט עירוני</a>
-  <span style="color:#fff;background:rgba(59,130,246,.22);border:1px solid rgba(59,130,246,.45);border-radius:14px;padding:3px 11px">שוק חניות פרטיות</span>
-</nav>
+<div id="pwSurfaceNav" data-active="market"></div>
 <div class="demo-bar">הדגמת מוצר בלבד — אין תשלום אמיתי ואין כרגע מלאי חי</div>
 <header class="hero"><div class="wrap"><span class="tag">ParkWiz במודל JustPark / SpotHero</span><h1>הזמינו חניה פרטית או חניון ליד היעד — בלי להסתובב</h1><p>בוחרים מקום פנוי בנכס פרטי, שומרים חלון זמן ומקבלים אישור הדגמה ברור. בעלי חניה יכולים להפוך שעות פנויות להכנסה.</p><button class="cta" onclick="document.querySelector('#driver').scrollIntoView({behavior:'smooth'})">למציאת חניה בדמו</button></div></header>
 
@@ -30,6 +22,7 @@
 
 <section class="section policy"><div class="wrap"><h2>מדיניות המוצר</h2><p>הכללים האלה מוטמעים גם בבדיקת המודעות בקוד.</p><div class="grid"><div class="card"><h3>נכס פרטי בלבד</h3><p>מתקבלות חניות פרטיות, מגרשים פרטיים וחניונים מורשים בלבד.</p></div><div class="card"><h3>לא מוכרים את הרחוב</h3><p>אין מכירה, מכרז או שמירה של מקום חניה ציבורי ברחוב.</p></div><div class="card"><h3>הכנסה באחריות</h3><p>הכנסת מארח וכפיפות לתקנון הבית המשותף טעונות בדיקת יועץ לפני השקה אמיתית.</p></div></div><p style="margin-top:1.5rem">מודל הייחוס: שוק מלאי פרטי בסגנון JustPark, עם עמלת פלטפורמה. בדמו: 0% למבצע 80 המארחים הראשונים; לאחר מכן מודגמת עמלה של 15%.</p></div></section>
 </main><footer>ParkWiz — אבטיפוס. אין חיבור ל-Pango, לרשות מקומית או למעבד תשלומים.</footer>
+<script src="src/lib/surface-nav.js"></script>
 <script>
 const spots=[{id:'p1',hostId:'h1',name:'חניה פרטית ליד דיזנגוף סנטר',walk:'4 דקות הליכה',price:32},{id:'p2',hostId:'h2',name:'חניון פרטי ברחוב הארבעה',walk:'6 דקות הליכה',price:45},{id:'p3',hostId:'h3',name:'חניה פרטית ליד איכילוב',walk:'3 דקות הליכה',price:38}];
 function positive(v,n){if(!Number.isFinite(v)||v<=0)throw new TypeError(n+' חייב להיות מספר חיובי')}function required(v,n){if(typeof v!=='string'||!v.trim())throw new TypeError(n+' נדרש');return v.trim()}function demoCommission(price,opts={}){positive(price,'מחיר');return opts.launch===true?0:Number((price*.15).toFixed(2))}function createBooking({spotId,hostId,driverId,priceIls,windowMins}={}){spotId=required(spotId,'מקום');hostId=required(hostId,'מארח');driverId=required(driverId,'נהג');positive(priceIls,'מחיר');positive(windowMins,'חלון');return Object.freeze({id:`demo-${spotId}-${driverId}-${windowMins}`,spotId,hostId,driverId,priceIls,windowMins,heldAt:0,releaseAt:windowMins*60000,status:'held',paymentMode:'demo'})}function releaseFunds(b,now){if(!b||b.status!=='held')throw Error('ההזמנה חייבת להיות בהחזקה');if(!Number.isFinite(now))throw TypeError('זמן לא תקין');if(now<b.releaseAt)throw Error('חלון ההזמנה עדיין לא הסתיים');return Object.freeze({...b,status:'released',releasedAt:now})}function validateListing(v){v=v&&typeof v==='object'?v:{};const e=[],allowed=['private_driveway','private_lot','garage'];if(!allowed.includes(v.spotType))e.push(['public_curb','street'].includes(v.spotType)?'אסור לפרסם חניה ציבורית או מקום ברחוב.':'יש לבחור סוג נכס פרטי תקין.');if(v.ownershipAttested!==true)e.push('נדרשת הצהרת בעלות או הרשאה.');if(typeof v.address!=='string'||!v.address.trim())e.push('נדרשת כתובת.');if(!Number.isFinite(v.priceIls)||v.priceIls<=0)e.push('נדרש מחיר חיובי.');return{ok:!e.length,errors:e}}

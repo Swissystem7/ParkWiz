@@ -4,25 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ParkWiz — ערכת פיילוט</title>
+<link rel="stylesheet" href="pilot/shell.css">
+<link rel="stylesheet" href="pilot/print.css">
 <style>
-:root{
-  --bg:#f4f6f8; --panel:#fff; --ink:#111827; --muted:#6b7280;
-  --line:#e5e7eb; --brand:#0e7490; --free:#16a34a; --occ:#dc2626;
-  --warn:#b45309; --warnbg:#fffbeb; --shadow:0 1px 2px rgba(16,24,40,.06);
-}
-*{box-sizing:border-box}
-html,body{margin:0}
-body{
-  font-family:system-ui,"Segoe UI",Roboto,"Noto Sans Hebrew",Arial,sans-serif;
-  background:var(--bg); color:var(--ink); line-height:1.5;
-}
-nav.pw-surface-nav{
-  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;
-  padding:7px 12px;background:#0f1420;border-bottom:1px solid rgba(255,255,255,.08);
-  font:600 0.78rem system-ui,sans-serif;
-}
-nav a{color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none}
-nav a.here{color:#fff;background:rgba(14,116,144,.45);border-color:rgba(103,232,249,.45)}
 .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 72px}
 h1{font-size:1.35rem;margin:0 0 4px}
 .sub{color:var(--muted);font-size:.88rem;margin-bottom:14px}
@@ -68,15 +52,7 @@ svg.chart{display:block;width:100%;height:auto}
 </style>
 </head>
 <body>
-<nav class="pw-surface-nav">
-  <span style="color:#8ba3c7">ParkWiz</span>
-  <a href="./">מפת חניה עירונית</a>
-  <a class="here" href="./pilot-kit.html">ערכת פיילוט</a>
-  <a href="./pilot-report.html">דוח פיילוט</a>
-  <a href="./pilot-privacy.html">בקשת גישה / פרטיות</a>
-  <a href="./pilot-dashboard.html">דשבורד פיילוט עירוני</a>
-  <a href="./marketplace.html">שוק חניות פרטיות</a>
-</nav>
+<div id="pwSurfaceNav" data-active="kit"></div>
 <div class="wrap">
   <h1>ערכת פיילוט — תפוסה מצילום סטטי</h1>
   <p class="sub">כיול מלבני חניה על תמונת snapshot, הערכת תפוס/פנוי, וייצוא <code>spots.json</code> + <code>occupancy.json</code>.</p>
@@ -154,13 +130,16 @@ svg.chart{display:block;width:100%;height:auto}
   </div>
   <div class="foot">ParkWiz · ערכת פיילוט מקומית · בלי שרת ובלי CDN</div>
 </div>
+<script src="src/lib/occupancy.js"></script>
+<script src="src/lib/surface-nav.js"></script>
 <script>
 "use strict";
 
-const LS_SPOTS = "pw_pilot_spots";
-const LS_OCC = "pw_pilot_occupancy";
-const LS_STREET = "pw_pilot_street";
-const LS_EST = "pw_pilot_last_estimate";
+const OCC = window.ParkWizOccupancy;
+const LS_SPOTS = OCC.LS.spots;
+const LS_OCC = OCC.LS.occupancy;
+const LS_STREET = OCC.LS.street;
+const LS_EST = OCC.LS.estimate;
 
 const state = {
   spots: [],
@@ -418,7 +397,7 @@ function saveLocal() {
   try {
     localStorage.setItem(LS_SPOTS, JSON.stringify(spotsDoc()));
     localStorage.setItem(LS_STREET, street());
-    if (state.occupancy.length) localStorage.setItem(LS_OCC, JSON.stringify(state.occupancy));
+    if (state.occupancy.length) OCC.saveOccupancy(state.occupancy);
     if (state.estimates.length) localStorage.setItem(LS_EST, JSON.stringify(state.estimates));
   } catch (e) {}
 }
@@ -502,23 +481,9 @@ function computeEstimate() {
   drawChart(state.occupancy);
 }
 
-function normOcc(o) {
-  if (!o || typeof o !== "object") return null;
-  const total = Number(o.total != null ? o.total : o.totalSpots);
-  const occupied = Number(o.occupied != null ? o.occupied : o.occupiedSpots);
-  if (!Number.isFinite(total) || !Number.isFinite(occupied)) return null;
-  return {
-    ts: o.ts != null ? String(o.ts) : "",
-    street: o.street != null ? String(o.street) : street(),
-    total,
-    occupied,
-    source: o.source != null ? String(o.source) : "unknown",
-    confidence: Number.isFinite(Number(o.confidence)) ? Number(o.confidence) : 0,
-  };
-}
-
 function applyOccupancy(list) {
-  state.occupancy = (Array.isArray(list) ? list : []).map(normOcc).filter(Boolean);
+  const raw = Array.isArray(list) ? JSON.stringify(list) : String(list || '');
+  state.occupancy = OCC.parse(raw, street());
   saveLocal();
   drawChart(state.occupancy);
 }
@@ -529,32 +494,7 @@ function drawChart(recs) {
     host.innerHTML = '<p class="hint">אין סדרת occupancy עדיין.</p>';
     return;
   }
-  const W = 720, H = 220, m = { t: 12, r: 12, b: 32, l: 36 };
-  const iw = W - m.l - m.r, ih = H - m.t - m.b;
-  const n = recs.length;
-  const x = (i) => (n <= 1 ? m.l + iw / 2 : m.l + (i / (n - 1)) * iw);
-  const y = (r) => m.t + (1 - r) * ih;
-  let grid = "", xlab = "";
-  for (let g = 0; g <= 100; g += 25) {
-    const yy = y(g / 100);
-    grid += `<line x1="${m.l}" y1="${yy}" x2="${m.l + iw}" y2="${yy}" stroke="#e5e7eb"/>`;
-    grid += `<text x="${m.l - 6}" y="${yy + 4}" text-anchor="end" font-size="11" fill="#6b7280">${g}%</text>`;
-  }
-  const step = Math.max(1, Math.ceil(n / 8));
-  recs.forEach((r, i) => {
-    if (i % step) return;
-    const d = new Date(r.ts);
-    const lbl = isNaN(d) ? String(i + 1) : String(d.getHours()).padStart(2, "0") + ":00";
-    xlab += `<text x="${x(i)}" y="${H - 10}" text-anchor="middle" font-size="11" fill="#6b7280">${lbl}</text>`;
-  });
-  const line = recs.map((r, i) => {
-    const rate = r.total ? r.occupied / r.total : 0;
-    return `${i ? "L" : "M"}${x(i).toFixed(1)},${y(rate).toFixed(1)}`;
-  }).join(" ");
-  host.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="עקומת תפוסה">
-    ${grid}${xlab}
-    <path d="${line}" fill="none" stroke="#0e7490" stroke-width="2.5"/>
-  </svg>`;
+  host.innerHTML = OCC.chartSvg(recs, { width: 720, height: 220 });
 }
 
 document.getElementById("btnSample").addEventListener("click", () => loadSample());

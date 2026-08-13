@@ -362,15 +362,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 </style>
 </head>
 <body>
-<nav class="pw-surface-nav" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:7px 12px;background:#0f1420;border-bottom:1px solid rgba(255,255,255,.08);font:600 0.78rem system-ui,sans-serif;position:relative;z-index:9999">
-  <span style="color:#8ba3c7">ParkWiz</span>
-  <a href="./" style="color:#fff;background:rgba(59,130,246,.22);border:1px solid rgba(59,130,246,.45);border-radius:14px;padding:3px 11px;text-decoration:none">מפת חניה עירונית</a>
-  <a href="./pilot-kit.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">ערכת פיילוט</a>
-  <a href="./pilot-report.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">דוח פיילוט</a>
-  <a href="./pilot-privacy.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">בקשת גישה / פרטיות</a>
-  <a href="./pilot-dashboard.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">דשבורד פיילוט עירוני</a>
-  <a href="./marketplace.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">שוק חניות פרטיות</a>
-</nav>
+<div id="pwSurfaceNav" data-active="map" style="position:relative;z-index:9999"></div>
 
 <!-- ParkWiz Pricing Modal -->
 <div class="park-pricing-overlay" id="parkPricingOverlay">
@@ -834,6 +826,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 <script src="src/lib/plate.js"></script>
 <script src="src/lib/availability.js"></script>
 <script src="src/lib/predict.js"></script>
+<script src="src/lib/surface-nav.js"></script>
 <script src="availability-model.js"></script>
 
 <script>
@@ -1899,6 +1892,34 @@ function leavingPickWhen(mins, btn) {
   }, 280);
 }
 
+function clampStreetAvail(v) {
+  return Math.max(5, Math.min(98, Math.round(v)));
+}
+function bumpStreetAvail(idx, delta) {
+  STREETS_DEF[idx].avail = clampStreetAvail((STREETS_DEF[idx].avail || 0) + delta);
+}
+function creditXp(amount) {
+  if (!amount) return;
+  userScore += amount;
+  updateXP(amount);
+}
+function prependFeed(msg, streetName) {
+  COMMUNITY_FEED.unshift({ msg, street: streetName });
+  updateFeed();
+}
+function pushCommunityLeaving(idx, count, nowMs) {
+  PW_COMMUNITY_REPORTS.push({ ts: nowMs, delta: count, streetIdx: idx });
+  USER_REPORTS.push({
+    source: 'user',
+    streetIdx: idx,
+    areaKey: 'netanya-center',
+    count,
+    confidence: Math.min(0.9, 0.45 + count * 0.15),
+    createdAt: nowMs,
+    expiresAt: nowMs + 5 * 60 * 1000,
+  });
+}
+
 function addFutureReport(count) {
   if (!requireSelectedStreet()) return;
   const idx = selectedStreetIdx;
@@ -1912,12 +1933,10 @@ function addFutureReport(count) {
     expireAt: now + (leavingDelayMin+3)*60000,
   });
   const xpGain = 8 + count * 4;
-  userScore += xpGain;
-  updateXP(xpGain);
+  creditXp(xpGain);
   document.getElementById('leavingOverlay').classList.remove('show');
   showToast(`🕐 דיווח עתידי נקלט! מקום יתפנה ב${s.name} בעוד ~${leavingDelayMin} דק' (+${xpGain} XP)`);
-  COMMUNITY_FEED.unshift({msg:`👤 משתמש יוצא בעוד ~${leavingDelayMin} דק' ב${s.name} (${count} מקומ${count>1?'ות':''})`, street:s.name});
-  updateFeed();
+  prependFeed(`👤 משתמש יוצא בעוד ~${leavingDelayMin} דק' ב${s.name} (${count} מקומ${count>1?'ות':''})`, s.name);
   renderAll();
 }
 
@@ -2024,26 +2043,14 @@ function doReportLeaving(count, xpGain) {
   const idx = selectedStreetIdx;
   const reportCount = Math.max(1, Math.min(3, Number(count) || 1));
   const nowMs = Date.now();
-  PW_COMMUNITY_REPORTS.push({ ts: nowMs, delta: reportCount, streetIdx: idx }); // COMMUNITY_REPORT
-  STREETS_DEF[idx].avail = Math.max(5, Math.min(98, Math.round((STREETS_DEF[idx].avail || 0) + reportCount * 6)));
-  USER_REPORTS.push({
-    source: 'user',
-    streetIdx: idx,
-    areaKey: 'netanya-center',
-    count: reportCount,
-    confidence: Math.min(0.9, 0.45 + reportCount * 0.15),
-    createdAt: nowMs,
-    expiresAt: nowMs + 5 * 60 * 1000,
-  });
-  userScore += xpGain;
-  updateXP(xpGain);
-  renderAll();
-  showToast('✅ תודה! +' + xpGain + ' נקודות אמינות 🏆');
+  pushCommunityLeaving(idx, reportCount, nowMs);
+  bumpStreetAvail(idx, reportCount * 6);
+  creditXp(xpGain);
   HISTORY.unshift({addr:'רח\' '+STREETS_DEF[idx].name, time:'עכשיו', saved:'? דקות', pts:xpGain});
   renderHistory();
-  // Add to feed
-  COMMUNITY_FEED.unshift({msg:`👤 משתמש דיווח: ${count} מקום${count>1?'ות':''} פנ${count>1?'ו':'ה'} ב${STREETS_DEF[idx].name}`, street:STREETS_DEF[idx].name});
-  updateFeed();
+  prependFeed(`👤 משתמש דיווח: ${count} מקום${count>1?'ות':''} פנ${count>1?'ו':'ה'} ב${STREETS_DEF[idx].name}`, STREETS_DEF[idx].name);
+  renderAll();
+  showToast('✅ תודה! +' + xpGain + ' נקודות אמינות 🏆');
 }
 
 // ─── Live Feed ───────────────────────────────────────────────────
@@ -2062,12 +2069,13 @@ function startFeedCycle() {
 // אימות קהילתי בסגנון Waze: confirm מעלה ודאות, disconfirm מפיל את הדיווח מיד
 function confirmFeed(stillFree) {
   const item = COMMUNITY_FEED[feedIdx % COMMUNITY_FEED.length];
-  const s = STREETS_DEF.find(x => item.street && item.street.includes(x.name));
-  if (s) {
-    if (stillFree) { s.avail = Math.min(97, s.avail + 4); item.t = Date.now(); }
-    else { s.avail = Math.max(3, s.avail - 6); s.lastGap = null; item.t = Date.now() - 999e3; }
+  const idx = STREETS_DEF.findIndex(x => item.street && item.street.includes(x.name));
+  if (idx !== -1) {
+    bumpStreetAvail(idx, stillFree ? 4 : -6);
+    if (!stillFree) STREETS_DEF[idx].lastGap = null;
+    item.t = stillFree ? Date.now() : Date.now() - 999e3;
   }
-  userScore += 5;
+  creditXp(5);
   showToast(stillFree ? '👍 תודה! הדיווח אומת (+5 XP)' : '👎 עודכן — הדיווח נפסל (+5 XP)');
   renderAll();
 }
@@ -2241,8 +2249,7 @@ function answerFound(ans) {
   document.getElementById('foundPrompt').classList.remove('show');
   if (foundStreetIdx === null) return;
   const s = STREETS_DEF[foundStreetIdx];
-  const delta = ans === 'no' ? -10 : 5;
-  s.avail = Math.max(5, Math.min(98, s.avail + delta));
+  bumpStreetAvail(foundStreetIdx, ans === 'no' ? -10 : 5);
   try {
     const arr = JSON.parse(localStorage.getItem('parkwiz_found_feedback') || '[]');
     arr.push({ street: s.name, answer: ans, ts: new Date().toISOString() });

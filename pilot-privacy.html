@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ParkWiz — בקשת גישה למצלמה והצהרת פרטיות</title>
+<link rel="stylesheet" href="pilot/shell.css">
+<link rel="stylesheet" href="pilot/print.css">
 <style>
 :root{
   --bg:#f4f6f8; --panel:#fff; --ink:#111827; --muted:#6b7280;
@@ -53,24 +55,10 @@ ul.check li:last-child{border:none}
 .foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:16px}
 a{color:var(--brand)}
 
-@media print{
-  nav.pw-surface-nav,.toolbar,.no-print{display:none!important}
-  body{background:#fff}
-  .wrap{max-width:none;padding:0}
-  .panel{box-shadow:none;break-inside:avoid}
-  input,textarea{border:none;border-bottom:1px solid #111;border-radius:0;padding:2px 0}
-}
 </style>
 </head>
 <body>
-<nav class="pw-surface-nav">
-  <span style="color:#8ba3c7">ParkWiz</span>
-  <a href="./">מפת חניה עירונית</a>
-  <a href="./pilot-kit.html">ערכת פיילוט</a>
-  <a href="./pilot-report.html">דוח פיילוט</a>
-  <a class="here" href="./pilot-privacy.html">בקשת גישה / פרטיות</a>
-  <a href="./pilot-dashboard.html">דשבורד פיילוט עירוני</a>
-</nav>
+<div id="pwSurfaceNav" data-active="privacy"></div>
 <div class="wrap">
   <h1>בקשת גישה ל־snapshot + הצהרת פרטיות</h1>
   <p class="sub">מסמך להדפסה ליחידת חדשנות / יועמ״ש / אגף תנועה בנתניה. ממלאים, מדפיסים, מעבירים לאישור — בלי מכרז ובלי תשלום.</p>
@@ -164,6 +152,7 @@ a{color:var(--brand)}
 
   <div class="foot">ParkWiz · בקשת גישה ל־snapshot · טיוטה להדפסה · לא הסכם ולא ייעוץ משפטי</div>
 </div>
+<script src="src/lib/surface-nav.js"></script>
 <script>
 "use strict";
 function fill30() {
