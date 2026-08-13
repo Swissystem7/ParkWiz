@@ -1875,7 +1875,8 @@ function leavingPickWhen(mins, btn) {
 }
 
 function addFutureReport(count) {
-  const idx = selectedStreetIdx !== null ? selectedStreetIdx : Math.floor(Math.random()*STREETS_DEF.length);
+  if (!requireSelectedStreet()) return;
+  const idx = selectedStreetIdx;
   const s = STREETS_DEF[idx];
   const now = Date.now();
   futureReports.push({
@@ -1906,7 +1907,14 @@ function pruneFutureReports() {
 }
 setInterval(pruneFutureReports, 5000);
 
+function requireSelectedStreet() {
+  if (selectedStreetIdx !== null) return true;
+  showToast('כדי לדווח, בחרו קודם רחוב במפה או בחיפוש');
+  return false;
+}
+
 function startLeaving() {
+  if (!requireSelectedStreet()) return;
   leavingParkType = null;
   leavingDelayMin = 0;
   document.getElementById('leavingStep0').style.display = 'block';
@@ -1987,8 +1995,8 @@ function cancelLeaving() {
 }
 
 function doReportLeaving(count, xpGain) {
-  // Update street availability
-  const idx = selectedStreetIdx !== null ? selectedStreetIdx : Math.floor(Math.random()*STREETS_DEF.length);
+  if (!requireSelectedStreet()) return;
+  const idx = selectedStreetIdx;
   const reportCount = Math.max(1, Math.min(3, Number(count) || 1));
   const nowMs = Date.now();
   PW_COMMUNITY_REPORTS.push({ ts: nowMs, delta: reportCount, streetIdx: idx }); // COMMUNITY_REPORT
