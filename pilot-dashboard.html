@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'">
 <title>ParkWiz — ניהול חניה עירוני</title>
 <link rel="stylesheet" href="pilot/print.css">
 <style>
@@ -153,6 +153,7 @@
 
 <script src="src/lib/occupancy.js"></script>
 <script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
 <script>
 "use strict";
 

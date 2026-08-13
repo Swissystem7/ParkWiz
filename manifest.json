@@ -1,15 +1,15 @@
 {
-  "name": "ParkWiz — חניה חכמה בעיר",
+  "name": "ParkWiz — פיילוט תפוסה נתניה",
   "short_name": "ParkWiz",
-  "description": "מנוע חיזוי חניה שמחשב סיכויי חניה פנויה ומדריך אותך לחניון הקרוב.",
+  "description": "דמו חניית רחוב + ערכת שדה למדידת דיוק היוריסטיקה מול ספירת פקח. בלי מצלמה חיה ובלי לוחיות.",
   "lang": "he",
   "dir": "rtl",
-  "start_url": "./index.html",
+  "start_url": "./pilot-compare.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#0a0f0a",
-  "theme_color": "#22c55e",
+  "orientation": "any",
+  "background_color": "#f4f6f8",
+  "theme_color": "#0e7490",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
