@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ParkWiz — ערכת פיילוט</title>
+<meta name="theme-color" content="#0e7490">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="stylesheet" href="pilot/shell.css">
 <link rel="stylesheet" href="pilot/print.css">
 <style>
@@ -85,6 +88,8 @@ svg.chart{display:block;width:100%;height:auto}
         <div class="row">
           <button type="button" class="primary" id="btnEstimate">חשב תפוסה</button>
           <button type="button" id="btnExportOcc">ייצוא occupancy.json</button>
+          <button type="button" id="btnExportCsv">ייצוא occupancy.csv</button>
+          <a href="./pilot-compare.html" style="font-size:.82rem;font-weight:700">השווה מול ספירת פקח</a>
         </div>
         <div class="kpis">
           <div class="kpi"><div class="n" id="kTotal">0</div><div class="l">מקומות מסומנים</div></div>
@@ -131,7 +136,10 @@ svg.chart{display:block;width:100%;height:auto}
   <div class="foot">ParkWiz · ערכת פיילוט מקומית · בלי שרת ובלי CDN</div>
 </div>
 <script src="src/lib/occupancy.js"></script>
+<script src="src/lib/compare.js"></script>
+<script src="src/lib/export.js"></script>
 <script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
 <script>
 "use strict";
 
@@ -537,6 +545,13 @@ document.getElementById("fileSpots").addEventListener("change", async (e) => {
 document.getElementById("btnEstimate").addEventListener("click", computeEstimate);
 document.getElementById("btnExportOcc").addEventListener("click", () => {
   download("occupancy.json", JSON.stringify(state.occupancy, null, 2));
+});
+document.getElementById("btnExportCsv").addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([window.ParkWizExport.occupancyToCsv(state.occupancy)], { type: "text/csv" }));
+  a.download = "occupancy.csv";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 800);
 });
 document.getElementById("btnLoadSampleOcc").addEventListener("click", async () => {
   try {

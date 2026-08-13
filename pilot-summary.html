@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — סיכום פיילוט לקריאה בלבד</title>
+<meta name="description" content="סיכום דיוק מול פקח שנשלח בקישור. הנתונים בכתובת עצמה. אין שרת ואין הזנה חיה.">
+<meta name="theme-color" content="#0e7490">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="pilot/shell.css">
+<link rel="stylesheet" href="pilot/print.css">
+<style>
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 72px}
+h1{font-size:1.35rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:560px){.kpis{grid-template-columns:1fr}}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+.kpi .n{font-size:1.5rem;font-weight:800;color:var(--brand)}
+.kpi .l{font-size:.72rem;color:var(--muted)}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:.86rem}
+.meta span{color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+.empty{padding:18px;border:1.5px dashed var(--line);border-radius:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="pwSurfaceNav" data-active="summary"></div>
+<div class="wrap">
+  <h1>סיכום פיילוט — לקריאה בלבד</h1>
+  <p class="sub">קישור שנוצר בדפדפן. אין חשבון, אין שרת, ואין דרך לערוך את המספרים מכאן.</p>
+  <div class="banner" id="banner">
+    טוען את הסיכום מהכתובת…
+  </div>
+
+  <section class="panel" id="body" hidden>
+    <h2>דיוק מול ספירת פקח</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="kMean">—</div><div class="l">דיוק ממוצע</div></div>
+      <div class="kpi"><div class="n" id="kN">—</div><div class="l">תצפיות מזווגות</div></div>
+      <div class="kpi"><div class="n" id="kPerfect">—</div><div class="l">התאמה מלאה</div></div>
+    </div>
+    <div class="meta" style="margin-top:14px">
+      <div><span>רחוב / אתר</span><br><b id="rStreet">—</b></div>
+      <div><span>תקופה</span><br><b id="rPeriod">—</b></div>
+      <div><span>טווח דיוק</span><br><b id="rRange">—</b></div>
+      <div><span>שגיאה מוחלטת ממוצעת</span><br><b id="rMae">—</b></div>
+      <div><span>זוג אחרון (מערכת / פקח)</span><br><b id="rLast">—</b></div>
+      <div><span>נוצר ב־</span><br><b id="rGen">—</b></div>
+    </div>
+  </section>
+
+  <section class="panel" id="empty">
+    <div class="empty">
+      <b>אין סיכום בכתובת.</b>
+      פתחו את <a href="./pilot-compare.html">השוואת הדיוק</a>, הזינו זוגות, ולחצו «העתק קישור סיכום».
+      הקישור נושא רק סיכום מספרי — לא תמונות ואין בו לוחיות.
+    </div>
+  </section>
+
+  <div class="toolbar no-print">
+    <button type="button" class="primary" id="btnPrint">הדפס / שמור כ־PDF</button>
+    <a href="./pilot-compare.html" style="font-size:.85rem">חזרה להשוואה</a>
+  </div>
+  <div class="foot">ParkWiz · סיכום לקריאה בלבד · הנתונים ב־hash של הכתובת</div>
+</div>
+<script src="src/lib/occupancy.js"></script>
+<script src="src/lib/compare.js"></script>
+<script src="src/lib/export.js"></script>
+<script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
+<script>
+"use strict";
+
+const OCC = window.ParkWizOccupancy;
+const EXP = window.ParkWizExport;
+const pct = OCC.pct;
+const fmt = OCC.formatTime;
+
+document.getElementById("btnPrint").addEventListener("click", () => window.print());
+
+const token = location.hash.replace(/^#/, "");
+const data = EXP.decodeSharePayload(token);
+const banner = document.getElementById("banner");
+if (!data) {
+  banner.innerHTML = "<b>הקישור ריק או פגום.</b> זה דף לקריאה בלבד — אין מסד נתונים מאחוריו.";
+} else {
+  document.getElementById("empty").hidden = true;
+  document.getElementById("body").hidden = false;
+  if (data.sampleOnly) {
+    banner.innerHTML = "<b>נתוני דוגמה, לא ספירת פקח.</b> המספרים בקישור סומנו כ־sample. אין לדווח אותם כמדידת שטח.";
+  } else {
+    banner.innerHTML = "<b>מסמך סיכום מקומי.</b> אין הזנה חיה ואין דרך לערוך מכאן. מקור: השוואת דיוק בדפדפן ששלח את הקישור.";
+  }
+  document.getElementById("kMean").textContent = data.meanAccuracy == null ? "—" : pct(data.meanAccuracy);
+  document.getElementById("kN").textContent = String(data.count);
+  document.getElementById("kPerfect").textContent = String(data.perfect);
+  document.getElementById("rStreet").textContent = data.street || "—";
+  document.getElementById("rPeriod").textContent = (data.firstTs || data.lastTs)
+    ? (fmt(data.firstTs) + " – " + fmt(data.lastTs))
+    : "—";
+  document.getElementById("rRange").textContent = (data.minAccuracy == null)
+    ? "—"
+    : (pct(data.minAccuracy) + " – " + pct(data.maxAccuracy));
+  document.getElementById("rMae").textContent = data.meanAbsError == null ? "—" : data.meanAbsError.toFixed(2);
+  document.getElementById("rLast").textContent = (data.lastTotal == null)
+    ? "—"
+    : (data.lastSystem + " / " + data.lastManual + " מתוך " + data.lastTotal);
+  document.getElementById("rGen").textContent = data.generatedAt ? fmt(data.generatedAt) : "—";
+}
+</script>
+</body>
+</html>

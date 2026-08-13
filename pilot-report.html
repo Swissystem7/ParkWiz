@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ParkWiz — דוח פיילוט</title>
+<meta name="theme-color" content="#0e7490">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="stylesheet" href="pilot/shell.css">
 <link rel="stylesheet" href="pilot/print.css">
 <style>
@@ -46,6 +49,8 @@ th{color:var(--muted);font-weight:600}
 
   <div class="toolbar no-print">
     <button type="button" class="primary" id="btnPrint">הדפס / שמור כ־PDF</button>
+    <button type="button" id="btnCsv">ייצוא CSV</button>
+    <button type="button" id="btnJson">ייצוא JSON</button>
     <button type="button" id="btnSample">טען occupancy לדוגמה</button>
     <label class="no-print" style="margin:0;max-width:none">טען occupancy.json
       <input type="file" id="fileOcc" accept=".json,application/json">
@@ -91,6 +96,7 @@ th{color:var(--muted);font-weight:600}
       <button type="button" id="btnAcc">חשב דיוק</button>
     </div>
     <p id="accOut" style="font-size:.95rem;font-weight:700;margin:12px 0 0">טרם הוזנה ספירה ידנית — אין דיוק לדווח.</p>
+    <p id="pairOut" style="font-size:.86rem;margin:10px 0 0;color:var(--muted)">אין עדיין סדרת זוגות. <a href="./pilot-compare.html">השוואת דיוק</a> אוספת תצפיות ומחשבת ממוצע.</p>
   </section>
 
   <section class="panel">
@@ -123,11 +129,16 @@ th{color:var(--muted);font-weight:600}
   <div class="foot">ParkWiz · דוח פיילוט · מסמך מדידה אנונימי · הודפס מקומית מהדפדפן</div>
 </div>
 <script src="src/lib/occupancy.js"></script>
+<script src="src/lib/compare.js"></script>
+<script src="src/lib/export.js"></script>
 <script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
 <script>
 "use strict";
 
 const OCC = window.ParkWizOccupancy;
+const CMP = window.ParkWizCompare;
+const EXP = window.ParkWizExport;
 const LS_OCC = OCC.LS.occupancy;
 const LS_STREET = OCC.LS.street;
 const LS_ACC = OCC.LS.accuracy;
@@ -189,6 +200,21 @@ function render() {
   });
   drawChart(records);
   restoreAccuracy();
+  renderPairedSummary();
+}
+
+function renderPairedSummary() {
+  const out = document.getElementById("pairOut");
+  if (!out || !CMP) return;
+  const stored = CMP.loadStoredPairs();
+  const sum = CMP.summarizePairs(stored);
+  if (!sum.count) {
+    out.innerHTML = 'אין עדיין סדרת זוגות. <a href="./pilot-compare.html">השוואת דיוק</a> אוספת תצפיות ומחשבת ממוצע.';
+    return;
+  }
+  const label = sum.sampleOnly ? " (סדרת דוגמה — לא ספירת שטח)" : "";
+  out.textContent = "ממוצע סדרת הזוגות בדפדפן זה: " + pct(sum.meanAccuracy) +
+    " על " + sum.count + " תצפיות" + label + ". זה המדד שהפיילוט מבטיח, לא שורת הרשומה האחרונה בלבד.";
 }
 
 function drawChart(recs) {
@@ -231,6 +257,25 @@ function restoreAccuracy() {
 
 document.getElementById("btnPrint").addEventListener("click", () => window.print());
 document.getElementById("btnAcc").addEventListener("click", computeAccuracy);
+document.getElementById("btnCsv").addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([EXP.occupancyToCsv(records)], { type: "text/csv" }));
+  a.download = "occupancy.csv";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 800);
+});
+document.getElementById("btnJson").addEventListener("click", () => {
+  const packet = EXP.buildPilotPacket({
+    occupancy: records,
+    pairs: CMP.loadStoredPairs(),
+    street: records[0] ? records[0].street : "",
+  });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(packet, null, 2)], { type: "application/json" }));
+  a.download = "pilot-packet.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 800);
+});
 document.getElementById("btnSample").addEventListener("click", async () => {
   try {
     const res = await fetch("pilot/sample-occupancy.json");
