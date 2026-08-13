@@ -290,8 +290,26 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 /* Traffic light dot in spot list */
 .tl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block;margin-inline-end:6px;box-shadow:0 0 5px currentColor}
 
-/* mobile hide game panel */
-@media(max-width:600px){.game-panel{display:none}.side-panel{display:none}}
+/* mobile: game panel hidden; streets list becomes a bottom sheet */
+.side-sheet-toggle{display:none}
+@media(max-width:600px){
+  .game-panel{display:none}
+  .side-sheet-toggle{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;flex-shrink:0;padding:14px 14px 10px;border:none;
+    background:transparent;color:var(--text);font:700 0.82rem inherit;
+    cursor:pointer;position:relative;
+  }
+  .side-sheet-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.22);position:absolute;top:6px}
+  .side-panel{
+    display:flex;position:absolute;left:0;right:0;bottom:0;width:100%;
+    max-height:48px;z-index:20;border-inline-start:none;
+    border-top:1px solid var(--border);border-radius:16px 16px 0 0;
+    box-shadow:0 -8px 28px rgba(0,0,0,.45);
+  }
+  .side-panel.expanded{max-height:62vh}
+  .side-panel .panel-header{display:none}
+}
 
 /* FREE badge + Premium */
 .free-pill{background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:12px;padding:4px 10px;font-size:0.68rem;font-weight:800;color:var(--muted);letter-spacing:.4px;white-space:nowrap}
@@ -506,6 +524,10 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 
   <!-- Side panel — spots list -->
   <div class="side-panel" id="sidePanel">
+    <button type="button" class="side-sheet-toggle" id="sideSheetToggle" onclick="toggleSideSheet()" aria-expanded="false">
+      <span class="side-sheet-handle" aria-hidden="true"></span>
+      <span id="sideSheetToggleLabel">רחובות קרובים</span>
+    </button>
     <div class="panel-header">
       <h3>🛣️ רחובות קרובים</h3>
       <p id="panelSub">הערכה לפי דיווחי קהילה ונתוני עירייה</p>
@@ -2109,6 +2131,16 @@ function switchNav(tab) {
   document.getElementById('nav'+tab[0].toUpperCase()+tab.slice(1)).classList.add('active');
   if (tab==='search') document.getElementById('searchInput').focus();
   if (tab==='profile') { openProfile(); return; }
+}
+
+function toggleSideSheet() {
+  const panel = document.getElementById('sidePanel');
+  const btn = document.getElementById('sideSheetToggle');
+  const open = panel.classList.toggle('expanded');
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const label = document.getElementById('sideSheetToggleLabel');
+  if (label) label.textContent = open ? 'סגור רשימת רחובות' : 'רחובות קרובים';
+  if (realMap) setTimeout(() => realMap.invalidateSize(), 320);
 }
 
 // ─── Live simulation ──────────────────────────────────────────────
