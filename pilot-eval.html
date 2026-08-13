@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — דיוק דמו (מסונתז)</title>
+<meta name="description" content="הערכת היוריסטיקה על מערך דמו מסונתז בריפו. לא דיוק שדה מול פקח.">
+<meta name="theme-color" content="#0e7490">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="pilot/shell.css">
+<link rel="stylesheet" href="pilot/print.css">
+<style>
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 72px}
+h1{font-size:1.35rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+@media(max-width:720px){.kpis{grid-template-columns:1fr 1fr}}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.kpi .n{font-size:1.2rem;font-weight:800}
+.kpi .l{font-size:.7rem;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:right}
+th{color:var(--muted);font-weight:600}
+.bad{color:#991b1b;font-weight:700}
+.ok{color:#166534;font-weight:700}
+.hint{font-size:.78rem;color:var(--muted)}
+.panel h2{font-size:.95rem;margin:0 0 8px}
+.scenes{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:8px}
+.scenes figure{margin:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.scenes img{display:block;width:100%;height:auto}
+.scenes figcaption{font-size:.72rem;padding:6px 8px;color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overflow:auto;font-size:.75rem}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">דלג לתוכן</a>
+<div id="pwSurfaceNav" data-active="eval"></div>
+<div class="wrap" id="main">
+  <h1>דיוק דמו — נמדד על סט מסונתז</h1>
+  <p class="sub">כל אחד יכול להריץ את ההערכה בלי מצלמה. המספרים למטה מחושבים עכשיו בדפדפן מול תוויות שציירנו במחולל.</p>
+  <div class="banner">
+    <b>זה לא דיוק שדה.</b>
+    הסצנות נוצרו ב־<code>src/lib/dataset.js</code>. הסכמה היא מול התוויות שלנו, לא מול ספירת פקח בנתניה.
+    דיוק מול פקח עדיין לא נמדד. כל הערכה מסומנת heuristic.
+  </div>
+
+  <div class="toolbar no-print">
+    <button type="button" class="primary" id="btnRun">הרץ הערכה מחדש</button>
+    <a href="./pilot/dataset/README.md">README של המערך</a>
+    <a href="./pilot-method.html">מתודולוגיה</a>
+    <button type="button" id="btnPrint">הדפס</button>
+  </div>
+
+  <section class="panel">
+    <h2>v2 מול v1 על אותו סט</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="kV2">—</div><div class="l">v2 הסכמה (היוריסטיקה)</div></div>
+      <div class="kpi"><div class="n" id="kV1">—</div><div class="l">v1 בהירות (היוריסטיקה)</div></div>
+      <div class="kpi"><div class="n" id="kDelta">—</div><div class="l">שיפור נקודות אחוז</div></div>
+      <div class="kpi"><div class="n" id="kN">—</div><div class="l">השוואות מקום</div></div>
+    </div>
+    <p class="hint" id="wilsonNote"></p>
+  </section>
+
+  <section class="panel">
+    <h2>לפי תאורה</h2>
+    <table>
+      <thead><tr><th>תאורה</th><th>v2 הסכמה</th><th>מקומות</th></tr></thead>
+      <tbody id="lightBody"></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>לפי סצנה — איפה זה נשבר</h2>
+    <table>
+      <thead><tr><th>סצנה</th><th>v2</th><th>v1</th><th>הערה</th></tr></thead>
+      <tbody id="sceneBody"></tbody>
+    </table>
+    <p class="hint">צל על מקום ריק ורכבים בצבע אספלט הם כשלי אמת של השיטה. הם מופיעים בטבלה במקום להיות מוסתרים.</p>
+  </section>
+
+  <section class="panel">
+    <h2>סצנות ויזואליות שכלולות בריפו</h2>
+    <p class="hint">SVG מסונתז, אותה פריסת 12 מקומות כמו <code>sample-spots.json</code>.</p>
+    <div class="scenes">
+      <figure><img src="pilot/sample-lot.svg" alt="מגרש יום עם רכבים כהים"><figcaption>יום מעורב</figcaption></figure>
+      <figure><img src="pilot/sample-empty.svg" alt="מגרש יום ריק"><figcaption>יום ריק — ייחוס</figcaption></figure>
+      <figure><img src="pilot/sample-lot-dusk.svg" alt="מגרש בדמדומים"><figcaption>דמדומים</figcaption></figure>
+      <figure><img src="pilot/sample-lot-night.svg" alt="מגרש בלילה עם פנסים"><figcaption>לילה + פנסים</figcaption></figure>
+      <figure><img src="pilot/sample-empty-night.svg" alt="מגרש לילה ריק"><figcaption>לילה ריק — ייחוס</figcaption></figure>
+      <figure><img src="pilot/sample-lot-wet.svg" alt="מגרש רטוב עם השתקפויות"><figcaption>רטוב</figcaption></figure>
+      <figure><img src="pilot/sample-lot-white.svg" alt="רכבים בהירים על אספלט"><figcaption>רכב בהיר</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>JSON גולמי מההרצה הזו</h2>
+    <pre id="rawOut" aria-label="דוח הערכה גולמי"></pre>
+  </section>
+
+  <div class="foot">ParkWiz · הערכה מקומית · בלי שרת ובלי CDN</div>
+</div>
+<script src="src/lib/occupancy.js"></script>
+<script src="src/lib/compare.js"></script>
+<script src="src/lib/protocol.js"></script>
+<script src="src/lib/heuristic.js"></script>
+<script src="src/lib/dataset.js"></script>
+<script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
+<script>
+"use strict";
+
+const DS = window.ParkWizDataset;
+const OCC = window.ParkWizOccupancy;
+
+function pct(n) {
+  return n == null ? "—" : OCC.pct(n);
+}
+
+function lightHe(key) {
+  if (key === "night") return "לילה";
+  if (key === "dusk") return "דמדומים";
+  if (key === "wet") return "רטוב";
+  return "יום";
+}
+
+function run() {
+  const cmp = DS.compareMethods();
+  document.getElementById("kV2").textContent = pct(cmp.v2.rate);
+  document.getElementById("kV1").textContent = pct(cmp.legacy.rate);
+  document.getElementById("kDelta").textContent = (cmp.improved >= 0 ? "+" : "") + (cmp.improved * 100).toFixed(1);
+  document.getElementById("kN").textContent = String(cmp.v2.n);
+  const w = cmp.v2.wilson;
+  document.getElementById("wilsonNote").textContent = w
+    ? ("רווח סמך Wilson 95% ל־v2: " + pct(w.lo) + "–" + pct(w.hi) +
+      " על " + w.n + " השוואות מסונתזות. לא רווח סמך של שדה.")
+    : "";
+
+  const lb = document.getElementById("lightBody");
+  lb.replaceChildren();
+  Object.keys(cmp.v2.byLighting).forEach((key) => {
+    const b = cmp.v2.byLighting[key];
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + lightHe(key) + "</td><td>" + b.agree + "/" + b.n + " (" + pct(b.rate) + ")</td><td>" + b.n + "</td>";
+    lb.appendChild(tr);
+  });
+
+  const sb = document.getElementById("sceneBody");
+  sb.replaceChildren();
+  cmp.v2.scenes.forEach((s, i) => {
+    const v1 = cmp.legacy.scenes[i];
+    const tr = document.createElement("tr");
+    const fail = s.rate < 1;
+    tr.innerHTML =
+      "<td>" + s.id + "</td>" +
+      "<td class=\"" + (fail ? "bad" : "ok") + "\">" + s.agree + "/" + s.n + "</td>" +
+      "<td>" + (v1 ? (v1.agree + "/" + v1.n) : "—") + "</td>" +
+      "<td>" + (s.note || "") + "</td>";
+    sb.appendChild(tr);
+  });
+
+  document.getElementById("rawOut").textContent = JSON.stringify({
+    kind: cmp.kind,
+    synthetic: true,
+    fieldMeasured: false,
+    note: cmp.note,
+    v2: { rate: cmp.v2.rate, agree: cmp.v2.agree, n: cmp.v2.n, wilson: cmp.v2.wilson, byLighting: cmp.v2.byLighting },
+    legacy: { rate: cmp.legacy.rate, agree: cmp.legacy.agree, n: cmp.legacy.n },
+    improved: cmp.improved,
+  }, null, 2);
+}
+
+document.getElementById("btnRun").addEventListener("click", run);
+document.getElementById("btnPrint").addEventListener("click", () => window.print());
+run();
+</script>
+</body>
+</html>

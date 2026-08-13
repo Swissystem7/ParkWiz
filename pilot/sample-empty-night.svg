@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480">
+  <rect width="800" height="480" fill="#12151c"/>
+  <rect x="20" y="16" width="760" height="448" fill="#1a1e26"/>
+  <text x="400" y="26" text-anchor="middle" fill="#6b7380" font-size="13" font-family="Segoe UI, Arial, sans-serif">דוגמה — לילה ריק (פריים ייחוס, לא מצלמת עירייה)</text>
+  <g fill="none" stroke="#3a414c" stroke-width="2">
+    <rect x="50" y="36" width="108" height="168"/>
+    <rect x="174" y="36" width="108" height="168"/>
+    <rect x="298" y="36" width="108" height="168"/>
+    <rect x="422" y="36" width="108" height="168"/>
+    <rect x="546" y="36" width="108" height="168"/>
+    <rect x="670" y="36" width="108" height="168"/>
+    <rect x="50" y="276" width="108" height="168"/>
+    <rect x="174" y="276" width="108" height="168"/>
+    <rect x="298" y="276" width="108" height="168"/>
+    <rect x="422" y="276" width="108" height="168"/>
+    <rect x="546" y="276" width="108" height="168"/>
+    <rect x="670" y="276" width="108" height="168"/>
+  </g>
+  <rect x="20" y="220" width="760" height="40" fill="#101318"/>
+  <line x1="40" y1="240" x2="760" y2="240" stroke="#2c333c" stroke-width="2" stroke-dasharray="10 8"/>
+</svg>

@@ -1,0 +1,187 @@
+{
+  "version": 2,
+  "kind": "parkwiz-demo-dataset",
+  "synthetic": true,
+  "fieldMeasured": false,
+  "street": "הרצל, נתניה",
+  "note": "סצנות מסונתזות בריפו. לא צילום עירייה ולא ספירת פקח.",
+  "patch": {
+    "width": 24,
+    "height": 32,
+    "spots": 12
+  },
+  "mixedCars": [
+    0,
+    2,
+    3,
+    6,
+    9,
+    10
+  ],
+  "scenes": [
+    {
+      "id": "day-empty",
+      "lighting": "day",
+      "pattern": "empty",
+      "kind": "",
+      "occupiedAt": [],
+      "note": "יום, כל המקומות פנויים."
+    },
+    {
+      "id": "day-mixed",
+      "lighting": "day",
+      "pattern": "mixed",
+      "kind": "",
+      "occupiedAt": [
+        0,
+        2,
+        3,
+        6,
+        9,
+        10
+      ],
+      "note": "יום, אותה תבנית כמו sample-lot.svg."
+    },
+    {
+      "id": "day-full",
+      "lighting": "day",
+      "pattern": "full",
+      "kind": "",
+      "occupiedAt": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "note": "יום, כל המקומות תפוסים."
+    },
+    {
+      "id": "dusk-mixed",
+      "lighting": "dusk",
+      "pattern": "mixed",
+      "kind": "",
+      "occupiedAt": [
+        0,
+        2,
+        3,
+        6,
+        9,
+        10
+      ],
+      "note": "דמדומים, אותם רכבים."
+    },
+    {
+      "id": "night-empty",
+      "lighting": "night",
+      "pattern": "empty",
+      "kind": "",
+      "occupiedAt": [],
+      "note": "לילה ריק — בלי ייחוס v1 מסמן הכול תפוס."
+    },
+    {
+      "id": "night-mixed",
+      "lighting": "night",
+      "pattern": "mixed",
+      "kind": "",
+      "occupiedAt": [
+        0,
+        2,
+        3,
+        6,
+        9,
+        10
+      ],
+      "note": "לילה עם פנסים על רכבים."
+    },
+    {
+      "id": "wet-mixed",
+      "lighting": "wet",
+      "pattern": "mixed",
+      "kind": "",
+      "occupiedAt": [
+        0,
+        2,
+        3,
+        6,
+        9,
+        10
+      ],
+      "note": "רטוב / השתקפות, אותם רכבים."
+    },
+    {
+      "id": "day-shifted-empty",
+      "lighting": "day",
+      "pattern": "empty",
+      "kind": "",
+      "occupiedAt": [],
+      "note": "אותו מגרש ריק אחרי העננה — הזזת תאורה בלבד."
+    },
+    {
+      "id": "white-car-day",
+      "lighting": "day",
+      "pattern": "white",
+      "kind": "",
+      "occupiedAt": [
+        1,
+        4
+      ],
+      "note": "רכבים בהירים על אספלט בהיר."
+    },
+    {
+      "id": "night-shifted-empty",
+      "lighting": "night",
+      "pattern": "empty",
+      "kind": "",
+      "occupiedAt": [],
+      "note": "לילה ריק כהה יותר — בלי רכב."
+    },
+    {
+      "id": "shadow-false",
+      "lighting": "day",
+      "pattern": "trap",
+      "kind": "shadow",
+      "occupiedAt": [],
+      "note": "צל על מקום ריק — מלכודת false-positive."
+    },
+    {
+      "id": "glare-false",
+      "lighting": "wet",
+      "pattern": "trap",
+      "kind": "glare",
+      "occupiedAt": [],
+      "note": "השתקפות על מקום ריק — מלכודת false-positive."
+    },
+    {
+      "id": "camouflage-day",
+      "lighting": "day",
+      "pattern": "hard",
+      "kind": "camo",
+      "occupiedAt": [
+        2,
+        7,
+        11
+      ],
+      "note": "רכב בצבע אספלט כמעט — קשה לחיסור רקע."
+    },
+    {
+      "id": "tiny-car-day",
+      "lighting": "day",
+      "pattern": "hard",
+      "kind": "tiny",
+      "occupiedAt": [
+        2,
+        7,
+        11
+      ],
+      "note": "רכב קטן / חלקי בתוך המלבן."
+    }
+  ]
+}

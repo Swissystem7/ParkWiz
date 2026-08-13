@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480">
+  <rect width="800" height="480" fill="#3a424c"/>
+  <rect x="20" y="16" width="760" height="448" fill="#4a5460"/>
+  <text x="400" y="26" text-anchor="middle" fill="#c5ccd4" font-size="13" font-family="Segoe UI, Arial, sans-serif">דוגמה — רטוב / השתקפות (מסונתז, לא מצלמת עירייה)</text>
+  <g fill="none" stroke="#c5ccd4" stroke-width="2">
+    <rect x="50" y="36" width="108" height="168"/>
+    <rect x="174" y="36" width="108" height="168"/>
+    <rect x="298" y="36" width="108" height="168"/>
+    <rect x="422" y="36" width="108" height="168"/>
+    <rect x="546" y="36" width="108" height="168"/>
+    <rect x="670" y="36" width="108" height="168"/>
+    <rect x="50" y="276" width="108" height="168"/>
+    <rect x="174" y="276" width="108" height="168"/>
+    <rect x="298" y="276" width="108" height="168"/>
+    <rect x="422" y="276" width="108" height="168"/>
+    <rect x="546" y="276" width="108" height="168"/>
+    <rect x="670" y="276" width="108" height="168"/>
+  </g>
+  <rect x="20" y="220" width="760" height="40" fill="#343c46"/>
+  <line x1="40" y1="240" x2="760" y2="240" stroke="#9aa3ad" stroke-width="2" stroke-dasharray="10 8"/>
+  <g>
+    <rect x="58" y="52" width="92" height="136" rx="10" fill="#181b22"/>
+    <rect x="64" y="70" width="80" height="36" rx="4" fill="#2e3544"/>
+    <rect x="70" y="110" width="40" height="8" rx="2" fill="#c8d0da"/>
+    <rect x="306" y="52" width="92" height="136" rx="10" fill="#1e1416"/>
+    <rect x="312" y="74" width="80" height="34" rx="4" fill="#3a2428"/>
+    <rect x="320" y="112" width="36" height="8" rx="2" fill="#c8d0da"/>
+    <rect x="430" y="50" width="92" height="140" rx="10" fill="#141820"/>
+    <rect x="436" y="68" width="80" height="38" rx="4" fill="#2a3140"/>
+    <rect x="444" y="112" width="40" height="8" rx="2" fill="#c8d0da"/>
+    <rect x="58" y="292" width="92" height="136" rx="10" fill="#161c1a"/>
+    <rect x="64" y="310" width="80" height="34" rx="4" fill="#2c3a36"/>
+    <rect x="70" y="350" width="40" height="8" rx="2" fill="#c8d0da"/>
+    <rect x="554" y="290" width="92" height="140" rx="10" fill="#1c1418"/>
+    <rect x="560" y="308" width="80" height="36" rx="4" fill="#3a2830"/>
+    <rect x="568" y="350" width="36" height="8" rx="2" fill="#c8d0da"/>
+    <rect x="678" y="292" width="92" height="136" rx="10" fill="#141820"/>
+    <rect x="684" y="308" width="80" height="34" rx="4" fill="#2c3344"/>
+    <rect x="692" y="350" width="40" height="8" rx="2" fill="#c8d0da"/>
+  </g>
+</svg>
