@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — דוח פיילוט</title>
+<style>
+:root{
+  --bg:#f4f6f8; --panel:#fff; --ink:#111827; --muted:#6b7280;
+  --line:#e5e7eb; --brand:#0e7490; --free:#16a34a; --occ:#dc2626;
+  --warn:#92400e; --warnbg:#fffbeb; --shadow:0 1px 2px rgba(16,24,40,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:system-ui,"Segoe UI",Roboto,"Noto Sans Hebrew",Arial,sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.55;
+}
+nav.pw-surface-nav{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;
+  padding:7px 12px;background:#0f1420;border-bottom:1px solid rgba(255,255,255,.08);
+  font:600 0.78rem system-ui,sans-serif;
+}
+nav a{color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none}
+nav a.here{color:#fff;background:rgba(14,116,144,.45);border-color:rgba(103,232,249,.45)}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 72px}
+h1{font-size:1.4rem;margin:0 0 2px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.banner{
+  background:var(--warnbg);border:1px solid #f59e0b;color:var(--warn);
+  border-radius:12px;padding:10px 14px;font-size:.86rem;margin-bottom:16px;
+}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+button{
+  font:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);
+  padding:7px 12px;border-radius:10px;font-weight:600;font-size:.82rem;
+}
+button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);margin-bottom:14px}
+.panel h2{font-size:.95rem;margin:0 0 10px}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:.86rem}
+.meta span{color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:700px){.kpis,.meta{grid-template-columns:1fr 1fr}}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.kpi .n{font-size:1.3rem;font-weight:800}
+.kpi .l{font-size:.7rem;color:var(--muted)}
+label{display:block;font-size:.8rem;color:var(--muted);margin:8px 0 4px}
+input[type=number],input[type=text]{
+  width:100%;max-width:220px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;
+}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+svg.chart{display:block;width:100%;height:auto}
+.placeholder{
+  border:1.5px dashed var(--line);border-radius:10px;padding:12px;background:#fafafa;font-size:.86rem;color:var(--muted);
+}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:right}
+th{color:var(--muted);font-weight:600}
+
+@media print{
+  nav.pw-surface-nav,.toolbar,.no-print{display:none!important}
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  .panel{box-shadow:none;break-inside:avoid}
+  .banner{border:1px solid #111}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<nav class="pw-surface-nav">
+  <span style="color:#8ba3c7">ParkWiz</span>
+  <a href="./">מפת חניה עירונית</a>
+  <a href="./pilot-kit.html">ערכת פיילוט</a>
+  <a class="here" href="./pilot-report.html">דוח פיילוט</a>
+  <a href="./pilot-dashboard.html">דשבורד פיילוט עירוני</a>
+  <a href="./marketplace.html">שוק חניות פרטיות</a>
+</nav>
+<div class="wrap">
+  <h1>דוח פיילוט — מדידת תפוסה אנונימית</h1>
+  <p class="sub">הדוח שהובטח בפנייה לעירייה: דיוק מול ספירת פקח, עקומה שעתית, ומקום שמור להפרות. מיועד להדפסה.</p>
+  <div class="banner">
+    <b>מסמך מדידה, לא אכיפה.</b>
+    הדיוק מול פקח הוא שדה שהעירייה ממלאת (או שמגיע מערכת הפיילוט). עקומת הדוגמה מסומנת כ־sample.
+    אין זיהוי לוחיות ואין זיהוי פנים. שורת ההפרות היא מציין מקום — אין מנוע הפרות בריפו.
+  </div>
+
+  <div class="toolbar no-print">
+    <button type="button" class="primary" id="btnPrint">הדפס / שמור כ־PDF</button>
+    <button type="button" id="btnSample">טען occupancy לדוגמה</button>
+    <label class="no-print" style="margin:0;max-width:none">טען occupancy.json
+      <input type="file" id="fileOcc" accept=".json,application/json">
+    </label>
+    <button type="button" id="btnFromKit">טען מערכת הפיילוט (localStorage)</button>
+  </div>
+
+  <section class="panel">
+    <h2>כותרת הדוח</h2>
+    <div class="meta">
+      <div><span>רחוב / אתר</span><br><b id="rStreet">—</b></div>
+      <div><span>תקופה</span><br><b id="rPeriod">—</b></div>
+      <div><span>מקור נתונים</span><br><b id="rSource">—</b></div>
+      <div><span>רשומות</span><br><b id="rCount">0</b></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>מדדי תפוסה</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="kLast">—</div><div class="l">תפוסה אחרונה</div></div>
+      <div class="kpi"><div class="n" id="kPeak">—</div><div class="l">שיא</div></div>
+      <div class="kpi"><div class="n" id="kAvg">—</div><div class="l">ממוצע</div></div>
+      <div class="kpi"><div class="n" id="kConf">—</div><div class="l">confidence ממוצע</div></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>דיוק מול ספירה ידנית (פקח)</h2>
+    <p style="font-size:.86rem;color:var(--muted);margin:0 0 10px">
+      זה המספר שחסר לפני פגישה. הפקח סופר כמה מקומות תפוסים באותו רגע של הרשומה האחרונה.
+      הנוסחה: 100% − |תפוסה מערכת − תפוסה פקח| / סך המקומות. לא בינה מלאכותית.
+    </p>
+    <div class="row">
+      <div>
+        <label for="manualOcc">ספירת פקח — כמה תפוסים</label>
+        <input type="number" id="manualOcc" min="0" step="1" placeholder="למשל 7">
+      </div>
+      <div>
+        <label for="manualNote">שם / משמרת (רשות)</label>
+        <input type="text" id="manualNote" placeholder="פקח א׳, בוקר">
+      </div>
+      <button type="button" id="btnAcc">חשב דיוק</button>
+    </div>
+    <p id="accOut" style="font-size:.95rem;font-weight:700;margin:12px 0 0">טרם הוזנה ספירה ידנית — אין דיוק לדווח.</p>
+  </section>
+
+  <section class="panel">
+    <h2>עקומה שעתית</h2>
+    <div id="chart"></div>
+  </section>
+
+  <section class="panel">
+    <h2>הפרות שזוהו לשעה</h2>
+    <div class="placeholder">
+      <b>מציין מקום — אין נתון.</b>
+      הפנייה לנתניה הזכירה «הפרות שזוהו לשעה». בפיילוט הנוכחי אין מנוע הפרות:
+      אין LPR, אין סיווג רכב, ואין המלצת אכיפה. אם העירייה תרצה מדד כזה בעתיד — הוא דורש הגדרה משפטית נפרדת ולא חלק מהמדידה האנונימית תפוס/פנוי.
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>המלצות (תכנון, לא קנסות)</h2>
+    <ul id="recs" style="margin:0;padding-inline-start:18px;font-size:.9rem"></ul>
+  </section>
+
+  <section class="panel">
+    <h2>טבלת רשומות</h2>
+    <table>
+      <thead><tr><th>זמן</th><th>תפוסים</th><th>סך הכול</th><th>%</th><th>מקור</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </section>
+
+  <div class="foot">ParkWiz · דוח פיילוט · מסמך מדידה אנונימי · הודפס מקומית מהדפדפן</div>
+</div>
+<script>
+"use strict";
+
+const LS_OCC = "pw_pilot_occupancy";
+const LS_STREET = "pw_pilot_street";
+const LS_ACC = "pw_pilot_accuracy";
+
+let records = [];
+
+function norm(o) {
+  if (!o || typeof o !== "object") return null;
+  const total = Number(o.total != null ? o.total : o.totalSpots);
+  const occupied = Number(o.occupied != null ? o.occupied : o.occupiedSpots);
+  if (!Number.isFinite(total) || total <= 0 || !Number.isFinite(occupied)) return null;
+  return {
+    ts: o.ts != null ? String(o.ts) : "",
+    street: o.street != null ? String(o.street) : "—",
+    total,
+    occupied: Math.max(0, Math.min(total, occupied)),
+    source: o.source != null ? String(o.source) : "unknown",
+    confidence: Number.isFinite(Number(o.confidence)) ? Number(o.confidence) : 0,
+  };
+}
+
+function pct(n) { return Math.round(n * 100) + "%"; }
+function rate(r) { return r.total ? r.occupied / r.total : 0; }
+
+function fmt(ts) {
+  const d = new Date(ts);
+  if (isNaN(d)) return ts || "—";
+  return d.toLocaleString("he-IL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+function apply(list) {
+  records = (Array.isArray(list) ? list : []).map(norm).filter(Boolean)
+    .sort((a, b) => String(a.ts).localeCompare(String(b.ts)));
+  render();
+}
+
+function render() {
+  const last = records[records.length - 1];
+  document.getElementById("rStreet").textContent = last ? last.street : "—";
+  document.getElementById("rCount").textContent = String(records.length);
+  if (!last) {
+    document.getElementById("rPeriod").textContent = "—";
+    document.getElementById("rSource").textContent = "אין נתונים";
+    document.getElementById("kLast").textContent = "—";
+    document.getElementById("kPeak").textContent = "—";
+    document.getElementById("kAvg").textContent = "—";
+    document.getElementById("kConf").textContent = "—";
+    document.getElementById("chart").innerHTML = "<p style='color:#6b7280'>טענו occupancy.json או דוגמה.</p>";
+    document.getElementById("tbody").replaceChildren();
+    document.getElementById("recs").innerHTML = "<li>אין רשומות — אין המלצת תכנון.</li>";
+    return;
+  }
+  const first = records[0];
+  document.getElementById("rPeriod").textContent = fmt(first.ts) + " – " + fmt(last.ts);
+  const sources = Array.from(new Set(records.map((r) => r.source)));
+  document.getElementById("rSource").textContent = sources.join(" · ");
+  const rates = records.map(rate);
+  const peak = Math.max.apply(null, rates);
+  const avg = rates.reduce((a, b) => a + b, 0) / rates.length;
+  const conf = records.reduce((a, r) => a + r.confidence, 0) / records.length;
+  document.getElementById("kLast").textContent = pct(rate(last));
+  document.getElementById("kPeak").textContent = pct(peak);
+  document.getElementById("kAvg").textContent = pct(avg);
+  document.getElementById("kConf").textContent = conf.toFixed(2);
+
+  const recs = [];
+  if (avg >= 0.75) recs.push("התפוסה הממוצעת גבוהה — לבדוק לחץ בשעות השיא לתכנון הסדרי חניה (לא לקנסות).");
+  else recs.push("התפוסה הממוצעת בינונית/נמוכה בסדרה הזו — להצליב מול ספירת פקח לפני מסקנת מדיניות.");
+  if (peak - Math.min.apply(null, rates) >= 0.35) recs.push("יש פער גדול בין שפל לשיא — כדאי להציג לעירייה חלון זמן, לא מספר בודד.");
+  recs.push("אין בדוח זה המלצת אכיפה. מדידה אנונימית תפוס/פנוי בלבד.");
+  const ul = document.getElementById("recs");
+  ul.replaceChildren();
+  recs.forEach((t) => {
+    const li = document.createElement("li");
+    li.textContent = t;
+    ul.appendChild(li);
+  });
+
+  const tb = document.getElementById("tbody");
+  tb.replaceChildren();
+  records.forEach((r) => {
+    const tr = document.createElement("tr");
+    [fmt(r.ts), r.occupied, r.total, pct(rate(r)), r.source].forEach((v) => {
+      const td = document.createElement("td");
+      td.textContent = String(v);
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  drawChart(records);
+  restoreAccuracy();
+}
+
+function drawChart(recs) {
+  const W = 760, H = 230, m = { t: 12, r: 12, b: 32, l: 36 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const n = recs.length;
+  const x = (i) => (n <= 1 ? m.l + iw / 2 : m.l + (i / (n - 1)) * iw);
+  const y = (r) => m.t + (1 - r) * ih;
+  let grid = "", xlab = "";
+  for (let g = 0; g <= 100; g += 25) {
+    const yy = y(g / 100);
+    grid += `<line x1="${m.l}" y1="${yy}" x2="${m.l + iw}" y2="${yy}" stroke="#e5e7eb"/>`;
+    grid += `<text x="${m.l - 6}" y="${yy + 4}" text-anchor="end" font-size="11" fill="#6b7280">${g}%</text>`;
+  }
+  const step = Math.max(1, Math.ceil(n / 8));
+  recs.forEach((r, i) => {
+    if (i % step) return;
+    const d = new Date(r.ts);
+    const lbl = isNaN(d) ? String(i + 1) : String(d.getHours()).padStart(2, "0") + ":00";
+    xlab += `<text x="${x(i)}" y="${H - 10}" text-anchor="middle" font-size="11" fill="#6b7280">${lbl}</text>`;
+  });
+  const line = recs.map((r, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(rate(r)).toFixed(1)}`).join(" ");
+  document.getElementById("chart").innerHTML =
+    `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="עקומת תפוסה שעתית">${grid}${xlab}<path d="${line}" fill="none" stroke="#0e7490" stroke-width="2.5"/></svg>`;
+}
+
+function computeAccuracy() {
+  const last = records[records.length - 1];
+  const out = document.getElementById("accOut");
+  if (!last) { out.textContent = "אין רשומת מערכת להשוות אליה."; return; }
+  const manual = Number(document.getElementById("manualOcc").value);
+  if (!Number.isFinite(manual) || manual < 0) {
+    out.textContent = "הזינו מספר שלם של מקומות תפוסים לפי הפקח.";
+    return;
+  }
+  const capped = Math.min(last.total, manual);
+  const acc = Math.max(0, 1 - Math.abs(last.occupied - capped) / last.total);
+  const note = document.getElementById("manualNote").value.trim();
+  out.textContent = "דיוק מול פקח ברשומה האחרונה: " + pct(acc) +
+    " (מערכת " + last.occupied + "/" + last.total + ", פקח " + capped + "/" + last.total + ")" +
+    (note ? " · " + note : "") +
+    ". זה הסכם על ספירה בנקודת זמן אחת, לא אימות מודל.";
+  try {
+    localStorage.setItem(LS_ACC, JSON.stringify({
+      manual: capped, note, acc, ts: last.ts, street: last.street,
+    }));
+  } catch (e) {}
+}
+
+function restoreAccuracy() {
+  try {
+    const raw = localStorage.getItem(LS_ACC);
+    if (!raw) return;
+    const a = JSON.parse(raw);
+    if (a.manual != null) document.getElementById("manualOcc").value = a.manual;
+    if (a.note) document.getElementById("manualNote").value = a.note;
+    if (typeof a.acc === "number") computeAccuracy();
+  } catch (e) {}
+}
+
+document.getElementById("btnPrint").addEventListener("click", () => window.print());
+document.getElementById("btnAcc").addEventListener("click", computeAccuracy);
+document.getElementById("btnSample").addEventListener("click", async () => {
+  try {
+    const res = await fetch("pilot/sample-occupancy.json");
+    apply(await res.json());
+  } catch (e) {
+    document.getElementById("accOut").textContent = "טעינת הדוגמה נכשלה — פתחו את הדף דרך GitHub Pages או שרת מקומי, או בחרו קובץ.";
+  }
+});
+document.getElementById("fileOcc").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  apply(JSON.parse(await f.text()));
+});
+document.getElementById("btnFromKit").addEventListener("click", () => {
+  try {
+    const raw = localStorage.getItem(LS_OCC);
+    if (!raw) { document.getElementById("accOut").textContent = "אין occupancy שמור מערכת הפיילוט בדפדפן זה."; return; }
+    apply(JSON.parse(raw));
+    const st = localStorage.getItem(LS_STREET);
+    if (st && records[0]) records.forEach((r) => { if (r.street === "—") r.street = st; });
+    render();
+  } catch (e) {}
+});
+
+(function init() {
+  try {
+    const raw = localStorage.getItem(LS_OCC);
+    if (raw) apply(JSON.parse(raw));
+  } catch (e) {}
+  if (!records.length) document.getElementById("btnSample").click();
+})();
+</script>
+</body>
+</html>
