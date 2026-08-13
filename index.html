@@ -998,11 +998,12 @@ function initRealMap() {
     segLayers.push(group);
     // עיגול זמינות באמצע הרחוב
     const mid = [ (s.a[0]+s.b[0])/2, (s.a[1]+s.b[1])/2 ];
+    const pct = getCurrentHourAvailabilityPct(idx);
     const mk = L.circleMarker(mid, {
       radius: 13, color:'#0c1a0c', weight:2,
-      fillColor: availColor(s.avail), fillOpacity: 0.95,
+      fillColor: availColor(pct), fillOpacity: 0.95,
     }).addTo(realMap);
-    mk.bindTooltip(`${s.name} · סיכוי ${s.avail}% (הערכה, לא הבטחה)`, {direction:'top'});
+    mk.bindTooltip(`${s.name} · סיכוי ${pct}% (הערכה, לא הבטחה)`, {direction:'top'});
     mk.on('click', () => selectStreet(idx));
     midMarkers.push(mk);
   });
@@ -1021,7 +1022,11 @@ function initRealMap() {
 function updateRealMap() {
   if (!realMap) return;
   STREETS_DEF.forEach((s, idx) => {
-    if (midMarkers[idx]) midMarkers[idx].setStyle({ fillColor: availColor(s.avail) });
+    const pct = getCurrentHourAvailabilityPct(idx);
+    if (midMarkers[idx]) {
+      midMarkers[idx].setStyle({ fillColor: availColor(pct) });
+      midMarkers[idx].bindTooltip(`${s.name} · סיכוי ${pct}% (הערכה, לא הבטחה)`, {direction:'top'});
+    }
     if (segLayers[idx]) segLayers[idx].setStyle({
       opacity: activeFilters[s.type] ? 0.85 : 0.15,
       weight: selectedStreetIdx === idx ? 11 : 7,
@@ -1030,9 +1035,10 @@ function updateRealMap() {
   // שכבת חום: עיגולי זמינות שקופים
   if (heatmapActive) {
     if (heatLayer) heatLayer.remove();
-    heatLayer = L.layerGroup(STREETS_DEF.map(s => {
+    heatLayer = L.layerGroup(STREETS_DEF.map((s, idx) => {
       const mid = [ (s.a[0]+s.b[0])/2, (s.a[1]+s.b[1])/2 ];
-      return L.circle(mid, { radius: 220, color:'transparent', fillColor: availColor(s.avail), fillOpacity: 0.28 });
+      const pct = getCurrentHourAvailabilityPct(idx);
+      return L.circle(mid, { radius: 220, color:'transparent', fillColor: availColor(pct), fillOpacity: 0.28 });
     })).addTo(realMap);
   } else if (heatLayer) { heatLayer.remove(); heatLayer = null; }
 }
@@ -1236,20 +1242,26 @@ function getModelOutput(streetIdx, targetDate = new Date()) {
   });
 }
 
+// STREET_HOURLY replacement: live per-hour series. Community reports
+// (pwWeightedAvailability) are folded into each slot so doReportLeaving
+// moves the hourly bars, not only STREETS_DEF.avail.
 function getStreetHourlyModelSeries(streetIdx, referenceDate = new Date()) {
   const fallback = Math.max(0, Math.min(100, Math.round(STREETS_DEF[streetIdx].avail || 0)));
-  if (!AVAILABILITY_MODEL || typeof AVAILABILITY_MODEL.calculate !== 'function') {
-    return [fallback, fallback, fallback, fallback, fallback, fallback, fallback];
-  }
   const baseDate = referenceDate instanceof Date ? new Date(referenceDate.getTime()) : new Date(referenceDate);
   const slotHours = [8, 10, 12, 14, 16, 18, 20];
   return slotHours.map((hour) => {
     const slotDate = new Date(baseDate.getTime());
     slotDate.setHours(hour, 0, 0, 0);
     if (slotDate.getTime() < baseDate.getTime()) slotDate.setDate(slotDate.getDate() + 1);
+    const community = communityPctBoost(streetIdx, slotDate.getTime());
+    if (!AVAILABILITY_MODEL || typeof AVAILABILITY_MODEL.calculate !== 'function') {
+      return Math.max(0, Math.min(100, Math.round(fallback + community)));
+    }
     const model = getModelOutput(streetIdx, slotDate);
-    if (!model || typeof model.score !== 'number') return fallback;
-    return Math.max(0, Math.min(100, Math.round(model.score)));
+    if (!model || typeof model.score !== 'number') {
+      return Math.max(0, Math.min(100, Math.round(fallback + community)));
+    }
+    return Math.max(0, Math.min(100, Math.round(model.score + community)));
   });
 }
 
@@ -1288,11 +1300,15 @@ let selectedStreetIdx = null;
 // Real community reports (COMMUNITY_REPORT) — evidence-based, no Math.random.
 // דעיכת הזמן עצמה חיה ב-src/lib/availability.js ומכוסה בטסטים; כאן רק סינון לפי רחוב.
 const PW_COMMUNITY_REPORTS = [];
+const COMMUNITY_PCT_PER_UNIT = 8;
 function pwWeightedAvailability(streetIdx, nowMs) {
   return weightedAvailability(
     PW_COMMUNITY_REPORTS.filter(r => r.streetIdx === streetIdx),
     nowMs
   );
+}
+function communityPctBoost(streetIdx, nowMs) {
+  return pwWeightedAvailability(streetIdx, nowMs) * COMMUNITY_PCT_PER_UNIT;
 }
 let activeFilters = { blue:true, free:true, timed:true };
 let userScore = 340;
@@ -1366,11 +1382,16 @@ function getArrivalLabel(offsetMin = selectedArrivalOffsetMin) {
 
 function getCurrentHourAvailabilityPct(streetIdx, offsetMinutes = selectedArrivalOffsetMin) {
   const fallback = Math.max(0, Math.min(100, Math.round(STREETS_DEF[streetIdx].avail || 0)));
-  if (!AVAILABILITY_MODEL || typeof AVAILABILITY_MODEL.calculate !== 'function') return fallback;
-  const targetDate = new Date(Date.now() + offsetMinutes * 60000);
-  const model = getModelOutput(streetIdx, targetDate);
-  if (!model || typeof model.score !== 'number') return fallback;
-  return Math.max(0, Math.min(100, Math.round(model.score)));
+  const targetMs = Date.now() + offsetMinutes * 60000;
+  const community = communityPctBoost(streetIdx, targetMs);
+  if (!AVAILABILITY_MODEL || typeof AVAILABILITY_MODEL.calculate !== 'function') {
+    return Math.max(0, Math.min(100, Math.round(fallback + community)));
+  }
+  const model = getModelOutput(streetIdx, new Date(targetMs));
+  if (!model || typeof model.score !== 'number') {
+    return Math.max(0, Math.min(100, Math.round(fallback + community)));
+  }
+  return Math.max(0, Math.min(100, Math.round(model.score + community)));
 }
 
 function chanceLevel(pct) {
@@ -2118,6 +2139,7 @@ function doReportLeaving(count, xpGain) {
   const reportCount = Math.max(1, Math.min(3, Number(count) || 1));
   const nowMs = Date.now();
   PW_COMMUNITY_REPORTS.push({ ts: nowMs, delta: reportCount, streetIdx: idx }); // COMMUNITY_REPORT
+  STREETS_DEF[idx].avail = Math.max(5, Math.min(98, Math.round((STREETS_DEF[idx].avail || 0) + reportCount * 6)));
   USER_REPORTS.push({
     source: 'user',
     streetIdx: idx,
