@@ -1,5 +1,24 @@
 # ParkWiz — Market Research
-_עודכן: 2026-08-11_
+_עודכן: 2026-08-12_
+
+## חסם הצפיפות (cold start) — נבדק 12/08/2026
+
+**הממצא המרכזי: Parknav לא מסתמך על דיווחי משתמשים בכלל.** הוא מנבא זמינות חניה מנתונים היסטוריים ומאותות הקשר — אירועים (זוהו בעיבוד שפה טבעית), מזג אוויר, עבודות בנייה ותיירות — ולא מבקש מהמשתמש לדווח כלום. הוא פועל ביותר מ-1,000 ערים בצפון אמריקה ובאירופה ומחזיק מעל 5.5 מיליארד אירועי חניה מתועדים.
+
+**קליברציה של דיוק:** פרויקט מחקר פומבי שעבד על נתוני Parknav, עם Stacking Ensemble, Logistic Regression, Random Forests ו-XGBoost, הגיע ל-F-0.5 של 0.58. כלומר גם עם מאגר עצום, חיזוי חניה ברחוב הוא בעיה קשה והדיוק בינוני. זה מחזק את הניסוח הקיים באפליקציה — "חיזוי, לא הבטחה" — ומספק לו עוגן מספרי.
+
+**מה Waze עשה בפועל:** גיימיפיקציה — נקודות, רמות ותגים — והשקה בשוק שבו הכאב היה חריף (ישראל). אבל ההבדל המהותי הוא אחר: המנוע של Waze היה **איסוף פסיבי** ממסלולי ה-GPS של כל נהג שנסע עם האפליקציה פתוחה. הדיווחים האקטיביים היו שכבה נוספת, לא הבסיס.
+
+**המסקנה ל-ParkWiz:** המודל הנוכחי נשען על דיווח **אקטיבי** ("אני עוזב!"). זו הצורה היקרה ביותר של איסוף נתונים — היא דורשת ממשתמש לעשות פעולה שאין לו ממנה תועלת מיידית. שני המקרים שנבדקו לא הסתמכו עליה כבסיס: Parknav מנבא בלי דיווחים כלל, ו-Waze אסף פסיבית.
+
+**שלוש אפשרויות שנגזרות, לא המלצה:**
+1. להישען על חיזוי מנתונים היסטוריים ועירוניים במקום על דיווחים — הכיוון שאליו PW-009 כבר הולך.
+2. לאסוף פסיבית במקום אקטיבית, אם וכאשר יש אפליקציה שרצה ברקע.
+3. להצטמצם לשכונה אחת צפופה בנתניה במקום לעיר שלמה, ולהודות שמחוץ לה המפה ריקה.
+
+**מה לא נבדק:** לא נמצא מקור שמכמת את סף הצפיפות המינימלי שממנו דיווחי קהילה מתחילים להיות מהימנים. גם לא נמצאו נתונים על כשלים של אפליקציות חניה מבוססות-דיווח.
+
+**מקורות (נבדקו 12/08/2026):** https://parknav.com/about-us · https://github.com/ytian22/Street-Parking-Availability-Prediction · https://medium.com/@aviva.martin/waze-the-wild-ride-of-the-revolutionary-crowdsourcing-navigation-app-a4ce54f676a5
 
 ## המוצר
 As checked in `README.md` and `index.html`, the repository currently shows two overlapping product stories. The README header and `PILOT_README.md` position ParkWiz as a municipal, privacy-first parking-occupancy pilot that turns existing city CCTV footage into street-level occupancy analytics without new hardware and without license-plate recognition. At the same time, `index.html` still ships a browser-only street-parking and private-parking demo with simulated live activity, premium copy, a private-space marketplace flow, and a static municipal parking-data layer. The most accurate description of the repo today is: ParkWiz is an early-stage project transitioning from a consumer parking demo toward a municipal CCTV occupancy pilot, and the municipal product is not yet reflected consistently across all shipped surfaces.
@@ -62,3 +81,4 @@ As checked in `README.md` and `index.html`, the repository currently shows two o
 - Whether all “real-time” or “live” claims in the consumer demo are backed by real data feeds; the repo audit says large parts of `index.html` are simulated.
 - Whether the municipal data layers in the consumer demo are live or only static snapshots with incomplete provenance.
 - Whether the no-license-plate promise is enforced across every code path; `index.html` still contains optional user-entered plate handling for consumer/demo flows.
+- חסם הצפיפות של דיווחי קהילה כבר לא עומד כלא-ידוע מוחלט: יש כעת תשובה חלקית שלפיה Parknav ו-Waze לא בנו את הבסיס על דיווח קהילה אקטיבי. מה שעדיין לא מאומת הוא **סף הצפיפות המספרי** שממנו דיווחי קהילה מתחילים להיות מהימנים, ולא נמצא לכך מקור ציבורי קביל.
