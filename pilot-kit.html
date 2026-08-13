@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — ערכת פיילוט</title>
+<style>
+:root{
+  --bg:#f4f6f8; --panel:#fff; --ink:#111827; --muted:#6b7280;
+  --line:#e5e7eb; --brand:#0e7490; --free:#16a34a; --occ:#dc2626;
+  --warn:#b45309; --warnbg:#fffbeb; --shadow:0 1px 2px rgba(16,24,40,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:system-ui,"Segoe UI",Roboto,"Noto Sans Hebrew",Arial,sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.5;
+}
+nav.pw-surface-nav{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;
+  padding:7px 12px;background:#0f1420;border-bottom:1px solid rgba(255,255,255,.08);
+  font:600 0.78rem system-ui,sans-serif;
+}
+nav a{color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none}
+nav a.here{color:#fff;background:rgba(14,116,144,.45);border-color:rgba(103,232,249,.45)}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 72px}
+h1{font-size:1.35rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin-bottom:14px}
+.banner{
+  background:var(--warnbg);border:1px solid #f59e0b;color:#78350f;
+  border-radius:12px;padding:10px 14px;font-size:.86rem;margin-bottom:16px;
+}
+.grid{display:grid;grid-template-columns:1fr 300px;gap:16px}
+@media(max-width:840px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.panel h2{font-size:.82rem;color:var(--muted);margin:0 0 10px;font-weight:700}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+label.file{font-size:.8rem;color:var(--muted)}
+input[type=text],input[type=file]{font:inherit}
+input[type=text]{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;
+}
+button{
+  font:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);
+  padding:7px 12px;border-radius:10px;font-weight:600;font-size:.82rem;
+}
+button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button.danger{color:var(--occ);border-color:#fecaca}
+.stage{
+  position:relative;background:#1f2937;border-radius:12px;overflow:hidden;
+  min-height:200px;user-select:none;touch-action:none;
+}
+.stage img{display:block;width:100%;height:auto;pointer-events:none}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+.hint{font-size:.75rem;color:var(--muted);margin-top:6px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.kpi .n{font-size:1.35rem;font-weight:800}
+.kpi .l{font-size:.7rem;color:var(--muted)}
+.spot-list{max-height:220px;overflow:auto;font-size:.8rem}
+.spot-item{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--line)}
+.badge{font-size:.7rem;font-weight:800;padding:1px 7px;border-radius:99px}
+.badge.free{background:#dcfce7;color:#166534}
+.badge.occ{background:#fee2e2;color:#991b1b}
+.badge.unk{background:#f3f4f6;color:#374151}
+svg.chart{display:block;width:100%;height:auto}
+.foot{margin-top:22px;text-align:center;color:var(--muted);font-size:.72rem}
+</style>
+</head>
+<body>
+<nav class="pw-surface-nav">
+  <span style="color:#8ba3c7">ParkWiz</span>
+  <a href="./">מפת חניה עירונית</a>
+  <a class="here" href="./pilot-kit.html">ערכת פיילוט</a>
+  <a href="./pilot-dashboard.html">דשבורד פיילוט עירוני</a>
+  <a href="./marketplace.html">שוק חניות פרטיות</a>
+</nav>
+<div class="wrap">
+  <h1>ערכת פיילוט — תפוסה מצילום סטטי</h1>
+  <p class="sub">כיול מלבני חניה על תמונת snapshot, הערכת תפוס/פנוי, וייצוא <code>spots.json</code> + <code>occupancy.json</code>.</p>
+  <div class="banner">
+    <b>היוריסטיקה בסיסית, לא בינה מלאכותית.</b>
+    ההערכה משווה בהירות ושונות פיקסלים מול פריים ייחוס ריק (או סף קבוע בלי ייחוס).
+    אין זיהוי לוחיות, אין זיהוי פנים, ואין הזנה ממצלמת עירייה בריפו הזה. הדמו עובד על תמונה סטטית בדפדפן.
+  </div>
+
+  <div class="grid">
+    <div>
+      <section class="panel">
+        <h2>1. תמונת snapshot</h2>
+        <div class="row">
+          <button type="button" class="primary" id="btnSample">טען דוגמה כלולה</button>
+          <label class="file">צילום נוכחי <input type="file" id="fileSnap" accept="image/*"></label>
+          <label class="file">פריים ייחוס ריק <input type="file" id="fileEmpty" accept="image/*"></label>
+        </div>
+        <label class="file" for="streetName">רחוב / אתר</label>
+        <input type="text" id="streetName" value="הרצל, נתניה">
+        <div class="stage" id="stage">
+          <img id="snapImg" alt="צילום מגרש חניה">
+          <canvas id="calCanvas"></canvas>
+        </div>
+        <p class="hint">לחצו וגררו על התמונה כדי לסמן מלבן חניה. המלבנים נשמרים כשברים (0–1) כדי לעבוד בכל גודל תמונה.</p>
+      </section>
+
+      <section class="panel" style="margin-top:16px">
+        <h2>2. מפת תפוסה (היוריסטיקה)</h2>
+        <div class="row">
+          <button type="button" class="primary" id="btnEstimate">חשב תפוסה</button>
+          <button type="button" id="btnExportOcc">ייצוא occupancy.json</button>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><div class="n" id="kTotal">0</div><div class="l">מקומות מסומנים</div></div>
+          <div class="kpi"><div class="n" id="kOcc" style="color:var(--occ)">0</div><div class="l">תפוסים (הערכה)</div></div>
+          <div class="kpi"><div class="n" id="kFree" style="color:var(--free)">0</div><div class="l">פנויים (הערכה)</div></div>
+        </div>
+        <p class="hint" id="estNote">עדיין לא חושב. אחרי כיול — לחצו «חשב תפוסה».</p>
+      </section>
+
+      <section class="panel" style="margin-top:16px">
+        <h2>3. עקומה שעתית מ־occupancy.json</h2>
+        <div class="row">
+          <button type="button" id="btnLoadSampleOcc">טען סדרת דוגמה</button>
+          <label class="file">טען occupancy.json <input type="file" id="fileOcc" accept=".json,application/json"></label>
+        </div>
+        <div id="chart"></div>
+        <p class="hint">סכמה: <code>{ts, street, total, occupied, source, confidence}</code>. סדרת הדוגמה מסומנת <code>source: sample</code> — לא מדידה חיה.</p>
+      </section>
+    </div>
+
+    <aside>
+      <section class="panel">
+        <h2>מלבנים / spots.json</h2>
+        <div class="row">
+          <button type="button" id="btnUndo">בטל אחרון</button>
+          <button type="button" class="danger" id="btnClear">נקה הכול</button>
+        </div>
+        <div class="row">
+          <button type="button" id="btnSaveLs">שמור בדפדפן</button>
+          <button type="button" id="btnExportSpots">ייצוא spots.json</button>
+        </div>
+        <label class="file">ייבוא spots.json <input type="file" id="fileSpots" accept=".json,application/json"></label>
+        <div class="spot-list" id="spotList"></div>
+      </section>
+      <section class="panel" style="margin-top:16px">
+        <h2>מה העירייה רואה כאן</h2>
+        <p class="hint" style="margin:0">
+          בלי מצלמה חיה: מעלים snapshot (או את הדוגמה), מסמנים מקומות, ומקבלים תפוס/פנוי כמספרים בלבד.
+          הייצוא (`occupancy.json`) הוא הקלט לדוח הפיילוט. אין אכיפה בדף הזה.
+        </p>
+      </section>
+    </aside>
+  </div>
+  <div class="foot">ParkWiz · ערכת פיילוט מקומית · בלי שרת ובלי CDN</div>
+</div>
+<script>
+"use strict";
+
+const LS_SPOTS = "pw_pilot_spots";
+const LS_OCC = "pw_pilot_occupancy";
+const LS_STREET = "pw_pilot_street";
+const LS_EST = "pw_pilot_last_estimate";
+
+const state = {
+  spots: [],
+  estimates: [],
+  occupancy: [],
+  drag: null,
+  snap: null,
+  empty: null,
+  hasEmpty: false,
+};
+
+const snapImg = document.getElementById("snapImg");
+const canvas = document.getElementById("calCanvas");
+const ctx = canvas.getContext("2d");
+
+function street() {
+  return document.getElementById("streetName").value.trim() || "רחוב לא צוין";
+}
+
+function download(name, text) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 800);
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("image load failed"));
+    img.src = src;
+  });
+}
+
+function layoutSpots() {
+  const spots = [];
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 6; col++) {
+      spots.push({
+        id: "s" + (spots.length + 1),
+        x: 0.0625 + col * 0.155,
+        y: row === 0 ? 0.075 : 0.575,
+        w: 0.135,
+        h: 0.35,
+      });
+    }
+  }
+  return spots;
+}
+
+function makeSyntheticLot(empty) {
+  const c = document.createElement("canvas");
+  c.width = 800; c.height = 480;
+  const g = c.getContext("2d");
+  g.fillStyle = "#4d5560"; g.fillRect(0, 0, 800, 480);
+  g.fillStyle = "#5c6570"; g.fillRect(20, 16, 760, 448);
+  g.fillStyle = "#c5ccd4"; g.font = "13px sans-serif"; g.textAlign = "center";
+  g.fillText(empty ? "דוגמה — פריים ייחוס ריק (סונתז בדפדפן)" : "דוגמה — מגרש עם רכבים (סונתז בדפדפן)", 400, 26);
+  g.fillStyle = "#454c55"; g.fillRect(20, 220, 760, 40);
+  g.strokeStyle = "#9aa3ad"; g.setLineDash([10, 8]);
+  g.beginPath(); g.moveTo(40, 240); g.lineTo(760, 240); g.stroke();
+  g.setLineDash([]);
+  const cars = empty ? [] : [0, 2, 3, 6, 9, 10];
+  layoutSpots().forEach((s, i) => {
+    const x = s.x * 800, y = s.y * 480, w = s.w * 800, h = s.h * 480;
+    g.strokeStyle = "#d7dde4"; g.lineWidth = 2; g.strokeRect(x, y, w, h);
+    if (cars.indexOf(i) !== -1) {
+      g.fillStyle = i % 2 ? "#1c1f28" : "#24181a";
+      g.fillRect(x + 8, y + 16, w - 16, h - 32);
+      g.fillStyle = "#2e3544";
+      g.fillRect(x + 14, y + 34, w - 28, 34);
+    }
+  });
+  return c.toDataURL("image/png");
+}
+
+async function fetchText(path) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(path);
+  return res.text();
+}
+
+async function loadSample() {
+  let snapUrl = makeSyntheticLot(false);
+  let emptyUrl = makeSyntheticLot(true);
+  try {
+    const lot = await fetch("pilot/sample-lot.svg");
+    if (lot.ok) {
+      const blob = await lot.blob();
+      snapUrl = URL.createObjectURL(blob);
+    }
+    const emp = await fetch("pilot/sample-empty.svg");
+    if (emp.ok) {
+      const blob = await emp.blob();
+      emptyUrl = URL.createObjectURL(blob);
+    }
+  } catch (e) { /* file:// fallback already set */ }
+  state.snap = await loadImage(snapUrl);
+  state.empty = await loadImage(emptyUrl);
+  state.hasEmpty = true;
+  snapImg.src = snapUrl;
+  try {
+    const raw = await fetchText("pilot/sample-spots.json");
+    applySpotsDoc(JSON.parse(raw));
+  } catch (e) {
+    state.spots = layoutSpots();
+  }
+  document.getElementById("streetName").value = "הרצל, נתניה";
+  state.estimates = [];
+  await waitImg();
+  drawOverlay();
+  renderSpotList();
+  saveLocal();
+}
+
+function waitImg() {
+  return new Promise((resolve) => {
+    if (snapImg.complete && snapImg.naturalWidth) { resolve(); return; }
+    snapImg.onload = () => resolve();
+  });
+}
+
+function resizeCanvas() {
+  const w = snapImg.clientWidth || 1;
+  const h = snapImg.clientHeight || 1;
+  canvas.width = Math.round(w);
+  canvas.height = Math.round(h);
+}
+
+function drawOverlay() {
+  if (!snapImg.naturalWidth) return;
+  resizeCanvas();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  state.spots.forEach((s, i) => {
+    const x = s.x * canvas.width, y = s.y * canvas.height;
+    const w = s.w * canvas.width, h = s.h * canvas.height;
+    const est = state.estimates[i];
+    let fill = "rgba(255,255,255,.12)";
+    let stroke = "#e5e7eb";
+    if (est && est.occupied) { fill = "rgba(220,38,38,.35)"; stroke = "#fecaca"; }
+    if (est && !est.occupied) { fill = "rgba(22,163,74,.35)"; stroke = "#bbf7d0"; }
+    ctx.fillStyle = fill;
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 2;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 12px sans-serif";
+    ctx.fillText(String(i + 1), x + 6, y + 16);
+  });
+  if (state.drag) {
+    const x = Math.min(state.drag.x0, state.drag.x1) * canvas.width;
+    const y = Math.min(state.drag.y0, state.drag.y1) * canvas.height;
+    const w = Math.abs(state.drag.x1 - state.drag.x0) * canvas.width;
+    const h = Math.abs(state.drag.y1 - state.drag.y0) * canvas.height;
+    ctx.strokeStyle = "#67e8f9";
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(x, y, w, h);
+    ctx.setLineDash([]);
+  }
+}
+
+function eventFrac(ev) {
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)),
+    y: Math.max(0, Math.min(1, (ev.clientY - r.top) / r.height)),
+  };
+}
+
+canvas.addEventListener("pointerdown", (ev) => {
+  if (!snapImg.naturalWidth) return;
+  canvas.setPointerCapture(ev.pointerId);
+  const p = eventFrac(ev);
+  state.drag = { x0: p.x, y0: p.y, x1: p.x, y1: p.y };
+  drawOverlay();
+});
+canvas.addEventListener("pointermove", (ev) => {
+  if (!state.drag) return;
+  const p = eventFrac(ev);
+  state.drag.x1 = p.x; state.drag.y1 = p.y;
+  drawOverlay();
+});
+canvas.addEventListener("pointerup", () => {
+  if (!state.drag) return;
+  const x = Math.min(state.drag.x0, state.drag.x1);
+  const y = Math.min(state.drag.y0, state.drag.y1);
+  const w = Math.abs(state.drag.x1 - state.drag.x0);
+  const h = Math.abs(state.drag.y1 - state.drag.y0);
+  state.drag = null;
+  if (w > 0.02 && h > 0.02) {
+    state.spots.push({ id: "s" + Date.now(), x, y, w, h });
+    state.estimates = [];
+    saveLocal();
+  }
+  drawOverlay();
+  renderSpotList();
+});
+
+function renderSpotList() {
+  const el = document.getElementById("spotList");
+  if (!state.spots.length) {
+    el.innerHTML = '<p class="hint">אין מלבנים. גררו על התמונה או טענו דוגמה.</p>';
+    return;
+  }
+  el.replaceChildren();
+  state.spots.forEach((s, i) => {
+    const est = state.estimates[i];
+    const row = document.createElement("div");
+    row.className = "spot-item";
+    const name = document.createElement("span");
+    name.textContent = "מקום " + (i + 1);
+    const badge = document.createElement("span");
+    badge.className = "badge " + (est ? (est.occupied ? "occ" : "free") : "unk");
+    badge.textContent = est ? (est.occupied ? "תפוס" : "פנוי") : "לא חושב";
+    row.appendChild(name);
+    row.appendChild(badge);
+    el.appendChild(row);
+  });
+}
+
+function applySpotsDoc(doc) {
+  const list = Array.isArray(doc) ? doc : (doc && doc.spots);
+  if (!Array.isArray(list)) return;
+  state.spots = list.map((s, i) => ({
+    id: s.id || ("s" + (i + 1)),
+    x: Number(s.x), y: Number(s.y), w: Number(s.w), h: Number(s.h),
+  })).filter((s) => Number.isFinite(s.x) && Number.isFinite(s.y) && s.w > 0 && s.h > 0);
+  if (doc && doc.street) document.getElementById("streetName").value = doc.street;
+  state.estimates = [];
+}
+
+function spotsDoc() {
+  return {
+    version: 1,
+    street: street(),
+    savedAt: new Date().toISOString(),
+    note: "מלבני כיול מקומיים. לא מדידת עירייה חיה.",
+    spots: state.spots,
+  };
+}
+
+function saveLocal() {
+  try {
+    localStorage.setItem(LS_SPOTS, JSON.stringify(spotsDoc()));
+    localStorage.setItem(LS_STREET, street());
+    if (state.occupancy.length) localStorage.setItem(LS_OCC, JSON.stringify(state.occupancy));
+    if (state.estimates.length) localStorage.setItem(LS_EST, JSON.stringify(state.estimates));
+  } catch (e) {}
+}
+
+function statsForRect(img, spot) {
+  const c = document.createElement("canvas");
+  c.width = img.naturalWidth || img.width;
+  c.height = img.naturalHeight || img.height;
+  const g = c.getContext("2d");
+  g.drawImage(img, 0, 0, c.width, c.height);
+  const x = Math.max(0, Math.floor(spot.x * c.width));
+  const y = Math.max(0, Math.floor(spot.y * c.height));
+  const w = Math.max(1, Math.floor(spot.w * c.width));
+  const h = Math.max(1, Math.floor(spot.h * c.height));
+  const data = g.getImageData(x, y, Math.min(w, c.width - x), Math.min(h, c.height - y)).data;
+  let n = 0, sum = 0, sum2 = 0;
+  for (let i = 0; i < data.length; i += 16) {
+    const luma = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+    sum += luma; sum2 += luma * luma; n++;
+  }
+  if (!n) return { mean: 0, variance: 0 };
+  const mean = sum / n;
+  return { mean, variance: Math.max(0, sum2 / n - mean * mean) };
+}
+
+function estimateOccupied(cur, emp) {
+  if (emp) {
+    const dMean = Math.abs(cur.mean - emp.mean);
+    const dVar = Math.abs(Math.sqrt(cur.variance) - Math.sqrt(emp.variance));
+    const score = dMean * 0.65 + dVar * 0.35;
+    return { occupied: score >= 14, score, method: "vs-empty-frame" };
+  }
+  return {
+    occupied: cur.mean < 95 || cur.variance > 900,
+    score: (95 - cur.mean) + Math.sqrt(cur.variance) / 4,
+    method: "absolute-threshold",
+  };
+}
+
+function computeEstimate() {
+  if (!state.snap || !state.spots.length) {
+    document.getElementById("estNote").textContent = "חסרים תמונה או מלבנים.";
+    return;
+  }
+  const est = state.spots.map((spot) => {
+    const cur = statsForRect(state.snap, spot);
+    const emp = state.hasEmpty && state.empty ? statsForRect(state.empty, spot) : null;
+    const r = estimateOccupied(cur, emp);
+    return {
+      id: spot.id,
+      occupied: r.occupied,
+      mean: +cur.mean.toFixed(1),
+      variance: +cur.variance.toFixed(1),
+      score: +r.score.toFixed(1),
+      method: r.method,
+    };
+  });
+  state.estimates = est;
+  const occupied = est.filter((e) => e.occupied).length;
+  const rec = {
+    ts: new Date().toISOString(),
+    street: street(),
+    total: est.length,
+    occupied,
+    source: "heuristic-brightness",
+    confidence: state.hasEmpty ? 0.45 : 0.25,
+  };
+  state.occupancy = state.occupancy.filter((r) => r.source !== "heuristic-brightness" || r.ts !== rec.ts);
+  state.occupancy.push(rec);
+  state.occupancy.sort((a, b) => String(a.ts).localeCompare(String(b.ts)));
+  document.getElementById("kTotal").textContent = String(est.length);
+  document.getElementById("kOcc").textContent = String(occupied);
+  document.getElementById("kFree").textContent = String(est.length - occupied);
+  document.getElementById("estNote").textContent =
+    "הערכה בשיטת " + est[0].method +
+    (state.hasEmpty ? " מול פריים ייחוס ריק." : " בלי פריים ייחוס (סף קבוע).") +
+    " confidence=" + rec.confidence + " — היוריסטיקה, לא דיוק מדוד.";
+  saveLocal();
+  drawOverlay();
+  renderSpotList();
+  drawChart(state.occupancy);
+}
+
+function normOcc(o) {
+  if (!o || typeof o !== "object") return null;
+  const total = Number(o.total != null ? o.total : o.totalSpots);
+  const occupied = Number(o.occupied != null ? o.occupied : o.occupiedSpots);
+  if (!Number.isFinite(total) || !Number.isFinite(occupied)) return null;
+  return {
+    ts: o.ts != null ? String(o.ts) : "",
+    street: o.street != null ? String(o.street) : street(),
+    total,
+    occupied,
+    source: o.source != null ? String(o.source) : "unknown",
+    confidence: Number.isFinite(Number(o.confidence)) ? Number(o.confidence) : 0,
+  };
+}
+
+function applyOccupancy(list) {
+  state.occupancy = (Array.isArray(list) ? list : []).map(normOcc).filter(Boolean);
+  saveLocal();
+  drawChart(state.occupancy);
+}
+
+function drawChart(recs) {
+  const host = document.getElementById("chart");
+  if (!recs.length) {
+    host.innerHTML = '<p class="hint">אין סדרת occupancy עדיין.</p>';
+    return;
+  }
+  const W = 720, H = 220, m = { t: 12, r: 12, b: 32, l: 36 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const n = recs.length;
+  const x = (i) => (n <= 1 ? m.l + iw / 2 : m.l + (i / (n - 1)) * iw);
+  const y = (r) => m.t + (1 - r) * ih;
+  let grid = "", xlab = "";
+  for (let g = 0; g <= 100; g += 25) {
+    const yy = y(g / 100);
+    grid += `<line x1="${m.l}" y1="${yy}" x2="${m.l + iw}" y2="${yy}" stroke="#e5e7eb"/>`;
+    grid += `<text x="${m.l - 6}" y="${yy + 4}" text-anchor="end" font-size="11" fill="#6b7280">${g}%</text>`;
+  }
+  const step = Math.max(1, Math.ceil(n / 8));
+  recs.forEach((r, i) => {
+    if (i % step) return;
+    const d = new Date(r.ts);
+    const lbl = isNaN(d) ? String(i + 1) : String(d.getHours()).padStart(2, "0") + ":00";
+    xlab += `<text x="${x(i)}" y="${H - 10}" text-anchor="middle" font-size="11" fill="#6b7280">${lbl}</text>`;
+  });
+  const line = recs.map((r, i) => {
+    const rate = r.total ? r.occupied / r.total : 0;
+    return `${i ? "L" : "M"}${x(i).toFixed(1)},${y(rate).toFixed(1)}`;
+  }).join(" ");
+  host.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="עקומת תפוסה">
+    ${grid}${xlab}
+    <path d="${line}" fill="none" stroke="#0e7490" stroke-width="2.5"/>
+  </svg>`;
+}
+
+document.getElementById("btnSample").addEventListener("click", () => loadSample());
+document.getElementById("fileSnap").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const url = await fileToDataUrl(f);
+  state.snap = await loadImage(url);
+  snapImg.src = url;
+  state.estimates = [];
+  await waitImg();
+  drawOverlay();
+});
+document.getElementById("fileEmpty").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const url = await fileToDataUrl(f);
+  state.empty = await loadImage(url);
+  state.hasEmpty = true;
+});
+document.getElementById("btnUndo").addEventListener("click", () => {
+  state.spots.pop(); state.estimates = []; saveLocal(); drawOverlay(); renderSpotList();
+});
+document.getElementById("btnClear").addEventListener("click", () => {
+  state.spots = []; state.estimates = []; saveLocal(); drawOverlay(); renderSpotList();
+});
+document.getElementById("btnSaveLs").addEventListener("click", () => {
+  saveLocal();
+  document.getElementById("estNote").textContent = "נשמר ב־localStorage בדפדפן זה.";
+});
+document.getElementById("btnExportSpots").addEventListener("click", () => {
+  download("spots.json", JSON.stringify(spotsDoc(), null, 2));
+});
+document.getElementById("fileSpots").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  applySpotsDoc(JSON.parse(await f.text()));
+  saveLocal(); drawOverlay(); renderSpotList();
+});
+document.getElementById("btnEstimate").addEventListener("click", computeEstimate);
+document.getElementById("btnExportOcc").addEventListener("click", () => {
+  download("occupancy.json", JSON.stringify(state.occupancy, null, 2));
+});
+document.getElementById("btnLoadSampleOcc").addEventListener("click", async () => {
+  try {
+    applyOccupancy(JSON.parse(await fetchText("pilot/sample-occupancy.json")));
+  } catch (e) {
+    document.getElementById("estNote").textContent = "לא ניתן לטעון את סדרת הדוגמה (נסו דרך שרת מקומי / GitHub Pages).";
+  }
+});
+document.getElementById("fileOcc").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  applyOccupancy(JSON.parse(await f.text()));
+});
+document.getElementById("streetName").addEventListener("change", saveLocal);
+window.addEventListener("resize", drawOverlay);
+
+(function restore() {
+  try {
+    const s = localStorage.getItem(LS_SPOTS);
+    if (s) applySpotsDoc(JSON.parse(s));
+    const st = localStorage.getItem(LS_STREET);
+    if (st) document.getElementById("streetName").value = st;
+    const o = localStorage.getItem(LS_OCC);
+    if (o) applyOccupancy(JSON.parse(o));
+  } catch (e) {}
+  renderSpotList();
+  loadSample();
+})();
+</script>
+</body>
+</html>
