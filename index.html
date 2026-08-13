@@ -1828,10 +1828,17 @@ function positionUserDot() {
 
 function onSearch(val) {
   const ac = document.getElementById('autocomplete');
+  ac.replaceChildren();
   if (!val.trim()) { ac.classList.remove('open'); return; }
   const matches = TA_STREETS.filter(s=>s.includes(val)).slice(0,5);
   if (!matches.length) { ac.classList.remove('open'); return; }
-  ac.innerHTML = matches.map(s=>`<div class="ac-item" onclick="selectSearch('${s}')">${s}</div>`).join('');
+  matches.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'ac-item';
+    item.textContent = s;
+    item.addEventListener('click', () => selectSearch(s));
+    ac.appendChild(item);
+  });
   ac.classList.add('open');
 }
 
