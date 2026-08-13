@@ -57,8 +57,8 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 .main{flex:1;display:flex;overflow:hidden;position:relative}
 
 /* map */
-.map-wrap{flex:1;position:relative;overflow:hidden}
-canvas#mapCanvas{display:block;width:100%;height:100%}
+.map-wrap{flex:1;position:relative;overflow:hidden;min-height:0}
+#realMap{position:absolute;inset:0;z-index:1;background:transparent}
 
 /* hero overlay */
 .hero-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:8;transition:opacity.4s}
@@ -67,9 +67,17 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 .hero-arrow{font-size:1.8rem;animation:heroArrow 1.4s ease-in-out infinite}
 @keyframes heroArrow{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
 
-/* pulsing user dot overlay */
+/* pulsing user / overlay markers (Leaflet divIcons) */
 @keyframes pulse{0%{transform:scale(1);opacity:.8}50%{transform:scale(1.5);opacity:.3}100%{transform:scale(1);opacity:.8}}
-.user-dot{position:absolute;width:20px;height:20px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 0 0 6px rgba(59,130,246,.25);animation:pulse 2s ease-in-out infinite;transform:translate(-50%,-50%);pointer-events:none;z-index:5;transition:left .5s,top .5s}
+.pw-map-icon{background:transparent!important;border:none!important}
+.pw-user-core{width:16px;height:16px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 0 0 6px rgba(59,130,246,.25);animation:pulse 2s ease-in-out infinite}
+.pw-spot-dot{width:16px;height:16px;border-radius:50%;color:#fff;font:bold 9px sans-serif;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px rgba(255,255,255,.28)}
+.pw-spot-dot.flash{animation:pwSpotFlash 1s ease-out infinite}
+@keyframes pwSpotFlash{0%{box-shadow:0 0 0 0 rgba(34,197,94,.7)}100%{box-shadow:0 0 0 14px rgba(34,197,94,0)}}
+.pw-pango-dot{width:20px;height:20px;border-radius:50%;background:#38bdf8;color:#06283a;font:bold 11px sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;animation:blink 1.2s ease-in-out infinite}
+.pw-future-dot{width:22px;height:22px;border-radius:50%;background:#22d3ee;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid #fff;animation:blink 1.2s ease-in-out infinite}
+.pw-route-line{stroke-dasharray:12 16;animation:pwRouteDash .8s linear infinite}
+@keyframes pwRouteDash{to{stroke-dashoffset:-28}}
 
 /* live update badge */
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
@@ -262,9 +270,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 .btn-confirm{background:var(--green);color:#0a0f0a}
 .btn-cancel-r{background:rgba(255,255,255,.07);color:var(--text)}
 
-/* heatmap canvas */
-#heatmapCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none}
-#heatmapCanvas.active{display:block}
+/* heatmap is a Leaflet layer (heatLayer), not a canvas */
 
 /* Map loading overlay */
 .map-loading{position:absolute;inset:0;background:#0c1a0c;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s}
@@ -464,9 +470,7 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
 
 <div class="main">
   <div class="map-wrap" id="mapWrap">
-    <canvas id="mapCanvas"></canvas>
-    <canvas id="heatmapCanvas"></canvas>
-    <div id="realMap" style="position:absolute;inset:0;z-index:4;background:transparent"></div>
+    <div id="realMap"></div>
     <div id="tlvBtn" onclick="toggleTlvLayer()" style="position:absolute;bottom:14px;right:12px;z-index:11;background:rgba(10,15,10,.92);border:1px solid rgba(56,189,248,.5);border-radius:10px;padding:8px 11px;font-size:.72rem;cursor:pointer;opacity:.65">🏛 נתוני אמת · מגרשי חניה נתניה</div>
     <div class="map-loading" id="mapLoading">
       <div class="skeleton-grid">
@@ -481,7 +485,6 @@ canvas#mapCanvas{display:block;width:100%;height:100%}
         <div class="hero-text">מצא או פרסם חניה פרטית לצידך — מרקטפלייס של חניות פרטיות </div> 
              <div class="hero-arrow">👇</div>
     </div>
-    <div class="user-dot" id="userDot"></div>
     <div class="park-tooltip" id="parkTooltip"></div>
     <div class="live-badge">
       <span class="live-dot"></span><span class="live-pulse">עדכון חי</span><br>
@@ -825,6 +828,8 @@ const STREETS_DEF = [
 // ─── מפה אמיתית (Leaflet + OpenStreetMap) עם סימוני חניה ─────────
 const ZONE_COLORS = { blue:'#3b82f6', free:'#9ca3af', timed:'#f59e0b' };
 let realMap = null, segLayers = [], midMarkers = [], heatLayer = null;
+let userMarker = null, overlaySpotLayer = null, overlayPangoLayer = null;
+let overlayFutureLayer = null, overlayRouteLine = null, overlayRouteParks = null;
 
 // ─── מפת מדרכות: פיצול כל רחוב לקטעי אבן-שפה עם סוג לכל קטע ───
 const CURB_TYPES = {
@@ -1011,12 +1016,8 @@ function initRealMap() {
   // מצב הגעה: לחיצה על נקודה ריקה במפה = "זה היעד שלי"
   realMap.on('click', (e) => arrivalMode(e.latlng.lat, e.latlng.lng, 'היעד שלך'));
 
-  // המשתמש
-  L.circleMarker([32.3192, 34.8583], { radius:8, color:'#fff', weight:2, fillColor:'#38bdf8', fillOpacity:1 })
-    .addTo(realMap).bindTooltip('אתה כאן');
   initPrivateSpots();
-  const ud = document.getElementById('userDot');
-  if (ud) ud.style.display = 'none';
+  updateLeafletOverlays();
 }
 
 function updateRealMap() {
@@ -1414,281 +1415,130 @@ function parkingTariffLabel(type) {
   return '💰 תעריף חניה: מוגבל בזמן';
 }
 
-// ─── Draw Map ─────────────────────────────────────────────────────
-function drawMap() {
-  const canvas = document.getElementById('mapCanvas');
-  const wrap = document.getElementById('mapWrap');
-  const rect = wrap.getBoundingClientRect();
-  if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
-    canvas.width = Math.floor(rect.width); canvas.height = Math.floor(rect.height);
-  }
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-
-  // Background + buildings — cached offscreen (static, avoids per-frame flicker/CPU)
-  if (!drawMap._bg || drawMap._bg.width !== W || drawMap._bg.height !== H) {
-    const bg = document.createElement('canvas'); bg.width = W; bg.height = H;
-    const bctx = bg.getContext('2d');
-    bctx.fillStyle = '#0c1a0c';
-    bctx.fillRect(0,0,W,H);
-    const hPos = STREETS_DEF.filter(s=>s.isH).map(s=>s.pos).sort((a,b)=>a-b);
-    const vPos = STREETS_DEF.filter(s=>!s.isH).map(s=>s.pos).sort((a,b)=>a-b);
-    const allH = [0, ...hPos, 1];
-    const allV = [0, ...vPos, 1];
-    for (let xi=0; xi<allV.length-1; xi++) {
-      for (let yi=0; yi<allH.length-1; yi++) {
-        const x1=allV[xi]*W+7, x2=allV[xi+1]*W-7;
-        const y1=allH[yi]*H+7, y2=allH[yi+1]*H-7;
-        if (x2>x1 && y2>y1) {
-          bctx.fillStyle = '#0d1a0d';
-          bctx.fillRect(x1,y1,x2-x1,y2-y1);
-          // tiny buildings
-          const cols = Math.max(1, Math.floor((x2-x1)/28));
-          const rows = Math.max(1, Math.floor((y2-y1)/28));
-          const bw = (x2-x1)/cols, bh = (y2-y1)/rows;
-          for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) {
-            const bx=x1+c*bw+3, by=y1+r*bh+3;
-            bctx.fillStyle=`rgba(${22+xi*6},${32+yi*5},${22+xi*4},.95)`;
-            bctx.fillRect(bx,by,bw-6,bh-6);
-            if (bw>18 && bh>18 && Math.random()<0.55) {
-              bctx.fillStyle='rgba(255,210,80,0.14)';
-              bctx.fillRect(bx+3,by+3,4,4);
-            }
-          }
-        }
-      }
-    }
-    drawMap._bg = bg;
-  }
-  ctx.drawImage(drawMap._bg, 0, 0);
-
-  // Draw street base (dark road)
+// ─── Leaflet overlays (user, spots, pango, future reports, route) ─
+function cityBounds() {
+  let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
   STREETS_DEF.forEach(s => {
-    ctx.lineWidth = 14;
-    ctx.strokeStyle = '#182818';
-    ctx.beginPath();
-    if (s.isH) { ctx.moveTo(0,s.pos*H); ctx.lineTo(W,s.pos*H); }
-    else { ctx.moveTo(s.pos*W,0); ctx.lineTo(s.pos*W,H); }
-    ctx.stroke();
+    [s.a, s.b].forEach(pt => {
+      if (pt[0] < minLat) minLat = pt[0];
+      if (pt[0] > maxLat) maxLat = pt[0];
+      if (pt[1] < minLng) minLng = pt[1];
+      if (pt[1] > maxLng) maxLng = pt[1];
+    });
   });
-
-  // Draw colored availability segments on top of roads
-  STREETS_DEF.forEach((s, idx) => {
-    const filtered = !activeFilters[s.type];
-    const color = filtered ? 'rgba(100,100,100,0.25)' : availColor(s.avail);
-    const isSelected = selectedStreetIdx === idx;
-
-    // Main colored street line
-    ctx.lineWidth = filtered ? 4 : (isSelected ? 10 : 7);
-    ctx.strokeStyle = color;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    if (s.isH) { ctx.moveTo(8,s.pos*H); ctx.lineTo(W-8,s.pos*H); }
-    else { ctx.moveTo(s.pos*W,8); ctx.lineTo(s.pos*W,H-8); }
-    ctx.stroke();
-
-    // Selected glow
-    if (isSelected) {
-      ctx.lineWidth = 16;
-      ctx.strokeStyle = color + '40';
-      ctx.beginPath();
-      if (s.isH) { ctx.moveTo(8,s.pos*H); ctx.lineTo(W-8,s.pos*H); }
-      else { ctx.moveTo(s.pos*W,8); ctx.lineTo(s.pos*W,H-8); }
-      ctx.stroke();
-    }
-
-    if (!filtered) {
-      // Center dashes
-      ctx.setLineDash([10,9]);
-      ctx.lineWidth = 1.5;
-      ctx.strokeStyle = 'rgba(255,220,50,0.18)';
-      ctx.beginPath();
-      if (s.isH) { ctx.moveTo(8,s.pos*H); ctx.lineTo(W-8,s.pos*H); }
-      else { ctx.moveTo(s.pos*W,8); ctx.lineTo(s.pos*W,H-8); }
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    // Street name label
-    if (!filtered) {
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillStyle = isSelected ? '#fff' : 'rgba(255,255,255,0.55)';
-      ctx.textBaseline = 'middle';
-      if (s.isH) {
-        ctx.textAlign = 'right';
-        ctx.fillText(s.name + ' ' + s.avail + '%', W-10, s.pos*H - 10);
-      } else {
-        ctx.save();
-        ctx.translate(s.pos*W + 6, H*0.12);
-        ctx.rotate(Math.PI/2);
-        ctx.textAlign = 'left';
-        ctx.fillText(s.name + ' ' + s.avail + '%', 0, 0);
-        ctx.restore();
-      }
-    }
+  return { minLat, maxLat, minLng, maxLng };
+}
+function xyToLatLng(x, y) {
+  const b = cityBounds();
+  const lat = b.maxLat - y * (b.maxLat - b.minLat);
+  const lng = b.minLng + x * (b.maxLng - b.minLng);
+  return [lat, lng];
+}
+function streetPointLatLng(streetIdx, frac) {
+  const s = STREETS_DEF[streetIdx];
+  if (!s) return xyToLatLng(0.5, 0.5);
+  return lerp(s.a, s.b, Math.max(0, Math.min(1, frac)));
+}
+function leafletDivIcon(html, size) {
+  const n = size || 22;
+  return L.divIcon({
+    className: 'pw-map-icon',
+    html,
+    iconSize: [n, n],
+    iconAnchor: [n / 2, n / 2],
   });
-
-  const now = Date.now();
-
-  // Route line (Waze-style, animated dashes along street grid)
-  if (route.active && route.path.length > 1) {
-    const pts = route.path.map(p=>({x:p.x*W, y:p.y*H}));
-    ctx.lineJoin='round'; ctx.lineCap='round';
-    // glow underlay
-    ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
-    ctx.lineWidth = 11; ctx.strokeStyle = 'rgba(59,130,246,0.25)'; ctx.stroke();
-    // solid blue route
-    ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
-    ctx.lineWidth = 5; ctx.strokeStyle = '#3b82f6'; ctx.stroke();
-    // moving white dashes (Waze feel)
-    ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
-    ctx.setLineDash([12,16]); ctx.lineDashOffset = -((now/30)%28);
-    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.stroke();
-    ctx.setLineDash([]);
-    // destination pin
-    const end = pts[pts.length-1];
-    ctx.font = '16px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='bottom';
-    ctx.fillText('📍', end.x, end.y - 4);
-  } else if (selectedStreetIdx !== null) {
-    const s = STREETS_DEF[selectedStreetIdx];
-    const ux=userPos.x*W, uy=userPos.y*H;
-    const sx = s.isH ? W*0.5 : s.pos*W;
-    const sy = s.isH ? s.pos*H : H*0.5;
-    ctx.setLineDash([8,6]);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgba(59,130,246,0.55)';
-    ctx.beginPath(); ctx.moveTo(ux,uy); ctx.lineTo(sx,sy); ctx.stroke();
-    ctx.setLineDash([]);
+}
+function ensureOverlayLayers() {
+  if (!realMap || !window.L) return false;
+  if (!overlaySpotLayer) overlaySpotLayer = L.layerGroup().addTo(realMap);
+  if (!overlayPangoLayer) overlayPangoLayer = L.layerGroup().addTo(realMap);
+  if (!overlayFutureLayer) overlayFutureLayer = L.layerGroup().addTo(realMap);
+  if (!userMarker) {
+    userMarker = L.marker(xyToLatLng(userPos.x, userPos.y), {
+      icon: leafletDivIcon('<div class="pw-user-core"></div>', 20),
+      zIndexOffset: 1200,
+      keyboard: false,
+      interactive: false,
+    }).addTo(realMap).bindTooltip('אתה כאן');
   }
+  return true;
+}
+function updateLeafletOverlays() {
+  if (!ensureOverlayLayers()) return;
+  userMarker.setLatLng(xyToLatLng(userPos.x, userPos.y));
 
-  // Spot dots (subtle, on streets)
+  overlaySpotLayer.clearLayers();
   spots.forEach(s => {
     const sdef = STREETS_DEF[s.streetIdx];
     if (sdef && !activeFilters[sdef.type]) return;
-    const x = s.x*W, y = s.y*H;
-    const color = s.type==='free'?'#22c55e':s.type==='soon'?'#eab308':'#ef4444';
-    const r = 6;
-
-    // Pulse rings for newly freed spots
-    if (s.flash && now - s.flash < 3000) {
-      const elapsed = now - s.flash;
-      for (let ring = 0; ring < 2; ring++) {
-        const delay = ring * 500;
-        const re = elapsed - delay;
-        if (re > 0 && re < 1400) {
-          const prog = re/1400;
-          ctx.beginPath();
-          ctx.arc(x, y, r + 4 + prog*22, 0, Math.PI*2);
-          ctx.strokeStyle = `rgba(34,197,94,${(1-prog)*0.65})`;
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        }
-      }
-    }
-
-    ctx.beginPath(); ctx.arc(x,y,r+3,0,Math.PI*2);
-    ctx.fillStyle = color+'28'; ctx.fill();
-    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
-    ctx.fillStyle = color; ctx.fill();
-    ctx.fillStyle='#fff';
-    ctx.font='bold 7px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(s.type==='free'?'P':s.type==='soon'?'↑':'✕', x, y);
+    const frac = sdef && sdef.isH ? s.x : s.y;
+    const ll = sdef ? streetPointLatLng(s.streetIdx, frac) : xyToLatLng(s.x, s.y);
+    const color = s.type === 'free' ? '#22c55e' : s.type === 'soon' ? '#eab308' : '#ef4444';
+    const letter = s.type === 'free' ? 'P' : s.type === 'soon' ? '↑' : '✕';
+    const flashing = s.flash && Date.now() - s.flash < 3000;
+    overlaySpotLayer.addLayer(L.marker(ll, {
+      icon: leafletDivIcon(
+        `<div class="pw-spot-dot${flashing ? ' flash' : ''}" style="background:${color}">${letter}</div>`,
+        18
+      ),
+      keyboard: false,
+    }));
   });
 
-  // Future "leaving soon" reports — blinking light-blue with countdown
-  futureReports.forEach(r => {
-    const x = r.x*W, y = r.y*H;
-    const blink = 0.45 + 0.55 * Math.abs(Math.sin(now/350));
-    const cyan = '#22d3ee';
-    ctx.beginPath(); ctx.arc(x,y,13,0,Math.PI*2);
-    ctx.fillStyle = `rgba(34,211,238,${0.18*blink})`; ctx.fill();
-    ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2);
-    ctx.globalAlpha = blink;
-    ctx.fillStyle = cyan; ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = '#062a30';
-    ctx.font = 'bold 8px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('🚗', x, y);
-    // countdown label
-    const remainMs = r.readyAt - now;
-    const label = remainMs > 0 ? `יוצא בעוד ${Math.max(1,Math.ceil(remainMs/60000))} דק'` : 'מתפנה עכשיו!';
-    ctx.font = 'bold 10px sans-serif';
-    ctx.fillStyle = cyan;
-    ctx.fillText(label, x, y - 16);
-  });
-
-  // Pango payment-ended events — blinking "clearing soon" markers
+  overlayPangoLayer.clearLayers();
   pangoEvents.forEach(ev => {
-    const x = ev.x*W, y = ev.y*H;
-    const blink = 0.45 + 0.55 * Math.abs(Math.sin(now/300));
-    ctx.beginPath(); ctx.arc(x,y,12,0,Math.PI*2);
-    ctx.fillStyle = `rgba(56,189,248,${0.16*blink})`; ctx.fill();
-    ctx.beginPath(); ctx.arc(x,y,7.5,0,Math.PI*2);
-    ctx.globalAlpha = blink;
-    ctx.fillStyle = '#38bdf8'; ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.fillStyle = '#06283a';
-    ctx.font = 'bold 9px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('P', x, y);
-    ctx.font = 'bold 9.5px sans-serif';
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillText("מתפנה (פנגו) ~2 דק'", x, y - 15);
+    const sdef = STREETS_DEF[ev.streetIdx];
+    const frac = sdef && sdef.isH ? ev.x : ev.y;
+    const ll = sdef ? streetPointLatLng(ev.streetIdx, frac) : xyToLatLng(ev.x, ev.y);
+    overlayPangoLayer.addLayer(L.marker(ll, {
+      icon: leafletDivIcon('<div class="pw-pango-dot">P</div>', 22),
+      keyboard: false,
+    }).bindTooltip("מתפנה (פנגו) ~2 דק'", { direction: 'top' }));
   });
 
-  // Parkings along active route
-  if (route.active) {
+  overlayFutureLayer.clearLayers();
+  const now = Date.now();
+  futureReports.forEach(r => {
+    const sdef = STREETS_DEF[r.streetIdx];
+    const frac = sdef && sdef.isH ? r.x : r.y;
+    const ll = sdef ? streetPointLatLng(r.streetIdx, frac) : xyToLatLng(r.x, r.y);
+    const remainMs = r.readyAt - now;
+    const label = remainMs > 0 ? `יוצא בעוד ${Math.max(1, Math.ceil(remainMs / 60000))} דק'` : 'מתפנה עכשיו!';
+    overlayFutureLayer.addLayer(L.marker(ll, {
+      icon: leafletDivIcon('<div class="pw-future-dot">🚗</div>', 22),
+      keyboard: false,
+    }).bindTooltip(label, { direction: 'top' }));
+  });
+
+  if (overlayRouteLine) { overlayRouteLine.remove(); overlayRouteLine = null; }
+  if (overlayRouteParks) { overlayRouteParks.remove(); overlayRouteParks = null; }
+  if (route.active && route.path.length > 1) {
+    overlayRouteLine = L.polyline(route.path.map(p => xyToLatLng(p.x, p.y)), {
+      color: '#3b82f6', weight: 5, opacity: 0.9, className: 'pw-route-line',
+    }).addTo(realMap);
+    overlayRouteParks = L.layerGroup();
     route.parkings.forEach(p => {
-      const x = p.x*W, y = p.y*H, r = 8;
-      if (p.taken) {
-        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle='#ef4444'; ctx.fill();
-        ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
-        ctx.fillStyle='#fff'; ctx.font='bold 9px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText('✕', x, y);
-      } else if (p.type === 'blue') {
-        // half blue / half white
-        ctx.beginPath(); ctx.arc(x,y,r,Math.PI/2,Math.PI*1.5); ctx.closePath(); ctx.fillStyle='#fff'; ctx.fill();
-        ctx.beginPath(); ctx.arc(x,y,r,-Math.PI/2,Math.PI/2); ctx.closePath(); ctx.fillStyle='#3b82f6'; ctx.fill();
-        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.strokeStyle='#3b82f6'; ctx.lineWidth=2; ctx.stroke();
-      } else {
-        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle='#22c55e'; ctx.fill();
-        ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
-        ctx.fillStyle='#fff'; ctx.font='bold 9px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText('P', x, y);
-      }
+      const color = p.taken ? '#ef4444' : (p.type === 'blue' ? '#3b82f6' : '#22c55e');
+      const mk = L.circleMarker(xyToLatLng(p.x, p.y), {
+        radius: 8, color: '#fff', weight: 2, fillColor: color, fillOpacity: 0.95,
+      });
+      const typeName = p.type === 'blue' ? 'כחול-לבן' : 'חינם';
+      const price = p.type === 'blue' ? ` · ₪${p.price}/שעה` : '';
+      mk.bindTooltip(
+        `${p.taken ? '🔴 תפוסה · ' : ''}${typeName} · סיכוי ${p.prob}% פנוי · ${p.walk} דק' הליכה מהיעד${price}`,
+        { direction: 'top' }
+      );
+      mk.on('click', (e) => { L.DomEvent.stopPropagation(e); showParkTooltip(p); });
+      overlayRouteParks.addLayer(mk);
     });
+    overlayRouteParks.addTo(realMap);
   }
-}
-
-// ─── Heatmap ─────────────────────────────────────────────────────
-function drawHeatmap() {
-  const canvas = document.getElementById('heatmapCanvas');
-  const wrap = document.getElementById('mapWrap');
-  const rect = wrap.getBoundingClientRect();
-  if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
-    canvas.width = Math.floor(rect.width); canvas.height = Math.floor(rect.height);
-  }
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0,0,W,H);
-  STREETS_DEF.forEach(s => {
-    const cx = s.isH ? W*0.5 : s.pos*W;
-    const cy = s.isH ? s.pos*H : H*0.5;
-    const freeRatio = s.avail/100;
-    const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,s.isH?H*0.5:W*0.5);
-    const r = Math.floor(255*(1-freeRatio)), g = Math.floor(200*freeRatio);
-    grad.addColorStop(0,`rgba(${r},${g},30,0.22)`);
-    grad.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=grad;
-    ctx.fillRect(0,0,W,H);
-  });
 }
 
 function toggleHeatmap() {
   heatmapActive = !heatmapActive;
   document.getElementById('heatmapBtn').classList.toggle('active', heatmapActive);
-  document.getElementById('heatmapCanvas').classList.toggle('active', heatmapActive);
-  if (heatmapActive) drawHeatmap();
+  updateRealMap();
 }
 
 // ─── Filter bar ───────────────────────────────────────────────────
@@ -1966,18 +1816,14 @@ function closeProfile(e) {
 
 // ─── Actions ─────────────────────────────────────────────────────
 function renderAll() {
-  drawMap();
   renderSidePanel();
-  if (heatmapActive) drawHeatmap();
   positionUserDot();
   updateRealMap();
+  updateLeafletOverlays();
 }
 
 function positionUserDot() {
-  const wrap = document.getElementById('mapWrap');
-  const dot = document.getElementById('userDot');
-  dot.style.left = (wrap.offsetWidth*userPos.x)+'px';
-  dot.style.top = (wrap.offsetHeight*userPos.y)+'px';
+  if (userMarker) userMarker.setLatLng(xyToLatLng(userPos.x, userPos.y));
 }
 
 function onSearch(val) {
@@ -2262,37 +2108,11 @@ function refreshStreets() {
   }
   secondsAgo = 0;
   renderAll();
-  if (heatmapActive) drawHeatmap();
 }
 
-window.addEventListener('resize', ()=>{ drawMap(); positionUserDot(); if(heatmapActive)drawHeatmap(); });
-
-// Click on map — detect nearby street
-document.getElementById('mapCanvas').addEventListener('click', e=>{
-  const canvas = e.target;
-  const rect = canvas.getBoundingClientRect();
-  const px = (e.clientX - rect.left) / rect.width;
-  const py = (e.clientY - rect.top) / rect.height;
-
-  // Parking markers on route — tooltip first
-  if (route.active) {
-    for (const p of route.parkings) {
-      const dx = (px - p.x) * rect.width, dy = (py - p.y) * rect.height;
-      if (Math.hypot(dx, dy) < 14) { showParkTooltip(p); return; }
-    }
-    hideParkTooltip();
-  }
-
-  let closest = null, minD = 0.025;
-  STREETS_DEF.forEach((s, idx) => {
-    let d;
-    if (s.isH) d = Math.abs(py - s.pos);
-    else d = Math.abs(px - s.pos);
-    if (d < minD) { minD = d; closest = idx; }
-  });
-  if (closest !== null) {
-    selectStreet(closest);
-  }
+window.addEventListener('resize', ()=>{
+  if (realMap) realMap.invalidateSize();
+  positionUserDot();
 });
 
 // ─── Premium / Pricing ───────────────────────────────────────────
@@ -2471,7 +2291,7 @@ function buildRouteToPoint(tx, ty, label, targetIdx, keepParkings) {
   route.label = label;
   if (!keepParkings) route.parkings = genRouteParkings(targetIdx);
   renderRoutePanel();
-  drawMap();
+  updateLeafletOverlays();
 }
 
 function buildRouteToStreet(idx) {
@@ -2521,8 +2341,15 @@ function showParkTooltip(p) {
   const typeName = p.type === 'blue' ? 'כחול-לבן' : 'חינם';
   const price = p.type === 'blue' ? ` · ₪${p.price}/שעה` : '';
   tt.textContent = `${p.taken ? '🔴 תפוסה · ' : ''}${typeName} · סיכוי ${p.prob}% פנוי · ${p.walk} דק' הליכה מהיעד${price}`;
-  tt.style.left = Math.min(wrap.offsetWidth-190, Math.max(6, p.x*wrap.offsetWidth - 85)) + 'px';
-  tt.style.top = Math.max(6, p.y*wrap.offsetHeight - 44) + 'px';
+  let left = p.x * wrap.offsetWidth - 85;
+  let top = p.y * wrap.offsetHeight - 44;
+  if (realMap) {
+    const pt = realMap.latLngToContainerPoint(xyToLatLng(p.x, p.y));
+    left = pt.x - 85;
+    top = pt.y - 44;
+  }
+  tt.style.left = Math.min(wrap.offsetWidth - 190, Math.max(6, left)) + 'px';
+  tt.style.top = Math.max(6, top) + 'px';
   tt.classList.add('show');
   clearTimeout(showParkTooltip._t);
   showParkTooltip._t = setTimeout(hideParkTooltip, 3500);
@@ -2534,8 +2361,6 @@ function startNavigation() {
   if (!route.active && selectedStreetIdx !== null) buildRouteToStreet(selectedStreetIdx);
   if (!route.active) { showToast('בחר יעד קודם 🗺️'); return; }
   document.getElementById('streetCardOverlay').classList.remove('show');
-  const dot = document.getElementById('userDot');
-  dot.style.transition = 'none';
   navState = { active:true, start:Date.now(), promptShown:false, timer:null };
   showToast('🧭 ניווט התחיל — נסיעה בטוחה!');
   navState.timer = setInterval(navStep, 50);
@@ -2546,7 +2371,6 @@ function navStep() {
   const t = Math.min(1, (Date.now() - navState.start) / 8000);
   userPos = pointAt(route.path, t);
   positionUserDot();
-  drawMap();
   if (t >= 0.72 && !navState.promptShown) {
     navState.promptShown = true;
     document.getElementById('navPromptText').textContent = pangoOnRoute()
@@ -2570,7 +2394,6 @@ function finishNavigation() {
   navState.active = false;
   clearInterval(navState.timer);
   document.getElementById('navPrompt').classList.remove('show');
-  document.getElementById('userDot').style.transition = '';
   const end = route.path[route.path.length-1];
   let nearest = null, nd = 1e9;
   route.parkings.forEach(p => {
@@ -2630,10 +2453,6 @@ setInterval(() => { // prune expired pango events + revert boost
 
 init();
 setInterval(refreshStreets, 3500);
-// Keep pulsing spots redrawing
-setInterval(()=>{
-  if(route.active || pangoEvents.length || futureReports.length || spots.some(s=>s.flash&&Date.now()-s.flash<3000)) drawMap();
-}, 60);
 </script>
 
 <style>
