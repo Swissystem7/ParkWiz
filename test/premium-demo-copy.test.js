@@ -11,6 +11,14 @@ test('pricing modal clearly marks Premium as a demo', () => {
   assert.match(html, />הפעל פרמיום \(הדגמה\)</);
 });
 
+test('premium lock modal button is labeled as a demo without changing its action', () => {
+  assert.match(html, /<div class="lock-sub">הפעל Premium להדגמה כדי להזמין מקום מראש, לקבל התראות push ועוד\.<\/div>/);
+  assert.match(
+    html,
+    /<button class="btn btn-primary" style="flex:1" onclick="closeLockModal\(\);showParkPricing\(\)">הפעל Premium להדגמה ⚡<\/button>/
+  );
+});
+
 test('premium activation toast says no billing occurred', () => {
   assert.match(html, /פרמיום הופעל! \(לא בוצע חיוב — זוהי הדגמה\)/);
 });
