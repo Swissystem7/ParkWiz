@@ -82,6 +82,15 @@
 </style>
 </head>
 <body>
+<nav class="pw-surface-nav" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:7px 12px;background:#0f1420;border-bottom:1px solid rgba(255,255,255,.08);font:600 0.78rem system-ui,sans-serif">
+  <span style="color:#8ba3c7">ParkWiz</span>
+  <a href="./" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">מפת חניה עירונית</a>
+  <a href="./pilot-kit.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">ערכת פיילוט</a>
+  <a href="./pilot-report.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">דוח פיילוט</a>
+  <a href="./pilot-privacy.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">בקשת גישה / פרטיות</a>
+  <span style="color:#fff;background:rgba(14,116,144,.45);border:1px solid rgba(103,232,249,.45);border-radius:14px;padding:3px 11px">דשבורד פיילוט עירוני</span>
+  <a href="./marketplace.html" style="color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none">שוק חניות פרטיות</a>
+</nav>
 <div class="wrap">
 
   <header class="top">
@@ -109,7 +118,7 @@
   <div class="grid">
 
     <section class="panel">
-      <h2>תפוסה חיה — מצב נוכחי</h2>
+      <h2>תפוסה נוכחית — מהקובץ / דוגמה מובנית</h2>
       <div class="tiles" id="tiles"></div>
       <div class="legend">
         <span><span class="dot" style="background:var(--free)"></span>חניה פנויה</span>
@@ -190,8 +199,8 @@ function parseData(text){
 
 function norm(o){
   if(!o || typeof o!=="object") return null;
-  const total = num(o.totalSpots);
-  let occ = num(o.occupiedSpots);
+  const total = num(o.total != null ? o.total : o.totalSpots);
+  let occ = num(o.occupied != null ? o.occupied : o.occupiedSpots);
   let rate = (o.occupancyRate!=null) ? num(o.occupancyRate) : null;
   if(rate!=null && rate>1) rate/=100; // tolerate 0-100 form (before deriving spots)
   if(rate==null && total>0 && occ!=null) rate = occ/total;
@@ -353,8 +362,8 @@ drop.addEventListener("drop",ev=>{
 // on load: try fetch, else sample
 (function init(){
   document.getElementById("srcLabel").textContent="טוען…";
-  fetch("occupancy.json").then(r=>{ if(!r.ok) throw 0; return r.text(); })
-    .then(t=>{ if(!loadFrom(t,"occupancy.json")){ throw 0; } })
+  fetch("pilot/sample-occupancy.json").then(r=>{ if(!r.ok) throw 0; return r.text(); })
+    .then(t=>{ if(!loadFrom(t,"pilot/sample-occupancy.json (דוגמה)")){ throw 0; } })
     .catch(()=>{ RECORDS=SAMPLE; document.getElementById("srcLabel").textContent="נתוני הדגמה"; render(); });
 })();
 </script>
