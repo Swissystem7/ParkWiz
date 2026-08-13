@@ -1,22 +1,38 @@
 # ParkWiz
 
-Street-parking availability demo for **Netanya**. Drivers see a chance (not a guarantee) of finding a curb space, and can file a community “I’m leaving” report that updates that chance.
+**היום:** דמו דפדפן לחניית רחוב בנתניה, עם דיווחי קהילה מקומיים.  
+**הכיוון:** פיילוט תפוסה אנונימית ממצלמה עירונית קיימת אחת — בלי LPR, בלי חומרה חדשה.
 
-- **What:** A browser demo of street-parking availability on a Leaflet map of Netanya, driven by a static hourly model plus local community reports.
-- **For whom:** Drivers looking for curb parking in Netanya, and anyone evaluating the demo.
-- **How:** Vanilla HTML/JS hosted on [GitHub Pages](https://swissystem7.github.io/ParkWiz/). No server, no camera pipeline, no live municipal feed.
+- **What:** A Leaflet street-parking demo for Netanya. Drivers see a chance (not a guarantee) of finding a curb space. A community “I’m leaving” report updates that chance in the browser. Demo data is labeled **הדגמה**.
+- **For whom:** Anyone evaluating the UI; the named *future* buyer is Netanya’s innovation / traffic unit — not paying drivers.
+- **How:** Vanilla HTML/JS on [GitHub Pages](https://swissystem7.github.io/ParkWiz/). No server, no live municipal feed, no camera ingest in this repo.
 
-## [דמו ParkWiz](https://swissystem7.github.io/ParkWiz/)
+## [דמו חי](https://swissystem7.github.io/ParkWiz/)
 
-הדמו מציג הערכת סיכוי לחניית רחוב בנתניה. אפשר לבחור רחוב במפה או בחיפוש, לראות אחוז זמינות לפי שעה, ולדווח “אני עוזב” כדי לעדכן את הסיכוי. הנתונים מקומיים בדפדפן — זו הדגמה, לא שירות חי.
+הדמו מציג מפת רחובות נתניה, הערכת סיכוי לפי שעה, ודיווח «אני עוזב». אחרי תיקוני יושרה אחרונים: דיווח קהילה באמת מזיז את האחוז שמוצג; אין לולאת «עדכון חי» מזויפת; בלי רחוב נבחר אין דיווח לרחוב אקראי; הנתונים מסומנים כהדגמה. זו הדגמת ממשק, לא שירות חי ולא מדידת תפוסה ממצלמה.
 
-## What this repo is (and is not)
+## כיוון הפיבוט
 
-This repository is the Netanya street-parking demo in `index.html`, plus small tested helpers under `src/lib/` and `lib/`. A static GeoJSON layer of municipal lots (`netanya-lots.geojson`) is shown as **locations only**, not live occupancy.
+מחקר השוק פסק **PIVOT**: אין קונה שמשלם על דיווח קהילה בנתניה. הרכיב היחיד שאפשר למדוד הוא **תפוסה אנונימית (תפוס/פנוי) ממצלמה עירונית שכבר קיימת**, בלי זיהוי לוחיות.
 
-It is **not** a CCTV occupancy product. There is no camera ingest, no vision pipeline, and no claim that video frames are processed here.
+הקונה הנקוב: **יחידת חדשנות / אגף תנועה וחניה, עיריית נתניה** — פיילוט טכני **חינם ל-30 יום על מצלמה אחת**. טיוטת הפנייה ב-[NETANYA_OUTREACH.md](./NETANYA_OUTREACH.md) (טרם נשלחה).
 
-Other HTML pages in the tree (`marketplace.html`, `pilot-dashboard.html`) are extra demo surfaces. They are not a separate product identity.
+אין בריפו צינור מצלמה שעובד. אין `frame-grabber.js`, אין `vision-bridge.js`, ואין מספר דיוק מול ספירה ידנית. בלי snapshot אחד ובלי אחוז מדיד — אין מוצר לפיילוט.
+
+## מה המחקר מצא
+
+1. **הנוף תפוס.** [פומבה](https://pumbaparking.com/) מוכרת מציאת חניית רחוב במרכז תל אביב עם **חיישני מצלמה**, לא דיווח קהילה. [פינק פארק](https://pinkpark.co.il/) כבר יושבת על מרקטפלייס החניה הפרטית. אפליקציות דיווח ישראליות מהגל של 2011–2015 (Parko ודומותיה) לא נמצאו כמותג חי ב-2026.
+2. **מכרז עירוני סגור לסטודנט.** [מכרז חיפה 30/2026](http://www2.haifa.muni.il/Michrazim/TendersFiles/30-2026First.pdf) (תשלום אגרת חניה, לא תפוסה) דורש 36 חודשים רצופים ב-3 רשויות, ערבות 50,000 ₪ ו-SLA. זה לא מסלול רכש לדמו GitHub Pages.
+3. **המסלול היחיד שנשאר:** פיילוט חינם על מצלמה אחת, בלי אכיפה ובלי לוחיות — אחרי ש[פס״ד LPR (עת״מ 12825-12-24)](https://www.gov.il/he/pages/license_plate_cctv) חסם זיהוי לוחיות לאכיפת כחול-לבן בלי חוק. תפוסה אנונימית לא מחליפה קנס, ולכן הבקשה היא מדידה טכנית, לא חוזה אכיפה.
+
+המחקר המלא (שלב 1 + פסק דין): מחוץ לריפו, בקובץ `ParkWiz-RESEARCH.md`. בתוך הריפו נשאר גם [RESEARCH.md](./RESEARCH.md) הישן יותר.
+
+## Honesty
+
+- Premium, הזמנה והשכרה בדמו הם סימולציה. אין סליקה.
+- שכבת המגרשים (`netanya-lots.geojson`) היא מיקום סטטי, לא תפוסה חיה.
+- דפים נוספים (`marketplace.html`, `pilot-dashboard.html`) הם משטחי הדגמה, לא מוצר נפרד ולא צינור מצלמה.
+- אל תבטיחו אכיפה, הכנסות מקנסות, או דיוק שלא נמדד.
 
 ## Premium
 
