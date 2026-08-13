@@ -82,8 +82,9 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 /* live update badge */
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .live-badge{position:absolute;top:12px;right:12px;background:rgba(10,15,10,.9);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:0.72rem;z-index:10;min-width:140px}
-.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-inline-end:5px;animation:blink 1.2s ease-in-out infinite}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-inline-end:5px}
 .live-pulse{color:var(--green);font-size:0.7rem;font-weight:700}
+.demo-pulse{color:var(--yellow);font-size:0.7rem;font-weight:700}
 
 /* legend */
 .legend{position:absolute;top:12px;left:12px;background:rgba(10,15,10,.9);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:0.72rem;z-index:10}
@@ -487,8 +488,8 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
     </div>
     <div class="park-tooltip" id="parkTooltip"></div>
     <div class="live-badge">
-      <span class="live-dot"></span><span class="live-pulse">עדכון חי</span><br>
-      <span id="updateTime" style="color:var(--muted);font-size:0.68rem">עודכן עכשיו</span>
+      <span class="demo-pulse">הדגמה</span><br>
+      <span id="updateTime" style="color:var(--muted);font-size:0.68rem">נתוני הדגמה מקומיים</span>
     </div>
     <div class="legend">
       <div class="legend-item"><div class="seg-lg" style="background:var(--green)"></div>קל (70%+)</div>
@@ -1313,7 +1314,6 @@ function communityPctBoost(streetIdx, nowMs) {
 }
 let activeFilters = { blue:true, free:true, timed:true };
 let userScore = 340;
-let secondsAgo = 0;
 let heatmapActive = false;
 let historyOpen = false;
 let leavingParkType = null;
@@ -2105,16 +2105,8 @@ function switchNav(tab) {
 
 // ─── Live simulation ──────────────────────────────────────────────
 function refreshStreets() {
-  secondsAgo++;
-  document.getElementById('updateTime').textContent = `עודכן לפני ${secondsAgo} שנ'`;
-  // Randomly drift 1-2 street availabilities slightly
-  for (let c=0; c<2; c++) {
-    const i = Math.floor(Math.random()*STREETS_DEF.length);
-    const delta = (Math.random()-.5) * 8;
-    STREETS_DEF[i].avail = Math.round(Math.max(5, Math.min(98, STREETS_DEF[i].avail + delta)));
-  }
-  secondsAgo = 0;
-  renderAll();
+  // Availability no longer jitters on a timer. Displayed % changes only
+  // from community reports and explicit demo actions (DEMO button).
 }
 
 window.addEventListener('resize', ()=>{
@@ -2440,10 +2432,8 @@ function spawnPangoEvent() {
   if (COMMUNITY_FEED.length > 16) COMMUNITY_FEED.pop();
   feedIdx = 0; feedSecondsAgo = 0; updateFeed();
   renderAll();
-  schedulePango();
 }
-function schedulePango() { setTimeout(spawnPangoEvent, 6000 + Math.random()*4000); }
-schedulePango();
+function schedulePango() { /* auto-spawn disabled — pango events are demo-only, not live */ }
 
 setInterval(() => { // prune expired pango events + revert boost
   const now = Date.now();
@@ -2459,7 +2449,6 @@ setInterval(() => { // prune expired pango events + revert boost
 }, 5000);
 
 init();
-setInterval(refreshStreets, 3500);
 </script>
 
 <style>
