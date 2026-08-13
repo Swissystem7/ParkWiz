@@ -136,6 +136,7 @@ svg.chart{display:block;width:100%;height:auto}
   <div class="foot">ParkWiz · ערכת פיילוט מקומית · בלי שרת ובלי CDN</div>
 </div>
 <script src="src/lib/occupancy.js"></script>
+<script src="src/lib/heuristic.js"></script>
 <script src="src/lib/compare.js"></script>
 <script src="src/lib/export.js"></script>
 <script src="src/lib/surface-nav.js"></script>
@@ -144,6 +145,7 @@ svg.chart{display:block;width:100%;height:auto}
 "use strict";
 
 const OCC = window.ParkWizOccupancy;
+const HEU = window.ParkWizHeuristic;
 const LS_SPOTS = OCC.LS.spots;
 const LS_OCC = OCC.LS.occupancy;
 const LS_STREET = OCC.LS.street;
@@ -421,28 +423,7 @@ function statsForRect(img, spot) {
   const w = Math.max(1, Math.floor(spot.w * c.width));
   const h = Math.max(1, Math.floor(spot.h * c.height));
   const data = g.getImageData(x, y, Math.min(w, c.width - x), Math.min(h, c.height - y)).data;
-  let n = 0, sum = 0, sum2 = 0;
-  for (let i = 0; i < data.length; i += 16) {
-    const luma = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
-    sum += luma; sum2 += luma * luma; n++;
-  }
-  if (!n) return { mean: 0, variance: 0 };
-  const mean = sum / n;
-  return { mean, variance: Math.max(0, sum2 / n - mean * mean) };
-}
-
-function estimateOccupied(cur, emp) {
-  if (emp) {
-    const dMean = Math.abs(cur.mean - emp.mean);
-    const dVar = Math.abs(Math.sqrt(cur.variance) - Math.sqrt(emp.variance));
-    const score = dMean * 0.65 + dVar * 0.35;
-    return { occupied: score >= 14, score, method: "vs-empty-frame" };
-  }
-  return {
-    occupied: cur.mean < 95 || cur.variance > 900,
-    score: (95 - cur.mean) + Math.sqrt(cur.variance) / 4,
-    method: "absolute-threshold",
-  };
+  return HEU.statsFromRgba(data, HEU.SAMPLE_STRIDE);
 }
 
 function computeEstimate() {
@@ -453,7 +434,8 @@ function computeEstimate() {
   const est = state.spots.map((spot) => {
     const cur = statsForRect(state.snap, spot);
     const emp = state.hasEmpty && state.empty ? statsForRect(state.empty, spot) : null;
-    const r = estimateOccupied(cur, emp);
+    const r = HEU.estimateOccupied(cur, emp);
+    if (!r) return { id: spot.id, occupied: false, mean: 0, variance: 0, score: 0, method: "unknown", confidence: 0 };
     return {
       id: spot.id,
       occupied: r.occupied,
@@ -461,6 +443,7 @@ function computeEstimate() {
       variance: +cur.variance.toFixed(1),
       score: +r.score.toFixed(1),
       method: r.method,
+      confidence: r.confidence,
     };
   });
   state.estimates = est;
@@ -471,7 +454,7 @@ function computeEstimate() {
     total: est.length,
     occupied,
     source: "heuristic-brightness",
-    confidence: state.hasEmpty ? 0.45 : 0.25,
+    confidence: HEU.methodConfidence(est[0].method),
   };
   state.occupancy = state.occupancy.filter((r) => r.source !== "heuristic-brightness" || r.ts !== rec.ts);
   state.occupancy.push(rec);
