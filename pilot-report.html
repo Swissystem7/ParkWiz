@@ -105,6 +105,14 @@ th{color:var(--muted);font-weight:600}
   </section>
 
   <section class="panel">
+    <h2>מפת חום לפי שעה (תכנון, לא אכיפה)</h2>
+    <p style="font-size:.86rem;color:var(--muted);margin:0 0 10px">
+      ממוצע תפוסה לפי השעה שרשומה בחותמת הזמן. שעות בלי נתון אפורות. לא המלצת קנס.
+    </p>
+    <div id="heat"></div>
+  </section>
+
+  <section class="panel">
     <h2>הפרות שזוהו לשעה</h2>
     <div class="placeholder">
       <b>מציין מקום — אין נתון.</b>
@@ -166,6 +174,8 @@ function render() {
     document.getElementById("kAvg").textContent = "—";
     document.getElementById("kConf").textContent = "—";
     document.getElementById("chart").innerHTML = "<p style='color:#6b7280'>טענו occupancy.json או דוגמה.</p>";
+    const heatEmpty = document.getElementById("heat");
+    if (heatEmpty) heatEmpty.innerHTML = "<p style='color:#6b7280'>אין סדרה למפת חום.</p>";
     document.getElementById("tbody").replaceChildren();
     document.getElementById("recs").innerHTML = "<li>אין רשומות — אין המלצת תכנון.</li>";
     return;
@@ -219,6 +229,8 @@ function renderPairedSummary() {
 
 function drawChart(recs) {
   document.getElementById("chart").innerHTML = OCC.chartSvg(recs);
+  const heat = document.getElementById("heat");
+  if (heat) heat.innerHTML = OCC.hourHeatmapSvg(recs);
 }
 
 function computeAccuracy() {

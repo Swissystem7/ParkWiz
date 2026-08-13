@@ -16,7 +16,7 @@
 .wrap{max-width:960px;margin:0 auto;padding:20px 16px 88px}
 h1{font-size:1.35rem;margin:0 0 4px}
 .sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 0}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 0}
 @media(max-width:720px){.kpis{grid-template-columns:1fr 1fr}}
 .kpi{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
 .kpi .n{font-size:1.35rem;font-weight:800}
@@ -70,8 +70,14 @@ td input{max-width:88px;padding:5px 6px}
       <div class="kpi"><div class="n" id="kN">0</div><div class="l">תצפיות מזווגות</div></div>
       <div class="kpi"><div class="n" id="kMae">—</div><div class="l">שגיאה מוחלטת ממוצעת</div></div>
       <div class="kpi"><div class="n" id="kPerfect">0</div><div class="l">התאמה מלאה</div></div>
+      <div class="kpi"><div class="n" id="kCi">—</div><div class="l">רווח סמך 95% (Wilson)</div></div>
+      <div class="kpi"><div class="n" id="kBias">—</div><div class="l">הטיה (מערכת − פקח)</div></div>
     </div>
     <p class="hint" id="sumNote">אין עדיין זוגות. טענו דוגמה, או הזינו ספירת פקח מול הערכה.</p>
+    <div id="verdictBox" class="banner" style="margin-top:12px;margin-bottom:0" hidden>
+      <b id="verdictLabel"></b>
+      <span id="verdictExtra"></span>
+    </div>
   </section>
 
   <section class="panel">
@@ -133,6 +139,7 @@ td input{max-width:88px;padding:5px 6px}
 </div>
 <script src="src/lib/occupancy.js"></script>
 <script src="src/lib/compare.js"></script>
+<script src="src/lib/protocol.js"></script>
 <script src="src/lib/export.js"></script>
 <script src="src/lib/surface-nav.js"></script>
 <script src="src/lib/pwa.js"></script>
@@ -141,6 +148,7 @@ td input{max-width:88px;padding:5px 6px}
 
 const OCC = window.ParkWizOccupancy;
 const CMP = window.ParkWizCompare;
+const PRO = window.ParkWizProtocol;
 const EXP = window.ParkWizExport;
 const pct = OCC.pct;
 const fmt = OCC.formatTime;
@@ -171,6 +179,13 @@ function render() {
   document.getElementById("kN").textContent = String(sum.count);
   document.getElementById("kMae").textContent = sum.meanAbsError == null ? "—" : sum.meanAbsError.toFixed(2);
   document.getElementById("kPerfect").textContent = String(sum.perfect);
+  const pooled = PRO.pooledAgreement(pairs);
+  document.getElementById("kCi").textContent = pooled.wilson
+    ? (pct(pooled.wilson.lo) + "–" + pct(pooled.wilson.hi))
+    : "—";
+  document.getElementById("kBias").textContent = pooled.meanSignedError == null
+    ? "—"
+    : ((pooled.meanSignedError > 0 ? "+" : "") + pooled.meanSignedError.toFixed(2));
   const note = document.getElementById("sumNote");
   if (!sum.count) {
     note.textContent = "אין עדיין זוגות. טענו דוגמה, או הזינו ספירת פקח מול הערכה.";
@@ -179,7 +194,14 @@ function render() {
   } else {
     note.textContent = "ממוצע על " + sum.count + " תצפיות מזווגות בדפדפן זה. טווח " +
       pct(sum.minAccuracy) + "–" + pct(sum.maxAccuracy) + ". זה הסכם ספירה, לא אימות מודל.";
+    if (pooled.meanSignedError > 0.15) note.textContent += " המערכת נוטה להפריז בתפוס.";
+    else if (pooled.meanSignedError < -0.15) note.textContent += " המערכת נוטה לפספס תפוס.";
   }
+  const verdict = PRO.decidePilot({ pairs });
+  const box = document.getElementById("verdictBox");
+  box.hidden = !sum.count;
+  document.getElementById("verdictLabel").textContent = verdict.label + " ";
+  document.getElementById("verdictExtra").textContent = verdict.reasons[0] || "";
 
   const pb = document.getElementById("pendingBody");
   pb.replaceChildren();
