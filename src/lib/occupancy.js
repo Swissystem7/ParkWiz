@@ -15,6 +15,7 @@
     estimate: 'pw_pilot_last_estimate',
     accuracy: 'pw_pilot_accuracy',
     pairs: 'pw_pilot_pairs',
+    log: 'pw_pilot_log',
   });
 
   function num(v) {
@@ -46,6 +47,78 @@
     const d = new Date(ts);
     if (isNaN(d)) return ts || '—';
     return d.toLocaleString('he-IL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+
+  // Hour as recorded on the timestamp (the Txx part), not the machine timezone.
+  function hourFromTs(ts) {
+    const m = String(ts || '').match(/T(\d{2})/);
+    if (!m) return null;
+    const h = Number(m[1]);
+    return Number.isFinite(h) && h >= 0 && h <= 23 ? h : null;
+  }
+
+  function weekdayFromTs(ts) {
+    const m = String(ts || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return null;
+    const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+    return d.getUTCDay();
+  }
+
+  function byHour(records) {
+    const buckets = [];
+    for (let h = 0; h < 24; h++) buckets.push({ hour: h, count: 0, avg: null, sum: 0 });
+    (Array.isArray(records) ? records : []).forEach((r) => {
+      const h = hourFromTs(r && r.ts);
+      if (h == null) return;
+      const rate = occupancyRate(r);
+      buckets[h].sum += rate;
+      buckets[h].count += 1;
+    });
+    buckets.forEach((b) => {
+      b.avg = b.count ? b.sum / b.count : null;
+      delete b.sum;
+    });
+    return buckets;
+  }
+
+  function heatColor(rate) {
+    if (rate == null) return '#e5e7eb';
+    const t = Math.max(0, Math.min(1, rate));
+    const r = Math.round(22 + t * (220 - 22));
+    const g = Math.round(163 + t * (38 - 163));
+    const b = Math.round(74 + t * (38 - 74));
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+
+  function hourHeatmapSvg(records, opts) {
+    const buckets = byHour(records);
+    const o = opts || {};
+    const W = o.width || 760;
+    const H = o.height || 86;
+    const m = { t: 8, r: 8, b: 22, l: 8 };
+    const n = 24;
+    const gap = 3;
+    const iw = W - m.l - m.r;
+    const cell = (iw - gap * (n - 1)) / n;
+    const ch = H - m.t - m.b;
+    let cells = '';
+    let labels = '';
+    buckets.forEach((b, i) => {
+      const x = m.l + i * (cell + gap);
+      const fill = heatColor(b.avg);
+      const title = b.count
+        ? ('שעה ' + String(b.hour).padStart(2, '0') + ': ממוצע ' + pct(b.avg) + ' (' + b.count + ')')
+        : ('שעה ' + String(b.hour).padStart(2, '0') + ': אין נתון');
+      cells += `<rect x="${x.toFixed(1)}" y="${m.t}" width="${cell.toFixed(1)}" height="${ch}" rx="3" fill="${fill}">`;
+      cells += `<title>${title}</title></rect>`;
+      if (i % 3 === 0) {
+        labels += `<text x="${(x + cell / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle" font-size="10" fill="#6b7280">${String(b.hour).padStart(2, '0')}</text>`;
+      }
+    });
+    const filled = buckets.filter((b) => b.count).length;
+    return `<svg class="chart heatmap" viewBox="0 0 ${W} ${H}" role="img" aria-label="מפת חום שעתית, ${filled} שעות עם נתון">
+      ${cells}${labels}
+    </svg>`;
   }
 
   function normalize(o, fallbackStreet) {
@@ -178,6 +251,11 @@
     inspectorAccuracy,
     pct,
     formatTime,
+    hourFromTs,
+    weekdayFromTs,
+    byHour,
+    heatColor,
+    hourHeatmapSvg,
     summarize,
     planningNotes,
     chartSvg,

@@ -50,6 +50,26 @@ test('schema validation: occupied is clamped to [0, total]', () => {
   assert.equal(occ.normalize({ ts: 't', total: 5 }), null);
 });
 
+test('hour heatmap uses the recorded clock hour, not the machine timezone', () => {
+  assert.equal(occ.hourFromTs('2026-08-12T08:00:00+03:00'), 8);
+  assert.equal(occ.hourFromTs('2026-08-12T23:15:00Z'), 23);
+  assert.equal(occ.hourFromTs('bad'), null);
+  assert.equal(occ.weekdayFromTs('2026-08-12T08:00:00+03:00'), 3);
+  const recs = occ.parse(JSON.stringify([
+    { ts: '2026-08-12T08:00:00+03:00', street: 'הרצל', total: 10, occupied: 2, source: 'sample' },
+    { ts: '2026-08-12T08:30:00+03:00', street: 'הרצל', total: 10, occupied: 4, source: 'sample' },
+    { ts: '2026-08-12T18:00:00+03:00', street: 'הרצל', total: 10, occupied: 9, source: 'sample' },
+  ]));
+  const hours = occ.byHour(recs);
+  assert.equal(hours[8].count, 2);
+  assert.ok(Math.abs(hours[8].avg - 0.3) < 1e-12);
+  assert.equal(hours[18].count, 1);
+  assert.equal(hours[3].count, 0);
+  const svg = occ.hourHeatmapSvg(recs);
+  assert.match(svg, /aria-label="מפת חום שעתית/);
+  assert.match(svg, /<rect/);
+});
+
 test('inspector accuracy is 1 minus absolute error over total', () => {
   assert.equal(occ.inspectorAccuracy(7, 7, 12), 1);
   assert.equal(occ.inspectorAccuracy(7, 5, 10), 0.8);

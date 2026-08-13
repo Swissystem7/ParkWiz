@@ -74,12 +74,14 @@
         minAccuracy: null,
         maxAccuracy: null,
         meanAbsError: null,
+        meanSignedError: null,
         perfect: 0,
         sampleOnly: false,
       };
     }
     let sum = 0;
     let err = 0;
+    let signed = 0;
     let min = 1;
     let max = 0;
     let perfect = 0;
@@ -87,6 +89,7 @@
     list.forEach((p) => {
       sum += p.accuracy;
       err += Math.abs(p.systemOccupied - p.manualOccupied);
+      signed += p.systemOccupied - p.manualOccupied;
       if (p.accuracy < min) min = p.accuracy;
       if (p.accuracy > max) max = p.accuracy;
       if (p.accuracy === 1) perfect += 1;
@@ -98,6 +101,7 @@
       minAccuracy: min,
       maxAccuracy: max,
       meanAbsError: err / list.length,
+      meanSignedError: signed / list.length,
       perfect,
       sampleOnly: sample === list.length,
     };

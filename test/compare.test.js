@@ -48,17 +48,21 @@ test('summarizePairs reports mean accuracy, error, and sample-only', () => {
   assert.equal(s.minAccuracy, 1 - 1 / 12);
   assert.equal(s.maxAccuracy, 1);
   assert.equal(s.sampleOnly, true);
+  assert.ok(Math.abs(s.meanSignedError - 4 / 14) < 1e-12);
 });
 
 test('surface nav exposes the comparison page', () => {
   const nav = fs.readFileSync(path.join(__dirname, '..', 'src', 'lib', 'surface-nav.js'), 'utf8');
   assert.match(nav, /pilot-compare\.html/);
   assert.match(nav, /השוואת דיוק/);
+  assert.match(nav, /pilot-log\.html/);
+  assert.match(nav, /pilot-brief\.html/);
 });
 
 test('an empty series has no accuracy to report', () => {
   const s = cmp.summarizePairs([]);
   assert.equal(s.count, 0);
   assert.equal(s.meanAccuracy, null);
+  assert.equal(s.meanSignedError, null);
   assert.equal(s.sampleOnly, false);
 });
