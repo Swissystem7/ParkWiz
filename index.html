@@ -1903,7 +1903,10 @@ function selectSearch(street) {
 }
 
 function closeAC() {
-  document.getElementById('autocomplete').classList.remove('open');
+  const ac = document.getElementById('autocomplete');
+  const input = document.getElementById('searchInput');
+  if (ac) ac.classList.remove('open');
+  if (input) input.setAttribute('aria-expanded', 'false');
 }
 
 // ─── "אני עוזב" multi-step flow ───────────────────────────────────
