@@ -24,9 +24,26 @@ test('premium activation toast says no billing occurred', () => {
 });
 
 test('onboarding premium copy says the price is not billed', () => {
-  assert.match(html, /₪14\.90 לחודש \(ללא חיוב\)/);
+  assert.match(html, /₪14\.90 לחודש/);
+  assert.match(html, /אין חיוב|ללא חיוב/);
+  assert.match(html, /Premium בדמו בלבד|סימולציה|המחשה בלבד/);
 });
 
 test('README documents Premium as demo-only', () => {
   assert.match(readme, /> ⚠️ \*\*הערה:\*\* תכונת Premium היא הדגמאתית בלבד — לא מתבצעת גביה אמיתית\./);
+});
+
+test('homepage does not claim live municipal data or a live community network', () => {
+  assert.doesNotMatch(html, /נתוני עירייה/);
+  assert.match(html, /לא הזנה עירונית/);
+  assert.match(html, /לא קהילה חיה/);
+  assert.match(html, /\[דמו\]/);
+  assert.match(html, /דירוג שבועי[\s\S]*\(דמו\)/);
+  assert.match(html, /תנאי שימוש \(דמו\)/);
+  assert.match(html, /Premium\.<\/strong>[\s\S]*סימולציה בלבד/);
+});
+
+test('README states there is no live municipal feed on the map', () => {
+  assert.match(readme, /אין «נתוני עירייה חיים» במפה|No server, no live municipal feed/);
+  assert.match(readme, /הודעות הקהילה, לוח המובילים/);
 });

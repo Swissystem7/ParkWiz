@@ -24,6 +24,13 @@ test('new municipal surfaces are Hebrew RTL with an honesty banner', () => {
   assert.match(brief, /אין מנוע הפרות|לא אכיפה/);
   assert.match(method, /היוריסטיקה/);
   assert.match(evalPage, /לא דיוק שדה/);
+  const dash = fs.readFileSync(path.join(root, 'pilot-dashboard.html'), 'utf8');
+  const market = fs.readFileSync(path.join(root, 'marketplace.html'), 'utf8');
+  assert.match(dash, /class="banner"/);
+  assert.match(dash, /לא מצלמה חיה/);
+  assert.match(market, /אין תשלום אמיתי/);
+  assert.doesNotMatch(dash, /unpkg|cdnjs|googleapis/i);
+  assert.doesNotMatch(market, /unpkg|cdnjs|googleapis/i);
 });
 
 test('homepage evaluator banner points at the pilot, not a live feed', () => {

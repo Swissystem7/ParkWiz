@@ -37,6 +37,7 @@ test('service worker caches the field shell and not a third-party CDN', () => {
   assert.match(assetsBlock, /src\/lib\/heuristic\.js/);
   assert.match(assetsBlock, /src\/lib\/dataset\.js/);
   assert.match(assetsBlock, /src\/lib\/calibrate\.js/);
+  assert.match(assetsBlock, /availability-model\.js/);
   assert.doesNotMatch(assetsBlock, /unpkg|leaflet|cdnjs/i);
   assert.match(sw, /url\.origin !== self\.location\.origin/);
 });

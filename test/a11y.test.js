@@ -39,24 +39,26 @@ test('pilot chrome and surface nav finish the a11y pass', () => {
   assert.match(shell, /\.skip-link/);
   assert.match(nav, /aria-current',\s*'page'/);
   assert.match(report, /OCC\.inspectorAccuracy\(/);
-  const log = fs.readFileSync(path.join(root, 'pilot-log.html'), 'utf8');
-  const brief = fs.readFileSync(path.join(root, 'pilot-brief.html'), 'utf8');
-  const method = fs.readFileSync(path.join(root, 'pilot-method.html'), 'utf8');
-  const evalPage = fs.readFileSync(path.join(root, 'pilot-eval.html'), 'utf8');
-  const kit = fs.readFileSync(path.join(root, 'pilot-kit.html'), 'utf8');
+  const pages = [
+    'pilot-log.html', 'pilot-brief.html', 'pilot-method.html', 'pilot-eval.html',
+    'pilot-kit.html', 'offer.html', 'pilot-compare.html', 'pilot-report.html',
+    'pilot-summary.html', 'pilot-privacy.html', 'pilot-dashboard.html', 'marketplace.html',
+    'pilot-calibrate.html',
+  ];
+  for (const name of pages) {
+    const page = fs.readFileSync(path.join(root, name), 'utf8');
+    assert.match(page, /class="skip-link"|class='skip-link'/, `${name} needs a skip link`);
+    assert.match(page, /lang="he"/, `${name} must be Hebrew`);
+    assert.match(page, /dir="rtl"/, `${name} must be RTL`);
+  }
   const offerPage = fs.readFileSync(path.join(root, 'offer.html'), 'utf8');
-  assert.match(log, /class="skip-link"/);
-  assert.match(log, /aria-pressed/);
-  assert.match(brief, /class="skip-link"/);
-  assert.match(brief, /lang="he"/);
-  assert.match(brief, /dir="rtl"/);
-  assert.match(method, /class="skip-link"/);
-  assert.match(evalPage, /class="skip-link"/);
-  assert.match(kit, /class="skip-link"/);
-  assert.match(offerPage, /class="skip-link"/);
-  assert.match(offerPage, /lang="he"/);
-  assert.match(offerPage, /dir="rtl"/);
   assert.match(offerPage, /role="alert"/);
+  const log = fs.readFileSync(path.join(root, 'pilot-log.html'), 'utf8');
+  assert.match(log, /aria-pressed/);
+});
+
+test('map does not lock browser zoom (WCAG reflow)', () => {
+  assert.doesNotMatch(html, /maximum-scale\s*=\s*1/);
 });
 
 test('npm test runs the test directory as a glob (Node 24 does not accept a bare "test" path)', () => {
