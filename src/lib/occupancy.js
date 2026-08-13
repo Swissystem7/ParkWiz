@@ -14,6 +14,7 @@
     street: 'pw_pilot_street',
     estimate: 'pw_pilot_last_estimate',
     accuracy: 'pw_pilot_accuracy',
+    pairs: 'pw_pilot_pairs',
   });
 
   function num(v) {

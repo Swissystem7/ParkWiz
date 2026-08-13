@@ -1,0 +1,16 @@
+[
+  {"ts":"2026-08-12T07:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":3,"manualOccupied":3,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T08:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":5,"manualOccupied":4,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T09:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":7,"manualOccupied":7,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T10:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":8,"manualOccupied":8,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T11:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":9,"manualOccupied":8,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T12:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":10,"manualOccupied":9,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T13:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":9,"manualOccupied":9,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T14:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":8,"manualOccupied":8,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T15:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":7,"manualOccupied":6,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T16:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":8,"manualOccupied":8,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T17:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":11,"manualOccupied":10,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T18:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":10,"manualOccupied":10,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T19:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":6,"manualOccupied":6,"source":"sample","note":"דוגמה — לא ספירת פקח"},
+  {"ts":"2026-08-12T20:00:00+03:00","street":"הרצל, נתניה","total":12,"systemOccupied":4,"manualOccupied":5,"source":"sample","note":"דוגמה — לא ספירת פקח"}
+]

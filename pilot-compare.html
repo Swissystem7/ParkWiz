@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — השוואת דיוק מול פקח</title>
+<meta name="description" content="השוואת הערכת היוריסטיקה מול ספירה ידנית. זה המדד שהפיילוט בנתניה מבטיח — לא דיוק מצלמה חיה.">
+<meta name="theme-color" content="#0e7490">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="pilot/shell.css">
+<link rel="stylesheet" href="pilot/print.css">
+<style>
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 88px}
+h1{font-size:1.35rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 0}
+@media(max-width:720px){.kpis{grid-template-columns:1fr 1fr}}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.kpi .n{font-size:1.35rem;font-weight:800}
+.kpi .l{font-size:.7rem;color:var(--muted)}
+.hero .n{color:var(--brand)}
+label{display:block;font-size:.8rem;color:var(--muted);margin:8px 0 4px}
+input[type=number],input[type=text],input[type=datetime-local]{
+  width:100%;max-width:280px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;
+}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:right;vertical-align:middle}
+th{color:var(--muted);font-weight:600}
+td input{max-width:88px;padding:5px 6px}
+.sample{color:#92400e;font-size:.72rem;font-weight:700}
+.hint{font-size:.78rem;color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+.status{min-height:1.3em;font-size:.86rem;font-weight:700;margin:8px 0 0}
+#pwInstallBtn{display:none}
+#pwInstallBtn.show{display:inline-block}
+</style>
+</head>
+<body>
+<div id="pwSurfaceNav" data-active="compare"></div>
+<div class="wrap">
+  <h1>השוואת דיוק — היוריסטיקה מול ספירת פקח</h1>
+  <p class="sub">המספר שהפיילוט החינמי ל־30 יום מבטיח: אחוז הסכמה בין הערכת המערכת לספירה ידנית באותם מקומות. בלי מצלמה חיה ובלי לוחיות.</p>
+  <div class="banner">
+    <b>זה לא דיוק מצלמה חיה.</b>
+    ההערכה מגיעה מערכת הפיילוט (בהירות על תמונה סטטית) או מקובץ occupancy.
+    הפקח ממלא כמה מקומות תפוסים באותו רגע. הנוסחה: 100% − |מערכת − פקח| / סך המקומות.
+    סדרת דוגמה מסומנת <code>sample</code> — לא ספירת שטח.
+  </div>
+
+  <div class="toolbar no-print">
+    <button type="button" class="primary" id="btnSample">טען זוגות דוגמה</button>
+    <button type="button" id="btnFromKit">טען הערכות מערכת הפיילוט</button>
+    <label class="no-print" style="margin:0;max-width:none">טען occupancy.json
+      <input type="file" id="fileOcc" accept=".json,application/json">
+    </label>
+    <label class="no-print" style="margin:0;max-width:none">טען pairs.json
+      <input type="file" id="filePairs" accept=".json,application/json">
+    </label>
+    <button type="button" id="pwInstallBtn">הוסף למסך הבית</button>
+  </div>
+
+  <section class="panel hero">
+    <h2>המדד שהעירייה תקבל</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="kMean">—</div><div class="l">דיוק ממוצע</div></div>
+      <div class="kpi"><div class="n" id="kN">0</div><div class="l">תצפיות מזווגות</div></div>
+      <div class="kpi"><div class="n" id="kMae">—</div><div class="l">שגיאה מוחלטת ממוצעת</div></div>
+      <div class="kpi"><div class="n" id="kPerfect">0</div><div class="l">התאמה מלאה</div></div>
+    </div>
+    <p class="hint" id="sumNote">אין עדיין זוגות. טענו דוגמה, או הזינו ספירת פקח מול הערכה.</p>
+  </section>
+
+  <section class="panel">
+    <h2>הוספת תצפית שדה</h2>
+    <p class="hint">לפקח ברחוב: כמה מקומות סומנו, כמה המערכת אמרה תפוס, וכמה ספרתם ביד.</p>
+    <div class="row">
+      <div>
+        <label for="fStreet">רחוב / אתר</label>
+        <input type="text" id="fStreet" value="הרצל, נתניה">
+      </div>
+      <div>
+        <label for="fTotal">סך מקומות מסומנים</label>
+        <input type="number" id="fTotal" min="1" step="1" value="12">
+      </div>
+      <div>
+        <label for="fSys">תפוסים — הערכת מערכת</label>
+        <input type="number" id="fSys" min="0" step="1">
+      </div>
+      <div>
+        <label for="fMan">תפוסים — ספירת פקח</label>
+        <input type="number" id="fMan" min="0" step="1">
+      </div>
+      <div>
+        <label for="fNote">משמרת / הערה (רשות)</label>
+        <input type="text" id="fNote" placeholder="פקח א׳, בוקר">
+      </div>
+      <button type="button" class="primary" id="btnAdd">הוסף זוג</button>
+    </div>
+    <p class="status" id="addStatus"></p>
+  </section>
+
+  <section class="panel">
+    <h2>הערכות ממתינות לספירה</h2>
+    <p class="hint">רשומות occupancy בלי ספירת פקח עדיין. מלאו את העמודה «פקח» ושמרו.</p>
+    <table>
+      <thead><tr><th>זמן</th><th>רחוב</th><th>מערכת</th><th>סך הכול</th><th>פקח</th><th></th></tr></thead>
+      <tbody id="pendingBody"></tbody>
+    </table>
+    <p class="hint" id="pendingEmpty">אין הערכות ממתינות.</p>
+  </section>
+
+  <section class="panel">
+    <h2>זוגות שנשמרו</h2>
+    <div class="toolbar no-print">
+      <button type="button" id="btnCsv">ייצוא CSV</button>
+      <button type="button" id="btnJson">ייצוא JSON</button>
+      <button type="button" id="btnShare">העתק קישור סיכום לקריאה בלבד</button>
+      <button type="button" id="btnOpenShare">פתח סיכום</button>
+      <button type="button" id="btnClear">מחק זוגות בדפדפן זה</button>
+    </div>
+    <p class="status" id="exportStatus"></p>
+    <table>
+      <thead><tr><th>זמן</th><th>רחוב</th><th>מערכת</th><th>פקח</th><th>סך הכול</th><th>דיוק</th><th>מקור</th><th>הערה</th></tr></thead>
+      <tbody id="pairBody"></tbody>
+    </table>
+  </section>
+
+  <div class="foot">ParkWiz · השוואת דיוק מקומית · נשמר בדפדפן זה בלבד · בלי שרת</div>
+</div>
+<script src="src/lib/occupancy.js"></script>
+<script src="src/lib/compare.js"></script>
+<script src="src/lib/export.js"></script>
+<script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
+<script>
+"use strict";
+
+const OCC = window.ParkWizOccupancy;
+const CMP = window.ParkWizCompare;
+const EXP = window.ParkWizExport;
+const pct = OCC.pct;
+const fmt = OCC.formatTime;
+
+let pairs = [];
+let pending = [];
+
+function download(name, text, type) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: type || "application/json" }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 800);
+}
+
+function setStatus(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text || "";
+}
+
+function persist() {
+  CMP.savePairs(pairs);
+}
+
+function render() {
+  const sum = CMP.summarizePairs(pairs);
+  document.getElementById("kMean").textContent = sum.meanAccuracy == null ? "—" : pct(sum.meanAccuracy);
+  document.getElementById("kN").textContent = String(sum.count);
+  document.getElementById("kMae").textContent = sum.meanAbsError == null ? "—" : sum.meanAbsError.toFixed(2);
+  document.getElementById("kPerfect").textContent = String(sum.perfect);
+  const note = document.getElementById("sumNote");
+  if (!sum.count) {
+    note.textContent = "אין עדיין זוגות. טענו דוגמה, או הזינו ספירת פקח מול הערכה.";
+  } else if (sum.sampleOnly) {
+    note.textContent = "הממוצע הזה הוא על סדרת דוגמה — לא מדידת שטח. החליפו בזוגות אמיתיים לפני פגישה.";
+  } else {
+    note.textContent = "ממוצע על " + sum.count + " תצפיות מזווגות בדפדפן זה. טווח " +
+      pct(sum.minAccuracy) + "–" + pct(sum.maxAccuracy) + ". זה הסכם ספירה, לא אימות מודל.";
+  }
+
+  const pb = document.getElementById("pendingBody");
+  pb.replaceChildren();
+  pending.forEach((rec, idx) => {
+    const tr = document.createElement("tr");
+    [fmt(rec.ts), rec.street, rec.occupied, rec.total].forEach((v) => {
+      const td = document.createElement("td");
+      td.textContent = String(v);
+      tr.appendChild(td);
+    });
+    const tdIn = document.createElement("td");
+    const inp = document.createElement("input");
+    inp.type = "number";
+    inp.min = "0";
+    inp.step = "1";
+    inp.setAttribute("aria-label", "ספירת פקח לרשומה " + (idx + 1));
+    tdIn.appendChild(inp);
+    const tdBtn = document.createElement("td");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "שמור זוג";
+    btn.addEventListener("click", () => {
+      const man = Number(inp.value);
+      const pair = CMP.pairFromOccupancy(rec, man, "");
+      if (!pair) { setStatus("addStatus", "הזינו מספר שלם של מקומות תפוסים."); return; }
+      pairs = pairs.filter((p) => p.ts !== pair.ts || p.street !== pair.street);
+      pairs.push(pair);
+      pairs.sort((a, b) => String(a.ts).localeCompare(String(b.ts)));
+      pending = pending.filter((r) => !(r.ts === rec.ts && r.street === rec.street));
+      persist();
+      render();
+    });
+    tdBtn.appendChild(btn);
+    tr.appendChild(tdIn);
+    tr.appendChild(tdBtn);
+    pb.appendChild(tr);
+  });
+  document.getElementById("pendingEmpty").style.display = pending.length ? "none" : "block";
+
+  const tb = document.getElementById("pairBody");
+  tb.replaceChildren();
+  pairs.forEach((p) => {
+    const tr = document.createElement("tr");
+    const cells = [fmt(p.ts), p.street, p.systemOccupied, p.manualOccupied, p.total, pct(p.accuracy), p.source, p.note];
+    cells.forEach((v, i) => {
+      const td = document.createElement("td");
+      td.textContent = String(v);
+      if (i === 6 && p.source === "sample") td.className = "sample";
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+
+function streetName() {
+  return document.getElementById("fStreet").value.trim() || "רחוב לא צוין";
+}
+
+function loadPendingFromOccupancy(list) {
+  pending = (list || []).slice();
+  const st = pending[0] && pending[0].street;
+  if (st) document.getElementById("fStreet").value = st;
+  render();
+}
+
+document.getElementById("btnAdd").addEventListener("click", () => {
+  const pair = CMP.pairObservation({
+    ts: new Date().toISOString(),
+    street: streetName(),
+    total: document.getElementById("fTotal").value,
+    systemOccupied: document.getElementById("fSys").value,
+    manualOccupied: document.getElementById("fMan").value,
+    note: document.getElementById("fNote").value.trim(),
+    source: "field",
+  });
+  if (!pair) {
+    setStatus("addStatus", "חסר מספר תקין: סך מקומות, הערכת מערכת, וספירת פקח.");
+    return;
+  }
+  pairs.push(pair);
+  persist();
+  setStatus("addStatus", "נשמר זוג: דיוק " + pct(pair.accuracy) + " ברחוב " + pair.street + ".");
+  document.getElementById("fMan").value = "";
+  render();
+});
+
+document.getElementById("btnSample").addEventListener("click", async () => {
+  try {
+    const res = await fetch("pilot/sample-pairs.json");
+    pairs = CMP.parsePairs(await res.text());
+    pending = [];
+    persist();
+    setStatus("addStatus", "נטענה סדרת דוגמה — לא ספירת פקח.");
+    render();
+  } catch (e) {
+    setStatus("addStatus", "טעינת הדוגמה נכשלה — פתחו דרך GitHub Pages או שרת מקומי, או בחרו קובץ.");
+  }
+});
+
+document.getElementById("btnFromKit").addEventListener("click", () => {
+  const recs = OCC.loadStoredOccupancy();
+  if (!recs.length) {
+    setStatus("addStatus", "אין occupancy שמור מערכת הפיילוט בדפדפן זה.");
+    return;
+  }
+  loadPendingFromOccupancy(recs);
+  setStatus("addStatus", recs.length + " הערכות ממתינות לספירת פקח.");
+});
+
+document.getElementById("fileOcc").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  loadPendingFromOccupancy(OCC.parse(await f.text()));
+});
+
+document.getElementById("filePairs").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  pairs = CMP.parsePairs(await f.text());
+  persist();
+  render();
+});
+
+function packet() {
+  return EXP.buildPilotPacket({
+    occupancy: OCC.loadStoredOccupancy(),
+    pairs,
+    street: streetName(),
+  });
+}
+
+document.getElementById("btnCsv").addEventListener("click", () => {
+  if (!pairs.length) { setStatus("exportStatus", "אין זוגות לייצוא."); return; }
+  download("pilot-pairs.csv", EXP.pairsToCsv(pairs), "text/csv");
+  setStatus("exportStatus", "הורד CSV של הזוגות.");
+});
+document.getElementById("btnJson").addEventListener("click", () => {
+  download("pilot-packet.json", JSON.stringify(packet(), null, 2), "application/json");
+  setStatus("exportStatus", "הורד JSON מלא (תפוסה + זוגות + סיכום).");
+});
+function shareUrl() {
+  const token = EXP.encodeSharePayload(packet());
+  return new URL("pilot-summary.html#" + token, location.href).href;
+}
+document.getElementById("btnShare").addEventListener("click", async () => {
+  if (!pairs.length) { setStatus("exportStatus", "אין זוגות לשיתוף."); return; }
+  const url = shareUrl();
+  try {
+    await navigator.clipboard.writeText(url);
+    setStatus("exportStatus", "קישור הסיכום הועתק. הוא לקריאה בלבד — הנתונים בכתובת, בלי שרת.");
+  } catch (e) {
+    setStatus("exportStatus", url);
+  }
+});
+document.getElementById("btnOpenShare").addEventListener("click", () => {
+  if (!pairs.length) { setStatus("exportStatus", "אין זוגות לשיתוף."); return; }
+  location.href = shareUrl();
+});
+document.getElementById("btnClear").addEventListener("click", () => {
+  pairs = [];
+  pending = [];
+  persist();
+  setStatus("exportStatus", "הזוגות נמחקו מדפדפן זה.");
+  render();
+});
+
+(function init() {
+  pairs = CMP.loadStoredPairs();
+  const recs = OCC.loadStoredOccupancy();
+  if (recs.length && !pairs.length) pending = recs;
+  if (pairs[0] && pairs[0].street) document.getElementById("fStreet").value = pairs[0].street;
+  render();
+})();
+</script>
+</body>
+</html>
