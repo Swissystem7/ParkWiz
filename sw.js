@@ -1,8 +1,9 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v3';
+const CACHE = 'parkwiz-field-v4';
 const ASSETS = [
   './',
   './index.html',
+  './offer.html',
   './pilot-kit.html',
   './pilot-calibrate.html',
   './pilot-eval.html',
@@ -39,6 +40,7 @@ const ASSETS = [
   './src/lib/compare.js',
   './src/lib/protocol.js',
   './src/lib/export.js',
+  './src/lib/offer.js',
   './src/lib/surface-nav.js',
   './src/lib/pwa.js',
   './src/lib/probability.js',

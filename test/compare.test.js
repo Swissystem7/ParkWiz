@@ -57,6 +57,7 @@ test('surface nav exposes the comparison page', () => {
   assert.match(nav, /השוואת דיוק/);
   assert.match(nav, /pilot-log\.html/);
   assert.match(nav, /pilot-brief\.html/);
+  assert.match(nav, /offer\.html/);
 });
 
 test('an empty series has no accuracy to report', () => {

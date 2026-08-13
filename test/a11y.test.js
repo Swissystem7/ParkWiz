@@ -44,6 +44,7 @@ test('pilot chrome and surface nav finish the a11y pass', () => {
   const method = fs.readFileSync(path.join(root, 'pilot-method.html'), 'utf8');
   const evalPage = fs.readFileSync(path.join(root, 'pilot-eval.html'), 'utf8');
   const kit = fs.readFileSync(path.join(root, 'pilot-kit.html'), 'utf8');
+  const offerPage = fs.readFileSync(path.join(root, 'offer.html'), 'utf8');
   assert.match(log, /class="skip-link"/);
   assert.match(log, /aria-pressed/);
   assert.match(brief, /class="skip-link"/);
@@ -52,6 +53,10 @@ test('pilot chrome and surface nav finish the a11y pass', () => {
   assert.match(method, /class="skip-link"/);
   assert.match(evalPage, /class="skip-link"/);
   assert.match(kit, /class="skip-link"/);
+  assert.match(offerPage, /class="skip-link"/);
+  assert.match(offerPage, /lang="he"/);
+  assert.match(offerPage, /dir="rtl"/);
+  assert.match(offerPage, /role="alert"/);
 });
 
 test('npm test runs the test directory as a glob (Node 24 does not accept a bare "test" path)', () => {

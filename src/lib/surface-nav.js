@@ -3,6 +3,7 @@
   const LINKS = [
     { id: 'map', href: './', label: 'מפת חניה עירונית' },
     { id: 'brief', href: './pilot-brief.html', label: 'תקציר לעירייה' },
+    { id: 'offer', href: './offer.html', label: 'הצעה / הזמן פיילוט' },
     { id: 'kit', href: './pilot-kit.html', label: 'ערכת פיילוט' },
     { id: 'calibrate', href: './pilot-calibrate.html', label: 'כיול 3 דק׳' },
     { id: 'eval', href: './pilot-eval.html', label: 'דיוק דמו' },

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — הצעה, מחיר והזמן פיילוט</title>
+<meta name="description" content="הצעה כנה לעיריית נתניה: פיילוט תפוסה אנונימית חינם ל־30 יום. בלי סליקה, בלי לקוחות בדויים, בלי ROI מומצא.">
+<meta name="theme-color" content="#0e7490">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="pilot/shell.css">
+<link rel="stylesheet" href="pilot/print.css">
+<style>
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 80px}
+h1{font-size:1.4rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.panel h2{font-size:.95rem;margin:0 0 10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
+label{display:block;font-size:.78rem;color:var(--muted);margin:8px 0 3px}
+input,textarea,select{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;
+}
+textarea{min-height:88px;resize:vertical}
+.hint{font-size:.78rem;color:var(--muted);margin:6px 0 0}
+.err{color:#991b1b;font-size:.82rem;margin:8px 0 0}
+.ok{color:#166534;font-size:.82rem;margin:8px 0 0}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:700px){.cards{grid-template-columns:1fr}}
+.card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}
+.card.real{border-color:#0e7490}
+.card .price{font-size:1.25rem;font-weight:800;color:var(--brand);margin:4px 0}
+.card .tag{display:inline-block;font-size:.7rem;font-weight:700;border-radius:999px;padding:2px 8px;margin-bottom:6px}
+.tag.yes{background:#ecfdf5;color:#166534}
+.tag.no{background:#fff7ed;color:#9a3412}
+ul.plain{margin:8px 0 0;padding-inline-start:18px;font-size:.84rem}
+.preview{
+  white-space:pre-wrap;background:#0f1420;color:#e8f0ff;border-radius:10px;
+  padding:12px 14px;font-size:.8rem;line-height:1.45;max-height:280px;overflow:auto;
+}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pitch{border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:#fff}
+.pitch h2{font-size:1.05rem;margin:0 0 8px}
+.pitch table{width:100%;border-collapse:collapse;font-size:.84rem}
+.pitch th,.pitch td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:right;vertical-align:top}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+a{color:var(--brand)}
+.check{display:flex;gap:8px;align-items:flex-start;margin:10px 0 0;font-size:.84rem}
+.check input{width:auto;margin-top:4px}
+@media print{
+  .no-print,.toolbar,#book{display:none !important}
+  .pitch{border:none;padding:0}
+  .preview{max-height:none;color:#111;background:#fff;border:1px solid #111}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">דלג לתוכן</a>
+<div id="pwSurfaceNav" data-active="offer"></div>
+<div class="wrap" id="main">
+  <h1>הצעה לעיריית נתניה — בלי קישוט</h1>
+  <p class="sub">פיילוט תפוסה אנונימית, חינם, 30 יום, מצלמה אחת שכבר קיימת. לא מנוי נהגים, לא אכיפה, לא סליקה.</p>
+  <div class="banner">
+    <b>מה אמיתי היום:</b> דמו ממשק + ערכת מדידה בדפדפן + הטיוטה הזו.
+    <b>מה אין:</b> לקוחות משלמים, צינור מצלמה חי, דיוק שדה, סליקה, או חוזה.
+    המחקר המלא: <a href="./MONETIZATION.md">MONETIZATION.md</a> (13.8.2026).
+    הפנייה ב־<a href="./NETANYA_OUTREACH.md">NETANYA_OUTREACH.md</a> <b>טרם נשלחה</b>.
+  </div>
+
+  <div class="toolbar no-print">
+    <a class="primary" href="#book" style="display:inline-block;padding:7px 12px;border-radius:10px;background:var(--brand);color:#fff;text-decoration:none;font-weight:700;font-size:.82rem">הזמן פיילוט</a>
+    <a href="#quote">הצעת מחיר לייצוא</a>
+    <button type="button" id="btnPrintPitch">הדפס פיץ׳ עמוד אחד</button>
+    <a href="./pilot-brief.html">תקציר מדידה</a>
+    <a href="./pilot-privacy.html">בקשת גישה / פרטיות</a>
+  </div>
+
+  <section class="panel" id="pricing">
+    <h2>מה מוצע, ומה עולה</h2>
+    <div class="cards">
+      <article class="card real">
+        <span class="tag yes">קיים — זה מה ששולחים</span>
+        <h3 style="margin:0">פיילוט מדידה</h3>
+        <div class="price">0 ₪</div>
+        <p class="hint" style="margin:0">30 יום · מצלמה עירונית אחת שכבר קיימת · בלי חומרה</p>
+        <ul class="plain">
+          <li>כיול מלבנים על snapshot</li>
+          <li>השוואה לספירת פקח</li>
+          <li>דוח + CSV, בלי שרת שלנו</li>
+        </ul>
+        <p class="hint">דיוק מול פקח <b>טרם נמדד</b>. אם המספר חלש — PARK, בלי סיבוב מכירה.</p>
+      </article>
+      <article class="card">
+        <span class="tag no">לא מוצר — טיוטה בלבד</span>
+        <h3 style="margin:0">חבילת מדידה אחרי פיילוט</h3>
+        <div class="price">סכום שהמפתח ממלא</div>
+        <p class="hint" style="margin:0">אין מחירון שוק ישראלי לתפוסה. לא נמצא מקור למה עיר משלמת.</p>
+        <ul class="plain">
+          <li>רק אם הפיילוט עומד בכלל העצירה</li>
+          <li>אם רוצים פטור ממכרז: מתחת לרף תקנה 3(3)</li>
+          <li>רף צד ג׳ ל־16.7–15.8.2026: <b>169,800 ₪</b> — לא קובץ רשמי 2026</li>
+        </ul>
+        <p class="hint">Camlytics מפרסמת 10 $ לערוץ לחודש. פומבה לנהג: 29.90 ₪/חודש. אף אחד מאלה אינו חוזה נתניה.</p>
+      </article>
+    </div>
+    <p class="hint">לא מוצע: מנוי נהגים, Premium (הדגמה בלבד במפה), מרקטפלייס, או «הכנסות מקנסות».</p>
+  </section>
+
+  <section class="panel no-print" id="book">
+    <h2>הזמן פיילוט — מייצר מייל / WhatsApp, לא שולח</h2>
+    <p class="hint" style="margin:0 0 10px"> ממלאים, בודקים, ואז פותחים את אפליקציית המייל או WhatsApp אצלכם. הדף לא מדבר עם שרת.</p>
+    <div class="grid2">
+      <div>
+        <label for="senderName">השם שלך</label>
+        <input id="senderName" autocomplete="name" value="אבירן סוויסה">
+      </div>
+      <div>
+        <label for="senderRole">תפקיד</label>
+        <input id="senderRole" value="מפתח">
+      </div>
+      <div>
+        <label for="senderPhone">טלפון שלך</label>
+        <input id="senderPhone" type="tel" autocomplete="tel" placeholder="05…">
+      </div>
+      <div>
+        <label for="senderEmail">מייל שלך</label>
+        <input id="senderEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label for="authority">רשות</label>
+        <input id="authority" value="עיריית נתניה">
+      </div>
+      <div>
+        <label for="recipientUnit">יחידה</label>
+        <input id="recipientUnit" value="יחידת חדשנות / אגף תנועה וחניה">
+      </div>
+      <div>
+        <label for="recipientName">שם הנמען (אם ידוע)</label>
+        <input id="recipientName" placeholder="מוביל/ת עיר חכמה">
+      </div>
+      <div>
+        <label for="recipientRole">תפקיד הנמען</label>
+        <input id="recipientRole" value="מוביל/ת עיר חכמה">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label for="channel">ערוץ</label>
+        <select id="channel">
+          <option value="email">מייל (mailto)</option>
+          <option value="whatsapp">WhatsApp מוקד 106</option>
+        </select>
+      </div>
+      <div>
+        <label for="cameraStreet">רחוב / מצלמה (רשות)</label>
+        <input id="cameraStreet" placeholder="למשל הרצל, ליד…">
+      </div>
+      <div id="emailWrap">
+        <label for="recipientEmail">מייל הנמען</label>
+        <input id="recipientEmail" type="email" placeholder="אין מייל רשמי ליחידת חדשנות — למלא ידנית">
+        <p class="hint">מייל יחידת חדשנות נתניה: לא נמצא מקור. לא להמציא כתובת.</p>
+      </div>
+      <div id="phoneWrap" hidden>
+        <label for="recipientPhone">WhatsApp</label>
+        <input id="recipientPhone" type="tel" value="0526333106">
+        <p class="hint">052-6333106 הוא מוקד עירוני (106). מבקשים ניתוב ליחידת חדשנות — לא שולחים מכרז למוקד.</p>
+      </div>
+    </div>
+    <label for="accuracyNote">מצב המדידה (ייכתב בהודעה)</label>
+    <input id="accuracyNote" value="טרם נמדד דיוק מול ספירת פקח בשטח.">
+    <label class="check">
+      <input type="checkbox" id="confirmDraft">
+      <span>אני מבין שהדף רק מכין טיוטה. השליחה עצמה — ממני, אחרי שבדקתי שאין הבטחות אכיפה או ROI.</span>
+    </label>
+    <div class="actions">
+      <button type="button" class="primary" id="btnPreview">הכן טיוטה</button>
+      <button type="button" id="btnOpen" disabled>פתח מייל / WhatsApp</button>
+      <button type="button" id="btnCopy">העתק טקסט</button>
+    </div>
+    <p class="err" id="bookErr" hidden role="alert"></p>
+    <p class="ok" id="bookOk" hidden aria-live="polite"></p>
+    <pre class="preview" id="bookPreview" hidden></pre>
+  </section>
+
+  <section class="panel" id="quote">
+    <h2>הצעת מחיר לייצוא — טיוטה מקומית</h2>
+    <p class="hint" style="margin:0 0 10px">לא חוזה. לא הזמנת רכש. אין סליקה. טיוטות לא נשלחות אוטומטית. סכום לחבילה בתשלום חייבים למלא — אין ברירת מחדל של «מחיר שוק».</p>
+    <div class="grid3">
+      <div>
+        <label for="qPackage">חבילה</label>
+        <select id="qPackage">
+          <option value="pilot-free">פיילוט מדידה — 0 ₪</option>
+          <option value="measure-after">מדידה אחרי פיילוט — סכום ידני</option>
+        </select>
+      </div>
+      <div>
+        <label for="qCameras">מצלמות</label>
+        <input id="qCameras" type="number" min="1" max="5" value="1">
+      </div>
+      <div>
+        <label for="qDays">ימים</label>
+        <input id="qDays" type="number" min="1" max="366" value="30">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label for="qAmount">סכום בש״ח (רק לחבילה בתשלום)</label>
+        <input id="qAmount" type="number" min="0" step="100" placeholder="אין מחירון — למלא ידנית" disabled>
+      </div>
+      <div>
+        <label for="qContact">איש קשר אצל הקונה</label>
+        <input id="qContact" placeholder="שם, אם ידוע">
+      </div>
+    </div>
+    <p class="hint" id="qCapHint">רף פטור צד ג׳ (16.7–15.8.2026): 169,800 ₪ לעירייה. קובץ רשמי 2026 של משרד הפנים: לא נמצא מקור.</p>
+    <div class="actions">
+      <button type="button" class="primary" id="btnQuote">בנה הצעה</button>
+      <button type="button" id="btnQuoteTxt">הורד TXT</button>
+      <button type="button" id="btnQuoteJson">הורד JSON</button>
+      <button type="button" id="btnQuoteCsv">הורד CSV</button>
+      <button type="button" id="btnQuotePrint">הדפס הצעה</button>
+    </div>
+    <p class="err" id="quoteErr" hidden role="alert"></p>
+    <pre class="preview" id="quotePreview" hidden></pre>
+  </section>
+
+  <section class="pitch" id="pitch">
+    <h2>פיץ׳ עמוד אחד — יחידת חדשנות / אגף תנועה, נתניה</h2>
+    <p style="margin:0 0 10px;font-size:.9rem">
+      למדוד <b>תפוס / פנוי</b> על מצלמה עירונית שכבר קיימת. 30 יום. חינם.
+      בלי לוחיות, בלי קנסות, בלי אפליקציית נהגים.
+    </p>
+    <table>
+      <tbody>
+        <tr><th>הקונה</th><td>יחידת חדשנות / אגף תנועה וחניה, עיריית נתניה</td></tr>
+        <tr><th>הבקשה</th><td>snapshot אחד ממצלמה קיימת, 30 יום, בלי תשלום</td></tr>
+        <tr><th>מה מקבלים</th><td>אחוז הסכמה מול ספירת פקח, עקומת תפוסה, CSV — או פסק דין PARK כנה</td></tr>
+        <tr><th>מה לא</th><td>אכיפה, LPR, מנוי נהגים, SLA, ערבות, סליקה</td></tr>
+        <tr><th>למה בלי מכרז עכשיו</th><td>אין חוזה כספי. אחרי פיילוט, אם בכלל — הצעת מחיר מתחת לתקנה 3(3)</td></tr>
+        <tr><th>רף הפטור</th><td>26,000 ₪ בנוסח התקנה, צמוד למדד. חישוב צד ג׳ 16.7–15.8.2026: 169,800 ₪. קובץ רשמי 2026: לא נמצא מקור</td></tr>
+        <tr><th>מחיר שוק לתפוסה</th><td>לא נמצא מקור ישראלי. Camlytics: 10 $/ערוץ/חודש (לא חוזה עירייה)</td></tr>
+        <tr><th>מצב המדידה</th><td>דיוק מול פקח טרם נמדד בשטח</td></tr>
+        <tr><th>סטטוס הפנייה</th><td>טיוטה. לא נשלחה</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">אין לקוחות להציג. אין הבטחת חיסכון בדלק או בקנסות. המקורות: MONETIZATION.md, 13.8.2026.</p>
+  </section>
+
+  <div class="foot">ParkWiz · הצעה כנה · אין סליקה · לא נשלח אוטומטית · נתניה</div>
+</div>
+<script src="src/lib/offer.js"></script>
+<script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
+<script>
+(function () {
+  const O = window.ParkWizOffer;
+  const $ = (id) => document.getElementById(id);
+  let lastOutreach = null;
+  let lastQuote = null;
+
+  function bookFields() {
+    return {
+      senderName: $('senderName').value,
+      senderRole: $('senderRole').value,
+      senderPhone: $('senderPhone').value,
+      senderEmail: $('senderEmail').value,
+      authority: $('authority').value,
+      recipientUnit: $('recipientUnit').value,
+      recipientName: $('recipientName').value,
+      recipientRole: $('recipientRole').value,
+      channel: $('channel').value,
+      recipientEmail: $('recipientEmail').value,
+      recipientPhone: $('recipientPhone').value,
+      cameraStreet: $('cameraStreet').value,
+      accuracyNote: $('accuracyNote').value,
+    };
+  }
+
+  function syncChannel() {
+    const wa = $('channel').value === 'whatsapp';
+    $('emailWrap').hidden = wa;
+    $('phoneWrap').hidden = !wa;
+    $('btnOpen').textContent = wa ? 'פתח WhatsApp' : 'פתח מייל';
+  }
+
+  function download(name, text, type) {
+    const blob = new Blob([text], { type: type || 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  $('channel').addEventListener('change', syncChannel);
+  syncChannel();
+
+  $('btnPreview').addEventListener('click', () => {
+    $('bookErr').hidden = true;
+    $('bookOk').hidden = true;
+    const out = O.buildOutreach(bookFields());
+    lastOutreach = out;
+    if (!out.ok) {
+      $('bookErr').hidden = false;
+      $('bookErr').textContent = out.errors.join(' ');
+      $('bookPreview').hidden = true;
+      $('btnOpen').disabled = true;
+      return;
+    }
+    $('bookPreview').hidden = false;
+    $('bookPreview').textContent = out.subject + '\n\n' + out.body;
+    $('btnOpen').disabled = !$('confirmDraft').checked;
+    $('bookOk').hidden = false;
+    $('bookOk').textContent = 'טיוטה מוכנה. לא נשלח כלום.';
+  });
+
+  $('confirmDraft').addEventListener('change', () => {
+    $('btnOpen').disabled = !(lastOutreach && lastOutreach.ok && $('confirmDraft').checked);
+  });
+
+  $('btnOpen').addEventListener('click', () => {
+    if (!lastOutreach || !lastOutreach.ok || !$('confirmDraft').checked) return;
+    const href = lastOutreach.fields.channel === 'whatsapp' ? lastOutreach.waHref : lastOutreach.emailHref;
+    window.location.href = href;
+  });
+
+  $('btnCopy').addEventListener('click', async () => {
+    const out = lastOutreach && lastOutreach.ok ? lastOutreach : O.buildOutreach(bookFields());
+    if (!out.ok) {
+      $('bookErr').hidden = false;
+      $('bookErr').textContent = out.errors.join(' ');
+      return;
+    }
+    const text = out.subject + '\n\n' + out.body;
+    try {
+      await navigator.clipboard.writeText(text);
+      $('bookOk').hidden = false;
+      $('bookOk').textContent = 'הועתק. הדף עדיין לא שלח כלום.';
+    } catch (e) {
+      $('bookErr').hidden = false;
+      $('bookErr').textContent = 'ההעתקה נחסמה בדפדפן — סמנו ידנית מהתיבה.';
+      $('bookPreview').hidden = false;
+      $('bookPreview').textContent = text;
+    }
+  });
+
+  function syncPackage() {
+    const paid = $('qPackage').value === 'measure-after';
+    $('qAmount').disabled = !paid;
+    $('qDays').value = paid ? '90' : '30';
+    if (!paid) $('qAmount').value = '';
+  }
+  $('qPackage').addEventListener('change', syncPackage);
+  syncPackage();
+
+  function currentQuote() {
+    return O.buildQuote({
+      packageId: $('qPackage').value,
+      cameras: $('qCameras').value,
+      durationDays: $('qDays').value,
+      amountIls: $('qAmount').value,
+      authority: $('authority').value,
+      unit: $('recipientUnit').value,
+      contactName: $('qContact').value,
+      cameraStreet: $('cameraStreet').value,
+      accuracyNote: $('accuracyNote').value,
+      sellerName: $('senderName').value,
+    });
+  }
+
+  $('btnQuote').addEventListener('click', () => {
+    const q = currentQuote();
+    lastQuote = q;
+    $('quotePreview').hidden = false;
+    $('quotePreview').textContent = O.quoteToText(q);
+    if (!q.ok) {
+      $('quoteErr').hidden = false;
+      $('quoteErr').textContent = q.errors.join(' ');
+    } else {
+      $('quoteErr').hidden = true;
+    }
+  });
+
+  $('btnQuoteTxt').addEventListener('click', () => {
+    const q = lastQuote || currentQuote();
+    download((q.id || 'parkwiz-quote') + '.txt', O.quoteToText(q));
+  });
+  $('btnQuoteJson').addEventListener('click', () => {
+    const q = lastQuote || currentQuote();
+    download((q.id || 'parkwiz-quote') + '.json', JSON.stringify(q, null, 2), 'application/json');
+  });
+  $('btnQuoteCsv').addEventListener('click', () => {
+    const q = lastQuote || currentQuote();
+    download((q.id || 'parkwiz-quote') + '.csv', O.quoteToCsv(q), 'text/csv;charset=utf-8');
+  });
+  $('btnQuotePrint').addEventListener('click', () => {
+    lastQuote = lastQuote || currentQuote();
+    $('quotePreview').hidden = false;
+    $('quotePreview').textContent = O.quoteToText(lastQuote);
+    window.print();
+  });
+  $('btnPrintPitch').addEventListener('click', () => window.print());
+})();
+</script>
+</body>
+</html>

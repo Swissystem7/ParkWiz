@@ -28,6 +28,7 @@ test('new municipal surfaces are Hebrew RTL with an honesty banner', () => {
 
 test('homepage evaluator banner points at the pilot, not a live feed', () => {
   assert.match(index, /class="eval-banner"/);
+  assert.match(index, /offer\.html/);
   assert.match(index, /pilot-brief\.html/);
   assert.match(index, /pilot-log\.html/);
   assert.match(index, /pilot-eval\.html/);
