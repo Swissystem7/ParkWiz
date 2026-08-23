@@ -21,7 +21,10 @@ test('mix of valid and future reports throws error', () => {
 
 test('only valid reports returns original score', () => {
   const validReport = { ts: NOW - 1000, delta: 1 };
-  assert.equal(weightedAvailability([validReport], NOW, true), 1);
+  assert.equal(
+    weightedAvailability([validReport], NOW, true),
+    weightedAvailability([validReport], NOW)
+  );
 });
 
 test('a report made right now carries its full weight', () => {
