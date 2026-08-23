@@ -8,6 +8,22 @@ test('no reports means no signal', () => {
   assert.equal(weightedAvailability([], NOW), 0);
 });
 
+test('report with future timestamp throws error', () => {
+  const futureReport = { ts: NOW + 1000, delta: 1 };
+  assert.throws(() => weightedAvailability([futureReport], NOW, true), RangeError, "Report timestamp cannot be in the future");
+});
+
+test('mix of valid and future reports throws error', () => {
+  const validReport = { ts: NOW - 1000, delta: 1 };
+  const futureReport = { ts: NOW + 1000, delta: 1 };
+  assert.throws(() => weightedAvailability([validReport, futureReport], NOW, true), RangeError, "Report timestamp cannot be in the future");
+});
+
+test('only valid reports returns original score', () => {
+  const validReport = { ts: NOW - 1000, delta: 1 };
+  assert.equal(weightedAvailability([validReport], NOW, true), 1);
+});
+
 test('a report made right now carries its full weight', () => {
   assert.equal(weightedAvailability([{ ts: NOW, delta: 1 }], NOW), 1);
 });
