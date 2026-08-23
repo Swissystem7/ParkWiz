@@ -14,7 +14,10 @@
   const HALF_LIFE_MS = 15 * 60 * 1000;
   const MAX_AGE_MS = 2 * 60 * 60 * 1000;
 
-  function weightedAvailability(reports, nowMs) {
+  function weightedAvailability(reports, nowMs, validate = false) {
+    if (validate && reports.some((report) => report.ts > nowMs)) {
+      throw new RangeError('Report timestamp cannot be in the future');
+    }
     const cutoff = nowMs - MAX_AGE_MS;
     return reports.reduce(
       (sum, r) => (r.ts >= cutoff ? sum + r.delta * Math.pow(0.5, (nowMs - r.ts) / HALF_LIFE_MS) : sum),
