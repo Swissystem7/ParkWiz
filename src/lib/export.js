@@ -125,6 +125,20 @@
     };
   }
 
+  // Deterministic fingerprint for golden CSV tests / audit (no network).
+  function sha256Hex(str) {
+    const s = str == null ? '' : String(str);
+    if (typeof require === 'function') {
+      const crypto = require('node:crypto');
+      return crypto.createHash('sha256').update(s, 'utf8').digest('hex');
+    }
+    throw new Error('sha256Hex requires Node crypto');
+  }
+
+  function occupancyCsvChecksum(records) {
+    return sha256Hex(occupancyToCsv(records));
+  }
+
   return {
     csvEscape,
     occupancyToCsv,
@@ -135,5 +149,7 @@
     decodeSharePayload,
     toUrlB64,
     fromUrlB64,
+    sha256Hex,
+    occupancyCsvChecksum,
   };
 });
