@@ -60,3 +60,11 @@ test('the prediction module contains no randomness', () => {
   const code = src.split('\n').filter((line) => !line.trim().startsWith('//')).join('\n');
   assert.ok(!code.includes('Math.random'), 'Math.random is back in predict.js');
 });
+
+test('genHourlyPattern handles non-finite avail values by treating them as 0', () => {
+  const result = genHourlyPattern(undefined, 0);
+  assert.ok(Array.isArray(result));
+  assert.equal(result.length, 7);
+  assert.ok(result.every(Number.isFinite), 'All values must be finite');
+  assert.ok(result.every(chance => chance >= MIN_CHANCE), 'All values must be >= MIN_CHANCE');
+});
