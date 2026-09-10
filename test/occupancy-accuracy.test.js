@@ -121,3 +121,36 @@ test('pooledAgreement now honours z, and still defaults to Z95 for its old calle
   assert.ok(Math.abs(wide.wilson.lo - 0.6859728708466316) < 1e-12);
   assert.ok(Math.abs(dflt.wilson.lo - 0.7388757932976187) < 1e-12);
 });
+
+test('a z that is not a positive number falls back to Z95', () => {
+  // Finding 4 of the independent review: this fallback had no test at all.
+  // Asserting it through pooledAgreement alone could not have worked while
+  // the rule was copied three times - measured, dropping "zz > 0" from
+  // pooledAgreement changed nothing whatsoever, because wilsonInterval
+  // sanitised the same z a second time downstream. The rule is one helper
+  // now, so these assertions actually hold it up.
+  //
+  // Hand-derived for 35/40 (python3, from the derivation in protocol.js):
+  //   z = 1.96 -> lo 0.7388757932976187, hi 0.9454058022645873
+  //   z = 0    -> lo = hi = 0.875, an interval claiming no uncertainty
+  //   z = -1   -> lo 0.9183068613844062 above hi 0.8134004556887645
+  // Only the first is a confidence interval, so it is what a bad z must give.
+  const good = proto.pooledAgreement(PAIRS, 1.96);
+  assert.ok(Math.abs(good.wilson.lo - 0.7388757932976187) < 1e-12);
+  assert.ok(Math.abs(good.wilson.hi - 0.9454058022645873) < 1e-12);
+  for (const bad of [-1, 0, -0.5, NaN, Infinity, -Infinity, 'x', null, undefined, {}]) {
+    const label = ' for z = ' + String(bad);
+    const p = proto.pooledAgreement(PAIRS, bad);
+    assert.equal(p.wilson.z, 1.96, 'pooledAgreement' + label);
+    assert.deepEqual(p.wilson, good.wilson, 'pooledAgreement' + label);
+    assert.notEqual(p.wilson.lo, p.wilson.hi, 'a real interval' + label);
+    assert.ok(p.wilson.lo < p.rate && p.rate < p.wilson.hi, 'interval brackets the rate' + label);
+    const w = proto.wilsonInterval(35, 40, bad);
+    assert.equal(w.z, 1.96, 'wilsonInterval' + label);
+    assert.deepEqual(w, proto.wilsonInterval(35, 40, 1.96), 'wilsonInterval' + label);
+    assert.equal(proto.accuracyWilson(PAIRS, bad).z, 1.96, 'accuracyWilson' + label);
+  }
+  // and a positive z is still honoured rather than swallowed by the fallback
+  assert.equal(proto.pooledAgreement(PAIRS, 2.5758293035489004).wilson.z, 2.5758293035489004);
+  assert.equal(proto.wilsonInterval(35, 40, 0.5).z, 0.5);
+});

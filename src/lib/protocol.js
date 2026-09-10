@@ -33,11 +33,27 @@
   ]);
   const LIGHTING = Object.freeze(['יום', 'דמדומים', 'לילה', 'גשם / רטוב']);
 
+  // The one place that decides what z a caller gets. Only a positive finite
+  // number is a confidence multiplier: z = 0 collapses the interval onto the
+  // point estimate (lo = hi = 0.875 for 35/40, an interval that claims no
+  // uncertainty at all) and a negative z turns it inside out (lo
+  // 0.9183068613844062 above hi 0.8134004556887645 for the same counts), so
+  // both fall back to Z95 instead.
+  //
+  // This rule used to be copied into wilsonInterval, pooledAgreement and
+  // accuracyWilson. Three copies made the outer two untestable: dropping
+  // "zz > 0" from pooledAgreement alone changed nothing measurable, because
+  // wilsonInterval sanitised the same z again downstream. One copy can be
+  // pinned by one test, and is, in test/occupancy-accuracy.test.js.
+  function resolveZ(z) {
+    const zz = Number(z);
+    return Number.isFinite(zz) && zz > 0 ? zz : Z95;
+  }
+
   function wilsonInterval(successes, n, z) {
     const N = Number(n);
     const S = Number(successes);
-    const zz = Number(z);
-    const Z = Number.isFinite(zz) && zz > 0 ? zz : Z95;
+    const Z = resolveZ(z);
     if (!Number.isFinite(N) || N <= 0 || !Number.isFinite(S) || S < 0) return null;
     const p = Math.max(0, Math.min(1, S / N));
     const z2 = Z * Z;
@@ -55,8 +71,7 @@
   }
 
   function pooledAgreement(pairs, z) {
-    const zz = Number(z);
-    const Z = Number.isFinite(zz) && zz > 0 ? zz : Z95;
+    const Z = resolveZ(z);
     const list = Array.isArray(pairs) ? pairs.filter((p) => p && Number.isFinite(p.total) && p.total > 0) : [];
     let trials = 0;
     let agree = 0;
@@ -106,8 +121,7 @@
   //
   // Pure: no Date, no Math.random, no localStorage. z defaults to Z95.
   function accuracyWilson(pairs, z) {
-    const zz = Number(z);
-    const Z = Number.isFinite(zz) && zz > 0 ? zz : Z95;
+    const Z = resolveZ(z);
     const summary = compare.summarizePairs(pairs);
     const pooled = pooledAgreement(pairs, Z);
     return {
