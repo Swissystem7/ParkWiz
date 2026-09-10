@@ -54,7 +54,9 @@
     };
   }
 
-  function pooledAgreement(pairs) {
+  function pooledAgreement(pairs, z) {
+    const zz = Number(z);
+    const Z = Number.isFinite(zz) && zz > 0 ? zz : Z95;
     const list = Array.isArray(pairs) ? pairs.filter((p) => p && Number.isFinite(p.total) && p.total > 0) : [];
     let trials = 0;
     let agree = 0;
@@ -76,7 +78,50 @@
       agree,
       rate: agree / trials,
       meanSignedError: signed / list.length,
-      wilson: wilsonInterval(agree, trials, Z95),
+      wilson: wilsonInterval(agree, trials, Z),
+    };
+  }
+
+  // accuracyWilson — the two accuracy numbers the municipality actually needs
+  // from a series of system-vs-inspector counts, with their uncertainty.
+  //
+  //   meanAgreement   — mean of the per-pair accuracies (each pair weighs the
+  //                     same, whatever its lot size). This is what a reader
+  //                     means by "the average day was 88% right".
+  //   pooledAgreement — agreeing spot comparisons over all spot comparisons.
+  //                     Large lots pull it more. This is the quantity the
+  //                     binomial interval below is actually about.
+  //
+  // The interval is the two-sided Wilson score interval on the pooled count.
+  // Derivation: the score statistic for a binomial proportion is
+  //     (phat - p) / sqrt(p*(1 - p)/n)
+  // and the interval is the set of p for which its absolute value is <= z.
+  // Squaring and collecting terms gives the quadratic
+  //     p^2*(n + z^2) - p*(2*n*phat + z^2) + n*phat^2 = 0
+  // whose roots, divided through by n, are
+  //     p = [ phat + z^2/(2n) +- z*sqrt( phat*(1 - phat)/n + z^2/(4n^2) ) ]
+  //         / (1 + z^2/n)
+  // which is exactly what wilsonInterval() above evaluates. Unlike the normal
+  // approximation it never leaves [0, 1] and it stays sane at phat = 0 or 1.
+  //
+  // Pure: no Date, no Math.random, no localStorage. z defaults to Z95.
+  function accuracyWilson(pairs, z) {
+    const zz = Number(z);
+    const Z = Number.isFinite(zz) && zz > 0 ? zz : Z95;
+    const summary = compare.summarizePairs(pairs);
+    const pooled = pooledAgreement(pairs, Z);
+    return {
+      count: summary.count,
+      meanAgreement: summary.meanAccuracy,
+      minAgreement: summary.minAccuracy,
+      maxAgreement: summary.maxAccuracy,
+      trials: pooled.trials,
+      agree: pooled.agree,
+      pooledAgreement: pooled.rate,
+      meanSignedError: pooled.meanSignedError,
+      wilson: pooled.wilson,
+      z: Z,
+      sampleOnly: summary.sampleOnly,
     };
   }
 
@@ -306,6 +351,7 @@
     LIGHTING,
     wilsonInterval,
     pooledAgreement,
+    accuracyWilson,
     dayMs,
     addDays,
     emptyDay,
