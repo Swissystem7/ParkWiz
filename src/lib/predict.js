@@ -27,7 +27,7 @@
   }
 
   function genHourlyPattern(avail, streetIdx) {
-    const base = avail / 100;
+    const base = Number.isFinite(avail) ? avail / 100 : 0;
     return HOURLY_SLOTS.map((h) => {
       const rush = RUSH_WEIGHT[h] || 0;
       return +Math.max(MIN_CHANCE, Math.min(1, base + rush + stableVar(streetIdx, h))).toFixed(3);
