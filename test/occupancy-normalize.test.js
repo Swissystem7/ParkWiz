@@ -72,6 +72,41 @@ test('a clock that cannot exist is rejected', () => {
   assert.equal(occ.normalize(withTs('2026-08-12T24:00')), null);
 });
 
+test('the clock rule only judges the clock of the timestamp itself', () => {
+  // The check used to be an unanchored /T(\d{2}):(\d{2})/, so the first match
+  // anywhere in the string decided the record's fate. Measured against the
+  // shipped module before this was fixed, all three of these were DROPPED by
+  // normalize() on the pilot import path, for a substring of free-form prose:
+  for (const ts of ['note T99:99 attached', 'משמרת T44:00', 'T25:00']) {
+    assert.equal(occ.tsProblem(ts), null, JSON.stringify(ts) + ' is prose, not a clock');
+    const r = occ.normalize(withTs(ts));
+    assert.ok(r, JSON.stringify(ts) + ' should be kept');
+    assert.equal(r.ts, ts);
+  }
+  // ...and a leading ISO timestamp is still judged, whatever follows it
+  assert.equal(occ.tsProblem('2026-08-12T44:00 note'), 'impossible-clock');
+  assert.equal(occ.tsProblem('2026-08-12T08:00 note'), null);
+});
+
+test('the two cases the old unanchored rule was inconsistent about', () => {
+  // Both of these were KEPT by the unanchored rule, and both stay kept - but
+  // now for a reason that holds in general rather than by accident of which
+  // substring matched first.
+  //
+  // The good clock is the record's clock; the (T99:99) is prose after it.
+  assert.equal(occ.tsProblem('2026-08-12T08:00 (T99:99)'), null);
+  assert.ok(occ.normalize(withTs('2026-08-12T08:00 (T99:99)')));
+  // 23:59:60 is a UTC leap second and a legal ISO 8601 instant, so it is kept
+  // deliberately. A seconds field above 60 is not, and is now rejected in the
+  // same anchored position rather than ignored.
+  assert.equal(occ.tsProblem('2026-08-12T23:59:60Z'), null);
+  assert.ok(occ.normalize(withTs('2026-08-12T23:59:60Z')));
+  assert.equal(occ.tsProblem('2026-08-12T08:00:99'), 'impossible-clock');
+  assert.equal(occ.normalize(withTs('2026-08-12T08:00:99')), null);
+  assert.equal(occ.tsProblem('2026-08-12T08:00:59'), null);
+  assert.equal(occ.tsProblem('2026-08-12T08:00:00.250Z'), null);
+});
+
 test('an impossible timestamp is dropped, not repaired into a record', () => {
   // The record is otherwise perfect: only the ts is wrong.
   const bad = occ.normalize({ ts: '2026-02-30T08:00', street: 'הרצל', total: 12, occupied: 4 });

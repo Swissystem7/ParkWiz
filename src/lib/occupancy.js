@@ -163,6 +163,19 @@
   // ts that *claims* to be a timestamp and is impossible no longer enters the
   // pilot data. 2026-13-45T08:00 and 2026-08-12T24:00 are rejected; 't' and
   // every legal ISO shape, long or short, offset or Z, still pass.
+  //
+  // Both checks are anchored at the start of the string, because only a clock
+  // that is actually *this record's* timestamp may be judged. An unanchored
+  // /T(\d{2}):(\d{2})/ takes the first match anywhere, so the free-form
+  // stamps 'note T99:99 attached', 'T25:00' and a Hebrew shift label
+  // containing T44:00 were each dropped from the pilot import - a record
+  // deleted for a substring of prose, on the path the pilot pages use, with no
+  // page reporting how many records vanished. It was not even strict: the same
+  // rule kept '2026-08-12T08:00 (T99:99)', because there the good clock
+  // matched first.
+  //
+  // The seconds field is judged in the same anchored position, and 60 is
+  // allowed: 23:59:60 is a UTC leap second and a legal ISO 8601 instant.
   function tsProblem(ts) {
     const s = String(ts == null ? '' : ts);
     if (!s) return null;
@@ -170,8 +183,11 @@
     if (day && !validCalendarDate(Number(day[1]), Number(day[2]), Number(day[3]))) {
       return 'impossible-date';
     }
-    const clock = s.match(/T(\d{2}):(\d{2})/);
+    const clock = s.match(/^\d{4}-\d{2}-\d{2}T(\d{2}):(\d{2})(?::(\d{2}))?/);
     if (clock && (Number(clock[1]) > 23 || Number(clock[2]) > 59)) {
+      return 'impossible-clock';
+    }
+    if (clock && clock[3] != null && Number(clock[3]) > 60) {
       return 'impossible-clock';
     }
     return null;
