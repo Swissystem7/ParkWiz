@@ -58,10 +58,39 @@
     return Number.isFinite(h) && h >= 0 && h <= 23 ? h : null;
   }
 
+  // A month/day pair that does not exist is a typo, not a date. Date.UTC()
+  // rolls 2026-02-30 forward into March and hands back a perfectly plausible
+  // weekday for a day that never happened, so the calendar is checked first.
+  const MONTH_DAYS = Object.freeze([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]);
+
+  function isLeapYear(y) {
+    return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  }
+
+  // month is 1..12, as written in the timestamp.
+  function daysInMonth(y, month) {
+    if (month === 2 && isLeapYear(y)) return 29;
+    return MONTH_DAYS[month - 1];
+  }
+
+  function validCalendarDate(y, month, day) {
+    if (!Number.isInteger(y) || !Number.isInteger(month) || !Number.isInteger(day)) return false;
+    if (month < 1 || month > 12) return false;
+    return day >= 1 && day <= daysInMonth(y, month);
+  }
+
+  // Weekday 0..6 for the date written on the timestamp, or null when that date
+  // does not exist. Built through setUTCFullYear so that a written year below
+  // 100 stays that year instead of being remapped into the 1900s by Date.UTC.
   function weekdayFromTs(ts) {
     const m = String(ts || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (!m) return null;
-    const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+    const y = Number(m[1]);
+    const month = Number(m[2]);
+    const day = Number(m[3]);
+    if (!validCalendarDate(y, month, day)) return null;
+    const d = new Date(Date.UTC(2000, month - 1, day));
+    d.setUTCFullYear(y);
     return d.getUTCDay();
   }
 
@@ -254,6 +283,7 @@
     formatTime,
     hourFromTs,
     weekdayFromTs,
+    validCalendarDate,
     byHour,
     heatColor,
     hourHeatmapSvg,
