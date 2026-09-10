@@ -42,7 +42,10 @@
     if (validate) assertValidReports(reports, nowMs);
     const cutoff = nowMs - MAX_AGE_MS;
     return reports.reduce(
-      (sum, r) => (r.ts >= cutoff ? sum + r.delta * Math.pow(0.5, (nowMs - r.ts) / HALF_LIFE_MS) : sum),
+      (sum, r) => {
+        if (r.ts > nowMs && !validate) return sum;
+        return (r.ts >= cutoff ? sum + r.delta * Math.pow(0.5, (nowMs - r.ts) / HALF_LIFE_MS) : sum);
+      },
       0
     );
   }

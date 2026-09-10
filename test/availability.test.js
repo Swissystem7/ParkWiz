@@ -84,3 +84,7 @@ test('validate rejects missing delta', () => {
 test('validate rejects string timestamp', () => {
   assert.throws(() => weightedAvailability([{ ts: 'now', delta: 1 }], NOW, true), TypeError);
 });
+
+test('future report with validate=false contributes zero weight', () => {
+  const result = weightedAvailability([{ ts: NOW + 60000, delta: 1 }], NOW);
+  assert.equal(result, 0);});
