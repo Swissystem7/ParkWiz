@@ -17,6 +17,8 @@
 // before bucketedAvailability was written.
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const {
   weightedAvailability,
   bucketedAvailability,
@@ -156,13 +158,56 @@ test('a bucket size that is not a positive number is a programmer error', () => 
 });
 
 test('a future report keeps exactly the weight weightedAvailability gives it', () => {
-  // weightedAvailability(validate = false) counts a future report with a
-  // weight above 1. bucketedAvailability does not second-guess that; it puts
-  // it in bucket 0. Callers who care must validate first.
+  // bucketedAvailability has no policy about the future. It asks
+  // weightedAvailability what one report is worth and files the answer in
+  // bucket 0, so this test pins the agreement rather than the number.
+  //
+  // The number is exactly what two open branches disagree about: here a future
+  // report is worth 0.5^-1 = 2, and after PR #49 on
+  // release/candidate-2026-09-10 it is worth 0. Every assertion below holds
+  // under both, which is the point - the bucket table cannot drift away from
+  // the score it claims to break down.
   const future = [{ ts: NOW + HALF_LIFE_MS, delta: 1 }];
   const b = bucketedAvailability(future, NOW, 30);
   assert.equal(b[0].count, 1);
-  assert.equal(b[0].score, 2); // 0.5^-1
+  assert.equal(b[0].score, weightedAvailability(future, NOW));
   assert.equal(b.reduce((s, x) => s + x.score, 0), weightedAvailability(future, NOW));
+  assert.deepEqual(b.slice(1).map((x) => x.score), [0, 0, 0]);
   assert.throws(() => weightedAvailability(future, NOW, true), RangeError);
+  // and it is one of those two policies, not a third number of its own
+  assert.ok(b[0].score === 2 || b[0].score === 0, 'future weight was ' + b[0].score);
+});
+
+test('each bucket is the per-report weighting of the reports it holds', () => {
+  // The invariant test above says the whole table sums back to the score.
+  // This one says the same thing per window: a bucket is the sum of what
+  // weightedAvailability makes of each report filed in it, and nothing else.
+  for (const minutes of [5, 30, 50, 60]) {
+    const table = bucketedAvailability(REPORTS, NOW, minutes);
+    const expected = table.map(() => 0);
+    for (const r of REPORTS) {
+      const solo = bucketedAvailability([r], NOW, minutes);
+      const i = solo.findIndex((x) => x.count === 1);
+      if (i === -1) continue; // dropped by the age rule, in both functions
+      expected[i] += weightedAvailability([r], NOW);
+    }
+    assert.deepEqual(table.map((x) => x.score), expected, 'bucketMinutes ' + minutes);
+  }
+});
+
+test('the decay formula is written down exactly once in the module', () => {
+  // Finding 3 of the independent review: the bucket table used to carry its
+  // own copy of delta * 0.5^(age / HALF_LIFE_MS). That copy is what let it
+  // disagree with weightedAvailability about a future report across two open
+  // branches. A copy cannot come back without this test going red.
+  const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'lib', 'availability.js'), 'utf8');
+  const code = src.replace(/^\s*\/\/.*$/gm, '');
+  assert.equal((code.match(/Math\.pow\(/g) || []).length, 1, 'one decay formula in the module');
+  const from = code.indexOf('function bucketedAvailability');
+  const to = code.indexOf('return buckets;', from);
+  assert.ok(from !== -1 && to > from);
+  const body = code.slice(from, to);
+  assert.equal(body.includes('Math.pow'), false, 'bucketedAvailability must not weight anything itself');
+  assert.equal(body.includes('HALF_LIFE_MS'), false, 'bucketedAvailability must not know the half-life');
+  assert.ok(body.includes('weightedAvailability([r], nowMs)'), 'it must ask weightedAvailability instead');
 });

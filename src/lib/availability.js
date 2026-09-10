@@ -36,14 +36,24 @@
   // startMs is clamped to nowMs - MAX_AGE_MS, so a bucket size that does not
   // divide two hours produces a short last window rather than a fake one.
   //
-  // Weighting is weightedAvailability's, unchanged: delta * 0.5^(age /
-  // HALF_LIFE_MS), nothing older than MAX_AGE_MS. A report newer than nowMs
-  // lands in bucket 0 and keeps the (greater than 1) weight
-  // weightedAvailability would give it - this function reproduces that
-  // function, it does not invent a policy of its own. A caller who rejects the
-  // future should call weightedAvailability(reports, nowMs, true) first.
+  // The weighting is not written down here at all. Each report's contribution
+  // is whatever weightedAvailability([report], nowMs) says it is, asked one
+  // report at a time, so exactly one place in this module decides what a
+  // report is worth and this table follows it by construction.
+  //
+  // That matters for a case two open branches disagree about. Here a report
+  // newer than nowMs is worth 0.5^-1 = 2; PR #49, on
+  // release/candidate-2026-09-10, rewrote weightedAvailability so a future
+  // report is worth 0 unless validate throws first. A second copy of the
+  // formula in this function would have made the bucket table contradict the
+  // score it claims to break down, and the merge would have had to pick a
+  // winner. Delegating means whichever policy weightedAvailability ends up
+  // with is the policy of the buckets too. A caller who rejects the future
+  // should still call weightedAvailability(reports, nowMs, true) first.
+  //
   // A report with a non-finite ts or delta is skipped instead of poisoning the
-  // whole table with NaN.
+  // whole table with NaN, and one older than MAX_AGE_MS is skipped rather than
+  // filed at weight 0, so bucket.count keeps meaning what it says.
   //
   // The invariant, asserted in test/availability-bucket.test.js:
   //   sum of bucket.score === weightedAvailability(reports, nowMs)
@@ -73,7 +83,7 @@
       const age = nowMs - r.ts;
       const i = Math.min(count - 1, Math.max(0, Math.floor(age / bucketMs)));
       buckets[i].count += 1;
-      buckets[i].score += r.delta * Math.pow(0.5, age / HALF_LIFE_MS);
+      buckets[i].score += weightedAvailability([r], nowMs);
     });
     return buckets;
   }
