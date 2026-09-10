@@ -151,8 +151,35 @@
     </svg>`;
   }
 
+  // Backlog item 1 asked for normalize() to reject every ts that is not short
+  // ISO YYYY-MM-DDTHH:MM. That is not this schema's contract and the suite
+  // says so: test/occupancy.test.js feeds normalize the free-form stamps 't',
+  // 'a' and 'b' and full ISO with seconds, test/compare.test.js normalises
+  // '2026-08-12T08:00:00', and test/export.test.js round-trips records stamped
+  // '...T08:00:00+03:00'. Seven pre-existing tests fail under the strict rule.
+  // Those tests are the specification, so the ts field stays free-form.
+  //
+  // What is tightened is the part that costs nothing and catches real typos: a
+  // ts that *claims* to be a timestamp and is impossible no longer enters the
+  // pilot data. 2026-13-45T08:00 and 2026-08-12T24:00 are rejected; 't' and
+  // every legal ISO shape, long or short, offset or Z, still pass.
+  function tsProblem(ts) {
+    const s = String(ts == null ? '' : ts);
+    if (!s) return null;
+    const day = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (day && !validCalendarDate(Number(day[1]), Number(day[2]), Number(day[3]))) {
+      return 'impossible-date';
+    }
+    const clock = s.match(/T(\d{2}):(\d{2})/);
+    if (clock && (Number(clock[1]) > 23 || Number(clock[2]) > 59)) {
+      return 'impossible-clock';
+    }
+    return null;
+  }
+
   function normalize(o, fallbackStreet) {
     if (!o || typeof o !== 'object') return null;
+    if (tsProblem(o.ts)) return null;
     const total = num(o.total != null ? o.total : o.totalSpots);
     let occupied = num(o.occupied != null ? o.occupied : o.occupiedSpots);
     let rate = o.occupancyRate != null ? num(o.occupancyRate) : null;
@@ -169,13 +196,22 @@
     };
   }
 
+  // Both encodings come back in the same order. The JSON-array path used to
+  // return input order while the JSONL path sorted, so the same series read
+  // back differently depending on how it had been written down.
+  function byTs(a, b) {
+    return String(a.ts).localeCompare(String(b.ts));
+  }
+
   function parse(text, fallbackStreet) {
     const raw = String(text || '').trim();
     if (!raw) return [];
     if (raw[0] === '[') {
       try {
         const a = JSON.parse(raw);
-        if (Array.isArray(a)) return a.map((o) => normalize(o, fallbackStreet)).filter(Boolean);
+        if (Array.isArray(a)) {
+          return a.map((o) => normalize(o, fallbackStreet)).filter(Boolean).sort(byTs);
+        }
       } catch (e) { /* fall through to JSONL */ }
     }
     const out = [];
@@ -187,7 +223,7 @@
         if (n) out.push(n);
       } catch (e) { /* skip bad line */ }
     }
-    return out.sort((a, b) => String(a.ts).localeCompare(String(b.ts)));
+    return out.sort(byTs);
   }
 
   function summarize(records) {
@@ -284,6 +320,7 @@
     hourFromTs,
     weekdayFromTs,
     validCalendarDate,
+    tsProblem,
     byHour,
     heatColor,
     hourHeatmapSvg,
