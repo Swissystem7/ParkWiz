@@ -436,14 +436,31 @@
     }
   }
 
+  // The spot index a label entry names, or null when it names none.
+  //
+  // Number() is not this test. Number(null), Number(''), Number(false),
+  // Number([]) and Number('  ') are all 0; Number(true) and Number('1e0') are
+  // 1; Number('0x2') is 2. Every one of those is an integer inside a 12-spot
+  // lot, so a guard built on Number() turns a JSON entry that names no spot at
+  // all into a spot the municipality is told is occupied. Only a real number
+  // and a plain decimal-integer string are evidence; a string with a sign, an
+  // exponent, a radix prefix, a decimal point or surrounding space is not a
+  // spot index and is discarded rather than guessed at.
+  function labelIndex(raw) {
+    if (typeof raw === 'number') return Number.isInteger(raw) ? raw : null;
+    if (typeof raw === 'string' && /^[0-9]+$/.test(raw)) return Number(raw);
+    return null;
+  }
+
   // How many of the marked spots this label says are occupied. Indices that
-  // are repeated or outside the lot are not evidence and do not count.
+  // are repeated, outside the lot, or not an index at all are not evidence and
+  // do not count.
   function labelledOccupied(scene, total) {
     const at = Array.isArray(scene && scene.occupiedAt) ? scene.occupiedAt : [];
     const seen = [];
     at.forEach((raw) => {
-      const i = Number(raw);
-      if (!Number.isInteger(i) || i < 0 || i >= total) return;
+      const i = labelIndex(raw);
+      if (i == null || i < 0 || i >= total) return;
       if (seen.indexOf(i) === -1) seen.push(i);
     });
     return seen.length;
