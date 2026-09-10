@@ -13,6 +13,14 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   const HALF_LIFE_MS = 15 * 60 * 1000;
   const MAX_AGE_MS = 2 * 60 * 60 * 1000;
+  // The most windows a two-hour table may be cut into: 240, i.e. a floor of
+  // 30 seconds per bucket. A municipal reader is looking at the shape of the
+  // last two hours, and no reading of that needs a finer grain than half a
+  // minute. Without a cap the bucket count is 1 / bucketMinutes unbounded:
+  // bucketMinutes 0.01 allocates 12,000 bucket objects and 0.001 allocates
+  // 120,000, both measured, from one mistyped argument.
+  const MAX_BUCKETS = 240;
+  const MIN_BUCKET_MINUTES = MAX_AGE_MS / MAX_BUCKETS / (60 * 1000);
 
   function weightedAvailability(reports, nowMs, validate = false) {
     if (validate && reports.some((report) => report.ts > nowMs)) {
@@ -30,7 +38,11 @@
   // last two hours instead of one number.
   //
   // Bucket i covers ages [i * bucket, (i + 1) * bucket) counted back from
-  // nowMs; bucket 0 ends at nowMs. There are ceil(MAX_AGE_MS / bucket) buckets,
+  // nowMs; bucket 0 ends at nowMs. bucketMinutes must be a positive number of
+  // at least MIN_BUCKET_MINUTES (0.5, i.e. 30 seconds), so that the table can
+  // never be more than MAX_BUCKETS windows long; anything smaller is a
+  // programmer error and throws rather than allocating. There are
+  // ceil(MAX_AGE_MS / bucket) buckets,
   // and the oldest one absorbs the exact MAX_AGE_MS boundary so that a report
   // weightedAvailability still counts is never silently dropped here. Its
   // startMs is clamped to nowMs - MAX_AGE_MS, so a bucket size that does not
@@ -64,6 +76,10 @@
     if (!Number.isFinite(minutes) || minutes <= 0) {
       throw new RangeError('bucketMinutes must be a positive number');
     }
+    if (minutes < MIN_BUCKET_MINUTES) {
+      throw new RangeError('bucketMinutes must be at least ' + MIN_BUCKET_MINUTES
+        + ' (at most ' + MAX_BUCKETS + ' buckets)');
+    }
     const bucketMs = minutes * 60 * 1000;
     const count = Math.ceil(MAX_AGE_MS / bucketMs);
     const cutoff = nowMs - MAX_AGE_MS;
@@ -88,5 +104,12 @@
     return buckets;
   }
 
-  return { weightedAvailability, bucketedAvailability, HALF_LIFE_MS, MAX_AGE_MS };
+  return {
+    weightedAvailability,
+    bucketedAvailability,
+    HALF_LIFE_MS,
+    MAX_AGE_MS,
+    MAX_BUCKETS,
+    MIN_BUCKET_MINUTES,
+  };
 });

@@ -24,6 +24,8 @@ const {
   bucketedAvailability,
   HALF_LIFE_MS,
   MAX_AGE_MS,
+  MAX_BUCKETS,
+  MIN_BUCKET_MINUTES,
 } = require('../src/lib/availability');
 
 const NOW = 1_000_000_000_000;
@@ -155,6 +157,40 @@ test('a bucket size that is not a positive number is a programmer error', () => 
   for (const bad of [0, -30, NaN, Infinity, undefined, null, 'thirty']) {
     assert.throws(() => bucketedAvailability(REPORTS, NOW, bad), RangeError);
   }
+});
+
+test('a bucket size below the floor throws instead of allocating a table', () => {
+  // Finding 5 of the independent review: there was no lower bound, so the
+  // table length was 1 / bucketMinutes without limit. Measured on the module
+  // before the cap: bucketMinutes 0.01 returned 12,000 bucket objects and
+  // 0.001 returned 120,000, from one mistyped argument.
+  //
+  // Bucket counts hand-computed as ceil(120 / bucketMinutes):
+  //   0.5 -> 240 (the floor, exactly MAX_BUCKETS)
+  //   0.4 -> 300, 0.25 -> 480, 0.1 -> 1200, 0.01 -> 12000, 0.001 -> 120000
+  assert.equal(MAX_BUCKETS, 240);
+  assert.equal(MIN_BUCKET_MINUTES, 0.5);
+  assert.equal(MAX_AGE_MS / (MIN_BUCKET_MINUTES * 60 * 1000), MAX_BUCKETS);
+  for (const tooSmall of [0.4, 0.25, 0.1, 0.01, 0.001, Number.MIN_VALUE]) {
+    assert.throws(
+      () => bucketedAvailability(REPORTS, NOW, tooSmall),
+      RangeError,
+      'bucketMinutes ' + tooSmall + ' must throw'
+    );
+  }
+  // the floor itself is legal, and is exactly MAX_BUCKETS windows of 30s
+  const floor = bucketedAvailability(REPORTS, NOW, MIN_BUCKET_MINUTES);
+  assert.equal(floor.length, MAX_BUCKETS);
+  assert.equal(floor[0].endMs - floor[0].startMs, 30 * 1000);
+  assert.equal(floor[MAX_BUCKETS - 1].startMs, NOW - MAX_AGE_MS);
+  // and it still sums back to the score, like every other bucket size
+  assert.equal(floor.reduce((s, x) => s + x.score, 0), weightedAvailability(REPORTS, NOW));
+  // no legal bucket size can produce a longer table than the cap
+  for (const minutes of [0.5, 0.6, 1, 5, 30, 120, 240]) {
+    assert.ok(bucketedAvailability(REPORTS, NOW, minutes).length <= MAX_BUCKETS, 'bucketMinutes ' + minutes);
+  }
+  assert.equal(bucketedAvailability(REPORTS, NOW, 0.6).length, 200);
+  assert.equal(bucketedAvailability(REPORTS, NOW, 1).length, 120);
 });
 
 test('a future report keeps exactly the weight weightedAvailability gives it', () => {
