@@ -33,11 +33,27 @@
   ]);
   const LIGHTING = Object.freeze(['יום', 'דמדומים', 'לילה', 'גשם / רטוב']);
 
+  // The one place that decides what z a caller gets. Only a positive finite
+  // number is a confidence multiplier: z = 0 collapses the interval onto the
+  // point estimate (lo = hi = 0.875 for 35/40, an interval that claims no
+  // uncertainty at all) and a negative z turns it inside out (lo
+  // 0.9183068613844062 above hi 0.8134004556887645 for the same counts), so
+  // both fall back to Z95 instead.
+  //
+  // This rule used to be copied into wilsonInterval, pooledAgreement and
+  // accuracyWilson. Three copies made the outer two untestable: dropping
+  // "zz > 0" from pooledAgreement alone changed nothing measurable, because
+  // wilsonInterval sanitised the same z again downstream. One copy can be
+  // pinned by one test, and is, in test/occupancy-accuracy.test.js.
+  function resolveZ(z) {
+    const zz = Number(z);
+    return Number.isFinite(zz) && zz > 0 ? zz : Z95;
+  }
+
   function wilsonInterval(successes, n, z) {
     const N = Number(n);
     const S = Number(successes);
-    const zz = Number(z);
-    const Z = Number.isFinite(zz) && zz > 0 ? zz : Z95;
+    const Z = resolveZ(z);
     if (!Number.isFinite(N) || N <= 0 || !Number.isFinite(S) || S < 0) return null;
     const p = Math.max(0, Math.min(1, S / N));
     const z2 = Z * Z;
@@ -54,7 +70,8 @@
     };
   }
 
-  function pooledAgreement(pairs) {
+  function pooledAgreement(pairs, z) {
+    const Z = resolveZ(z);
     const list = Array.isArray(pairs) ? pairs.filter((p) => p && Number.isFinite(p.total) && p.total > 0) : [];
     let trials = 0;
     let agree = 0;
@@ -76,7 +93,49 @@
       agree,
       rate: agree / trials,
       meanSignedError: signed / list.length,
-      wilson: wilsonInterval(agree, trials, Z95),
+      wilson: wilsonInterval(agree, trials, Z),
+    };
+  }
+
+  // accuracyWilson — the two accuracy numbers the municipality actually needs
+  // from a series of system-vs-inspector counts, with their uncertainty.
+  //
+  //   meanAgreement   — mean of the per-pair accuracies (each pair weighs the
+  //                     same, whatever its lot size). This is what a reader
+  //                     means by "the average day was 88% right".
+  //   pooledAgreement — agreeing spot comparisons over all spot comparisons.
+  //                     Large lots pull it more. This is the quantity the
+  //                     binomial interval below is actually about.
+  //
+  // The interval is the two-sided Wilson score interval on the pooled count.
+  // Derivation: the score statistic for a binomial proportion is
+  //     (phat - p) / sqrt(p*(1 - p)/n)
+  // and the interval is the set of p for which its absolute value is <= z.
+  // Squaring and collecting terms gives the quadratic
+  //     p^2*(n + z^2) - p*(2*n*phat + z^2) + n*phat^2 = 0
+  // whose roots, divided through by n, are
+  //     p = [ phat + z^2/(2n) +- z*sqrt( phat*(1 - phat)/n + z^2/(4n^2) ) ]
+  //         / (1 + z^2/n)
+  // which is exactly what wilsonInterval() above evaluates. Unlike the normal
+  // approximation it never leaves [0, 1] and it stays sane at phat = 0 or 1.
+  //
+  // Pure: no Date, no Math.random, no localStorage. z defaults to Z95.
+  function accuracyWilson(pairs, z) {
+    const Z = resolveZ(z);
+    const summary = compare.summarizePairs(pairs);
+    const pooled = pooledAgreement(pairs, Z);
+    return {
+      count: summary.count,
+      meanAgreement: summary.meanAccuracy,
+      minAgreement: summary.minAccuracy,
+      maxAgreement: summary.maxAccuracy,
+      trials: pooled.trials,
+      agree: pooled.agree,
+      pooledAgreement: pooled.rate,
+      meanSignedError: pooled.meanSignedError,
+      wilson: pooled.wilson,
+      z: Z,
+      sampleOnly: summary.sampleOnly,
     };
   }
 
@@ -306,6 +365,7 @@
     LIGHTING,
     wilsonInterval,
     pooledAgreement,
+    accuracyWilson,
     dayMs,
     addDays,
     emptyDay,

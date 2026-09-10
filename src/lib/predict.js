@@ -34,5 +34,22 @@
     });
   }
 
-  return { RUSH_WEIGHT, HOURLY_SLOTS, MIN_CHANCE, stableVar, genHourlyPattern };
+  // chanceRange - the spread of one street's day, so a municipality is shown a
+  // window instead of a single number it will quote back as a promise.
+  //
+  // It READS genHourlyPattern and changes nothing about it: same slots, same
+  // rush weights, same wobble, same three-decimal rounding. min and max are
+  // always two of the seven values genHourlyPattern returned, never a
+  // recomputation of them, so the range can never disagree with the curve
+  // drawn next to it.
+  //
+  // Whatever genHourlyPattern does with a non-numeric avail, chanceRange does
+  // too. That is deliberate: the input contract belongs to genHourlyPattern
+  // and is being discussed on its own (draft PR #50), not quietly forked here.
+  function chanceRange(avail, streetIdx) {
+    const pattern = genHourlyPattern(avail, streetIdx);
+    return { min: Math.min.apply(null, pattern), max: Math.max.apply(null, pattern) };
+  }
+
+  return { RUSH_WEIGHT, HOURLY_SLOTS, MIN_CHANCE, stableVar, genHourlyPattern, chanceRange };
 });
