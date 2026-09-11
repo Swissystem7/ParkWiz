@@ -122,7 +122,9 @@ test('map, legend and filter bar tell a shoulder apart from a marked bay', () =>
   assert.equal(page.activeFilters[SH.SURFACE], true);
   assert.match(html, /id="filt-shoulder"[^>]*aria-pressed="true"/);
   assert.match(html, new RegExp(`background:${shoulderColour}`), 'the legend needs the shoulder swatch');
-  // a shoulder street's curb stays a shoulder; it never turns into a marked bay
+  // a shoulder street's curb stays a shoulder; it never turns into a marked bay.
+  // NOTE: over the current demo data this only exercises the plain branch — see
+  // the seed sweep below, which runs the rule itself.
   const idx = page.STREETS_DEF.findIndex((s) => s.type === SH.SURFACE);
   const kinds = new Set(page.CURBS[idx].map((c) => c.type));
   for (const kind of kinds) assert.ok([SH.SURFACE, 'red'].includes(kind), `curb turned into ${kind}`);
@@ -375,4 +377,49 @@ test('the notice is not shown where no shoulder is suggested', () => {
   const panel = written(els, 'arrivalPanel');
   assert.ok(!panel.includes('בן גוריון') && !panel.includes('דן שומרון'), panel.slice(0, 200));
   assert.ok(!panel.includes(notice), 'the notice is shown where no shoulder was suggested');
+});
+
+// ─── «קטע שוליים נשאר שוליים» — הכלל עצמו, לא רק נתוני ההדגמה ────────────────
+// The guard that keeps a shoulder segment from becoming a marked bay lives in a
+// branch that today's demo data never reaches: every inner segment of both
+// shoulder streets has a seed above 0.30 (0.4047 is the lowest), so a test that
+// looks only at CURBS confirms the rule without ever running it. These run it.
+test('the curb rule keeps a shoulder a shoulder at every seed', () => {
+  const { page } = loadPage();
+  const N = 6;
+  // the variation branch, which the demo data never reaches
+  assert.equal(page.curbTypeFor('shoulder', 0.20, 2, N), 'shoulder');
+  assert.equal(page.curbTypeFor('free', 0.20, 2, N), 'blue');
+  assert.equal(page.curbTypeFor('timed', 0.20, 2, N), 'free');
+  assert.equal(page.curbTypeFor('blue', 0.20, 2, N), 'free');
+  // the reserved branch, which the demo data never reaches either: a reserved
+  // bay IS a marked bay, so a shoulder must not turn into one
+  assert.equal(page.curbTypeFor('shoulder', 0.05, 2, N), 'shoulder');
+  assert.equal(page.curbTypeFor('blue', 0.05, 2, N), 'reserved');
+  // corners and the plain branch
+  assert.equal(page.curbTypeFor('shoulder', 0.20, 0, N), 'red');
+  assert.equal(page.curbTypeFor('shoulder', 0.80, 0, N), 'shoulder');
+  assert.equal(page.curbTypeFor('shoulder', 0.50, 3, N), 'shoulder');
+
+  // and the whole seed range: nothing turns a shoulder into a marked bay
+  for (let seed = 0; seed < 1; seed += 0.001) {
+    for (let i = 0; i < N; i++) {
+      const t = page.curbTypeFor('shoulder', seed, i, N);
+      assert.ok(t === 'shoulder' || t === 'red',
+        `seed ${seed.toFixed(3)} segment ${i} turned a shoulder into ${t}`);
+    }
+  }
+});
+
+test('the demo data really does skip the variation window', () => {
+  const { page } = loadPage();
+  const inner = [];
+  page.STREETS_DEF.forEach((s, idx) => {
+    if (s.type !== SH.SURFACE) return;
+    for (let i = 1; i < 5; i++) inner.push(Math.abs(Math.sin(idx * 7.13 + i * 3.7)));
+  });
+  assert.equal(inner.length, 8);
+  const lowest = Math.min(...inner);
+  assert.ok(lowest > 0.30,
+    `a shoulder seed now falls in the variation window (lowest ${lowest}); the CURBS check above is no longer vacuous, which is fine — this note can go`);
 });

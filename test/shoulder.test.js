@@ -189,3 +189,28 @@ test('the shoulder module is deterministic: no randomness, no clock, no network'
     assert.equal(SH.shoulderAvailabilityPct({ shoulderLengthM: 14, streetAvailPct: 66, vehicleLenM: 4.5 }), first);
   }
 });
+
+// The clamp inside streetOccupancyFromAvailPct is the only thing standing
+// between a street availability outside 0..100 and a NEGATIVE free run: at
+// avail -20 the raw occupancy is 1.2, the spill is (1.2-0.6)/0.4 = 1.5, and an
+// 18 m shoulder reports a free run of 18 * (1 - 1.5) = -9 m. Hand-derived, and
+// asserted here because a defensive line with no test is a line nobody may
+// safely delete.
+test('a street availability outside 0..100 cannot bend the free run', () => {
+  assert.equal(SH.streetOccupancyFromAvailPct(120), 0);
+  assert.equal(SH.streetOccupancyFromAvailPct(101), 0);
+  assert.equal(SH.streetOccupancyFromAvailPct(-20), 1);
+  assert.equal(SH.streetOccupancyFromAvailPct(0), 1);
+  assert.equal(SH.streetOccupancyFromAvailPct(100), 0);
+
+  close(SH.freeRunM(18, -20), 0, 'free run at avail -20 (unclamped: -9 m)');
+  close(SH.freeRunM(18, 120), 18, 'free run at avail 120');
+  assert.equal(SH.shoulderAvailabilityPct({ shoulderLengthM: 18, streetAvailPct: -20, vehicleLenM: 4.5 }), 0);
+
+  for (let pct = -200; pct <= 300; pct += 7) {
+    const run = SH.freeRunM(18, pct);
+    assert.ok(run >= 0 && run <= 18, `avail ${pct} gave a free run of ${run} m`);
+    const cars = SH.vehicleLengthsFree({ shoulderLengthM: 18, streetAvailPct: pct, vehicleLenM: 4.5 });
+    assert.ok(cars >= 0, `avail ${pct} gave ${cars} cars`);
+  }
+});

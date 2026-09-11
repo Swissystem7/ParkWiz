@@ -937,16 +937,24 @@ const CURB_TYPES = {
 };
 function lerp(a, b, t) { return [ a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t ]; }
 // דטרמיניסטי לפי רחוב: פינות = אדום-לבן (החוק: 12 מ' מהצומת), באמצע שילוב של סוג הרחוב + שמורות + אפור
+// סוג של קטע אבן-שפה אחד. הופרד מהלולאה כדי שהכלל «קטע שוליים נשאר שוליים»
+// יהיה ניתן לבדיקה בפני עצמו: בנתוני ההדגמה הנוכחיים אף קטע פנימי בשני רחובות
+// השוליים לא נופל בטווח הגיוון (0.12–0.30), ולכן בדיקה שמסתכלת רק על הנתונים
+// האלה מאשרת את הכלל בלי להריץ אותו פעם אחת.
+// מה שהכלל אומר: על רחוב שוליים, קטע הוא שוליים או אדום-לבן. אדום-לבן הוא
+// סימון כביש בפינה, לא תא מסומן; שמורה וכחול-לבן הם תאים מסומנים, ושוליים
+// אינם הופכים לתא מסומן בשום ענף.
+function curbTypeFor(streetType, seed, i, N) {
+  if (i === 0 || i === N-1) return seed < 0.7 ? 'red' : streetType;      // פינות
+  if (seed < 0.12) return streetType === 'shoulder' ? 'shoulder' : 'reserved';
+  if (seed < 0.30) return streetType === 'shoulder' ? 'shoulder' : (streetType === 'free' ? 'blue' : 'free');
+  return streetType;
+}
 const CURBS = STREETS_DEF.map((s, idx) => {
   const N = 6, out = [];
   for (let i = 0; i < N; i++) {
     const seed = Math.abs(Math.sin(idx*7.13 + i*3.7)) ;
-    let type;
-    if (i === 0 || i === N-1) type = seed < 0.7 ? 'red' : s.type;         // פינות
-    else if (seed < 0.12) type = 'reserved';
-    // שוליים לא מתגוונים לתא מסומן: קטע שוליים נשאר שוליים
-    else if (seed < 0.30) type = s.type === 'shoulder' ? 'shoulder' : (s.type === 'free' ? 'blue' : 'free');
-    else type = s.type;
+    const type = curbTypeFor(s.type, seed, i, N);
     out.push({ a: lerp(s.a, s.b, i/N), b: lerp(s.a, s.b, (i+1)/N), type,
                mid: lerp(s.a, s.b, (i+0.5)/N), street: idx });
   }
