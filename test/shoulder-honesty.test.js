@@ -6,21 +6,40 @@
 // markings and municipal bylaws; getting that wrong costs a person a ticket or a
 // tow. So no user-facing string may carry that vocabulary, in Hebrew or English.
 //
-// Coverage is enumerated, not sampled. Every string this file checks is listed
-// in COVERED below, and the enumerations are asserted to be exhaustive: add a
-// string export to src/lib/shoulder.js, or a key to SHOULDER_COPY in index.html,
-// and this test fails until the new string is listed here and scanned - a new
-// string cannot slip in beside a covered one and be silently exempt.
+// WHAT THIS GUARD COVERS, AND WHAT IT DOES NOT
+// An earlier version of this file scanned only what was written between the
+// pw:shoulder-copy markers. That made "nothing is silently exempt" true only of
+// strings added in the right place: a shipped string written anywhere else in
+// the page escaped the scan completely. So the Hebrew scan below does not care
+// where a string was written. It reads every shipped HTML surface and every
+// shipped script whole - markup, scripts, attributes, comments, identifiers -
+// and fails if a Hebrew permission word appears in any of them. The English
+// scan is narrower on purpose, because English words like "legal" appear in
+// identifiers that claim nothing (pwOpenLegal is the terms-of-use modal): it
+// reads the page's visible markup and every quoted literal that contains a
+// Hebrew letter, which is what a Hebrew-speaking user is shown.
+//
+// It still cannot do two things, and neither is claimed: it scans text, not
+// meaning, so a sentence that implies permission without using one of these
+// words would pass; and it scans what is in the repo, so a string injected at
+// runtime by something outside the repo is out of reach.
+//
+// Coverage of the shoulder copy itself is enumerated and asserted exhaustive:
+// the SHOULDER_COPY keys are read from the RUNNING page, not matched out of the
+// source, so a key written with different indentation or with double quotes
+// cannot slip past the enumeration.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const SH = require('../src/lib/shoulder');
+const { loadPage } = require('./helpers/parkwiz-page');
 
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const shoulderSrc = fs.readFileSync(path.join(root, 'src', 'lib', 'shoulder.js'), 'utf8');
 const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
+const SHOULDER_COPY = loadPage().page.SHOULDER_COPY;
 
 // Saying any of these about a place to park is a claim about permission, which
 // this product does not have the data to make and must never make.
@@ -34,23 +53,34 @@ const FORBIDDEN_EN = [
   'you may park', 'ok to park', 'free to park',
 ];
 
-function scan(label, text) {
+function scanHe(label, text) {
   const s = String(text == null ? '' : text);
   for (const word of FORBIDDEN_HE) {
     assert.ok(!s.includes(word), `${label} says "${word}": ParkWiz does not rule on permission`);
   }
-  const lower = s.toLowerCase();
+}
+
+function scanEn(label, text) {
+  const lower = String(text == null ? '' : text).toLowerCase();
   for (const word of FORBIDDEN_EN) {
     assert.ok(!lower.includes(word), `${label} says "${word}": ParkWiz does not rule on permission`);
   }
 }
 
+function scan(label, text) {
+  scanHe(label, text);
+  scanEn(label, text);
+}
+
 // ─── what is covered ────────────────────────────────────────────────────────
 const COVERED = [
+  'every shipped .html in the repo root, whole file: the Hebrew vocabulary, wherever a string is written',
+  'sw.js, availability-model.js and every src/lib/*.js, whole file: the same Hebrew vocabulary',
+  'index.html: the English vocabulary in the visible markup (tags stripped) and in every quoted literal that contains a Hebrew letter',
   'src/lib/shoulder.js: every string-valued export (LABEL_HE, SHORT_LABEL_HE, CURB_LABEL_HE, TARIFF_HE, NOTICE_HE, WHY_HE, SURFACE)',
   'src/lib/shoulder.js: the whole module source, comments included',
+  'index.html: every value of the SHOULDER_COPY object as the running page holds it, key by key',
   'index.html: every pw:shoulder-copy region - the filter chip, the legend row, and the SHOULDER_COPY block',
-  'index.html: every value in SHOULDER_COPY, key by key',
   'index.html: every CURB_TYPES label, shoulder and bay alike',
   'index.html: the nearby-suggestions empty-list line',
   'README.md: every line that mentions שוליים, whatever it says',
@@ -67,6 +97,36 @@ const EXPECTED_COPY_KEYS = [
   'runMany', 'runOne', 'runShort', 'runMeta',
 ];
 
+const HEBREW = /[֐-׿]/;
+
+function shippedFiles() {
+  const out = fs.readdirSync(root).filter((f) => f.endsWith('.html')).map((f) => f);
+  out.push('sw.js', 'availability-model.js');
+  for (const f of fs.readdirSync(path.join(root, 'src', 'lib'))) {
+    if (f.endsWith('.js')) out.push(path.join('src', 'lib', f));
+  }
+  return out;
+}
+
+// The page as a reader sees it: scripts, styles and tags removed.
+function visibleMarkup(text) {
+  return text
+    .replace(/<script[\s\S]*?<\/script>/g, ' ')
+    .replace(/<style[\s\S]*?<\/style>/g, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<[^>]*>/g, ' ');
+}
+
+// Every quoted literal that carries Hebrew - wherever it is written, in a
+// marked region or not, in a script block or in an inline onclick.
+function hebrewLiterals(text) {
+  const out = [];
+  const re = /'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`/g;
+  let m;
+  while ((m = re.exec(text)) !== null) if (HEBREW.test(m[0])) out.push(m[0]);
+  return out;
+}
+
 function copyRegions() {
   const out = [];
   const re = /pw:shoulder-copy:start([\s\S]*?)pw:shoulder-copy:end/g;
@@ -75,14 +135,10 @@ function copyRegions() {
   return out;
 }
 
-function shoulderCopyEntries() {
+function copyBlock() {
   const block = copyRegions().find((r) => r.includes('const SHOULDER_COPY'));
   assert.ok(block, 'SHOULDER_COPY must live inside a pw:shoulder-copy region');
-  const entries = [];
-  const re = /^\s{2}([A-Za-z][A-Za-z0-9]*):\s*'([^']*)',\s*$/gm;
-  let m;
-  while ((m = re.exec(block)) !== null) entries.push([m[1], m[2]]);
-  return entries;
+  return block;
 }
 
 function curbLabels() {
@@ -96,7 +152,7 @@ function curbLabels() {
 }
 
 test('the coverage list is not empty and the enumerations are exhaustive', () => {
-  assert.ok(COVERED.length >= 7);
+  assert.ok(COVERED.length >= 10);
 
   const moduleStringKeys = Object.entries(SH)
     .filter(([, v]) => typeof v === 'string')
@@ -107,11 +163,37 @@ test('the coverage list is not empty and the enumerations are exhaustive', () =>
     'a string export of shoulder.js is not listed in this honesty test - list it and it gets scanned'
   );
 
-  const copyKeys = shoulderCopyEntries().map(([k]) => k).sort();
+  // read from the running page, so indentation and quoting cannot hide a key
+  const copyKeys = Object.keys(SHOULDER_COPY).sort();
   assert.deepEqual(
     copyKeys, [...EXPECTED_COPY_KEYS].sort(),
     'a SHOULDER_COPY key is not listed in this honesty test - list it and it gets scanned'
   );
+});
+
+test('every SHOULDER_COPY key is declared inside a marked region', () => {
+  const block = copyBlock();
+  for (const key of Object.keys(SHOULDER_COPY)) {
+    assert.match(block, new RegExp('(^|\\n)\\s*' + key + '\\s*:'),
+      `SHOULDER_COPY.${key} is not written inside the pw:shoulder-copy block`);
+  }
+});
+
+test('no Hebrew permission word appears in any shipped file, anywhere in it', () => {
+  const files = shippedFiles();
+  assert.ok(files.length >= 12, `expected the shipped surfaces, got ${files.length}`);
+  assert.ok(files.includes('index.html'));
+  assert.ok(files.includes(path.join('src', 'lib', 'shoulder.js')));
+  for (const rel of files) {
+    scanHe(rel, fs.readFileSync(path.join(root, rel), 'utf8'));
+  }
+});
+
+test('no English permission word appears in what the page shows', () => {
+  scanEn('index.html markup', visibleMarkup(html));
+  const literals = hebrewLiterals(html);
+  assert.ok(literals.length >= 100, `expected the page's Hebrew strings, found ${literals.length}`);
+  literals.forEach((lit, i) => scanEn(`index.html Hebrew literal ${i + 1} (${lit.slice(0, 40)})`, lit));
 });
 
 test('no string the module exports claims parking is permitted', () => {
@@ -129,19 +211,19 @@ test('every shoulder copy region in the page is clean', () => {
 });
 
 test('every SHOULDER_COPY value is clean, key by key', () => {
-  for (const [key, value] of shoulderCopyEntries()) {
+  for (const [key, value] of Object.entries(SHOULDER_COPY)) {
+    assert.equal(typeof value, 'string', `SHOULDER_COPY.${key} is not a string`);
     assert.ok(value.length > 0, `SHOULDER_COPY.${key} is empty`);
     scan(`SHOULDER_COPY.${key}`, value);
   }
 });
 
 test('the page copy and the module constants have not drifted apart', () => {
-  const copy = Object.fromEntries(shoulderCopyEntries());
-  assert.equal(copy.typeLabel, SH.LABEL_HE);
-  assert.equal(copy.curb, SH.CURB_LABEL_HE);
-  assert.equal(copy.tariff, SH.TARIFF_HE);
-  assert.equal(copy.notice, SH.NOTICE_HE);
-  assert.equal(copy.why, SH.WHY_HE);
+  assert.equal(SHOULDER_COPY.typeLabel, SH.LABEL_HE);
+  assert.equal(SHOULDER_COPY.curb, SH.CURB_LABEL_HE);
+  assert.equal(SHOULDER_COPY.tariff, SH.TARIFF_HE);
+  assert.equal(SHOULDER_COPY.notice, SH.NOTICE_HE);
+  assert.equal(SHOULDER_COPY.why, SH.WHY_HE);
 });
 
 test('every curb label on the map is clean, shoulder and marked bay alike', () => {
