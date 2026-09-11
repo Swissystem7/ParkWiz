@@ -233,3 +233,59 @@ test('an empty shoulder shorter than the car is not called crowded', () => {
   assert.ok(row.includes(FIT_WORDS.tooShort), row);
   assert.ok(!row.includes('עמוס'), 'bay vocabulary (crowded) on a length-fit score of 0%');
 });
+
+// ─── שתי שורות על אותם שוליים, אותו רגע ──────────────────────────────────────
+// The shoulder note said "room for about 2 cars" and the vehicle-fit line one
+// line below said "✗ too narrow for your car (estimated gap 4.7 m)" about the
+// same shoulder at the same moment: the fit line was still running the marked
+// bay's gap model, which invents a gap from the street index. On a shoulder it
+// now reads the same free run the percentage and the car count come from.
+const RUN_WORDS = {
+  many: '✓ הקטע הפנוי המשוער מכיל את הרכב שלך בנוח',
+  one: '⚠ הקטע הפנוי המשוער מכיל את הרכב שלך בצמצום',
+  short: '✗ הקטע הפנוי המשוער קצר מהרכב שלך',
+};
+
+test('the shoulder note and the vehicle-fit line describe the same free run', () => {
+  const { page, els } = loadPage({ now: FIXED_NOW });
+  const idx = page.STREETS_DEF.findIndex((s) => s.name === 'בן גוריון');
+  // signal 25 -> free run 11.25 m, shown floored to 11.2; a sedan needs 4.9 m,
+  // so two cars fit and the fit line must agree with the room line.
+  assert.equal(page.getStreetSignalPct(idx), 25);
+  assert.equal(page.shoulderFreeRunM(idx, 25), 11.2);
+  assert.equal(page.shoulderCarsFree(idx, 25), 2);
+
+  page.renderSidePanel();
+  const row = rowFor(written(els, 'spotsList'), 'בן גוריון');
+  assert.ok(row.includes('לפי ההערכה יש מקום לכ- 2 רכבים בגודל שלך לאורך הקטע הפנוי'), row);
+  assert.ok(row.includes(RUN_WORDS.many), row);
+  assert.ok(row.includes('(קטע פנוי משוער 11.2 מטר · הרכב שלך צריך 4.9 מטר)'), row);
+  assert.ok(!row.includes('צר מדי'), 'the bay gap verdict is still shown on a shoulder');
+  assert.ok(!row.includes('מרווח משוער'), 'the bay gap model is still describing a shoulder');
+
+  // a marked bay keeps the gap model it always had
+  const bayRow = rowFor(written(els, 'spotsList'), 'הרצל');
+  assert.ok(bayRow.includes('מרווח משוער'), bayRow);
+});
+
+test('the room line and the fit line cannot disagree, for any car at any hour', () => {
+  const hours = ['2026-07-14T08:00:00+03:00', '2026-07-14T10:00:00+03:00', '2026-07-14T18:00:00+03:00'];
+  for (const vehicle of ['small', 'sedan', 'suv', 'van']) {
+    for (const iso of hours) {
+      const { page, store } = loadPage({ now: new Date(iso).getTime() });
+      store.pw_vehicle = vehicle;
+      page.STREETS_DEF.forEach((s, idx) => {
+        if (!page.isShoulderStreet(idx)) return;
+        const signal = page.getStreetSignalPct(idx);
+        const room = page.shoulderRoomLine(idx, signal);
+        const fit = page.fitInfo(idx);
+        const noRoom = room === page.SHOULDER_COPY.roomNone;
+        assert.equal(noRoom, fit.txt === RUN_WORDS.short,
+          `${s.name} ${vehicle} ${iso}: room="${room}" fit="${fit.txt}"`);
+        assert.equal(room === page.SHOULDER_COPY.roomOne, fit.txt === RUN_WORDS.one,
+          `${s.name} ${vehicle} ${iso}: room="${room}" fit="${fit.txt}"`);
+        assert.equal(fit.gap, page.shoulderFreeRunM(idx, signal));
+      });
+    }
+  }
+});

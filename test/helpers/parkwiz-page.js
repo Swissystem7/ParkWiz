@@ -106,7 +106,7 @@ function loadPage(opts) {
     getStreetHourlyModelSeries, parkingTypeLabel, parkingTariffLabel, shoulderNoteHtml,
     shoulderMapTag, isShoulderStreet, isShoulderType, surfaceAdjustedPct,
     chanceHeadingFor, chanceWordFor, surfaceLevelLabel, surfaceHeadline, streetTooltipText,
-    chanceBadgeHTML, fitInfo, streetGap, shoulderRoomLine,
+    chanceBadgeHTML, fitInfo, streetGap, shoulderRoomLine, shoulderFreeRunM, shoulderCarsFree,
     renderSidePanel, renderStreetCard, arrivalMode, initRealMap,
     setVehicleId: (v) => { localStorage.setItem('pw_vehicle', v); } };`;
   vm.runInContext(lines.slice(open + 1, close).join('\n') + exportLine, sandbox, { filename: 'index.html' });

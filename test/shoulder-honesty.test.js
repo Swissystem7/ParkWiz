@@ -64,6 +64,7 @@ const EXPECTED_COPY_KEYS = [
   'roomMany', 'roomOne', 'roomNone', 'noEstimate',
   'fitBadge', 'fitShort', 'fitLevelHigh', 'fitLevelMid', 'fitLevelLow', 'fitLevelUnknown',
   'fitHeadlineHigh', 'fitHeadlineMid', 'fitHeadlineLow',
+  'runMany', 'runOne', 'runShort', 'runMeta',
 ];
 
 function copyRegions() {

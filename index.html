@@ -912,6 +912,10 @@ const SHOULDER_COPY = {
   fitHeadlineHigh: '🎯 התאמת אורך {n}% — לפי ההערכה הקטע הפנוי מכיל כמה רכבים בגודל שלך',
   fitHeadlineMid: '🎯 התאמת אורך {n}% — לפי ההערכה הקטע הפנוי מכיל רכב אחד בגודל שלך',
   fitHeadlineLow: '🎯 התאמת אורך {n}% — הקטע הפנוי המשוער קצר מהרכב שלך; שקול רחוב אחר',
+  runMany: '✓ הקטע הפנוי המשוער מכיל את הרכב שלך בנוח',
+  runOne: '⚠ הקטע הפנוי המשוער מכיל את הרכב שלך בצמצום',
+  runShort: '✗ הקטע הפנוי המשוער קצר מהרכב שלך',
+  runMeta: '(קטע פנוי משוער {m} מטר · הרכב שלך צריך {need} מטר)',
 };
 /* pw:shoulder-copy:end */
 
@@ -1294,13 +1298,32 @@ function renderPrivateList() {
         ${p.booked?('שלך עד '+p.until+' ✓'):'הזמן'}</button>
     </div>`).join('');
 }
+// התאמת הרכב למקום. בתא מסומן: המרווח המשוער שהשאיר הרכב האחרון שיצא.
+// בשוליים אין «הרכב האחרון שיצא» ואין תא — יש קטע פנוי אחד — ולכן השורה
+// הזו נגזרת מאותו קטע פנוי שממנו נגזרים גם האחוז וגם שורת «כמה רכבים
+// נכנסים». הדירוג נקבע לפי מספר הרכבים עצמו, ולכן שתי השורות הסמוכות
+// אינן יכולות לספר שני סיפורים על אותם שוליים באותו רגע.
 function fitInfo(idx) {
-  const gap = streetGap(idx);
   const need = getVehicle().len + 0.4; // מרווח תמרון
+  const needTxt = Math.round(need * 10) / 10;
+  if (isShoulderStreet(idx)) {
+    const signalPct = getStreetSignalPct(idx);
+    const run = shoulderFreeRunM(idx, signalPct);
+    const cars = shoulderCarsFree(idx, signalPct);
+    if (run === null || cars === null) {
+      return { txt: SHOULDER_COPY.noEstimate, color:'var(--muted)', gap:null, meta:'' };
+    }
+    const txt = cars >= 2 ? SHOULDER_COPY.runMany : cars === 1 ? SHOULDER_COPY.runOne : SHOULDER_COPY.runShort;
+    const color = cars >= 2 ? '#22c55e' : cars === 1 ? '#eab308' : '#ef4444';
+    return { txt, color, gap: run,
+             meta: SHOULDER_COPY.runMeta.replace('{m}', run).replace('{need}', needTxt) };
+  }
+  const gap = streetGap(idx);
   const ratio = gap / need;
-  if (ratio >= 1.15) return { txt:'✓ מתאים לרכב שלך', color:'#22c55e', gap };
-  if (ratio >= 0.98) return { txt:'⚠ צפוף לרכב שלך', color:'#eab308', gap };
-  return { txt:'✗ צר מדי לרכב שלך', color:'#ef4444', gap };
+  const meta = `(מרווח משוער ${gap} מ')`;
+  if (ratio >= 1.15) return { txt:'✓ מתאים לרכב שלך', color:'#22c55e', gap, meta };
+  if (ratio >= 0.98) return { txt:'⚠ צפוף לרכב שלך', color:'#eab308', gap, meta };
+  return { txt:'✗ צר מדי לרכב שלך', color:'#ef4444', gap, meta };
 }
 // ─── ניווט חיצוני: Waze + Google Maps (deep links רשמיים) ──────────
 function navWaze(idx, ev) {
@@ -1593,6 +1616,14 @@ function shoulderMapTag(type) {
 }
 // כמה רכבים בגודל של המשתמש נכנסים לקטע הפנוי — הערכה מאורך,
 // לא ספירה של מקומות שנצפו.
+// אורך הקטע הפנוי לפי כלל השוליים. מעוגל כלפי מטה לתצוגה: הערכה של מקום
+// פנוי עדיף שתטעה לחסר, ומספר מעוגל כלפי מעלה היה יכול להיראות שווה לאורך
+// שהרכב צריך בזמן שהוא קצר ממנו.
+function shoulderFreeRunM(idx, signalPct) {
+  const s = STREETS_DEF[idx];
+  const run = PW_SHOULDER ? PW_SHOULDER.freeRunM(s.shoulderM, signalPct) : null;
+  return run === null ? null : Math.floor(run * 10) / 10;
+}
 function shoulderCarsFree(idx, signalPct) {
   const s = STREETS_DEF[idx];
   return PW_SHOULDER ? PW_SHOULDER.vehicleLengthsFree({
@@ -1822,7 +1853,7 @@ function renderSidePanel() {
       </div>
       <div class="spot-tariff">${tariffLabel}</div>
       ${isShoulderStreet(s.idx) ? shoulderNoteHtml(s.idx, getStreetSignalPct(s.idx)) : ''}
-      <div style="margin-top:4px;font-size:0.66rem;font-weight:700;color:${fit.color}">${fit.txt} <span style="color:var(--muted);font-weight:400">(מרווח משוער ${fit.gap} מ')</span></div>
+      <div style="margin-top:4px;font-size:0.66rem;font-weight:700;color:${fit.color}">${fit.txt} <span style="color:var(--muted);font-weight:400">${fit.meta}</span></div>
       <div style="height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:6px;overflow:hidden">
         <div style="height:100%;width:${s.predictedPct}%;background:${color};border-radius:2px;transition:width.5s"></div>
       </div>
