@@ -267,6 +267,10 @@ test('the notice says who decides, and says ParkWiz does not', () => {
   assert.match(notice, /בדיקה בשטח/);
 });
 
+// These are source-level assertions and they prove only that the call sites are
+// WRITTEN. A branch that is never taken would satisfy every one of them, so the
+// proof that the notice is actually REACHED lives in test/shoulder-ui.test.js,
+// which renders each of the three surfaces and reads the notice back out.
 test('the notice travels with every shoulder result on the page', () => {
   const uses = html.match(/SHOULDER_COPY\.notice/g) || [];
   assert.ok(uses.length >= 2, 'the notice must be rendered, not merely defined');

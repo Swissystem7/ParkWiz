@@ -333,3 +333,46 @@ test('the recommended-streets card ranks and shows the live number too', () => {
       `${s.name}: ${reco}`);
   });
 });
+
+// ─── ההודעה מגיעה למסך, לא רק לקוד ───────────────────────────────────────────
+// The honesty guard asserts the notice's call sites with a regex over the
+// source. A dead branch satisfies that: if a shoulder simply never reached the
+// arrival panel's suggestion list, the regex would still pass and the notice
+// would never be shown. These tests render all three surfaces and read it back.
+test('the notice is reached on all three surfaces that show a shoulder', () => {
+  const { page, els } = loadPage({ now: FIXED_NOW });
+  const notice = page.SHOULDER_COPY.notice;
+  const idx = page.STREETS_DEF.findIndex((s) => s.name === 'בן גוריון');
+  const bayIdx = page.STREETS_DEF.findIndex((s) => s.name === 'הרצל');
+  const s = page.STREETS_DEF[idx];
+
+  // 1. the list row
+  page.renderSidePanel();
+  const list = written(els, 'spotsList');
+  assert.ok(rowFor(list, 'בן גוריון').includes(notice), 'the list row never rendered the notice');
+  assert.ok(!rowFor(list, 'הרצל').includes(notice), 'a marked bay row carries the shoulder notice');
+
+  // 2. the street card
+  page.renderStreetCard(idx, false);
+  assert.ok(written(els, 'scShoulder').includes(notice), 'the street card never rendered the notice');
+  page.renderStreetCard(bayIdx, false);
+  assert.equal(written(els, 'scShoulder'), '', 'the card kept the shoulder note on a marked bay');
+
+  // 3. the arrival panel — only reached if a shoulder is really suggested there
+  page.initRealMap();
+  page.arrivalMode(s.lat, s.lng, 'יעד בדיקה');
+  const panel = written(els, 'arrivalPanel');
+  assert.ok(panel.includes('בן גוריון'), 'the arrival panel did not suggest the shoulder street at all');
+  assert.ok(panel.includes(notice), 'the arrival panel suggested a shoulder without the notice');
+});
+
+test('the notice is not shown where no shoulder is suggested', () => {
+  const { page, els } = loadPage({ now: FIXED_NOW });
+  const notice = page.SHOULDER_COPY.notice;
+  const far = { lat: 32.4000, lng: 34.9500 }; // outside the 300 m radius of any curb
+  page.initRealMap();
+  page.arrivalMode(far.lat, far.lng, 'יעד רחוק');
+  const panel = written(els, 'arrivalPanel');
+  assert.ok(!panel.includes('בן גוריון') && !panel.includes('דן שומרון'), panel.slice(0, 200));
+  assert.ok(!panel.includes(notice), 'the notice is shown where no shoulder was suggested');
+});
