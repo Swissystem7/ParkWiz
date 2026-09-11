@@ -1348,7 +1348,7 @@ function getStreetHourlySignalSeries(streetIdx, referenceDate = new Date()) {
   });
 }
 
-// אותו כלל משטח בכל משבצת שעה, כדי שהגרף והמספר לא יספרו שתי ספורים.
+// אותו כלל משטח בכל משבצת שעה, כדי שהגרף והמספר לא יספרו שני סיפורים.
 function getStreetHourlyModelSeries(streetIdx, referenceDate = new Date()) {
   return getStreetHourlySignalSeries(streetIdx, referenceDate)
     .map((pct) => surfaceAdjustedPct(streetIdx, pct));

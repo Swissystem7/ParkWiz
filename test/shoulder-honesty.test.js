@@ -20,6 +20,7 @@ const SH = require('../src/lib/shoulder');
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const shoulderSrc = fs.readFileSync(path.join(root, 'src', 'lib', 'shoulder.js'), 'utf8');
+const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
 
 // Saying any of these about a place to park is a claim about permission, which
 // this product does not have the data to make and must never make.
@@ -52,6 +53,7 @@ const COVERED = [
   'index.html: every value in SHOULDER_COPY, key by key',
   'index.html: every CURB_TYPES label, shoulder and bay alike',
   'index.html: the nearby-suggestions empty-list line',
+  'README.md: every line that mentions שוליים, whatever it says',
 ];
 
 const EXPECTED_MODULE_STRING_KEYS = [
@@ -91,7 +93,7 @@ function curbLabels() {
 }
 
 test('the coverage list is not empty and the enumerations are exhaustive', () => {
-  assert.ok(COVERED.length >= 6);
+  assert.ok(COVERED.length >= 7);
 
   const moduleStringKeys = Object.entries(SH)
     .filter(([, v]) => typeof v === 'string')
@@ -157,6 +159,19 @@ test('the nearby-suggestions list does not rule on any curb segment', () => {
 // The notice is the other half of the rule: not only must nothing claim
 // permission, the page must say out loud, beside the shoulder number, that the
 // question is not ours to answer and that signs and markings answer it.
+// The README is read by the same people, so it is held to the same rule, and by
+// line rather than by a fixed quote: a new sentence about שוליים is scanned the
+// moment it is written.
+test('the README says what the shoulder surface does and does not claim', () => {
+  const lines = readme.split('\n').filter((line) => line.includes('שוליים'));
+  assert.ok(lines.length >= 1, 'the README must describe the shoulder surface');
+  lines.forEach((line, i) => scan(`README shoulder line ${i + 1}`, line));
+  assert.ok(
+    lines.some((line) => line.includes('אינו מכריע') && line.includes('שילוט')),
+    'the README must say who decides the question ParkWiz does not answer'
+  );
+});
+
 test('the notice says who decides, and says ParkWiz does not', () => {
   const notice = SH.NOTICE_HE;
   assert.match(notice, /שילוט/);
