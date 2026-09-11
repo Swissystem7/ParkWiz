@@ -893,13 +893,25 @@ const SHOULDER_COPY = {
   curb: 'שוליים (לא מסומן) — שילוט קובע',
   tariff: '💰 תעריף חניה: לא ידוע לשוליים — שילוט ותמרור קובעים',
   notice: '🛞 שוליים — הערכת זמינות בלבד: כמה מקום פנוי צפוי להיות. ParkWiz אינו מכריע אם לעצור או להחנות כאן — שילוט, תמרור וסימון הכביש קובעים, ובדיקה בשטח לפני שחונים.',
-  why: 'שוליים מתמלאים מקצה אחד, אחרונים אחרי הכחול-לבן — לכן הסיכוי כאן נגזר מאורך הקטע הפנוי מול אורך הרכב שלך, ולא מאחוז תפוסה.',
+  why: 'שוליים מתמלאים מקצה אחד, אחרונים אחרי הכחול-לבן — לכן המספר כאן הוא התאמת אורך: הקטע הפנוי המשוער מול אורך הרכב שלך, ולא אחוז תפוסה.',
   listTag: 'שוליים — לא תא מסומן',
   mapTag: 'שוליים',
   roomMany: 'לפי ההערכה יש מקום לכ- {n} רכבים בגודל שלך לאורך הקטע הפנוי',
   roomOne: 'לפי ההערכה יש מקום לרכב אחד בגודל שלך לאורך הקטע הפנוי',
   roomNone: 'לפי ההערכה אין כרגע קטע פנוי באורך הרכב שלך בשוליים האלה',
   noEstimate: 'אין הערכת זמינות לשוליים האלה — חסר נתון אורך הקטע',
+  // המספר ליד שוליים אינו הסתברות למצוא חניה אלא ציון התאמת אורך: הקטע
+  // הפנוי המשוער מול הרכב שלך. השמות כאן אומרים את זה, וכל שורה מילולית
+  // נגזרת מאותם שני מטרים כמו המספר — לכן שתיים מהן לא יכולות לסתור זו את זו.
+  fitBadge: 'התאמת אורך לרכב שלך',
+  fitShort: 'התאמת אורך',
+  fitLevelHigh: 'מקום משוער לכמה רכבים בגודל שלך',
+  fitLevelMid: 'מקום משוער לרכב אחד בגודל שלך',
+  fitLevelLow: 'הקטע הפנוי קצר מהרכב שלך',
+  fitLevelUnknown: 'אין הערכת התאמה',
+  fitHeadlineHigh: '🎯 התאמת אורך {n}% — לפי ההערכה הקטע הפנוי מכיל כמה רכבים בגודל שלך',
+  fitHeadlineMid: '🎯 התאמת אורך {n}% — לפי ההערכה הקטע הפנוי מכיל רכב אחד בגודל שלך',
+  fitHeadlineLow: '🎯 התאמת אורך {n}% — הקטע הפנוי המשוער קצר מהרכב שלך; שקול רחוב אחר',
 };
 /* pw:shoulder-copy:end */
 
@@ -1019,7 +1031,7 @@ async function planVacation() {
 
   const rows = opts.map(o => `
     <div onclick="selectStreet(${o.i})" style="display:flex;justify-content:space-between;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:4px;font-size:.72rem;cursor:pointer">
-      <div>🅿 רחוב ${o.s.name} <span style="color:${availColor(o.prob)}">סיכוי ${o.prob}%</span> ב-${VAC_HOURS[hi]}</div>
+      <div>🅿 רחוב ${o.s.name} <span style="color:${availColor(o.prob)}">${chanceWordFor(o.s.type)} ${o.prob}%</span> ב-${VAC_HOURS[hi]}</div>
       <div>${o.dist} מ' · ~${Math.max(1,Math.round(o.dist/80))} דק' הליכה</div>
     </div>`).join('');
 
@@ -1090,7 +1102,7 @@ function initRealMap() {
       radius: 13, color:'#0c1a0c', weight:2,
       fillColor: availColor(pct), fillOpacity: 0.95,
     }).addTo(realMap);
-    mk.bindTooltip(`${s.name}${shoulderMapTag(s.type)} · סיכוי ${pct}% (הערכה, לא הבטחה)`, {direction:'top'});
+    mk.bindTooltip(streetTooltipText(idx, pct), {direction:'top'});
     mk.on('click', () => selectStreet(idx));
     midMarkers.push(mk);
   });
@@ -1108,7 +1120,7 @@ function updateRealMap() {
     const pct = getCurrentHourAvailabilityPct(idx);
     if (midMarkers[idx]) {
       midMarkers[idx].setStyle({ fillColor: availColor(pct) });
-      midMarkers[idx].bindTooltip(`${s.name}${shoulderMapTag(s.type)} · סיכוי ${pct}% (הערכה, לא הבטחה)`, {direction:'top'});
+      midMarkers[idx].bindTooltip(streetTooltipText(idx, pct), {direction:'top'});
     }
     if (segLayers[idx]) segLayers[idx].setStyle({
       opacity: activeFilters[s.type] ? 0.85 : 0.15,
@@ -1517,8 +1529,50 @@ function chanceLevel(pct) {
   return 'low';
 }
 
-function chanceBadgeHTML(pct) {
-  return `<span class="chance-badge chance-${chanceLevel(pct)}"><span>סיכוי למצוא חניה</span><strong>${pct}%</strong></span>`;
+// ─── איך קוראים למספר ─────────────────────────────────
+// בתא מסומן המספר הוא סיכוי למצוא חניה. בשוליים הוא ציון התאמת אורך בין
+// הקטע הפנוי המשוער לרכב שלך — אותו מספר, אבל לא הסתברות, ולכן לא אותו שם.
+// כל כותרת שמוצגת ליד המספר עוברת דרך הפונקציות האלה.
+function chanceHeadingFor(type) {
+  return isShoulderType(type) ? SHOULDER_COPY.fitBadge : 'סיכוי למצוא חניה';
+}
+function chanceWordFor(type) {
+  return isShoulderType(type) ? SHOULDER_COPY.fitShort : 'סיכוי';
+}
+// הדירוג המילולי ליד המספר. בשוליים הוא נגזר מאותה הערכה כמו המספר —
+// כמה רכבים בגודל שלך נכנסים לקטע הפנוי — ולכן 0% הוא «הקטע קצר מהרכב»
+// ולא «עמוס»: שוליים ריקים וקצרים מהרכב הם 0% בלי שאיש חונה שם.
+function surfaceLevelLabel(idx, pct, bayHigh, bayMid, bayLow) {
+  const s = STREETS_DEF[idx];
+  if (isShoulderType(s.type)) {
+    const cars = shoulderCarsFree(idx, getStreetSignalPct(idx));
+    if (cars === null) return SHOULDER_COPY.fitLevelUnknown;
+    if (cars === 0) return SHOULDER_COPY.fitLevelLow;
+    return cars === 1 ? SHOULDER_COPY.fitLevelMid : SHOULDER_COPY.fitLevelHigh;
+  }
+  return pct >= 70 ? bayHigh : pct >= 30 ? bayMid : bayLow;
+}
+function surfaceHeadline(idx, pct) {
+  const s = STREETS_DEF[idx];
+  if (isShoulderType(s.type)) {
+    const cars = shoulderCarsFree(idx, getStreetSignalPct(idx));
+    if (cars === null) return SHOULDER_COPY.noEstimate;
+    const t = cars === 0 ? SHOULDER_COPY.fitHeadlineLow
+      : cars === 1 ? SHOULDER_COPY.fitHeadlineMid : SHOULDER_COPY.fitHeadlineHigh;
+    return t.replace('{n}', pct);
+  }
+  if (pct >= 60) return `🎯 סיכוי גבוה (${pct}%) למצוא חניה ב-10 הדקות הקרובות`;
+  if (pct >= 30) return `🎯 סיכוי בינוני (${pct}%) למצוא חניה ב-10 הדקות הקרובות — ייתכן סיבוב או שניים`;
+  return `🎯 סיכוי נמוך (${pct}%) — שקול רחוב אחר`;
+}
+// הטולטיפ במפה — אותו כלל שמות, כדי שהעיגול במפה לא יקרא למספר בשם אחר
+// מזה שבכרטיס שנפתח בלחיצה עליו.
+function streetTooltipText(idx, pct) {
+  const s = STREETS_DEF[idx];
+  return `${s.name}${shoulderMapTag(s.type)} · ${chanceWordFor(s.type)} ${pct}% (הערכה, לא הבטחה)`;
+}
+function chanceBadgeHTML(pct, type) {
+  return `<span class="chance-badge chance-${chanceLevel(pct)}"><span>${chanceHeadingFor(type)}</span><strong>${pct}%</strong></span>`;
 }
 
 function parkingTypeLabel(type) {
@@ -1539,13 +1593,16 @@ function shoulderMapTag(type) {
 }
 // כמה רכבים בגודל של המשתמש נכנסים לקטע הפנוי — הערכה מאורך,
 // לא ספירה של מקומות שנצפו.
-function shoulderRoomLine(idx, signalPct) {
+function shoulderCarsFree(idx, signalPct) {
   const s = STREETS_DEF[idx];
-  const cars = PW_SHOULDER ? PW_SHOULDER.vehicleLengthsFree({
+  return PW_SHOULDER ? PW_SHOULDER.vehicleLengthsFree({
     shoulderLengthM: s.shoulderM,
     streetAvailPct: signalPct,
     vehicleLenM: getVehicle().len,
   }) : null;
+}
+function shoulderRoomLine(idx, signalPct) {
+  const cars = shoulderCarsFree(idx, signalPct);
   if (cars === null) return SHOULDER_COPY.noEstimate;
   if (cars === 0) return SHOULDER_COPY.roomNone;
   if (cars === 1) return SHOULDER_COPY.roomOne;
@@ -1741,7 +1798,7 @@ function renderSidePanel() {
 
   list.innerHTML = sorted.map(s => {
     const color = availColor(s.predictedPct);
-    const label = s.predictedPct>=70?'פנוי בקלות':s.predictedPct>=30?'בינוני':'עמוס';
+    const label = surfaceLevelLabel(s.idx, s.predictedPct, 'פנוי בקלות', 'בינוני', 'עמוס');
     const typeLabel = parkingTypeLabel(s.type);
     const tariffLabel = parkingTariffLabel(s.type);
     const redTag = s.red ? '<span style="font-size:0.62rem;color:#ef4444;font-weight:700"> ⛔ קטעי אדום-לבן</span>' : '';
@@ -1756,7 +1813,7 @@ function renderSidePanel() {
         </span>
         <span style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
           <span style="font-size:0.68rem;color:${color};font-weight:700">${s.predictedPct}%</span>
-          ${chanceBadgeHTML(chancePct)}
+          ${chanceBadgeHTML(chancePct, s.type)}
         </span>
       </div>
       <div class="spot-meta" style="margin-top:4px">
@@ -1784,7 +1841,7 @@ function renderStreetCard(idx, schedulePrompt) {
   const predictedPct = getCurrentHourAvailabilityPct(idx);
   const color = availColor(predictedPct);
   const chancePct = getCurrentHourAvailabilityPct(idx);
-  const label = predictedPct>=70?'קל למציאה':predictedPct>=30?'בינוני':'קשה — עמוס';
+  const label = surfaceLevelLabel(idx, predictedPct, 'קל למציאה', 'בינוני', 'קשה — עמוס');
   // הוסר מונה קהילה מדומה (Math.random) - נשאר commCount אמיתי + חיזוי הסתברותי
   const tariffLabel = parkingTariffLabel(s.type);
 
@@ -1793,10 +1850,10 @@ function renderStreetCard(idx, schedulePrompt) {
   document.getElementById('scPct').style.color = color;
   document.getElementById('scBarFill').style.width = predictedPct + '%';
   document.getElementById('scBarFill').style.background = color;
-  document.getElementById('scLabel').innerHTML = label + `<br><span style="font-size:0.7rem;color:var(--muted)">זמינות חניה · ${getArrivalLabel()}</span>`;
+  document.getElementById('scLabel').innerHTML = label + `<br><span style="font-size:0.7rem;color:var(--muted)">${chanceHeadingFor(s.type)} · ${getArrivalLabel()}</span>`;
   const scChanceBadge = document.getElementById('scChanceBadge');
   scChanceBadge.className = `chance-badge chance-${chanceLevel(chancePct)}`;
-  scChanceBadge.innerHTML = `<span>סיכוי למצוא חניה</span><strong>${chancePct}%</strong>`;
+  scChanceBadge.innerHTML = `<span>${chanceHeadingFor(s.type)}</span><strong>${chancePct}%</strong>`;
   document.getElementById('scTariff').textContent = tariffLabel;
   const scShoulder = document.getElementById('scShoulder');
   if (isShoulderStreet(idx)) {
@@ -1806,12 +1863,9 @@ function renderStreetCard(idx, schedulePrompt) {
     scShoulder.style.display = 'none';
     scShoulder.innerHTML = '';
   }
-  // Probabilistic language instead of point promises
-  const prob = chancePct;
-  let probText;
-  if (prob >= 60) probText = `🎯 סיכוי גבוה (${prob}%) למצוא חניה ב-10 הדקות הקרובות`;
-  else if (prob >= 30) probText = `🎯 סיכוי בינוני (${prob}%) למצוא חניה ב-10 הדקות הקרובות — ייתכן סיבוב או שניים`;
-  else probText = `🎯 סיכוי נמוך (${prob}%) — שקול רחוב אחר`;
+  // Probabilistic language instead of point promises — and on a shoulder,
+  // language about length instead of language about probability.
+  const probText = surfaceHeadline(idx, chancePct);
   const pangoNum = 2 + (typeof pangoEvents !== 'undefined' ? pangoEvents.filter(ev=>ev.streetIdx===idx).length : 0);
   const commScore = pwWeightedAvailability(idx, Date.now());
   const commCount = PW_COMMUNITY_REPORTS.filter(r => r.streetIdx === idx && Date.now() - r.ts <= 7200000).length;

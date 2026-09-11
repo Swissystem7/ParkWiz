@@ -8,62 +8,16 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const vm = require('node:vm');
 const SH = require('../src/lib/shoulder');
 
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 
-function fakeEl() {
-  return {
-    textContent: '', innerHTML: '', value: '0', checked: false, disabled: false,
-    style: {}, dataset: {},
-    classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
-    setAttribute() {}, getAttribute() { return ''; }, appendChild() {}, replaceChildren() {},
-    addEventListener() {}, remove() {}, querySelectorAll() { return []; },
-  };
-}
-
-// Run the page's main inline script and hand back the pieces the UI calls.
-function loadPage() {
-  const lines = html.split('\n');
-  const open = lines.findIndex((l, i) => i > 800 && l.trim() === '<script>');
-  const close = lines.findIndex((l, i) => i > open && l.trim() === '</script>');
-  assert.ok(open > 0 && close > open, 'could not find the main inline script in index.html');
-  const store = {};
-  const sandbox = {
-    console, Math, Date, Intl, JSON, Number, String, Array, Object, isNaN, parseInt, parseFloat,
-    setTimeout: () => 0, setInterval: () => 0, clearTimeout() {}, clearInterval() {},
-    localStorage: {
-      getItem: (k) => (k in store ? store[k] : null),
-      setItem: (k, v) => { store[k] = String(v); },
-      removeItem: (k) => { delete store[k]; },
-    },
-    document: {
-      getElementById: () => fakeEl(), querySelectorAll: () => [], createElement: () => fakeEl(),
-      addEventListener() {}, head: fakeEl(), body: fakeEl(), readyState: 'complete',
-    },
-    navigator: { serviceWorker: { register: () => Promise.resolve() }, geolocation: { getCurrentPosition() {} } },
-    location: { origin: 'http://localhost', href: 'http://localhost/' },
-    fetch: () => Promise.reject(new Error('no network in tests')),
-    alert() {}, open() {}, addEventListener() {}, removeEventListener() {},
-    requestAnimationFrame: () => 0, matchMedia: () => ({ matches: false, addEventListener() {} }),
-  };
-  sandbox.window = sandbox;
-  sandbox.globalThis = sandbox;
-  vm.createContext(sandbox);
-  for (const lib of ['src/lib/availability.js', 'src/lib/predict.js', 'src/lib/probability.js',
-    'src/lib/shoulder.js', 'availability-model.js']) {
-    vm.runInContext(fs.readFileSync(path.join(root, lib), 'utf8'), sandbox, { filename: lib });
-  }
-  const exportLine = `;globalThis.__PW = { STREETS_DEF, CURBS, CURB_TYPES, activeFilters, SHOULDER_COPY,
-    getStreetSignalPct, getStreetHourlySignalSeries, getCurrentHourAvailabilityPct,
-    getStreetHourlyModelSeries, parkingTypeLabel, parkingTariffLabel, shoulderNoteHtml,
-    shoulderMapTag, isShoulderStreet, surfaceAdjustedPct };`;
-  vm.runInContext(lines.slice(open + 1, close).join('\n') + exportLine, sandbox, { filename: 'index.html' });
-  return { page: sandbox.__PW, store };
-}
+// The harness lives in test/helpers/parkwiz-page.js: it runs the page's inline
+// script with a DOM stub that remembers what each render wrote, and a Leaflet
+// stub that records every tooltip, so a test can read the strings a person sees.
+const { loadPage, written, FIXED_NOW } = require('./helpers/parkwiz-page');
 
 const REF = new Date('2026-07-14T07:00:00+03:00'); // Tuesday, before the 08:00 slot
 
@@ -187,4 +141,95 @@ test('the offline shell ships the shoulder module', () => {
   const assetsBlock = sw.slice(sw.indexOf('const ASSETS'), sw.indexOf('];') + 2);
   assert.match(assetsBlock, /src\/lib\/shoulder\.js/);
   assert.match(html, /<script src="src\/lib\/shoulder\.js"><\/script>/);
+});
+
+// ─── התאמת אורך, לא סיכוי ────────────────────────────────────────────────────
+// The number beside a shoulder is a LENGTH-FIT score: free run against the
+// length of your car. Calling it "סיכוי למצוא חניה" (chance of finding parking)
+// is the right number under the wrong name, and the map tooltip carried no
+// reframing at all. Every surface below is RENDERED here, not grepped.
+const FIT_WORDS = {
+  badge: 'התאמת אורך לרכב שלך',
+  short: 'התאמת אורך',
+  manyCars: 'מקום משוער לכמה רכבים בגודל שלך',
+  oneCar: 'מקום משוער לרכב אחד בגודל שלך',
+  tooShort: 'הקטע הפנוי קצר מהרכב שלך',
+};
+const FIT_KEYS = ['fitBadge', 'fitShort', 'fitLevelHigh', 'fitLevelMid', 'fitLevelLow',
+  'fitLevelUnknown', 'fitHeadlineHigh', 'fitHeadlineMid', 'fitHeadlineLow'];
+
+function rowFor(listHtml, name) {
+  const row = listHtml.split('class="spot-item').find((r) => r.includes(name));
+  assert.ok(row, `no list row for ${name}`);
+  return row;
+}
+
+test('the shoulder copy names the number a length fit, word for word', () => {
+  const { page } = loadPage();
+  assert.equal(page.SHOULDER_COPY.fitBadge, FIT_WORDS.badge);
+  assert.equal(page.SHOULDER_COPY.fitShort, FIT_WORDS.short);
+  assert.equal(page.SHOULDER_COPY.fitLevelHigh, FIT_WORDS.manyCars);
+  assert.equal(page.SHOULDER_COPY.fitLevelMid, FIT_WORDS.oneCar);
+  assert.equal(page.SHOULDER_COPY.fitLevelLow, FIT_WORDS.tooShort);
+  for (const key of FIT_KEYS) {
+    assert.ok(page.SHOULDER_COPY[key], `SHOULDER_COPY.${key} is missing`);
+    assert.ok(!page.SHOULDER_COPY[key].includes('סיכוי'),
+      `SHOULDER_COPY.${key} calls a length-fit score a chance`);
+  }
+});
+
+test('every surface that shows a shoulder number renders it as a length fit', () => {
+  const { page, els, tooltips } = loadPage({ now: FIXED_NOW });
+  const idx = page.STREETS_DEF.findIndex((s) => s.name === 'בן גוריון');
+  const bayIdx = page.STREETS_DEF.findIndex((s) => s.name === 'הרצל');
+  // hand-derived: signal 25 -> street occupancy .75 -> spill .375 -> free run
+  // 11.25 m; a sedan needs 4.5+0.4 m -> ratio 2.2959 -> 69%, and 2 cars fit.
+  assert.equal(page.getStreetSignalPct(idx), 25);
+  assert.equal(page.getCurrentHourAvailabilityPct(idx), 69);
+
+  // the map circle
+  page.initRealMap();
+  const tip = tooltips.find((t) => t.startsWith('בן גוריון') && t.includes('%'));
+  assert.equal(tip, 'בן גוריון · שוליים · התאמת אורך 69% (הערכה, לא הבטחה)');
+  const bayTip = tooltips.find((t) => t.startsWith('הרצל') && t.includes('%'));
+  assert.match(bayTip, /^הרצל · סיכוי \d+% \(הערכה, לא הבטחה\)$/);
+
+  // the list row
+  page.renderSidePanel();
+  const row = rowFor(written(els, 'spotsList'), 'בן גוריון');
+  assert.ok(row.includes(`<span>${FIT_WORDS.badge}</span><strong>69%</strong>`), row);
+  assert.ok(row.includes(FIT_WORDS.manyCars), row);
+  assert.ok(!row.includes('סיכוי'), 'the rendered shoulder row still says סיכוי');
+  assert.ok(rowFor(written(els, 'spotsList'), 'הרצל').includes('סיכוי למצוא חניה'),
+    'a marked bay must keep the chance wording');
+
+  // the street card
+  page.renderStreetCard(idx, false);
+  assert.equal(written(els, 'scChanceBadge'), `<span>${FIT_WORDS.badge}</span><strong>69%</strong>`);
+  assert.ok(written(els, 'scLabel').includes(FIT_WORDS.manyCars), written(els, 'scLabel'));
+  assert.ok(written(els, 'scLabel').includes(FIT_WORDS.badge), written(els, 'scLabel'));
+  const card = written(els, 'scCommunity');
+  assert.ok(card.startsWith('🎯 התאמת אורך 69% — לפי ההערכה הקטע הפנוי מכיל כמה רכבים בגודל שלך'),
+    card.slice(0, 160));
+  assert.ok(!card.includes('סיכוי'), card.slice(0, 200));
+
+  // and the marked bay keeps the probability language it always had
+  page.renderStreetCard(bayIdx, false);
+  assert.ok(written(els, 'scChanceBadge').includes('סיכוי למצוא חניה'));
+  assert.ok(written(els, 'scCommunity').includes('סיכוי'));
+});
+
+test('an empty shoulder shorter than the car is not called crowded', () => {
+  const at8 = new Date('2026-07-14T08:00:00+03:00').getTime();
+  const { page, els, store } = loadPage({ now: at8 });
+  store.pw_vehicle = 'van'; // 5.5 m + 0.4 m manoeuvre = 5.9 m needed
+  const idx = page.STREETS_DEF.findIndex((s) => s.name === 'בן גוריון');
+  // signal 13 -> occupancy .87 -> spill .675 -> free run 5.85 m. Nobody has to
+  // be standing there: the run is simply shorter than the van, so 0%.
+  assert.equal(page.getStreetSignalPct(idx), 13);
+  assert.equal(page.getCurrentHourAvailabilityPct(idx), 0);
+  page.renderSidePanel();
+  const row = rowFor(written(els, 'spotsList'), 'בן גוריון');
+  assert.ok(row.includes(FIT_WORDS.tooShort), row);
+  assert.ok(!row.includes('עמוס'), 'bay vocabulary (crowded) on a length-fit score of 0%');
 });

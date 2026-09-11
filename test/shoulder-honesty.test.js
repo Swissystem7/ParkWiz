@@ -62,6 +62,8 @@ const EXPECTED_MODULE_STRING_KEYS = [
 const EXPECTED_COPY_KEYS = [
   'typeLabel', 'curb', 'tariff', 'notice', 'why', 'listTag', 'mapTag',
   'roomMany', 'roomOne', 'roomNone', 'noEstimate',
+  'fitBadge', 'fitShort', 'fitLevelHigh', 'fitLevelMid', 'fitLevelLow', 'fitLevelUnknown',
+  'fitHeadlineHigh', 'fitHeadlineMid', 'fitHeadlineLow',
 ];
 
 function copyRegions() {
