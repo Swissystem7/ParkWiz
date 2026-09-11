@@ -289,3 +289,47 @@ test('the room line and the fit line cannot disagree, for any car at any hour', 
     }
   }
 });
+
+// ─── פאנל ההגעה ──────────────────────────────────────────────────────────────
+// The arrival panel suggested בן גוריון and printed "25% פנוי" next to it — the
+// static bay baseline — while the map circle, the list row and the street card
+// all said 69% at that same moment, and while the whole point of the shoulder
+// rule is that a shoulder is not measured in "percent free of a bay row".
+test('the arrival panel shows the same number as every other surface', () => {
+  const { page, els } = loadPage({ now: FIXED_NOW });
+  const idx = page.STREETS_DEF.findIndex((s) => s.name === 'בן גוריון');
+  const s = page.STREETS_DEF[idx];
+  assert.equal(s.avail, 25, 'the static baseline this panel used to print');
+  assert.equal(page.getCurrentHourAvailabilityPct(idx), 69, 'what every other surface shows');
+
+  page.initRealMap();
+  page.arrivalMode(s.lat, s.lng, 'יעד בדיקה');
+  const panel = written(els, 'arrivalPanel');
+  assert.ok(panel.includes('בן גוריון'), panel);
+  assert.ok(panel.includes('התאמת אורך 69%'), panel);
+  assert.ok(!panel.includes('25% פנוי'), 'the arrival panel still prints the static baseline');
+  assert.ok(!panel.includes('69% פנוי'), 'a shoulder is not a percent of free bays');
+  assert.equal(page.arrivalAvailLabel(idx), 'התאמת אורך 69%');
+
+  // a marked bay keeps its own wording, with the live number
+  const bay = page.STREETS_DEF.findIndex((x) => x.type === 'blue');
+  assert.equal(page.arrivalAvailLabel(bay), page.getCurrentHourAvailabilityPct(bay) + '% פנוי');
+});
+
+test('the recommended-streets card ranks and shows the live number too', () => {
+  const { page, els } = loadPage({ now: FIXED_NOW });
+  const idx = page.STREETS_DEF.findIndex((s) => s.name === 'בן גוריון');
+  page.showRecommended(null);
+  const reco = written(els, 'recoList');
+  assert.ok(reco.length > 0, 'the recommended card rendered nothing');
+  if (reco.includes('בן גוריון')) {
+    assert.ok(reco.includes('(' + page.getCurrentHourAvailabilityPct(idx) + '%)'), reco);
+    assert.ok(!reco.includes('(25%)'), 'the recommended card still prints the static baseline');
+  }
+  // every street it names carries the number that street shows everywhere else
+  page.STREETS_DEF.forEach((s, i) => {
+    if (!reco.includes(s.name)) return;
+    assert.ok(reco.includes('(' + page.getCurrentHourAvailabilityPct(i) + '%)'),
+      `${s.name}: ${reco}`);
+  });
+});

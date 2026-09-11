@@ -984,7 +984,7 @@ function arrivalMode(lat, lng, name) {
   const list = suggested.map(({ch,d,s}) => `
     <div onclick="selectStreet(${ch.street})" style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:4px;font-size:.72rem;cursor:pointer">
       <div><b style="color:${CURB_TYPES[ch.type].c}">●</b> ${s.name} · ${CURB_TYPES[ch.type].label}</div>
-      <div>${d} מ' · ${s.avail}% פנוי</div>
+      <div>${d} מ' · ${arrivalAvailLabel(ch.street)}</div>
     </div>`).join('') || '<div style="font-size:.72rem;color:var(--muted)">אין קטע חניה מוצע ברדיוס — הרחב חיפוש</div>';
 
   const panel = document.getElementById('arrivalPanel');
@@ -1646,6 +1646,14 @@ function shoulderNoteHtml(idx, signalPct) {
       <div style="font-size:.63rem;color:var(--muted);margin-top:2px">${SHOULDER_COPY.why}</div>
       <div style="font-size:.63rem;color:#fcd34d;margin-top:3px">${SHOULDER_COPY.notice}</div>
     </div>`;
+}
+// המספר בשורת ההצעות. קודם הוצג כאן נתון הבסיס הסטטי של הרחוב
+// (STREETS_DEF.avail), שסותר את המפה, את הרשימה ואת כרטיס הרחוב באותו רגע —
+// ובשוליים סתר גם את כלל השוליים עצמו: הוא הציג אחוז תפוסה של תא מסומן
+// לרחוב שאין בו תא מסומן. עכשיו זה אותו מספר, ובשוליים בשם שלו.
+function arrivalAvailLabel(idx) {
+  const pct = getCurrentHourAvailabilityPct(idx);
+  return isShoulderStreet(idx) ? `${SHOULDER_COPY.fitShort} ${pct}%` : `${pct}% פנוי`;
 }
 function arrivalShoulderNote(rows) {
   const any = (rows || []).some((r) => r && r.ch && isShoulderType(r.ch.type));
@@ -2441,16 +2449,18 @@ function walkMinutes(target, s) {
 
 function showRecommended(targetIdx) {
   const target = targetIdx !== null ? STREETS_DEF[targetIdx] : null;
-  const top3 = STREETS_DEF.map((s,i)=>({...s, idx:i}))
+  // אותו תיקון כמו בפאנל ההגעה: הכרטיס הזה דירג והציג את נתון הבסיס הסטטי,
+  // ולכן יכול היה להמליץ על רחוב אחד ולהציג לו מספר שאף מסך אחר לא מציג.
+  const top3 = STREETS_DEF.map((s,i)=>({...s, idx:i, pct: getCurrentHourAvailabilityPct(i)}))
     .filter(s => activeFilters[s.type])
-    .sort((a,b)=>b.avail-a.avail)
+    .sort((a,b)=>b.pct-a.pct)
     .slice(0,3);
   if (!top3.length) return;
   document.getElementById('recoList').innerHTML = top3.map((s,i)=>{
-    const c = availColor(s.avail);
+    const c = availColor(s.pct);
     return `<div class="reco-item" onclick="selectStreet(${s.idx});closeReco()">
       <span class="reco-name">${i+1}. ${s.name}</span>
-      <span class="reco-pct" style="color:${c}">(${Math.round(s.avail)}%)</span>
+      <span class="reco-pct" style="color:${c}">(${s.pct}%)</span>
       <span class="reco-walk">🚶 ${walkMinutes(target, s)} דק' ליעד</span>
     </div>`;
   }).join('');
