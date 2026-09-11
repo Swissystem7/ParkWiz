@@ -77,12 +77,23 @@ test('hand-derived chances for the documented cases', () => {
 });
 
 test('the two shoulders on the demo map get their hand-derived chances', () => {
-  // דן שומרון: 14 m, avail 66 -> run 14. sedan ratio 2.857 -> t 0.9286 -> 89.64
+  // דן שומרון, 14 m beside a quiet street (avail 66): the street is only 34%
+  // occupied, under the spillover point, so the shoulder is still clear -> run 14 m.
+  // sedan ratio 2.857 -> t 0.9286 -> 89.64 ; van ratio 2.3729 -> t 0.68644 -> 71.48
   assert.equal(SH.shoulderAvailabilityPct({ shoulderLengthM: 14, streetAvailPct: 66, vehicleLenM: 4.5 }), 90);
-  // same shoulder, van: need 5.9, ratio 2.3729 -> t 0.68644 -> 71.48
   assert.equal(SH.shoulderAvailabilityPct({ shoulderLengthM: 14, streetAvailPct: 66, vehicleLenM: 5.5 }), 71);
-  // שדרות בן צבי יצחק: 40 m, avail 58 -> run 40, ratio 8.16 -> capped 95
-  assert.equal(SH.shoulderAvailabilityPct({ shoulderLengthM: 40, streetAvailPct: 58, vehicleLenM: 4.5 }), 95);
+
+  // בן גוריון, 18 m beside a busy street (avail 25): occupancy 0.75 is past the
+  // spillover point, so shoulderOcc = 0.375 and the free run is 11.25 m. That one
+  // run answers four different vehicles differently, which is the whole point of
+  // measuring a shoulder in metres instead of in percent-free.
+  const benGurion = (vehicleLenM) =>
+    SH.shoulderAvailabilityPct({ shoulderLengthM: 18, streetAvailPct: 25, vehicleLenM });
+  assert.deepEqual([3.8, 4.5, 4.9, 5.5].map(benGurion), [83, 69, 62, 54]);
+
+  // Same street in the weekday evening: the availability model takes 25 down to 5,
+  // the shoulder is 87.5% spilled into, and 2.25 m of run holds no car at all.
+  assert.equal(SH.shoulderAvailabilityPct({ shoulderLengthM: 18, streetAvailPct: 5, vehicleLenM: 4.5 }), 0);
 });
 
 test('a longer vehicle never gets a better chance on the same shoulder', () => {
@@ -124,10 +135,11 @@ test('missing or nonsense inputs return no estimate rather than a number', () =>
 });
 
 test('free capacity is reported in whole vehicles', () => {
-  // 9 m free, need 4.9 -> 1 car. 14 m free -> 2. 40 m -> 8. 3 m free -> 0.
+  // 9 m free, need 4.9 -> 1 car. 14 m free -> 2. 11.25 m free -> 2 sedans or 1 van.
   assert.equal(SH.vehicleLengthsFree({ shoulderLengthM: 12, streetAvailPct: 30, vehicleLenM: 4.5 }), 1);
   assert.equal(SH.vehicleLengthsFree({ shoulderLengthM: 14, streetAvailPct: 66, vehicleLenM: 4.5 }), 2);
-  assert.equal(SH.vehicleLengthsFree({ shoulderLengthM: 40, streetAvailPct: 58, vehicleLenM: 4.5 }), 8);
+  assert.equal(SH.vehicleLengthsFree({ shoulderLengthM: 18, streetAvailPct: 25, vehicleLenM: 4.5 }), 2);
+  assert.equal(SH.vehicleLengthsFree({ shoulderLengthM: 18, streetAvailPct: 25, vehicleLenM: 5.5 }), 1);
   assert.equal(SH.vehicleLengthsFree({ shoulderLengthM: 12, streetAvailPct: 10, vehicleLenM: 4.5 }), 0);
 });
 
