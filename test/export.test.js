@@ -96,3 +96,13 @@ test('README names the comparison, summary, and field PWA honestly', () => {
   assert.match(readme, /PWA/);
   assert.match(readme, /sample/);
 });
+
+test('occupancy CSV SHA-256 golden checksum is stable (UTF-8)', () => {
+  const hex = exp.occupancyCsvChecksum(occupancy);
+  assert.match(hex, /^[a-f0-9]{64}$/);
+  // Golden: header + 2 Netanya sample rows (Hebrew street). Update only if schema changes.
+  assert.equal(
+    hex,
+    'd7bc5d112334424869b7c5305827943465f02807e60e7484799d5abc61536b1e'
+  );
+});

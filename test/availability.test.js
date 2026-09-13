@@ -68,3 +68,23 @@ test('report order does not change the score', () => {
   const backward = weightedAvailability([...reports].reverse(), NOW);
   assert.ok(Math.abs(forward - backward) < 1e-12);
 });
+
+test('validate rejects non-array reports', () => {
+  assert.throws(() => weightedAvailability(null, NOW, true), TypeError);
+});
+
+test('validate rejects non-finite nowMs', () => {
+  assert.throws(() => weightedAvailability([], NaN, true), TypeError);
+});
+
+test('validate rejects missing delta', () => {
+  assert.throws(() => weightedAvailability([{ ts: NOW }], NOW, true), TypeError);
+});
+
+test('validate rejects string timestamp', () => {
+  assert.throws(() => weightedAvailability([{ ts: 'now', delta: 1 }], NOW, true), TypeError);
+});
+
+test('future report with validate=false contributes zero weight', () => {
+  const result = weightedAvailability([{ ts: NOW + 60000, delta: 1 }], NOW);
+  assert.equal(result, 0);});

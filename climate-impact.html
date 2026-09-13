@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ParkWiz — ניסוי השפעה אקלימית</title>
+  <style>
+    :root{font-family:Arial,sans-serif;color:#e8eef6;background:#07111f;color-scheme:dark}body{max-width:920px;margin:auto;padding:32px 18px;line-height:1.55}h1{margin-bottom:4px}.notice{background:#32260b;border:1px solid #8b6a13;padding:14px;border-radius:12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:24px 0}label,.result{background:#101d2d;padding:14px;border-radius:12px}input{display:block;width:100%;box-sizing:border-box;margin-top:7px;padding:10px}.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.value{font-size:1.7rem;font-weight:800;color:#60d394}.method{margin-top:28px;color:#b8c5d6}a{color:#65baff}.tag{display:inline-block;background:#17304a;padding:3px 8px;border-radius:99px}</style>
+</head>
+<body>
+  <p><a href="index.html">← חזרה ל‑ParkWiz</a></p>
+  <span class="tag">כלי תכנון פיילוט</span>
+  <h1>האם פחות חיפוש חניה מפחית פליטות?</h1>
+  <p class="notice"><strong>זהו מחשבון תרחישים, לא תוצאת פיילוט.</strong> כל מספר הוא הנחה גלויה שהבודק יכול לשנות. ParkWiz עדיין לא מדד חיסכון בזמן, דלק או CO₂e בעיר אמיתית.</p>
+
+  <div class="grid">
+    <label>חיפושי חניה ביום<input id="searches" type="number" min="0" value="100"></label>
+    <label>זמן חיפוש בסיסי, דקות<input id="baseline" type="number" min="0" step="0.1" value="8"></label>
+    <label>זמן עם הכוונה, דקות<input id="assisted" type="number" min="0" step="0.1" value="5"></label>
+    <label>צריכת דלק בזמן חיפוש, ליטר/שעה<input id="fuel" type="number" min="0" step="0.01" value="0.8"></label>
+    <label>מקדם פליטה, ק״ג CO₂e לליטר<input id="factor" type="number" min="0" step="0.01" value="2.31"></label>
+    <label>משך הניסוי, ימים<input id="days" type="number" min="0" value="30"></label>
+  </div>
+
+  <div class="results" aria-live="polite">
+    <div class="result"><div class="value" id="minutes">—</div>דקות שנחסכו לחיפוש</div>
+    <div class="result"><div class="value" id="hours">—</div>שעות רכב שנחסכו בניסוי</div>
+    <div class="result"><div class="value" id="litres">—</div>ליטר דלק בתרחיש</div>
+    <div class="result"><div class="value" id="co2">—</div>ק״ג CO₂e בתרחיש</div>
+  </div>
+
+  <section class="method">
+    <h2>איך הופכים תרחיש לראיה</h2>
+    <ol>
+      <li>מודדים זמן חיפוש של קבוצת ביקורת ושל קבוצה שקיבלה הכוונה.</li>
+      <li>שומרים רק אירועים עם מקור, זמן ואזור; לא משתמשים בנתוני ההדגמה.</li>
+      <li>מפרסמים גודל מדגם, חציון, טווח ואי־ודאות לצד התוצאה.</li>
+      <li>מחליפים את הנחות הדלק ומקדם הפליטה בנתונים המתאימים לצי המקומי.</li>
+    </ol>
+    <p>הנוסחה: חיפושים × ימים × דקות שנחסכו ÷ 60 × ליטר לשעה × ק״ג CO₂e לליטר. היא אינה מוכיחה סיבתיות ואינה כוללת נסיעות מושרות או שינוי התנהגות.</p>
+  </section>
+
+  <script src="climate-impact.js"></script>
+  <script>
+    const ids = ['searches','baseline','assisted','fuel','factor','days'];
+    function render(){
+      try {
+        const r = ParkWizClimateImpact.estimateScenario({searchesPerDay:searches.value,baselineMinutes:baseline.value,assistedMinutes:assisted.value,litresPerHour:fuel.value,kgCo2ePerLitre:factor.value,evaluationDays:days.value});
+        minutes.textContent=r.savedMinutesPerSearch.toFixed(1); hours.textContent=r.savedVehicleHours.toFixed(1); litres.textContent=r.fuelLitresAvoided.toFixed(1); co2.textContent=r.kgCo2eAvoided.toFixed(1);
+      } catch { minutes.textContent=hours.textContent=litres.textContent=co2.textContent='שגיאה'; }
+    }
+    ids.forEach(id => document.getElementById(id).addEventListener('input', render)); render();
+  </script>
+</body>
+</html>

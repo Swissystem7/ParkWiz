@@ -13,13 +13,15 @@
     return Math.max(0, Math.min(100, Math.round(n)));
   }
 
-  function displayedAvailabilityPct(modelScore, communityWeight, perUnit) {
+  function displayedAvailabilityPct(modelScore, communityWeight, perUnit, maxChance) {
     const base = Number(modelScore);
     if (!Number.isFinite(base)) return null;
     const weight = Number(communityWeight);
     const unit = Number(perUnit);
     const lift = (Number.isFinite(weight) ? weight : 0) * (Number.isFinite(unit) ? unit : DEFAULT_PCT_PER_UNIT);
-    return clampPct(base + lift);
+    const result = base + lift;
+    const max = Number.isFinite(maxChance) ? maxChance : 100;
+    return clampPct(Math.min(result, max));
   }
 
   return { displayedAvailabilityPct, clampPct, DEFAULT_PCT_PER_UNIT };
