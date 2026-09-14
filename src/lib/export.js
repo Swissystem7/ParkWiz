@@ -76,6 +76,9 @@
   }
 
   function encodeSharePayload(packet) {
+    if (!packet || !Array.isArray(packet.pairs)) {
+      return null;
+    }
     const summary = (packet && packet.summary) || compare.summarizePairs((packet && packet.pairs) || []);
     const pairs = (packet && packet.pairs) || [];
     const last = pairs.length ? pairs[pairs.length - 1] : null;

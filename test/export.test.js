@@ -96,3 +96,7 @@ test('README names the comparison, summary, and field PWA honestly', () => {
   assert.match(readme, /PWA/);
   assert.match(readme, /sample/);
 });
+
+test('encodeSharePayload returns null when pairs array is missing', () => {
+  assert.equal(exp.encodeSharePayload({}), null);
+});
