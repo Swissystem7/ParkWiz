@@ -61,6 +61,15 @@
     };
   }
 
+  function exportPilotSummary(pairs, occupancy) {
+    const summary = compare.summarizePairs(pairs);
+    return {
+      count: summary.count,
+      meanAccuracy: summary.meanAccuracy,
+      perfect: summary.perfect
+    };
+  }
+
   function toUrlB64(str) {
     const raw = (typeof Buffer !== 'undefined')
       ? Buffer.from(str, 'utf8').toString('base64')
@@ -131,6 +140,7 @@
     pairsToCsv,
     logToCsv,
     buildPilotPacket,
+    exportPilotSummary,
     encodeSharePayload,
     decodeSharePayload,
     toUrlB64,

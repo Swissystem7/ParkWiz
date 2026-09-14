@@ -96,3 +96,10 @@ test('README names the comparison, summary, and field PWA honestly', () => {
   assert.match(readme, /PWA/);
   assert.match(readme, /sample/);
 });
+
+test('exportPilotSummary returns correct summary statistics', () => {
+  const pairs = [{ts: 1234567890, total: 10, systemOccupied: 5, manualOccupied: 5, accuracy: 1}];
+  const occupancy = [{ts: 1234567890, street: 'Main St', total: 10, occupied: 5}];
+  const result = exp.exportPilotSummary(pairs, occupancy);
+  assert.deepEqual(result, {count: 1, meanAccuracy: 1, perfect: 1});
+});
