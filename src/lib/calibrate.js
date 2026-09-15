@@ -22,11 +22,11 @@
 
   function normalizeSpot(s, i) {
     if (!s || typeof s !== 'object') return null;
-    const x = num(s.x);
-    const y = num(s.y);
-    const w = num(s.w);
-    const h = num(s.h);
-    if (x == null || y == null || w == null || h == null || w <= 0 || h <= 0) return null;
+    const x = num(s.x) ?? 0;
+    const y = num(s.y) ?? 0;
+    const w = num(s.w) ?? 0;
+    const h = num(s.h) ?? 0;
+    if (w <= 0 || h <= 0) return null;
     const ref = (r) => {
       if (!r || !Number.isFinite(Number(r.mean))) return null;
       return {
