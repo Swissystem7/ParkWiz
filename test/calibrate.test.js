@@ -48,3 +48,8 @@ test('calibration wizard is Hebrew RTL with a timer and honesty banner', () => {
   assert.match(html, /heuristic/);
   assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
 });
+
+test('normalizeSpot should default to 0 for undefined or non-numeric x, y, w, h values', () => {
+  const result = cal.normalizeSpot({ x: undefined, y: 10, w: 5, h: 5 }, 0);
+  assert.deepEqual(result, { x: 0, y: 10, w: 5, h: 5, id: 's1', emptyRef: null, nightRef: null });
+});
