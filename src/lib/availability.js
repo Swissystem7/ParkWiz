@@ -15,8 +15,9 @@
   const MAX_AGE_MS = 2 * 60 * 60 * 1000;
 
   function weightedAvailability(reports, nowMs, validate = false) {
-    if (validate && reports.some((report) => report.ts > nowMs)) {
-      throw new RangeError('Report timestamp cannot be in the future');
+    if (reports.some((report) => report.ts > nowMs)) {
+      if (validate) throw new RangeError('Report timestamp cannot be in the future');
+      return 0;
     }
     const cutoff = nowMs - MAX_AGE_MS;
     return reports.reduce(

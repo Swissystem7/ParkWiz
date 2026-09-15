@@ -68,3 +68,11 @@ test('report order does not change the score', () => {
   const backward = weightedAvailability([...reports].reverse(), NOW);
   assert.ok(Math.abs(forward - backward) < 1e-12);
 });
+
+test('future timestamps are rejected even when validate is false', () => {
+  const reports = [
+    { ts: NOW + 1000, delta: 1 },
+    { ts: NOW - 1000, delta: -1 }
+  ];
+  assert.equal(weightedAvailability(reports, NOW, false), 0);
+});
