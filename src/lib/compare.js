@@ -53,12 +53,12 @@
       try {
         const a = JSON.parse(raw);
         if (Array.isArray(a)) list = a;
-      } catch (e) { return []; }
+      } catch (e) { return null; }
     } else {
       for (const line of raw.split(/\r?\n/)) {
         const s = line.trim();
         if (!s) continue;
-        try { list.push(JSON.parse(s)); } catch (e) { /* skip */ }
+        try { list.push(JSON.parse(s)); } catch (e) { return null; }
       }
     }
     return list.map(pairObservation).filter(Boolean)
