@@ -48,3 +48,8 @@ test('calibration wizard is Hebrew RTL with a timer and honesty banner', () => {
   assert.match(html, /heuristic/);
   assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
 });
+
+test('normalizeSpot rejects out-of-bounds coordinates and returns null', () => {
+  const result = cal.normalizeSpot({x: -10, y: 50, w: 100, h: 100});
+  assert.equal(result, null);
+});
