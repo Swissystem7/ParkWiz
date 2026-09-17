@@ -27,6 +27,10 @@
     const w = num(s.w);
     const h = num(s.h);
     if (x == null || y == null || w == null || h == null || w <= 0 || h <= 0) return null;
+    
+    // Validate bounds: typical image resolution is 1920x1080
+    if (x < 0 || y < 0 || w + x > 1920 || h + y > 1080) return null;
+    
     const ref = (r) => {
       if (!r || !Number.isFinite(Number(r.mean))) return null;
       return {
