@@ -14,10 +14,32 @@
   const HALF_LIFE_MS = 15 * 60 * 1000;
   const MAX_AGE_MS = 2 * 60 * 60 * 1000;
 
-  function weightedAvailability(reports, nowMs, validate = false) {
-    if (validate && reports.some((report) => report.ts > nowMs)) {
-      throw new RangeError('Report timestamp cannot be in the future');
+  function assertValidReports(reports, nowMs) {
+    if (!Array.isArray(reports)) {
+      throw new TypeError('reports must be an array');
     }
+    if (typeof nowMs !== 'number' || !Number.isFinite(nowMs)) {
+      throw new TypeError('nowMs must be a finite number');
+    }
+    for (let i = 0; i < reports.length; i++) {
+      const report = reports[i];
+      if (!report || typeof report !== 'object') {
+        throw new TypeError('report at index ' + i + ' must be an object');
+      }
+      if (typeof report.ts !== 'number' || !Number.isFinite(report.ts)) {
+        throw new TypeError('report.ts at index ' + i + ' must be a finite number');
+      }
+      if (typeof report.delta !== 'number' || !Number.isFinite(report.delta)) {
+        throw new TypeError('report.delta at index ' + i + ' must be a finite number');
+      }
+      if (report.ts > nowMs) {
+        throw new RangeError('Report timestamp cannot be in the future');
+      }
+    }
+  }
+
+  function weightedAvailability(reports, nowMs, validate = false) {
+    if (validate) assertValidReports(reports, nowMs);
     const cutoff = nowMs - MAX_AGE_MS;
     return reports.reduce(
       (sum, r) => (r.ts >= cutoff ? sum + r.delta * Math.pow(0.5, (nowMs - r.ts) / HALF_LIFE_MS) : sum),
@@ -25,5 +47,5 @@
     );
   }
 
-  return { weightedAvailability, HALF_LIFE_MS, MAX_AGE_MS };
+  return { weightedAvailability, assertValidReports, HALF_LIFE_MS, MAX_AGE_MS };
 });

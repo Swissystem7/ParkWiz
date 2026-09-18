@@ -44,3 +44,7 @@ test('availability model + community lift stays deterministic', () => {
   assert.equal(displayedAvailabilityPct(score, 1), 58);
   assert.equal(clampPct(50.4), 50);
 });
+
+test('displayedAvailabilityPct respects optional maxChance parameter', () => {
+  assert.equal(displayedAvailabilityPct(50, 10, 8, 90), 90);
+});

@@ -119,3 +119,7 @@ test('score is always clamped to legal range', () => {
   assert.equal(high.score, 100);
   assert.equal(low.score, 0);
 });
+
+test('getConfidenceBounds returns correct min and max confidence values', () => {
+  assert.deepStrictEqual(model.getConfidenceBounds(), { min: 0.35, max: 0.8 });
+});
