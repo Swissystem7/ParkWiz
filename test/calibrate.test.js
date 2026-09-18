@@ -48,3 +48,13 @@ test('calibration wizard is Hebrew RTL with a timer and honesty banner', () => {
   assert.match(html, /heuristic/);
   assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
 });
+
+test('normalizePack returns null when any spot fails normalization', () => {
+  const result = cal.normalizePack({
+    street: 'Test',
+    spots: [
+      { x: 10, y: 10, w: -5, h: 5 }
+    ]
+  });
+  assert.equal(result, null);
+});

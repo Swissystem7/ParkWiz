@@ -67,6 +67,10 @@
     if (!input || typeof input !== 'object') return null;
     const spotsSrc = Array.isArray(input.spots) ? input.spots : [];
     const spots = spotsSrc.map(normalizeSpot).filter(Boolean);
+    // Validate that all spots were successfully normalized
+    if (spots.length !== spotsSrc.length) {
+      return null;
+    }
     return {
       version: 2,
       kind: 'parkwiz-calibration',
