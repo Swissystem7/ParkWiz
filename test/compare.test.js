@@ -67,3 +67,7 @@ test('an empty series has no accuracy to report', () => {
   assert.equal(s.meanSignedError, null);
   assert.equal(s.sampleOnly, false);
 });
+
+test('parsePairs returns null for invalid JSON input', () => {
+  assert.equal(cmp.parsePairs('{"invalid": json}'), null);
+});
