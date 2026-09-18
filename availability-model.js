@@ -107,6 +107,10 @@
     };
   }
 
+  function getConfidenceBounds() {
+    return { min: BASE_CONFIDENCE, max: MAX_CONFIDENCE };
+  }
+
   return {
     MODEL_VERSION,
     MIN_TTL_MS,
@@ -114,6 +118,7 @@
     BASE_CONFIDENCE,
     MAX_CONFIDENCE,
     calculate,
+    getConfidenceBounds,
     timeAdjustment,
     modelLocalDayHour,
     validReports,
