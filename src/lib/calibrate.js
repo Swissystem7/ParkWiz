@@ -27,6 +27,8 @@
     const w = num(s.w);
     const h = num(s.h);
     if (x == null || y == null || w == null || h == null || w <= 0 || h <= 0) return null;
+    // Validate that s.id is a non-empty string
+    if (typeof s.id !== 'string' || s.id.length === 0) return null;
     const ref = (r) => {
       if (!r || !Number.isFinite(Number(r.mean))) return null;
       return {

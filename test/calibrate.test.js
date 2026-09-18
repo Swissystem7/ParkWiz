@@ -48,3 +48,9 @@ test('calibration wizard is Hebrew RTL with a timer and honesty banner', () => {
   assert.match(html, /heuristic/);
   assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
 });
+
+test('normalizeSpot rejects spots with invalid IDs and returns null', () => {
+  assert.equal(cal.normalizeSpot({ id: '', x: 10, y: 10, w: 50, h: 50 }), null);
+  assert.equal(cal.normalizeSpot({ id: null, x: 10, y: 10, w: 50, h: 50 }), null);
+  assert.equal(cal.normalizeSpot({ id: undefined, x: 10, y: 10, w: 50, h: 50 }), null);
+});
