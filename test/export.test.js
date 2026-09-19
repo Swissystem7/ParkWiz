@@ -96,3 +96,7 @@ test('README names the comparison, summary, and field PWA honestly', () => {
   assert.match(readme, /PWA/);
   assert.match(readme, /sample/);
 });
+
+test('fromUrlB64 returns null for invalid base64 strings containing invalid characters', () => {
+  assert.equal(exp.fromUrlB64('invalid@base64!'), null);
+});

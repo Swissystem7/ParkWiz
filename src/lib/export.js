@@ -69,6 +69,9 @@
   }
 
   function fromUrlB64(b64) {
+    if (!b64 || typeof b64 !== 'string') return null;
+    const valid = /^[A-Za-z0-9\-_]+$/;
+    if (!valid.test(b64)) return null;
     const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
     const raw = String(b64).replace(/-/g, '+').replace(/_/g, '/') + pad;
     if (typeof Buffer !== 'undefined') return Buffer.from(raw, 'base64').toString('utf8');
