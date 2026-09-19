@@ -13,6 +13,11 @@
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
   function modelLocalDayHour(date) {
+    // Handle invalid date inputs gracefully
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      return { day: 0, hour: 0 };
+    }
+    
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: 'Asia/Jerusalem',
       weekday: 'short',

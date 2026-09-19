@@ -119,3 +119,10 @@ test('score is always clamped to legal range', () => {
   assert.equal(high.score, 100);
   assert.equal(low.score, 0);
 });
+
+test('modelLocalDayHour handles invalid inputs by returning default value', () => {
+  assert.deepEqual(model.modelLocalDayHour(null), { day: 0, hour: 0 });
+  assert.deepEqual(model.modelLocalDayHour(undefined), { day: 0, hour: 0 });
+  assert.deepEqual(model.modelLocalDayHour('invalid'), { day: 0, hour: 0 });
+  assert.deepEqual(model.modelLocalDayHour(new Date('invalid')), { day: 0, hour: 0 });
+});
