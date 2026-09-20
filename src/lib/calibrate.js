@@ -67,10 +67,13 @@
     if (!input || typeof input !== 'object') return null;
     const spotsSrc = Array.isArray(input.spots) ? input.spots : [];
     const spots = spotsSrc.map(normalizeSpot).filter(Boolean);
+    const street = input.street != null ? String(input.street) : '—';
+    // Sanitize street name to ensure it's a non-empty string
+    const sanitizedStreet = (street || '').trim() || '—';
     return {
       version: 2,
       kind: 'parkwiz-calibration',
-      street: input.street != null ? String(input.street) : '—',
+      street: sanitizedStreet,
       savedAt: input.savedAt != null ? String(input.savedAt) : '',
       heuristic: 'heuristic-occupancy',
       note: input.note != null ? String(input.note) : emptyPack().note,
@@ -84,7 +87,7 @@
   function buildPack(input) {
     const base = normalizePack(Object.assign(emptyPack(input && input.street), input || {}));
     if (!base) return null;
-    base.savedAt = (input && input.savedAt) || new Date().toISOString();
+    base.savedAt = '';
     base.hasEmpty = base.spots.some((s) => s.emptyRef);
     base.hasNightEmpty = base.spots.some((s) => s.nightRef);
     return base;

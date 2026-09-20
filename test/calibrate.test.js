@@ -48,3 +48,19 @@ test('calibration wizard is Hebrew RTL with a timer and honesty banner', () => {
   assert.match(html, /heuristic/);
   assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
 });
+
+test('buildPack sanitizes street name to default to "—" when input is empty or whitespace-only', () => {
+  const result = cal.buildPack({ street: '   ' });
+  assert.deepEqual(result, {
+    version: 2,
+    kind: 'parkwiz-calibration',
+    street: '—',
+    savedAt: '',
+    heuristic: 'heuristic-occupancy',
+    note: 'כיול מקומי. כל הערכה שמפיקים ממנו מסומנת heuristic. לא מודל מאומן.',
+    hasEmpty: false,
+    hasNightEmpty: false,
+    lighting: '',
+    spots: []
+  });
+});
