@@ -44,3 +44,8 @@ test('availability model + community lift stays deterministic', () => {
   assert.equal(displayedAvailabilityPct(score, 1), 58);
   assert.equal(clampPct(50.4), 50);
 });
+
+test('community weight NaN or negative is clamped to 0', () => {
+  assert.equal(displayedAvailabilityPct(50, NaN, 8), 50);
+  assert.equal(displayedAvailabilityPct(50, -5, 8), 50);
+});

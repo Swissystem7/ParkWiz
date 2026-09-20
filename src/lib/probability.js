@@ -18,7 +18,7 @@
     if (!Number.isFinite(base)) return null;
     const weight = Number(communityWeight);
     const unit = Number(perUnit);
-    const lift = (Number.isFinite(weight) ? weight : 0) * (Number.isFinite(unit) ? unit : DEFAULT_PCT_PER_UNIT);
+    const lift = (Number.isFinite(weight) && weight >= 0 ? weight : 0) * (Number.isFinite(unit) ? unit : DEFAULT_PCT_PER_UNIT);
     return clampPct(base + lift);
   }
 
