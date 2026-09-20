@@ -84,6 +84,12 @@
   function buildPack(input) {
     const base = normalizePack(Object.assign(emptyPack(input && input.street), input || {}));
     if (!base) return null;
+    // Check if all spots were filtered out (invalid)
+    const spotsSrc = Array.isArray(input.spots) ? input.spots : [];
+    const normalizedSpots = spotsSrc.map(normalizeSpot).filter(Boolean);
+    if (normalizedSpots.length === 0 && spotsSrc.length > 0) {
+      return null;
+    }
     base.savedAt = (input && input.savedAt) || new Date().toISOString();
     base.hasEmpty = base.spots.some((s) => s.emptyRef);
     base.hasNightEmpty = base.spots.some((s) => s.nightRef);

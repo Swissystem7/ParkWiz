@@ -48,3 +48,15 @@ test('calibration wizard is Hebrew RTL with a timer and honesty banner', () => {
   assert.match(html, /heuristic/);
   assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
 });
+
+test('buildPack returns null when all spots are invalid', () => {
+  const result = cal.buildPack({
+    street: 'הרצל',
+    spots: [
+      { x: -1, y: -1, w: 0, h: 0 },
+      { x: null, y: null, w: null, h: null },
+      { x: 'not-a-number', y: 'not-a-number', w: 'not-a-number', h: 'not-a-number' }
+    ]
+  });
+  assert.equal(result, null);
+});
