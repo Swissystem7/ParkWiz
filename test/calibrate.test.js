@@ -48,3 +48,8 @@ test('calibration wizard is Hebrew RTL with a timer and honesty banner', () => {
   assert.match(html, /heuristic/);
   assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
 });
+
+test('remainingSteps returns empty array for null and undefined input', () => {
+  assert.deepEqual(cal.remainingSteps(null), []);
+  assert.deepEqual(cal.remainingSteps(undefined), []);
+});

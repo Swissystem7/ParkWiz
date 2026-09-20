@@ -91,6 +91,7 @@
   }
 
   function remainingSteps(pack) {
+    if (!pack || typeof pack !== 'object') return [];
     const p = pack || emptyPack();
     const out = [];
     if (!p.spots.length) out.push('spots');
