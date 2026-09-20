@@ -15,7 +15,12 @@
 
   function displayedAvailabilityPct(modelScore, communityWeight, perUnit) {
     const base = Number(modelScore);
-    if (!Number.isFinite(base)) return null;
+    if (!Number.isFinite(base)) {
+      // For non-finite scores, clamp to valid percentage bounds
+      if (base === Infinity) return 100;
+      if (base === -Infinity) return 0;
+      return null;
+    }
     const weight = Number(communityWeight);
     const unit = Number(perUnit);
     const lift = (Number.isFinite(weight) ? weight : 0) * (Number.isFinite(unit) ? unit : DEFAULT_PCT_PER_UNIT);

@@ -44,3 +44,8 @@ test('availability model + community lift stays deterministic', () => {
   assert.equal(displayedAvailabilityPct(score, 1), 58);
   assert.equal(clampPct(50.4), 50);
 });
+
+test('non-finite model scores are clamped to valid percentage bounds', () => {
+  assert.equal(displayedAvailabilityPct(Infinity, 5, 8), 100);
+  assert.equal(displayedAvailabilityPct(-Infinity, 5, 8), 0);
+});
