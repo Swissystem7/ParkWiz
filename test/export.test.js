@@ -123,3 +123,10 @@ test('decodeSharePayload rejects negative count values', () => {
   }));
   assert.equal(exp.decodeSharePayload(modifiedToken), null);
 });
+
+test('decodeSharePayload rejects a non-integer count (n: 1.5)', () => {
+  const token = exp.toUrlB64(JSON.stringify({ v: 1, s: 'Herzl', n: 1.5 }));
+  assert.equal(exp.decodeSharePayload(token), null);
+  const whole = exp.toUrlB64(JSON.stringify({ v: 1, s: 'Herzl', n: 2 }));
+  assert.equal(exp.decodeSharePayload(whole).count, 2);
+});
