@@ -45,6 +45,17 @@ test('availability model + community lift stays deterministic', () => {
   assert.equal(clampPct(50.4), 50);
 });
 
-test('displayedAvailabilityPct respects optional maxChance parameter', () => {
+test('displayedAvailabilityPct respects optional maxPct percent cap', () => {
   assert.equal(displayedAvailabilityPct(50, 10, 8, 90), 90);
+  assert.equal(displayedAvailabilityPct(50, 10, 8, '90'), 90);
+  assert.equal(displayedAvailabilityPct(50, 1, 8, 90), 58);
+});
+
+test('omitted or empty maxPct leaves the displayed percent unchanged', () => {
+  assert.equal(displayedAvailabilityPct(50, 1, 8), 58);
+  assert.equal(displayedAvailabilityPct(50, 1, 8, undefined), 58);
+  assert.equal(displayedAvailabilityPct(50, 1, 8, null), 58);
+  assert.equal(displayedAvailabilityPct(50, 1, 8, NaN), 58);
+  assert.equal(displayedAvailabilityPct(50, 10, 8), 100);
+  assert.equal(displayedAvailabilityPct(50, 10, 8, null), 100);
 });
