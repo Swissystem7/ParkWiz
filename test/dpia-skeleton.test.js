@@ -60,3 +60,20 @@ test('DPIA open checklist uses unchecked markdown tasks', () => {
   assert.match(md, /- \[ \] Written retention/);
   assert.match(md, /- \[ \] Camera \/ VMS access/);
 });
+
+test('DPIA inventories the personal data the demo app on master really handles', () => {
+  const md = read(DPIA_REL);
+  const app = read('index.html');
+  for (const needle of ['leavingPlate', '__lastLeavingPlate', 'parkwiz_user', 'parkwiz_analytics', 'parkwiz_feedback']) {
+    assert.ok(app.includes(needle), `index.html no longer contains ${needle}: re-check the DPIA inventory`);
+    assert.ok(md.includes(needle), `DPIA section 2 does not inventory ${needle}`);
+  }
+  assert.doesNotMatch(md, /UI demos only/i, 'plate.js is used by the live report flow, not only by UI demos');
+});
+
+test('DPIA claims no control that master does not have', () => {
+  const md = read(DPIA_REL);
+  assert.doesNotMatch(md, /checksum helper/i, 'the occupancy CSV checksum helpers are not on master');
+  assert.doesNotMatch(md, /reject malformed/i, 'validate=true only refuses future timestamps');
+  assert.match(md, /\| Repo HEAD at authoring \| `[0-9a-f]{7,40}`/);
+});
