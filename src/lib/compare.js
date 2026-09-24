@@ -45,8 +45,19 @@
     });
   }
 
+  function normalizePack(input) {
+    if (typeof input !== 'string') {
+      throw new TypeError('Input must be a string');
+    }
+    const trimmed = input.trim();
+    if (!trimmed) {
+      throw new TypeError('Input cannot be empty or whitespace-only');
+    }
+    return trimmed;
+  }
+
   function parsePairs(text) {
-    const raw = String(text || '').trim();
+    const raw = normalizePack(text);
     if (!raw) return [];
     let list = [];
     if (raw[0] === '[') {
@@ -129,5 +140,6 @@
     summarizePairs,
     loadStoredPairs,
     savePairs,
+    normalizePack,
   };
 });

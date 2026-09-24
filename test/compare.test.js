@@ -67,3 +67,9 @@ test('an empty series has no accuracy to report', () => {
   assert.equal(s.meanSignedError, null);
   assert.equal(s.sampleOnly, false);
 });
+
+test('parsePairs throws TypeError for empty input', () => {
+  assert.throws(() => {
+    cmp.parsePairs('');
+  }, TypeError);
+});
