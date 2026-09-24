@@ -59,3 +59,12 @@ test('omitted or empty maxPct leaves the displayed percent unchanged', () => {
   assert.equal(displayedAvailabilityPct(50, 10, 8), 100);
   assert.equal(displayedAvailabilityPct(50, 10, 8, null), 100);
 });
+
+test('a blank, boolean or non-numeric maxPct is ignored, never a 0% cap', () => {
+  for (const cap of ['', ' ', false, true, [], {}, new Date(0), 'abc']) {
+    assert.equal(displayedAvailabilityPct(50, 1, 8, cap), 58, JSON.stringify(cap));
+    assert.equal(displayedAvailabilityPct(50, 10, 8, cap), 100, JSON.stringify(cap));
+  }
+  assert.equal(displayedAvailabilityPct(50, 10, 8, ' 90 '), 90);
+  assert.equal(displayedAvailabilityPct(50, 10, 8, 0), 0);
+});

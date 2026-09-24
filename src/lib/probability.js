@@ -21,7 +21,10 @@
     const unit = Number(perUnit);
     const lift = (Number.isFinite(weight) ? weight : 0) * (Number.isFinite(unit) ? unit : DEFAULT_PCT_PER_UNIT);
     const result = base + lift;
-    const cap = maxPct == null ? NaN : Number(maxPct);
+    // Only a number or a non-blank numeric string is a cap. Number('') / Number(false) / Number([]) are 0,
+    // and a cap of 0 would show every street as 0%, so anything else is ignored like an omitted cap.
+    const cap = typeof maxPct === 'number' ? maxPct
+      : (typeof maxPct === 'string' && maxPct.trim() !== '' ? Number(maxPct) : NaN);
     const max = Number.isFinite(cap) ? cap : 100;
     return clampPct(Math.min(result, max));
   }
