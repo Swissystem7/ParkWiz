@@ -27,3 +27,12 @@ test('privacy text no longer says there is no sign-up and describes the local st
   assert.match(privacy, /יומן האנליטיקה/);
   assert.match(privacy, /לא נשלח לשרת/);
 });
+
+test('terms section 4 no longer says there is no user account and describes the local account', () => {
+  const start = html.indexOf("terms: { title: 'תנאי שימוש (דמו)'");
+  assert.ok(start >= 0, 'terms modal text not found');
+  const terms = html.slice(start, html.indexOf('` }', start));
+  assert.doesNotMatch(terms, /אין חשבון משתמש/);
+  assert.match(terms, /חשבון מקומי בדפדפן הזה בלבד/);
+  assert.match(terms, /אין חשבון ענן/);
+});
