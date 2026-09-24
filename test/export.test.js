@@ -96,3 +96,37 @@ test('README names the comparison, summary, and field PWA honestly', () => {
   assert.match(readme, /PWA/);
   assert.match(readme, /sample/);
 });
+
+test('decodeSharePayload rejects negative count values', () => {
+  const packet = exp.buildPilotPacket({ pairs });
+  const token = exp.encodeSharePayload(packet);
+  // Manually construct a token with negative 'n' value to test validation
+  const decoded = exp.decodeSharePayload(token);
+  // Modify the token to have negative count
+  const modifiedSlim = { ...decoded, count: -5 };
+  const modifiedToken = exp.toUrlB64(JSON.stringify({
+    v: 1,
+    s: modifiedSlim.street,
+    n: -5,
+    a: modifiedSlim.meanAccuracy,
+    i: modifiedSlim.minAccuracy,
+    x: modifiedSlim.maxAccuracy,
+    e: modifiedSlim.meanAbsError,
+    p: modifiedSlim.perfect,
+    f: modifiedSlim.firstTs,
+    t: modifiedSlim.lastTs,
+    ls: modifiedSlim.lastSystem,
+    lm: modifiedSlim.lastManual,
+    lt: modifiedSlim.lastTotal,
+    g: modifiedSlim.generatedAt,
+    d: modifiedSlim.sampleOnly ? 1 : 0,
+  }));
+  assert.equal(exp.decodeSharePayload(modifiedToken), null);
+});
+
+test('decodeSharePayload rejects a non-integer count (n: 1.5)', () => {
+  const token = exp.toUrlB64(JSON.stringify({ v: 1, s: 'Herzl', n: 1.5 }));
+  assert.equal(exp.decodeSharePayload(token), null);
+  const whole = exp.toUrlB64(JSON.stringify({ v: 1, s: 'Herzl', n: 2 }));
+  assert.equal(exp.decodeSharePayload(whole).count, 2);
+});
