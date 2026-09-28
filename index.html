@@ -2098,12 +2098,13 @@ function doReportLeaving(count, xpGain) {
   const nowMs = Date.now();
   pushCommunityLeaving(idx, reportCount, nowMs);
   bumpStreetAvail(idx, reportCount * 6);
-  creditXp(xpGain);
+  const driverDemo = document.body.classList.contains('consumer-demo-on');
+  if (driverDemo) creditXp(xpGain);
   HISTORY.unshift({addr:'רח\' '+STREETS_DEF[idx].name, time:'עכשיו', saved:'? דקות', pts:xpGain});
   renderHistory();
   prependFeed(`👤 משתמש דיווח: ${count} מקום${count>1?'ות':''} פנ${count>1?'ו':'ה'} ב${STREETS_DEF[idx].name}`, STREETS_DEF[idx].name);
   renderAll();
-  showToast('✅ תודה! +' + xpGain + ' נקודות אמינות 🏆');
+  showToast(driverDemo ? '✅ תודה! +' + xpGain + ' נקודות אמינות 🏆' : '✅ הדיווח נרשם בדפדפן הזה בלבד (דמו)');
 }
 
 // ─── Live Feed ───────────────────────────────────────────────────
@@ -2763,7 +2764,8 @@ pwRenderAuthArea();
 /* ── Gate primary action: "אני עוזב" report ── */
 const _pwOrigStartLeaving = startLeaving;
 startLeaving = function() {
-  if (!pwGetUser()) { pwOpenAuth('signup', true); return; }
+  // Buyer view: no sign-up wall. The demo account belongs to the driver demo only.
+  if (document.body.classList.contains('consumer-demo-on') && !pwGetUser()) { pwOpenAuth('signup', true); return; }
   _pwOrigStartLeaving();
 };
 const _pwOrigDoReport = doReportLeaving;
