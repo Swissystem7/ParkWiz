@@ -48,3 +48,12 @@ test('buyer surfaces mount the contact block and load the config', () => {
   const sw = read('sw.js');
   assert.match(sw, /\.\/src\/lib\/contact\.js/);
 });
+
+test('offer page: the buyer CTA goes to the contact block, the outreach form is labeled as the developer tool', () => {
+  const html = read('offer.html');
+  const cta = html.match(/<a class="primary" href="([^"]+)"[^>]*>([^<]+)<\/a>/);
+  assert.ok(cta, 'primary CTA exists');
+  assert.equal(cta[1], '#pwContact', 'a city employee must land on a way to reach us, not on our own outreach form');
+  const book = html.slice(html.indexOf('id="book"'), html.indexOf('id="book"') + 400);
+  assert.match(book, /<h2>למפתח:/);
+});
