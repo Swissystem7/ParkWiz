@@ -6,13 +6,54 @@ const path = require('node:path');
 const root = path.join(__dirname, '..');
 const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
 
-test('one CONTACT value lives in one config file and ships empty (no invented details)', () => {
+// The owner decided on 28.9: the public contact channel for all his apps is his Google Form
+// "משוב על האפליקציות", with the app field pre-filled as ParkWiz (an exact option of the form).
+const OWNER_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSdT8YduNx-VWKM3bWGUJdiSj4Sw9D-EA6R6c-oYVYCQmOVXxQ/viewform?usp=pp_url&entry.368039752=ParkWiz';
+
+test('one CONTACT value lives in one config file: the owner\'s Google Form, no email or phone', () => {
   const src = read('src/lib/contact.js');
-  const decl = src.match(/const CONTACT = '([^']*)';/);
-  assert.ok(decl, 'CONTACT must be a single string constant');
-  assert.equal(decl[1], '', 'the owner fills CONTACT; agents never invent it');
+  const decls = src.match(/const CONTACT = '([^']*)';/g) || [];
+  assert.equal(decls.length, 1, 'CONTACT must be a single string constant');
   const c = require('../src/lib/contact.js');
-  assert.equal(c.CONTACT, '');
+  assert.equal(c.CONTACT, OWNER_FORM);
+  assert.equal(c.contactHref(c.CONTACT), OWNER_FORM, 'an https form link is used as is');
+  assert.doesNotMatch(c.CONTACT, /@|tel:|wa\.me/);
+});
+
+// A tiny DOM, enough for mountContact.
+function fakeDom() {
+  const make = (tag) => ({ tag, children: [], attrs: {}, style: {}, hidden: false, textContent: '', href: '',
+    setAttribute(k, v) { this.attrs[k] = String(v); }, getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; },
+    appendChild(ch) { this.children.push(ch); return ch; }, replaceChildren() { this.children = []; } });
+  return { make, document: { createElement: make } };
+}
+
+test('the contact block links to the form with a short label (no raw URL), opens it in a new tab', () => {
+  const c = require('../src/lib/contact.js');
+  const dom = fakeDom();
+  globalThis.document = dom.document;
+  globalThis.location = { pathname: '/offer.html' };
+  try {
+    const host = dom.make('div');
+    host.setAttribute('data-source', 'offer');
+    c.mountContact(host);
+    const link = host.children.find((ch) => ch.tag === 'a');
+    assert.ok(link, 'the block has a link');
+    assert.equal(link.href, OWNER_FORM);
+    assert.equal(link.hidden, false);
+    assert.equal(link.target, '_blank');
+    assert.match(link.rel, /noopener/);
+    assert.match(link.textContent, /טופס Google/);
+    assert.doesNotMatch(link.textContent, /https?:/, 'a 150-character URL as the label would overflow a phone');
+    assert.ok(!host.children.some((ch) => ch.className === 'pw-contact-issue'), 'the GitHub fallback steps aside');
+  } finally {
+    delete globalThis.document;
+    delete globalThis.location;
+  }
+});
+
+test('changed cached pages: the service worker cache moved to v9', () => {
+  assert.match(read('sw.js'), /const CACHE = 'parkwiz-field-v9';/);
 });
 
 test('contactHref turns one value into a mailto, WhatsApp or https link and rejects junk', () => {

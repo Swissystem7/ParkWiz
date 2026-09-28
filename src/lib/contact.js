@@ -1,10 +1,10 @@
 // ParkWiz — the one place a buyer finds out how to reach the developer.
 //
-// CONTACT is the ONLY value to fill: an email, a phone (WhatsApp) or an https
-// link to a form. It ships empty on purpose — agents never invent contact
-// details. While it is empty the direct line stays hidden and buyers get a
-// Hebrew GitHub Issue form instead (public, needs a GitHub account; the block
-// says so).
+// CONTACT is the ONLY value: an email, a phone (WhatsApp) or an https link to
+// a form. The owner decided on 28.9 that it is his Google Form "משוב על
+// האפליקציות", with the app field pre-filled as ParkWiz. If it is emptied, the
+// direct line hides and buyers get a Hebrew GitHub Issue form instead (public,
+// needs a GitHub account; the block says so).
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -15,8 +15,8 @@
     else boot();
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
-  // ← the owner fills this one value (email, phone or https link). Leave '' to hide.
-  const CONTACT = '';
+  // ← the one value (email, phone or https link). '' falls back to the GitHub form.
+  const CONTACT = 'https://docs.google.com/forms/d/e/1FAIpQLSdT8YduNx-VWKM3bWGUJdiSj4Sw9D-EA6R6c-oYVYCQmOVXxQ/viewform?usp=pp_url&entry.368039752=ParkWiz';
 
   const REPO = 'https://github.com/Swissystem7/ParkWiz';
 
@@ -66,9 +66,22 @@
     direct.hidden = !href;
     if (href) {
       direct.href = href;
-      direct.textContent = 'פנו ישירות: ' + CONTACT.trim();
       direct.rel = 'noopener';
+      if (href.startsWith('mailto:')) {
+        direct.textContent = 'פנו ישירות: ' + CONTACT.trim();
+      } else {
+        // A form link is long; its label says what it is instead of printing the URL.
+        const isForm = /^https:\/\/(docs\.google\.com\/forms\/|forms\.gle\/)/i.test(href);
+        direct.textContent = href.startsWith('https://wa.me/') ? 'פנו ישירות ב־WhatsApp'
+          : isForm ? 'פנו אלינו בטופס Google' : 'פנו אלינו בטופס';
+        direct.target = '_blank';
+      }
       host.appendChild(direct);
+      if (!href.startsWith('mailto:')) {
+        const hint = document.createElement('span');
+        hint.textContent = ' (נפתח בחלון חדש; כתבו בלי פרטים אישיים)';
+        host.appendChild(hint);
+      }
       return;
     }
     const issue = document.createElement('a');
