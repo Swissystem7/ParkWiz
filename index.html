@@ -457,7 +457,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
           <li>סטטיסטיקות</li>
           <li>תמיכה עסקית</li>
         </ul>
-        <button class="btn btn-primary" style="width:100%;margin-top:10px;font-size:0.78rem;background:var(--purple);color:#fff" onclick="closeParkPricing()">צור קשר</button>
+        <button class="btn btn-primary" style="width:100%;margin-top:10px;font-size:0.78rem;background:var(--purple);color:#fff" onclick="closeParkPricing();pwGoContact()">צור קשר</button>
       </div>
     </div>
     <span style="display:block;text-align:center;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline" onclick="closeParkPricing()">המשך עם Free</span>
@@ -2339,7 +2339,7 @@ function answerFound(ans) {
     localStorage.setItem('parkwiz_found_feedback', JSON.stringify(arr));
   } catch(e) {}
   renderAll();
-  showToast(ans === 'no' ? '😞 תודה — עדכנו את ההסתברות של ' + s.name : '💚 תודה! הדיווח שלך משפר את הדיוק');
+  showToast(ans === 'no' ? '😞 תודה — עדכנו את ההסתברות של ' + s.name : '💚 תודה! הדיווח עודכן בדפדפן הזה בלבד');
   foundStreetIdx = null;
 }
 
@@ -2493,7 +2493,7 @@ function startNavigation() {
   if (!route.active) { showToast('בחר יעד קודם 🗺️'); return; }
   document.getElementById('streetCardOverlay').classList.remove('show');
   navState = { active:true, start:Date.now(), promptShown:false, timer:null };
-  showToast('🧭 ניווט התחיל — נסיעה בטוחה!');
+  showToast('🧭 הדמיית ניווט (8 שניות) — לא ניווט אמיתי');
   navState.timer = setInterval(navStep, 50);
 }
 
@@ -2533,7 +2533,7 @@ function finishNavigation() {
     if (d < nd) { nd = d; nearest = p; }
   });
   if (nearest) { nearest.taken = true; userPos = { x:nearest.x, y:nearest.y }; positionUserDot(); }
-  showToast('✅ הגעת! החניה סומנה כתפוסה');
+  showToast('✅ סוף הדמיית הניווט — החניה סומנה כתפוסה בדפדפן הזה בלבד');
   userScore += 20; updateXP(20);
   renderRoutePanel();
   renderAll();
@@ -2711,7 +2711,8 @@ init();
     <div class="sub">איך היית מדרג את ParkWiz?</div>
     <div class="pw-fb-stars" id="pwFbStars"></div>
     <textarea class="pw-fb-text" id="pwFbText" placeholder="ספר לנו מה אהבת ומה כדאי לשפר..."></textarea>
-    <button class="pw-submit" style="margin-top:10px" onclick="pwSubmitFeedback()">שלח משוב</button>
+    <div class="sub" style="margin-top:6px">המשוב נשמר רק בדפדפן הזה — לא נשלח אלינו. כדי שנקרא אותו: <a href="#pwContact" onclick="document.getElementById('pwFbOverlay').classList.remove('show')">טופס הפנייה</a>.</div>
+    <button class="pw-submit" style="margin-top:10px" onclick="pwSubmitFeedback()">שמור משוב בדפדפן</button>
     <span class="pw-close" onclick="document.getElementById('pwFbOverlay').classList.remove('show')">ביטול</span>
   </div>
 </div>
@@ -2857,6 +2858,12 @@ if (document.body.classList.contains('consumer-demo-on') && !localStorage.getIte
   document.getElementById('pwObOverlay').classList.add('show');
 }
 
+/* ── Contact: scroll to the one real channel (src/lib/contact.js) ── */
+function pwGoContact() {
+  const el = document.getElementById('pwContact');
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); const a = el.querySelector('a'); if (a) a.focus(); }
+}
+
 /* ── Feedback widget ── */
 let pwFbRating = 0;
 function pwRenderFbStars() {
@@ -2878,7 +2885,8 @@ function pwSubmitFeedback() {
   } catch(e) {}
   track('feedback', { rating: pwFbRating });
   document.getElementById('pwFbOverlay').classList.remove('show');
-  showToast('תודה על המשוב! 💚');
+  showToast('💾 נשמר רק בדפדפן הזה — לא נשלח אלינו. לשליחה: טופס הפנייה בראש הדף');
+  pwGoContact();
 }
 
 track('app_open');

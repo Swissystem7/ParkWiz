@@ -38,3 +38,18 @@ test('CUT: the map hides the consumer demo (Premium, XP, sign-up, fake vendor ev
   // the consumer onboarding (XP, Premium) only runs in the driver demo
   assert.match(html, /if \(document\.body\.classList\.contains\('consumer-demo-on'\) && !localStorage\.getItem\('parkwiz_onboarded'\)\)/);
 });
+
+test('no button claims success it did not deliver', () => {
+  const html = read('index.html');
+  // feedback is stored only in this browser: say so, and point to the real channel
+  assert.doesNotMatch(html, /showToast\('תודה על המשוב! 💚'\)/);
+  assert.match(html, /נשמר רק בדפדפן הזה — לא נשלח אלינו/);
+  // the business-tier "contact" button used to just close the modal
+  assert.doesNotMatch(html, /onclick="closeParkPricing\(\)">צור קשר</);
+  assert.match(html, /onclick="closeParkPricing\(\);pwGoContact\(\)">צור קשר</);
+  assert.match(html, /function pwGoContact\(\)/);
+  // simulated navigation is labeled as a simulation
+  assert.doesNotMatch(html, /'🧭 ניווט התחיל — נסיעה בטוחה!'/);
+  assert.match(html, /הדמיית ניווט/);
+  assert.doesNotMatch(html, /הדיווח שלך משפר את הדיוק/);
+});
