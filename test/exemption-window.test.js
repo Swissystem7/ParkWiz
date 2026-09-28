@@ -52,7 +52,7 @@ test('a quote generated inside the window uses the cap without an expiry warning
 test('the offer page shows the same cap and window as the module (no stale copy in HTML)', () => {
   const html = fs.readFileSync(path.join(root, 'offer.html'), 'utf8');
   const cap = offer.formatIls(offer.EXEMPTION.thirdPartyIls).replace(' ₪', '');
-  assert.match(html, new RegExp(cap.replace(/,/g, ',')));
+  assert.ok(html.includes(cap), 'offer.html must show the module cap ' + cap);
   assert.ok(html.includes(offer.EXEMPTION.thirdPartyWindow), 'offer.html must show the current window');
   assert.doesNotMatch(html, /169,800/);
 });
