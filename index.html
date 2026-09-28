@@ -32,6 +32,9 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 .skip-link:focus{top:8px}
 .eval-banner{background:#0e7490;color:#ecfeff;padding:8px 12px;font-size:0.78rem;font-weight:600;text-align:center;z-index:31;flex-shrink:0;line-height:1.45}
 .eval-banner a{color:#fff;text-decoration:underline}
+/* Buyer view by default: the driver demo (Premium, XP, sign-up, rentals) is opt-in */
+body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
+.eval-banner #pwConsumerToggle{background:none;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:1px 8px;font:inherit;font-size:.72rem;cursor:pointer;margin-inline-start:6px}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
@@ -372,6 +375,30 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 </style>
 </head>
 <body>
+<script>
+/* Buyer view first: the driver demo is opt-in and remembered per browser. */
+(function () {
+  var KEY = 'parkwiz_consumer_demo';
+  var on = false;
+  try { on = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  if (on) document.body.classList.add('consumer-demo-on');
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('pwConsumerToggle');
+    if (!btn) return;
+    function paint() {
+      var isOn = document.body.classList.contains('consumer-demo-on');
+      btn.setAttribute('aria-pressed', String(isOn));
+      btn.textContent = isOn ? 'הסתר את דמו הנהגים' : 'הצג גם את דמו הנהגים (Premium, XP, הרשמה)';
+    }
+    btn.addEventListener('click', function () {
+      var isOn = document.body.classList.toggle('consumer-demo-on');
+      try { localStorage.setItem(KEY, isOn ? '1' : '0'); } catch (e) {}
+      paint();
+    });
+    paint();
+  });
+})();
+</script>
 <a class="skip-link" href="#searchInput">דלג לחיפוש</a>
 <div id="pwSurfaceNav" data-active="map" style="position:relative;z-index:9999"></div>
 <div class="eval-banner" role="note">
@@ -387,6 +414,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
   <a href="./pilot-eval.html">דיוק דמו</a>
   ·
   <a href="./pilot-method.html">מתודולוגיה</a>
+  <button type="button" id="pwConsumerToggle" aria-pressed="false">הצג גם את דמו הנהגים (Premium, XP, הרשמה)</button>
   <div id="pwContact" data-source="index.html"></div>
 </div>
 
@@ -486,15 +514,15 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
     <div class="logo-sub">העוזר החכם לחניה ברחוב</div>
     <div class="logo-sub" style="color:var(--green);opacity:.8">הסתברויות אמיתיות, לא הבטחות</div>
   </div>
-  <span class="free-pill" id="planPill">FREE</span>
+  <span class="free-pill" data-consumer-demo id="planPill">FREE</span>
   <div class="search-wrap">
     <input class="search-box" id="searchInput" placeholder="חפש רחוב בנתניה..." autocomplete="off" oninput="onSearch(this.value)" onblur="setTimeout(closeAC,200)" aria-label="חיפוש רחוב בנתניה" aria-autocomplete="list" aria-controls="autocomplete" aria-expanded="false">
     <div class="autocomplete" id="autocomplete" role="listbox" aria-label="הצעות רחובות"></div>
   </div>
-  <button class="btn btn-ghost" onclick="liveParkingEvent()" aria-label="הוסף אירוע הדגמה למפה">DEMO</button>
+  <button class="btn btn-ghost" data-consumer-demo onclick="liveParkingEvent()" aria-label="הוסף אירוע הדגמה למפה">DEMO</button>
   <button class="heatmap-btn" id="heatmapBtn" onclick="toggleHeatmap()" aria-pressed="false" aria-label="הצג או הסתר שכבת חום">🌡️ חום</button>
-  <button class="premium-btn" onclick="showParkPricing()" aria-label="פתיחת מחירי פרמיום — הדגמה">ParkWiz Premium ⚡</button>
-  <div class="pw-auth-area" id="pwAuthArea">
+  <button class="premium-btn" data-consumer-demo onclick="showParkPricing()" aria-label="פתיחת מחירי פרמיום — הדגמה">ParkWiz Premium ⚡</button>
+  <div class="pw-auth-area" data-consumer-demo id="pwAuthArea">
     <button class="btn btn-ghost" style="color:var(--green);border-color:rgba(34,197,94,.4)" onclick="pwOpenAuth('login')">התחבר</button>
   </div>
 </div>
@@ -587,7 +615,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
     <!-- Arrival mode: curb map around destination -->
     <div class="live-feed" id="arrivalPanel" style="display:none;border-color:rgba(74,222,128,.4)"></div>
     <!-- Demo community feed (canned sample messages — not a live network) -->
-    <div class="live-feed">
+    <div class="live-feed" data-consumer-demo>
       <div class="feed-title"><span class="live-dot" style="background:var(--yellow)"></span>הודעות דמו לדוגמה <span style="font-size:.6rem;color:#eab308;background:rgba(234,179,8,.12);border-radius:6px;padding:1px 5px;font-weight:600">לא קהילה חיה</span></div>
       <div id="feedItem" class="feed-item" aria-live="polite">טוען...</div>
       <div id="feedTime" class="feed-time"></div>
@@ -597,14 +625,14 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
       </div>
     </div>
     <!-- Private parking marketplace (demo inventory only) -->
-    <div class="live-feed" style="border-color:rgba(168,85,247,.35)">
+    <div class="live-feed" data-consumer-demo style="border-color:rgba(168,85,247,.35)">
       <div class="feed-title" style="color:#c084fc">🏠 חניות פרטיות להשכרה <span style="font-size:.6rem;color:#eab308;background:rgba(234,179,8,.12);border-radius:6px;padding:1px 5px;font-weight:600">מלאי דמו</span></div>
       <div id="privList"></div>
       <div style="font-size:.65rem;color:var(--muted)">יש לך חניה פרטית? <button type="button" style="background:none;border:none;color:#c084fc;cursor:pointer;font:inherit;font-weight:700;text-decoration:underline;padding:0" onclick="showToast('🏠 הדגמה: אין פרסום חי — ראו marketplace.html')">השכר אותה (דמו) →</button></div>
       <div style="font-size:.62rem;color:var(--muted);margin-top:3px">🔒 בדמו: רק רשומות מקומיות. חניה ציבורית לא נמכרת — ואין סליקה אמיתית.</div>
     </div>
     <!-- מד צפיפות קהילה: הפתרון לביצה-ותרנגולת — שכונה אחת בכל פעם -->
-    <div class="live-feed" style="border-color:rgba(56,189,248,.35)">
+    <div class="live-feed" data-consumer-demo style="border-color:rgba(56,189,248,.35)">
       <div class="feed-title" style="color:#38bdf8">📡 צפיפות דיווח — מרכז נתניה <span style="font-size:.6rem;color:#eab308;background:rgba(234,179,8,.12);border-radius:6px;padding:1px 5px;font-weight:600">מספרי דמו קבועים</span></div>
       <div style="display:flex;align-items:center;gap:8px;margin:4px 0">
         <div style="flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden" role="img" aria-label="מד דמו: 34 מתוך 50"><div style="width:68%;height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e)"></div></div>
@@ -635,7 +663,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
   </div>
 
   <!-- Gamification panel -->
-  <div class="game-panel" id="gamePanel">
+  <div class="game-panel" data-consumer-demo id="gamePanel">
     <div class="rank-badge">
       <div class="rank-icon">🥈</div>
       <div class="rank-title">מוצא חניה</div>
@@ -690,7 +718,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 </div>
 
 <!-- WhatsApp community banner -->
-<div class="wa-banner" id="waBanner">
+<div class="wa-banner" data-consumer-demo id="waBanner">
   <span>💬</span>
   <span class="wa-banner-text">הצטרף לקהילת החניה של השכונה שלך ב-WhatsApp</span>
   <button class="wa-join-btn" onclick="joinWaCommunity()">הצטרף</button>
@@ -2824,7 +2852,7 @@ function pwFinishOb() {
   localStorage.setItem('parkwiz_onboarded', '1');
   document.getElementById('pwObOverlay').classList.remove('show');
 }
-if (!localStorage.getItem('parkwiz_onboarded')) {
+if (document.body.classList.contains('consumer-demo-on') && !localStorage.getItem('parkwiz_onboarded')) {
   pwRenderOb();
   document.getElementById('pwObOverlay').classList.add('show');
 }
