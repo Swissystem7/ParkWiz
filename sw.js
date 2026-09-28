@@ -48,7 +48,6 @@ const ASSETS = [
   './src/lib/probability.js',
   './src/lib/availability.js',
   './src/lib/predict.js',
-  './src/lib/plate.js',
 ];
 
 self.addEventListener('install', (event) => {
