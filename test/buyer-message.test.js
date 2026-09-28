@@ -53,3 +53,19 @@ test('no button claims success it did not deliver', () => {
   assert.match(html, /הדמיית ניווט/);
   assert.doesNotMatch(html, /הדיווח שלך משפר את הדיוק/);
 });
+
+test('README: no stray upload note; tells the owner where the one CONTACT value lives', () => {
+  const readme = read('README.md');
+  assert.doesNotMatch(readme, /הועלה מהמחשב/);
+  assert.match(readme, /## יצירת קשר/);
+  assert.match(readme, /src\/lib\/contact\.js/);
+  assert.match(readme, /מוסתר כברירת מחדל/);
+});
+
+test('offer and MONETIZATION cite the cheapest direct competitor price with a source', () => {
+  const offer = read('offer.html');
+  const money = read('MONETIZATION.md');
+  assert.match(offer, /Parkinto<\/a>[^<]*69 \$ למצלמה לחודש/);
+  assert.match(offer, /parkinto\.com\/pricing/);
+  assert.match(money, /\*\*Parkinto\*\*[^\n]*69 \$[^\n]*28\.9\.2026[^\n]*parkinto\.com\/pricing/);
+});
