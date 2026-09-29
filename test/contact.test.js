@@ -52,8 +52,9 @@ test('the contact block links to the form with a short label (no raw URL), opens
   }
 });
 
-test('changed cached pages: the service worker cache moved to v9', () => {
-  assert.match(read('sw.js'), /const CACHE = 'parkwiz-field-v9';/);
+test('changed cached pages: the service worker cache moved to v9 or later', () => {
+  const v = Number((read('sw.js').match(/const CACHE = 'parkwiz-field-v(\d+)';/) || [])[1]);
+  assert.ok(v >= 9, 'cache version ' + v);
 });
 
 test('contactHref turns one value into a mailto, WhatsApp or https link and rejects junk', () => {
