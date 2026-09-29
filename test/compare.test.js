@@ -67,3 +67,14 @@ test('an empty series has no accuracy to report', () => {
   assert.equal(s.meanSignedError, null);
   assert.equal(s.sampleOnly, false);
 });
+
+test('savePairs throws TypeError when list is not an array', () => {
+  assert.throws(() => cmp.savePairs(null), {
+    name: 'TypeError',
+    message: 'list must be an array'
+  });
+  assert.throws(() => cmp.savePairs('string'), {
+    name: 'TypeError',
+    message: 'list must be an array'
+  });
+});
