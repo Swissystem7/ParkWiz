@@ -68,3 +68,8 @@ test('report order does not change the score', () => {
   const backward = weightedAvailability([...reports].reverse(), NOW);
   assert.ok(Math.abs(forward - backward) < 1e-12);
 });
+
+test('future report with validate=false contributes zero weight', () => {
+  const result = weightedAvailability([{ ts: NOW + 60000, delta: 1 }], NOW);
+  assert.equal(result, 0);
+});
