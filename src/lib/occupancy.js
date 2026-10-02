@@ -25,7 +25,8 @@
   }
 
   function occupancyRate(r) {
-    if (!r || !r.total) return 0;
+    if (!r || typeof r !== 'object') return 0;
+    if (r.total == null || r.total <= 0) return 0;
     return r.occupied / r.total;
   }
 
