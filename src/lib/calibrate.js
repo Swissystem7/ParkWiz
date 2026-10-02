@@ -103,7 +103,9 @@
   }
 
   function formatClock(ms) {
-    const t = Math.max(0, Math.round(Number(ms) || 0) / 1000);
+    const n = Number(ms);
+    if (!Number.isFinite(n)) return null;
+    const t = Math.max(0, Math.round(n) / 1000);
     const m = Math.floor(t / 60);
     const s = Math.floor(t % 60);
     return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
