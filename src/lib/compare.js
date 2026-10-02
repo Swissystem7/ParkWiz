@@ -117,6 +117,9 @@
   }
 
   function savePairs(list) {
+    if (!Array.isArray(list)) {
+      throw new TypeError('list must be an array');
+    }
     try {
       localStorage.setItem(occ.LS.pairs, JSON.stringify(list || []));
     } catch (e) { /* quota / private mode */ }
