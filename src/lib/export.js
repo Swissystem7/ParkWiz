@@ -105,6 +105,8 @@
     try { slim = JSON.parse(fromUrlB64(token.trim())); } catch (e) { return null; }
     if (!slim || slim.v !== 1 || !Number.isFinite(Number(slim.n))) return null;
     const n = Number(slim.n);
+    // Validate that 'n' is a non-negative integer
+    if (n < 0 || n !== Math.floor(n)) return null;
     const numOrNull = (v) => (v == null || v === '' ? null : (Number.isFinite(Number(v)) ? Number(v) : null));
     return {
       version: 1,
