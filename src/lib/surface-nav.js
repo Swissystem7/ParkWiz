@@ -12,8 +12,6 @@
     { id: 'log', href: './pilot-log.html', label: 'יומן 30 יום' },
     { id: 'report', href: './pilot-report.html', label: 'דוח פיילוט' },
     { id: 'privacy', href: './pilot-privacy.html', label: 'בקשת גישה / פרטיות' },
-    { id: 'dash', href: './pilot-dashboard.html', label: 'דשבורד פיילוט עירוני' },
-    { id: 'market', href: './marketplace.html', label: 'שוק חניות פרטיות' },
   ];
 
   function ensureNavCss() {

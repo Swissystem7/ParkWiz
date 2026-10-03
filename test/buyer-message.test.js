@@ -1,0 +1,71 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const root = path.join(__dirname, '..');
+const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
+
+test('CUT: the shared nav no longer sells a marketplace or a duplicate dashboard', () => {
+  delete require.cache[require.resolve('../src/lib/surface-nav.js')];
+  require('../src/lib/surface-nav.js');
+  const ids = globalThis.ParkWizSurfaceNav.LINKS.map((l) => l.id);
+  assert.ok(!ids.includes('market'), 'marketplace contradicts the municipal PIVOT');
+  assert.ok(!ids.includes('dash'), 'dashboard duplicates the pilot report');
+  for (const keep of ['map', 'brief', 'offer', 'kit', 'compare', 'report', 'privacy']) assert.ok(ids.includes(keep), keep);
+  // the pages themselves stay (code is not deleted), only the message changes
+  assert.ok(fs.existsSync(path.join(root, 'marketplace.html')));
+  assert.ok(fs.existsSync(path.join(root, 'pilot-dashboard.html')));
+});
+
+test('CUT: the map hides the consumer demo (Premium, XP, sign-up, fake vendor events, rentals) unless asked', () => {
+  const html = read('index.html');
+  assert.match(html, /body:not\(\.consumer-demo-on\) \[data-consumer-demo\]\{display:none!important\}/);
+  const tagged = [
+    /<button class="btn btn-ghost" data-consumer-demo onclick="liveParkingEvent\(\)"/,
+    /<button class="premium-btn" data-consumer-demo /,
+    /<div class="pw-auth-area" data-consumer-demo id="pwAuthArea">/,
+    /<span class="free-pill" data-consumer-demo id="planPill">/,
+    /<div class="game-panel" data-consumer-demo id="gamePanel">/,
+    /<div class="live-feed" data-consumer-demo>\s*<div class="feed-title"><span class="live-dot"/,
+    /<div class="live-feed" data-consumer-demo style="border-color:rgba\(168,85,247/,
+    /<div class="live-feed" data-consumer-demo style="border-color:rgba\(56,189,248/,
+    /<div class="wa-banner" data-consumer-demo id="waBanner">/,
+  ];
+  for (const re of tagged) assert.match(html, re);
+  // an explicit, labeled way back to the driver demo
+  assert.match(html, /id="pwConsumerToggle"[^>]*aria-pressed="false"[^>]*>[^<]*דמו הנהגים/);
+  // the consumer onboarding (XP, Premium) only runs in the driver demo
+  assert.match(html, /if \(document\.body\.classList\.contains\('consumer-demo-on'\) && !localStorage\.getItem\('parkwiz_onboarded'\)\)/);
+});
+
+test('no button claims success it did not deliver', () => {
+  const html = read('index.html');
+  // feedback is stored only in this browser: say so, and point to the real channel
+  assert.doesNotMatch(html, /showToast\('תודה על המשוב! 💚'\)/);
+  assert.match(html, /נשמר רק בדפדפן הזה — לא נשלח אלינו/);
+  // the business-tier "contact" button used to just close the modal
+  assert.doesNotMatch(html, /onclick="closeParkPricing\(\)">צור קשר</);
+  assert.match(html, /onclick="closeParkPricing\(\);pwGoContact\(\)">צור קשר</);
+  assert.match(html, /function pwGoContact\(\)/);
+  // simulated navigation is labeled as a simulation
+  assert.doesNotMatch(html, /'🧭 ניווט התחיל — נסיעה בטוחה!'/);
+  assert.match(html, /הדמיית ניווט/);
+  assert.doesNotMatch(html, /הדיווח שלך משפר את הדיוק/);
+});
+
+test('README: no stray upload note; tells the owner where the one CONTACT value lives', () => {
+  const readme = read('README.md');
+  assert.doesNotMatch(readme, /הועלה מהמחשב/);
+  assert.match(readme, /## יצירת קשר/);
+  assert.match(readme, /src\/lib\/contact\.js/);
+  assert.match(readme, /מוסתר כברירת מחדל/);
+});
+
+test('offer and MONETIZATION cite the cheapest direct competitor price with a source', () => {
+  const offer = read('offer.html');
+  const money = read('MONETIZATION.md');
+  assert.match(offer, /Parkinto<\/a>[^<]*69 \$ למצלמה לחודש/);
+  assert.match(offer, /parkinto\.com\/pricing/);
+  assert.match(money, /\*\*Parkinto\*\*[^\n]*69 \$[^\n]*28\.9\.2026[^\n]*parkinto\.com\/pricing/);
+});
