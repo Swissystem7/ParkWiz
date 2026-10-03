@@ -58,10 +58,39 @@
     return Number.isFinite(h) && h >= 0 && h <= 23 ? h : null;
   }
 
+  // A month/day pair that does not exist is a typo, not a date. Date.UTC()
+  // rolls 2026-02-30 forward into March and hands back a perfectly plausible
+  // weekday for a day that never happened, so the calendar is checked first.
+  const MONTH_DAYS = Object.freeze([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]);
+
+  function isLeapYear(y) {
+    return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  }
+
+  // month is 1..12, as written in the timestamp.
+  function daysInMonth(y, month) {
+    if (month === 2 && isLeapYear(y)) return 29;
+    return MONTH_DAYS[month - 1];
+  }
+
+  function validCalendarDate(y, month, day) {
+    if (!Number.isInteger(y) || !Number.isInteger(month) || !Number.isInteger(day)) return false;
+    if (month < 1 || month > 12) return false;
+    return day >= 1 && day <= daysInMonth(y, month);
+  }
+
+  // Weekday 0..6 for the date written on the timestamp, or null when that date
+  // does not exist. Built through setUTCFullYear so that a written year below
+  // 100 stays that year instead of being remapped into the 1900s by Date.UTC.
   function weekdayFromTs(ts) {
     const m = String(ts || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (!m) return null;
-    const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+    const y = Number(m[1]);
+    const month = Number(m[2]);
+    const day = Number(m[3]);
+    if (!validCalendarDate(y, month, day)) return null;
+    const d = new Date(Date.UTC(2000, month - 1, day));
+    d.setUTCFullYear(y);
     return d.getUTCDay();
   }
 
@@ -122,8 +151,51 @@
     </svg>`;
   }
 
+  // Backlog item 1 asked for normalize() to reject every ts that is not short
+  // ISO YYYY-MM-DDTHH:MM. That is not this schema's contract and the suite
+  // says so: test/occupancy.test.js feeds normalize the free-form stamps 't',
+  // 'a' and 'b' and full ISO with seconds, test/compare.test.js normalises
+  // '2026-08-12T08:00:00', and test/export.test.js round-trips records stamped
+  // '...T08:00:00+03:00'. Seven pre-existing tests fail under the strict rule.
+  // Those tests are the specification, so the ts field stays free-form.
+  //
+  // What is tightened is the part that costs nothing and catches real typos: a
+  // ts that *claims* to be a timestamp and is impossible no longer enters the
+  // pilot data. 2026-13-45T08:00 and 2026-08-12T24:00 are rejected; 't' and
+  // every legal ISO shape, long or short, offset or Z, still pass.
+  //
+  // Both checks are anchored at the start of the string, because only a clock
+  // that is actually *this record's* timestamp may be judged. An unanchored
+  // /T(\d{2}):(\d{2})/ takes the first match anywhere, so the free-form
+  // stamps 'note T99:99 attached', 'T25:00' and a Hebrew shift label
+  // containing T44:00 were each dropped from the pilot import - a record
+  // deleted for a substring of prose, on the path the pilot pages use, with no
+  // page reporting how many records vanished. It was not even strict: the same
+  // rule kept '2026-08-12T08:00 (T99:99)', because there the good clock
+  // matched first.
+  //
+  // The seconds field is judged in the same anchored position, and 60 is
+  // allowed: 23:59:60 is a UTC leap second and a legal ISO 8601 instant.
+  function tsProblem(ts) {
+    const s = String(ts == null ? '' : ts);
+    if (!s) return null;
+    const day = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (day && !validCalendarDate(Number(day[1]), Number(day[2]), Number(day[3]))) {
+      return 'impossible-date';
+    }
+    const clock = s.match(/^\d{4}-\d{2}-\d{2}T(\d{2}):(\d{2})(?::(\d{2}))?/);
+    if (clock && (Number(clock[1]) > 23 || Number(clock[2]) > 59)) {
+      return 'impossible-clock';
+    }
+    if (clock && clock[3] != null && Number(clock[3]) > 60) {
+      return 'impossible-clock';
+    }
+    return null;
+  }
+
   function normalize(o, fallbackStreet) {
     if (!o || typeof o !== 'object') return null;
+    if (tsProblem(o.ts)) return null;
     const total = num(o.total != null ? o.total : o.totalSpots);
     let occupied = num(o.occupied != null ? o.occupied : o.occupiedSpots);
     let rate = o.occupancyRate != null ? num(o.occupancyRate) : null;
@@ -140,13 +212,22 @@
     };
   }
 
+  // Both encodings come back in the same order. The JSON-array path used to
+  // return input order while the JSONL path sorted, so the same series read
+  // back differently depending on how it had been written down.
+  function byTs(a, b) {
+    return String(a.ts).localeCompare(String(b.ts));
+  }
+
   function parse(text, fallbackStreet) {
     const raw = String(text || '').trim();
     if (!raw) return [];
     if (raw[0] === '[') {
       try {
         const a = JSON.parse(raw);
-        if (Array.isArray(a)) return a.map((o) => normalize(o, fallbackStreet)).filter(Boolean);
+        if (Array.isArray(a)) {
+          return a.map((o) => normalize(o, fallbackStreet)).filter(Boolean).sort(byTs);
+        }
       } catch (e) { /* fall through to JSONL */ }
     }
     const out = [];
@@ -158,7 +239,7 @@
         if (n) out.push(n);
       } catch (e) { /* skip bad line */ }
     }
-    return out.sort((a, b) => String(a.ts).localeCompare(String(b.ts)));
+    return out.sort(byTs);
   }
 
   function summarize(records) {
@@ -254,6 +335,8 @@
     formatTime,
     hourFromTs,
     weekdayFromTs,
+    validCalendarDate,
+    tsProblem,
     byHour,
     heatColor,
     hourHeatmapSvg,

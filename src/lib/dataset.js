@@ -10,10 +10,13 @@
   const proto = (typeof module === 'object' && module.exports)
     ? require('./protocol')
     : root.ParkWizProtocol;
-  const api = factory(heu, proto);
+  const occ = (typeof module === 'object' && module.exports)
+    ? require('./occupancy')
+    : root.ParkWizOccupancy;
+  const api = factory(heu, proto, occ);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.ParkWizDataset = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (heu, proto) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (heu, proto, occ) {
   const PATCH_W = 24;
   const PATCH_H = 32;
   const SPOT_COUNT = 12;
@@ -406,6 +409,94 @@
     };
   }
 
+  // loadSampleOccupancy - the shipped pilot dataset read as occupancy records.
+  //
+  // Both arguments are the *text* of a JSON file (pilot/dataset/manifest.json
+  // and pilot/dataset/labels.json). This function opens nothing, fetches
+  // nothing and reads no clock: the caller decides where the bytes came from.
+  // Unparseable text gives an empty list rather than an exception, because the
+  // pilot pages hand it whatever is in a textarea.
+  //
+  // The manifest supplies the street and the spot count; the labels supply the
+  // ground truth. A manifest scene with no matching label is skipped - an
+  // unlabelled scene is not a measurement. Records come back through
+  // occupancy.normalize, in manifest scene order.
+  //
+  // source is 'dataset-label' and confidence is 0, deliberately. These are
+  // labels we painted in this repo. They are not a camera reading and they are
+  // not an inspector count, and nothing downstream should be able to mistake
+  // them for one.
+  function parseJsonText(text) {
+    if (typeof text !== 'string') return null;
+    try {
+      const v = JSON.parse(text);
+      return v && typeof v === 'object' ? v : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // The spot index a label entry names, or null when it names none.
+  //
+  // Number() is not this test. Number(null), Number(''), Number(false),
+  // Number([]) and Number('  ') are all 0; Number(true) and Number('1e0') are
+  // 1; Number('0x2') is 2. Every one of those is an integer inside a 12-spot
+  // lot, so a guard built on Number() turns a JSON entry that names no spot at
+  // all into a spot the municipality is told is occupied. Only a real number
+  // and a plain decimal-integer string are evidence; a string with a sign, an
+  // exponent, a radix prefix, a decimal point or surrounding space is not a
+  // spot index and is discarded rather than guessed at.
+  function labelIndex(raw) {
+    if (typeof raw === 'number') return Number.isInteger(raw) ? raw : null;
+    if (typeof raw === 'string' && /^[0-9]+$/.test(raw)) return Number(raw);
+    return null;
+  }
+
+  // How many of the marked spots this label says are occupied. Indices that
+  // are repeated, outside the lot, or not an index at all are not evidence and
+  // do not count.
+  function labelledOccupied(scene, total) {
+    const at = Array.isArray(scene && scene.occupiedAt) ? scene.occupiedAt : [];
+    const seen = [];
+    at.forEach((raw) => {
+      const i = labelIndex(raw);
+      if (i == null || i < 0 || i >= total) return;
+      if (seen.indexOf(i) === -1) seen.push(i);
+    });
+    return seen.length;
+  }
+
+  function loadSampleOccupancy(manifestText, labelsText) {
+    const man = parseJsonText(manifestText);
+    const lab = parseJsonText(labelsText);
+    if (!man || !lab) return [];
+    const total = Number(man.patch && man.patch.spots);
+    if (!Number.isInteger(total) || total <= 0) return [];
+    const labels = {};
+    (Array.isArray(lab.scenes) ? lab.scenes : []).forEach((s) => {
+      if (s && s.id != null) labels[String(s.id)] = s;
+    });
+    const out = [];
+    (Array.isArray(man.scenes) ? man.scenes : []).forEach((s) => {
+      if (!s || s.id == null) return;
+      const label = labels[String(s.id)];
+      if (!label) return;
+      const rec = occ.normalize({
+        ts: s.ts != null ? s.ts : '',
+        street: man.street,
+        total,
+        occupied: labelledOccupied(label, total),
+        source: 'dataset-label',
+        confidence: 0,
+      });
+      if (!rec) return;
+      rec.scene = String(s.id);
+      rec.lighting = s.lighting != null ? String(s.lighting) : '';
+      out.push(rec);
+    });
+    return out;
+  }
+
   return {
     PATCH_W,
     PATCH_H,
@@ -420,5 +511,6 @@
     evaluate,
     compareMethods,
     rollup,
+    loadSampleOccupancy,
   };
 });
