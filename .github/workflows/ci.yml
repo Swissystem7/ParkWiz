@@ -1,0 +1,26 @@
+# Minimal CI added by the factory (ci_bootstrap.py, 2026-10-03). Runs on every PR (drafts included) and on
+# pushes to master; a newer push to the same PR cancels the older run. Typical run: < 1 minute.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Lint (syntax check of every tracked JS file)
+        run: git ls-files -z '*.js' '*.mjs' '*.cjs' | xargs -0 -r -n1 node --check
+      - name: Test
+        run: npm test
