@@ -466,6 +466,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
       <span class="chance-badge chance-mid" id="scChanceBadge"><span>סיכוי למצוא חניה</span><strong>45%</strong></span>
     </div>
     <div class="sc-tariff" id="scTariff">💰 תעריף חניה: ₪6.20 לשעה (כחול-לבן)</div>
+    <div id="scShoulder" style="display:none"></div>
     <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px">זמינות לפי שעה (08:00–22:00)</div>
     <div class="sc-mini-chart" id="scMiniChart"></div>
     <div class="sc-mini-labels" id="scMiniLabels"></div>
@@ -505,6 +506,9 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
   <button class="filter-btn active" id="filt-free" onclick="toggleFilter('free')" aria-pressed="true">⚪ חינם</button>
   <button class="filter-btn forbidden" onclick="showToast('❌ אזור אסור לחניה')" aria-disabled="true">🚫 אסור</button>
   <button class="filter-btn active" id="filt-timed" onclick="toggleFilter('timed')" aria-pressed="true">⏱️ עד 3 שעות</button>
+  <!-- pw:shoulder-copy:start -->
+  <button class="filter-btn active" id="filt-shoulder" onclick="toggleFilter('shoulder')" aria-pressed="true">🛞 שוליים</button>
+  <!-- pw:shoulder-copy:end -->
 </div>
 
 <div class="main">
@@ -539,6 +543,9 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
       <div class="legend-item"><div class="seg-lg" style="background:#ef4444"></div>אדום-לבן</div>
       <div class="legend-item"><div class="dot-lg" style="background:#a855f7"></div>פרטית להשכרה</div>
       <div class="legend-item"><div class="seg-lg" style="background:#ec4899"></div>שמורה (נכים/תושב)</div>
+      <!-- pw:shoulder-copy:start -->
+      <div class="legend-item"><div class="seg-lg" style="background:#14b8a6"></div>שוליים (לא מסומן)</div>
+      <!-- pw:shoulder-copy:end -->
     </div>
   </div>
 
@@ -852,50 +859,102 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 <script src="src/lib/availability.js"></script>
 <script src="src/lib/predict.js"></script>
 <script src="src/lib/probability.js"></script>
+<script src="src/lib/shoulder.js"></script>
 <script src="src/lib/surface-nav.js"></script>
 <script src="src/lib/pwa.js"></script>
 <script src="availability-model.js"></script>
 
 <script>
 // ─── Street Data ──────────────────────────────────────────────────
-// Each street: name, availability (0-100), type (blue/free/timed), isH, ratio position
+// Each street: name, availability (0-100), type (blue/free/timed/shoulder), isH,
+// ratio position. shoulderM = אורך קטע השוליים במטרים (נתון הדגמה, כמו כל
+// שאר המספרים כאן) — רלוונטי רק ל-type='shoulder', והוא הקלט של כלל השוליים.
 const STREETS_DEF = [
   { name:"הרצל", avail:62, type:'blue', isH:true, pos:0.1, lat:32.3274, lng:34.8605, a:[32.3282,34.8582], b:[32.3266,34.8628] },
   { name:"שדרות בנימין", avail:45, type:'free', isH:false, pos:0.2, lat:32.3204, lng:34.8555, a:[32.3282,34.8582], b:[32.3125,34.8529] },
   { name:"שדרות ויצמן", avail:30, type:'blue', isH:false, pos:0.3, lat:32.3352, lng:34.8593, a:[32.3421,34.8603], b:[32.3282,34.8583] },
   { name:"רזיאל", avail:71, type:'free', isH:false, pos:0.4, lat:32.3298, lng:34.8631, a:[32.3326,34.8646], b:[32.327,34.8615] },
-  { name:"בן גוריון", avail:25, type:'timed', isH:false, pos:0.5, lat:32.3098, lng:34.8468, a:[32.3195,34.8482], b:[32.3001,34.8453] },
+  { name:"בן גוריון", avail:25, type:'shoulder', shoulderM:18, isH:false, pos:0.5, lat:32.3098, lng:34.8468, a:[32.3195,34.8482], b:[32.3001,34.8453] },
   { name:"שדרות בן צבי יצחק", avail:58, type:'free', isH:false, pos:0.6, lat:32.3054, lng:34.8545, a:[32.2984,34.8536], b:[32.3123,34.8554] },
   { name:"האר\"י", avail:80, type:'timed', isH:true, pos:0.7, lat:32.3122, lng:34.8638, a:[32.3121,34.8723], b:[32.3122,34.8552] },
   { name:"פתח-תקווה", avail:18, type:'blue', isH:false, pos:0.8, lat:32.3224, lng:34.8595, a:[32.3175,34.8576], b:[32.3272,34.8614] },
-  { name:"דן שומרון", avail:66, type:'free', isH:false, pos:0.9, lat:32.3105, lng:34.8613, a:[32.3087,34.8612], b:[32.3122,34.8614] },
+  { name:"דן שומרון", avail:66, type:'shoulder', shoulderM:14, isH:false, pos:0.9, lat:32.3105, lng:34.8613, a:[32.3087,34.8612], b:[32.3122,34.8614] },
 ];
 
 // ─── מפה אמיתית (Leaflet + OpenStreetMap) עם סימוני חניה ─────────
-const ZONE_COLORS = { blue:'#3b82f6', free:'#9ca3af', timed:'#f59e0b' };
+// ─── שוליים ─────────────────────────────────────────────
+// כל טקסט שמוצג למשתמש על שוליים יושב כאן, בין הסמנים. test/shoulder-honesty.test.js
+// סורק את כל האזור ומונה את המפתחות, כדי שמחרוזת חדשה שתתווסף לידן לא
+// תקבל פטור בשקט. המחרוזות המשותפות חייבות להיות זהות לקבועי src/lib/shoulder.js.
+const PW_SHOULDER = window.ParkWizShoulder || null;
+/* pw:shoulder-copy:start */
+const SHOULDER_COPY = {
+  typeLabel: '🛞 שוליים',
+  curb: 'שוליים (לא מסומן) — שילוט קובע',
+  tariff: '💰 תעריף חניה: לא ידוע לשוליים — שילוט ותמרור קובעים',
+  notice: '🛞 שוליים — הערכת זמינות בלבד: כמה מקום פנוי צפוי להיות. ParkWiz אינו מכריע אם לעצור או להחנות כאן — שילוט, תמרור וסימון הכביש קובעים, ובדיקה בשטח לפני שחונים.',
+  why: 'שוליים מתמלאים מקצה אחד, אחרונים אחרי הכחול-לבן — לכן המספר כאן הוא התאמת אורך: הקטע הפנוי המשוער מול אורך הרכב שלך, ולא אחוז תפוסה.',
+  listTag: 'שוליים — לא תא מסומן',
+  mapTag: 'שוליים',
+  roomMany: 'לפי ההערכה יש מקום לכ- {n} רכבים בגודל שלך לאורך הקטע הפנוי',
+  roomOne: 'לפי ההערכה יש מקום לרכב אחד בגודל שלך לאורך הקטע הפנוי',
+  roomNone: 'לפי ההערכה אין כרגע קטע פנוי באורך הרכב שלך בשוליים האלה',
+  noEstimate: 'אין הערכת זמינות לשוליים האלה — חסר נתון אורך הקטע',
+  // המספר ליד שוליים אינו הסתברות למצוא חניה אלא ציון התאמת אורך: הקטע
+  // הפנוי המשוער מול הרכב שלך. השמות כאן אומרים את זה, וכל שורה מילולית
+  // נגזרת מאותם שני מטרים כמו המספר — לכן שתיים מהן לא יכולות לסתור זו את זו.
+  fitBadge: 'התאמת אורך לרכב שלך',
+  fitShort: 'התאמת אורך',
+  fitLevelHigh: 'מקום משוער לכמה רכבים בגודל שלך',
+  fitLevelMid: 'מקום משוער לרכב אחד בגודל שלך',
+  fitLevelLow: 'הקטע הפנוי קצר מהרכב שלך',
+  fitLevelUnknown: 'אין הערכת התאמה',
+  fitHeadlineHigh: '🎯 התאמת אורך {n}% — לפי ההערכה הקטע הפנוי מכיל כמה רכבים בגודל שלך',
+  fitHeadlineMid: '🎯 התאמת אורך {n}% — לפי ההערכה הקטע הפנוי מכיל רכב אחד בגודל שלך',
+  fitHeadlineLow: '🎯 התאמת אורך {n}% — הקטע הפנוי המשוער קצר מהרכב שלך; שקול רחוב אחר',
+  runMany: '✓ הקטע הפנוי המשוער מכיל את הרכב שלך בנוח',
+  runOne: '⚠ הקטע הפנוי המשוער מכיל את הרכב שלך בצמצום',
+  runShort: '✗ הקטע הפנוי המשוער קצר מהרכב שלך',
+  runMeta: '(קטע פנוי משוער {m} מטר · הרכב שלך צריך {need} מטר)',
+};
+/* pw:shoulder-copy:end */
+
+const ZONE_COLORS = { blue:'#3b82f6', free:'#9ca3af', timed:'#f59e0b', shoulder:'#14b8a6' };
 let realMap = null, segLayers = [], midMarkers = [], heatLayer = null;
 let userMarker = null, overlaySpotLayer = null, overlayPangoLayer = null;
 let overlayFutureLayer = null, overlayRouteLine = null, overlayRouteParks = null;
 
 // ─── מפת מדרכות: פיצול כל רחוב לקטעי אבן-שפה עם סוג לכל קטע ───
+// suggest = האם הקטע מוצג ברשימת ההצעות הקרובות. זו אינה קביעה
+// בשאלת החניה עצמה — שילוט, תמרור וסימון הכביש קובעים.
 const CURB_TYPES = {
-  blue:     { c:'#3b82f6', label:'כחול-לבן (בתשלום)', park:true },
-  free:     { c:'#9ca3af', label:'אפור — חינם',        park:true },
-  timed:    { c:'#f59e0b', label:'מוגבל בזמן',          park:true },
-  red:      { c:'#ef4444', label:'אדום-לבן — אסור',     park:false },
-  reserved: { c:'#ec4899', label:'שמורה (נכים/תושב)',   park:false },
+  blue:     { c:'#3b82f6', label:'כחול-לבן (בתשלום)', suggest:true },
+  free:     { c:'#9ca3af', label:'אפור — חינם',        suggest:true },
+  timed:    { c:'#f59e0b', label:'מוגבל בזמן',          suggest:true },
+  red:      { c:'#ef4444', label:'אדום-לבן — אסור',     suggest:false },
+  reserved: { c:'#ec4899', label:'שמורה (נכים/תושב)',   suggest:false },
+  shoulder: { c:'#14b8a6', label:SHOULDER_COPY.curb,        suggest:true },
 };
 function lerp(a, b, t) { return [ a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t ]; }
 // דטרמיניסטי לפי רחוב: פינות = אדום-לבן (החוק: 12 מ' מהצומת), באמצע שילוב של סוג הרחוב + שמורות + אפור
+// סוג של קטע אבן-שפה אחד. הופרד מהלולאה כדי שהכלל «קטע שוליים נשאר שוליים»
+// יהיה ניתן לבדיקה בפני עצמו: בנתוני ההדגמה הנוכחיים אף קטע פנימי בשני רחובות
+// השוליים לא נופל בטווח הגיוון (0.12–0.30), ולכן בדיקה שמסתכלת רק על הנתונים
+// האלה מאשרת את הכלל בלי להריץ אותו פעם אחת.
+// מה שהכלל אומר: על רחוב שוליים, קטע הוא שוליים או אדום-לבן. אדום-לבן הוא
+// סימון כביש בפינה, לא תא מסומן; שמורה וכחול-לבן הם תאים מסומנים, ושוליים
+// אינם הופכים לתא מסומן בשום ענף.
+function curbTypeFor(streetType, seed, i, N) {
+  if (i === 0 || i === N-1) return seed < 0.7 ? 'red' : streetType;      // פינות
+  if (seed < 0.12) return streetType === 'shoulder' ? 'shoulder' : 'reserved';
+  if (seed < 0.30) return streetType === 'shoulder' ? 'shoulder' : (streetType === 'free' ? 'blue' : 'free');
+  return streetType;
+}
 const CURBS = STREETS_DEF.map((s, idx) => {
   const N = 6, out = [];
   for (let i = 0; i < N; i++) {
     const seed = Math.abs(Math.sin(idx*7.13 + i*3.7)) ;
-    let type;
-    if (i === 0 || i === N-1) type = seed < 0.7 ? 'red' : s.type;         // פינות
-    else if (seed < 0.12) type = 'reserved';
-    else if (seed < 0.30) type = s.type === 'free' ? 'blue' : 'free';     // גיוון
-    else type = s.type;
+    const type = curbTypeFor(s.type, seed, i, N);
     out.push({ a: lerp(s.a, s.b, i/N), b: lerp(s.a, s.b, (i+1)/N), type,
                mid: lerp(s.a, s.b, (i+0.5)/N), street: idx });
   }
@@ -926,15 +985,15 @@ function arrivalMode(lat, lng, name) {
       <div style="flex:1">${CURB_TYPES[t].label}</div><b>${pct}%</b></div>`;
   }).join('');
 
-  const legal = near.filter(ch => CURB_TYPES[ch.type].park)
+  const suggested = near.filter(ch => CURB_TYPES[ch.type].suggest)
     .map(ch => ({ ch, d: Math.round(distM([lat,lng], ch.mid)), s: STREETS_DEF[ch.street] }))
     .sort((x,y) => (x.ch.type==='free'?-40:0) + x.d - ((y.ch.type==='free'?-40:0) + y.d))
     .slice(0, 3);
-  const list = legal.map(({ch,d,s}) => `
+  const list = suggested.map(({ch,d,s}) => `
     <div onclick="selectStreet(${ch.street})" style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:4px;font-size:.72rem;cursor:pointer">
       <div><b style="color:${CURB_TYPES[ch.type].c}">●</b> ${s.name} · ${CURB_TYPES[ch.type].label}</div>
-      <div>${d} מ' · ${s.avail}% פנוי</div>
-    </div>`).join('') || '<div style="font-size:.72rem;color:var(--muted)">אין חניה חוקית ברדיוס — הרחב חיפוש</div>';
+      <div>${d} מ' · ${arrivalAvailLabel(ch.street)}</div>
+    </div>`).join('') || '<div style="font-size:.72rem;color:var(--muted)">אין קטע חניה מוצע ברדיוס — הרחב חיפוש</div>';
 
   const panel = document.getElementById('arrivalPanel');
   panel.style.display = 'block';
@@ -943,6 +1002,7 @@ function arrivalMode(lat, lng, name) {
     ${bars}
     <div style="font-size:.7rem;color:var(--muted);margin:6px 0 4px">המומלצות (חינם קודם, ואז לפי מרחק):</div>
     ${list}
+    ${arrivalShoulderNote(suggested)}
     <div style="font-size:.63rem;color:var(--muted);margin-top:4px">⛔ אדום-לבן בפינות = אסור עצירה · 🩷 שמורה = אל תתפתה, הקנס 250-1,000 ₪</div>
     <div style="text-align:left;margin-top:4px"><b style="font-size:.68rem;color:var(--muted);cursor:pointer" onclick="clearArrival()">✕ סגור</b></div>`;
   renderAll();
@@ -983,7 +1043,7 @@ async function planVacation() {
 
   const rows = opts.map(o => `
     <div onclick="selectStreet(${o.i})" style="display:flex;justify-content:space-between;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:4px;font-size:.72rem;cursor:pointer">
-      <div>🅿 רחוב ${o.s.name} <span style="color:${availColor(o.prob)}">סיכוי ${o.prob}%</span> ב-${VAC_HOURS[hi]}</div>
+      <div>🅿 רחוב ${o.s.name} <span style="color:${availColor(o.prob)}">${chanceWordFor(o.s.type)} ${o.prob}%</span> ב-${VAC_HOURS[hi]}</div>
       <div>${o.dist} מ' · ~${Math.max(1,Math.round(o.dist/80))} דק' הליכה</div>
     </div>`).join('');
 
@@ -1054,7 +1114,7 @@ function initRealMap() {
       radius: 13, color:'#0c1a0c', weight:2,
       fillColor: availColor(pct), fillOpacity: 0.95,
     }).addTo(realMap);
-    mk.bindTooltip(`${s.name} · סיכוי ${pct}% (הערכה, לא הבטחה)`, {direction:'top'});
+    mk.bindTooltip(streetTooltipText(idx, pct), {direction:'top'});
     mk.on('click', () => selectStreet(idx));
     midMarkers.push(mk);
   });
@@ -1072,7 +1132,7 @@ function updateRealMap() {
     const pct = getCurrentHourAvailabilityPct(idx);
     if (midMarkers[idx]) {
       midMarkers[idx].setStyle({ fillColor: availColor(pct) });
-      midMarkers[idx].bindTooltip(`${s.name} · סיכוי ${pct}% (הערכה, לא הבטחה)`, {direction:'top'});
+      midMarkers[idx].bindTooltip(streetTooltipText(idx, pct), {direction:'top'});
     }
     if (segLayers[idx]) segLayers[idx].setStyle({
       opacity: activeFilters[s.type] ? 0.85 : 0.15,
@@ -1246,13 +1306,32 @@ function renderPrivateList() {
         ${p.booked?('שלך עד '+p.until+' ✓'):'הזמן'}</button>
     </div>`).join('');
 }
+// התאמת הרכב למקום. בתא מסומן: המרווח המשוער שהשאיר הרכב האחרון שיצא.
+// בשוליים אין «הרכב האחרון שיצא» ואין תא — יש קטע פנוי אחד — ולכן השורה
+// הזו נגזרת מאותו קטע פנוי שממנו נגזרים גם האחוז וגם שורת «כמה רכבים
+// נכנסים». הדירוג נקבע לפי מספר הרכבים עצמו, ולכן שתי השורות הסמוכות
+// אינן יכולות לספר שני סיפורים על אותם שוליים באותו רגע.
 function fitInfo(idx) {
-  const gap = streetGap(idx);
   const need = getVehicle().len + 0.4; // מרווח תמרון
+  const needTxt = Math.round(need * 10) / 10;
+  if (isShoulderStreet(idx)) {
+    const signalPct = getStreetSignalPct(idx);
+    const run = shoulderFreeRunM(idx, signalPct);
+    const cars = shoulderCarsFree(idx, signalPct);
+    if (run === null || cars === null) {
+      return { txt: SHOULDER_COPY.noEstimate, color:'var(--muted)', gap:null, meta:'' };
+    }
+    const txt = cars >= 2 ? SHOULDER_COPY.runMany : cars === 1 ? SHOULDER_COPY.runOne : SHOULDER_COPY.runShort;
+    const color = cars >= 2 ? '#22c55e' : cars === 1 ? '#eab308' : '#ef4444';
+    return { txt, color, gap: run,
+             meta: SHOULDER_COPY.runMeta.replace('{m}', run).replace('{need}', needTxt) };
+  }
+  const gap = streetGap(idx);
   const ratio = gap / need;
-  if (ratio >= 1.15) return { txt:'✓ מתאים לרכב שלך', color:'#22c55e', gap };
-  if (ratio >= 0.98) return { txt:'⚠ צפוף לרכב שלך', color:'#eab308', gap };
-  return { txt:'✗ צר מדי לרכב שלך', color:'#ef4444', gap };
+  const meta = `(מרווח משוער ${gap} מ')`;
+  if (ratio >= 1.15) return { txt:'✓ מתאים לרכב שלך', color:'#22c55e', gap, meta };
+  if (ratio >= 0.98) return { txt:'⚠ צפוף לרכב שלך', color:'#eab308', gap, meta };
+  return { txt:'✗ צר מדי לרכב שלך', color:'#ef4444', gap, meta };
 }
 // ─── ניווט חיצוני: Waze + Google Maps (deep links רשמיים) ──────────
 function navWaze(idx, ev) {
@@ -1293,7 +1372,7 @@ function getModelOutput(streetIdx, targetDate = new Date()) {
 // STREET_HOURLY replacement: live per-hour series. Community reports
 // (pwWeightedAvailability) are folded into each slot so doReportLeaving
 // moves the hourly bars, not only STREETS_DEF.avail.
-function getStreetHourlyModelSeries(streetIdx, referenceDate = new Date()) {
+function getStreetHourlySignalSeries(streetIdx, referenceDate = new Date()) {
   const fallback = Math.max(0, Math.min(100, Math.round(STREETS_DEF[streetIdx].avail || 0)));
   const baseDate = referenceDate instanceof Date ? new Date(referenceDate.getTime()) : new Date(referenceDate);
   const slotHours = [8, 10, 12, 14, 16, 18, 20];
@@ -1310,6 +1389,12 @@ function getStreetHourlyModelSeries(streetIdx, referenceDate = new Date()) {
     }
     return combineDisplayedPct(model.score, streetIdx, slotDate.getTime());
   });
+}
+
+// אותו כלל משטח בכל משבצת שעה, כדי שהגרף והמספר לא יספרו שני סיפורים.
+function getStreetHourlyModelSeries(streetIdx, referenceDate = new Date()) {
+  return getStreetHourlySignalSeries(streetIdx, referenceDate)
+    .map((pct) => surfaceAdjustedPct(streetIdx, pct));
 }
 
 // Canned demo messages only — not a live community network.
@@ -1367,7 +1452,7 @@ function combineDisplayedPct(baseScore, streetIdx, nowMs) {
     COMMUNITY_PCT_PER_UNIT
   );
 }
-let activeFilters = { blue:true, free:true, timed:true };
+let activeFilters = { blue:true, free:true, timed:true, shoulder:true };
 let userScore = 340;
 let heatmapActive = false;
 let historyOpen = false;
@@ -1436,7 +1521,9 @@ function getArrivalLabel(offsetMin = selectedArrivalOffsetMin) {
   return `בעוד ${offsetMin} דק`;
 }
 
-function getCurrentHourAvailabilityPct(streetIdx, offsetMinutes = selectedArrivalOffsetMin) {
+// אות הזמינות של הרחוב: מודל הזמינות + דיווחי קהילה. זה המספר
+// שתא מסומן מציג כמו שהוא, וגם הקלט של כלל השוליים.
+function getStreetSignalPct(streetIdx, offsetMinutes = selectedArrivalOffsetMin) {
   const fallback = Math.max(0, Math.min(100, Math.round(STREETS_DEF[streetIdx].avail || 0)));
   const targetMs = Date.now() + offsetMinutes * 60000;
   if (!AVAILABILITY_MODEL || typeof AVAILABILITY_MODEL.calculate !== 'function') {
@@ -1449,21 +1536,141 @@ function getCurrentHourAvailabilityPct(streetIdx, offsetMinutes = selectedArriva
   return combineDisplayedPct(model.score, streetIdx, targetMs);
 }
 
+// שוליים לא נמדדים בכלל של תא מסומן: אורך פנוי מול אורך הרכב,
+// לפי src/lib/shoulder.js. אם אין נתון אורך — נשארים עם אות הרחוב
+// והפתק ברשימה אומר שאין הערכה לשוליים.
+function surfaceAdjustedPct(streetIdx, signalPct) {
+  if (!isShoulderStreet(streetIdx)) return signalPct;
+  const s = STREETS_DEF[streetIdx];
+  const pct = PW_SHOULDER.shoulderAvailabilityPct({
+    shoulderLengthM: s.shoulderM,
+    streetAvailPct: signalPct,
+    vehicleLenM: getVehicle().len,
+  });
+  return pct === null ? signalPct : pct;
+}
+
+function getCurrentHourAvailabilityPct(streetIdx, offsetMinutes = selectedArrivalOffsetMin) {
+  return surfaceAdjustedPct(streetIdx, getStreetSignalPct(streetIdx, offsetMinutes));
+}
+
 function chanceLevel(pct) {
   if (pct > 66) return 'high';
   if (pct >= 33) return 'mid';
   return 'low';
 }
 
-function chanceBadgeHTML(pct) {
-  return `<span class="chance-badge chance-${chanceLevel(pct)}"><span>סיכוי למצוא חניה</span><strong>${pct}%</strong></span>`;
+// ─── איך קוראים למספר ─────────────────────────────────
+// בתא מסומן המספר הוא סיכוי למצוא חניה. בשוליים הוא ציון התאמת אורך בין
+// הקטע הפנוי המשוער לרכב שלך — אותו מספר, אבל לא הסתברות, ולכן לא אותו שם.
+// כל כותרת שמוצגת ליד המספר עוברת דרך הפונקציות האלה.
+function chanceHeadingFor(type) {
+  return isShoulderType(type) ? SHOULDER_COPY.fitBadge : 'סיכוי למצוא חניה';
+}
+function chanceWordFor(type) {
+  return isShoulderType(type) ? SHOULDER_COPY.fitShort : 'סיכוי';
+}
+// הדירוג המילולי ליד המספר. בשוליים הוא נגזר מאותה הערכה כמו המספר —
+// כמה רכבים בגודל שלך נכנסים לקטע הפנוי — ולכן 0% הוא «הקטע קצר מהרכב»
+// ולא «עמוס»: שוליים ריקים וקצרים מהרכב הם 0% בלי שאיש חונה שם.
+function surfaceLevelLabel(idx, pct, bayHigh, bayMid, bayLow) {
+  const s = STREETS_DEF[idx];
+  if (isShoulderType(s.type)) {
+    const cars = shoulderCarsFree(idx, getStreetSignalPct(idx));
+    if (cars === null) return SHOULDER_COPY.fitLevelUnknown;
+    if (cars === 0) return SHOULDER_COPY.fitLevelLow;
+    return cars === 1 ? SHOULDER_COPY.fitLevelMid : SHOULDER_COPY.fitLevelHigh;
+  }
+  return pct >= 70 ? bayHigh : pct >= 30 ? bayMid : bayLow;
+}
+function surfaceHeadline(idx, pct) {
+  const s = STREETS_DEF[idx];
+  if (isShoulderType(s.type)) {
+    const cars = shoulderCarsFree(idx, getStreetSignalPct(idx));
+    if (cars === null) return SHOULDER_COPY.noEstimate;
+    const t = cars === 0 ? SHOULDER_COPY.fitHeadlineLow
+      : cars === 1 ? SHOULDER_COPY.fitHeadlineMid : SHOULDER_COPY.fitHeadlineHigh;
+    return t.replace('{n}', pct);
+  }
+  if (pct >= 60) return `🎯 סיכוי גבוה (${pct}%) למצוא חניה ב-10 הדקות הקרובות`;
+  if (pct >= 30) return `🎯 סיכוי בינוני (${pct}%) למצוא חניה ב-10 הדקות הקרובות — ייתכן סיבוב או שניים`;
+  return `🎯 סיכוי נמוך (${pct}%) — שקול רחוב אחר`;
+}
+// הטולטיפ במפה — אותו כלל שמות, כדי שהעיגול במפה לא יקרא למספר בשם אחר
+// מזה שבכרטיס שנפתח בלחיצה עליו.
+function streetTooltipText(idx, pct) {
+  const s = STREETS_DEF[idx];
+  return `${s.name}${shoulderMapTag(s.type)} · ${chanceWordFor(s.type)} ${pct}% (הערכה, לא הבטחה)`;
+}
+function chanceBadgeHTML(pct, type) {
+  return `<span class="chance-badge chance-${chanceLevel(pct)}"><span>${chanceHeadingFor(type)}</span><strong>${pct}%</strong></span>`;
 }
 
 function parkingTypeLabel(type) {
+  if (isShoulderType(type)) return SHOULDER_COPY.typeLabel;
   return type==='blue'?'🔵 כחול-לבן':type==='free'?'⚪ חינם':'⏱️ מוגבל';
 }
 
+// ─── שוליים: תצוגה ──────────────────────────────────────
+function isShoulderType(type) {
+  return Boolean(PW_SHOULDER && PW_SHOULDER.isShoulder(type));
+}
+function isShoulderStreet(idx) {
+  const s = STREETS_DEF[idx];
+  return Boolean(s && isShoulderType(s.type));
+}
+function shoulderMapTag(type) {
+  return isShoulderType(type) ? ' · ' + SHOULDER_COPY.mapTag : '';
+}
+// כמה רכבים בגודל של המשתמש נכנסים לקטע הפנוי — הערכה מאורך,
+// לא ספירה של מקומות שנצפו.
+// אורך הקטע הפנוי לפי כלל השוליים. מעוגל כלפי מטה לתצוגה: הערכה של מקום
+// פנוי עדיף שתטעה לחסר, ומספר מעוגל כלפי מעלה היה יכול להיראות שווה לאורך
+// שהרכב צריך בזמן שהוא קצר ממנו.
+function shoulderFreeRunM(idx, signalPct) {
+  const s = STREETS_DEF[idx];
+  const run = PW_SHOULDER ? PW_SHOULDER.freeRunM(s.shoulderM, signalPct) : null;
+  return run === null ? null : Math.floor(run * 10) / 10;
+}
+function shoulderCarsFree(idx, signalPct) {
+  const s = STREETS_DEF[idx];
+  return PW_SHOULDER ? PW_SHOULDER.vehicleLengthsFree({
+    shoulderLengthM: s.shoulderM,
+    streetAvailPct: signalPct,
+    vehicleLenM: getVehicle().len,
+  }) : null;
+}
+function shoulderRoomLine(idx, signalPct) {
+  const cars = shoulderCarsFree(idx, signalPct);
+  if (cars === null) return SHOULDER_COPY.noEstimate;
+  if (cars === 0) return SHOULDER_COPY.roomNone;
+  if (cars === 1) return SHOULDER_COPY.roomOne;
+  return SHOULDER_COPY.roomMany.replace('{n}', cars);
+}
+function shoulderNoteHtml(idx, signalPct) {
+  return `<div style="margin-top:6px;padding:6px 8px;border:1px solid rgba(20,184,166,.35);background:rgba(20,184,166,.08);border-radius:8px">
+      <div style="font-size:.68rem;font-weight:700;color:#5eead4">${SHOULDER_COPY.listTag}</div>
+      <div style="font-size:.66rem;margin-top:2px">${shoulderRoomLine(idx, signalPct)}</div>
+      <div style="font-size:.63rem;color:var(--muted);margin-top:2px">${SHOULDER_COPY.why}</div>
+      <div style="font-size:.63rem;color:#fcd34d;margin-top:3px">${SHOULDER_COPY.notice}</div>
+    </div>`;
+}
+// המספר בשורת ההצעות. קודם הוצג כאן נתון הבסיס הסטטי של הרחוב
+// (STREETS_DEF.avail), שסותר את המפה, את הרשימה ואת כרטיס הרחוב באותו רגע —
+// ובשוליים סתר גם את כלל השוליים עצמו: הוא הציג אחוז תפוסה של תא מסומן
+// לרחוב שאין בו תא מסומן. עכשיו זה אותו מספר, ובשוליים בשם שלו.
+function arrivalAvailLabel(idx) {
+  const pct = getCurrentHourAvailabilityPct(idx);
+  return isShoulderStreet(idx) ? `${SHOULDER_COPY.fitShort} ${pct}%` : `${pct}% פנוי`;
+}
+function arrivalShoulderNote(rows) {
+  const any = (rows || []).some((r) => r && r.ch && isShoulderType(r.ch.type));
+  if (!any) return '';
+  return `<div style="font-size:.63rem;color:#fcd34d;margin-top:4px">${SHOULDER_COPY.notice}</div>`;
+}
+
 function parkingTariffLabel(type) {
+  if (isShoulderType(type)) return SHOULDER_COPY.tariff;
   if (type === 'blue') return '💰 תעריף חניה: ₪6.20 לשעה (כחול-לבן)';
   if (type === 'free') return '💰 תעריף חניה: חינם';
   return '💰 תעריף חניה: מוגבל בזמן';
@@ -1638,7 +1845,7 @@ function renderSidePanel() {
 
   list.innerHTML = sorted.map(s => {
     const color = availColor(s.predictedPct);
-    const label = s.predictedPct>=70?'פנוי בקלות':s.predictedPct>=30?'בינוני':'עמוס';
+    const label = surfaceLevelLabel(s.idx, s.predictedPct, 'פנוי בקלות', 'בינוני', 'עמוס');
     const typeLabel = parkingTypeLabel(s.type);
     const tariffLabel = parkingTariffLabel(s.type);
     const redTag = s.red ? '<span style="font-size:0.62rem;color:#ef4444;font-weight:700"> ⛔ קטעי אדום-לבן</span>' : '';
@@ -1653,7 +1860,7 @@ function renderSidePanel() {
         </span>
         <span style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
           <span style="font-size:0.68rem;color:${color};font-weight:700">${s.predictedPct}%</span>
-          ${chanceBadgeHTML(chancePct)}
+          ${chanceBadgeHTML(chancePct, s.type)}
         </span>
       </div>
       <div class="spot-meta" style="margin-top:4px">
@@ -1661,7 +1868,8 @@ function renderSidePanel() {
         <span class="spot-badge" style="background:${color}22;color:${color}">${label}</span>
       </div>
       <div class="spot-tariff">${tariffLabel}</div>
-      <div style="margin-top:4px;font-size:0.66rem;font-weight:700;color:${fit.color}">${fit.txt} <span style="color:var(--muted);font-weight:400">(מרווח משוער ${fit.gap} מ')</span></div>
+      ${isShoulderStreet(s.idx) ? shoulderNoteHtml(s.idx, getStreetSignalPct(s.idx)) : ''}
+      <div style="margin-top:4px;font-size:0.66rem;font-weight:700;color:${fit.color}">${fit.txt} <span style="color:var(--muted);font-weight:400">${fit.meta}</span></div>
       <div style="height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:6px;overflow:hidden">
         <div style="height:100%;width:${s.predictedPct}%;background:${color};border-radius:2px;transition:width.5s"></div>
       </div>
@@ -1680,7 +1888,7 @@ function renderStreetCard(idx, schedulePrompt) {
   const predictedPct = getCurrentHourAvailabilityPct(idx);
   const color = availColor(predictedPct);
   const chancePct = getCurrentHourAvailabilityPct(idx);
-  const label = predictedPct>=70?'קל למציאה':predictedPct>=30?'בינוני':'קשה — עמוס';
+  const label = surfaceLevelLabel(idx, predictedPct, 'קל למציאה', 'בינוני', 'קשה — עמוס');
   // הוסר מונה קהילה מדומה (Math.random) - נשאר commCount אמיתי + חיזוי הסתברותי
   const tariffLabel = parkingTariffLabel(s.type);
 
@@ -1689,17 +1897,22 @@ function renderStreetCard(idx, schedulePrompt) {
   document.getElementById('scPct').style.color = color;
   document.getElementById('scBarFill').style.width = predictedPct + '%';
   document.getElementById('scBarFill').style.background = color;
-  document.getElementById('scLabel').innerHTML = label + `<br><span style="font-size:0.7rem;color:var(--muted)">זמינות חניה · ${getArrivalLabel()}</span>`;
+  document.getElementById('scLabel').innerHTML = label + `<br><span style="font-size:0.7rem;color:var(--muted)">${chanceHeadingFor(s.type)} · ${getArrivalLabel()}</span>`;
   const scChanceBadge = document.getElementById('scChanceBadge');
   scChanceBadge.className = `chance-badge chance-${chanceLevel(chancePct)}`;
-  scChanceBadge.innerHTML = `<span>סיכוי למצוא חניה</span><strong>${chancePct}%</strong>`;
+  scChanceBadge.innerHTML = `<span>${chanceHeadingFor(s.type)}</span><strong>${chancePct}%</strong>`;
   document.getElementById('scTariff').textContent = tariffLabel;
-  // Probabilistic language instead of point promises
-  const prob = chancePct;
-  let probText;
-  if (prob >= 60) probText = `🎯 סיכוי גבוה (${prob}%) למצוא חניה ב-10 הדקות הקרובות`;
-  else if (prob >= 30) probText = `🎯 סיכוי בינוני (${prob}%) למצוא חניה ב-10 הדקות הקרובות — ייתכן סיבוב או שניים`;
-  else probText = `🎯 סיכוי נמוך (${prob}%) — שקול רחוב אחר`;
+  const scShoulder = document.getElementById('scShoulder');
+  if (isShoulderStreet(idx)) {
+    scShoulder.style.display = 'block';
+    scShoulder.innerHTML = shoulderNoteHtml(idx, getStreetSignalPct(idx));
+  } else {
+    scShoulder.style.display = 'none';
+    scShoulder.innerHTML = '';
+  }
+  // Probabilistic language instead of point promises — and on a shoulder,
+  // language about length instead of language about probability.
+  const probText = surfaceHeadline(idx, chancePct);
   const pangoNum = 2 + (typeof pangoEvents !== 'undefined' ? pangoEvents.filter(ev=>ev.streetIdx===idx).length : 0);
   const commScore = pwWeightedAvailability(idx, Date.now());
   const commCount = PW_COMMUNITY_REPORTS.filter(r => r.streetIdx === idx && Date.now() - r.ts <= 7200000).length;
@@ -2244,16 +2457,18 @@ function walkMinutes(target, s) {
 
 function showRecommended(targetIdx) {
   const target = targetIdx !== null ? STREETS_DEF[targetIdx] : null;
-  const top3 = STREETS_DEF.map((s,i)=>({...s, idx:i}))
+  // אותו תיקון כמו בפאנל ההגעה: הכרטיס הזה דירג והציג את נתון הבסיס הסטטי,
+  // ולכן יכול היה להמליץ על רחוב אחד ולהציג לו מספר שאף מסך אחר לא מציג.
+  const top3 = STREETS_DEF.map((s,i)=>({...s, idx:i, pct: getCurrentHourAvailabilityPct(i)}))
     .filter(s => activeFilters[s.type])
-    .sort((a,b)=>b.avail-a.avail)
+    .sort((a,b)=>b.pct-a.pct)
     .slice(0,3);
   if (!top3.length) return;
   document.getElementById('recoList').innerHTML = top3.map((s,i)=>{
-    const c = availColor(s.avail);
+    const c = availColor(s.pct);
     return `<div class="reco-item" onclick="selectStreet(${s.idx});closeReco()">
       <span class="reco-name">${i+1}. ${s.name}</span>
-      <span class="reco-pct" style="color:${c}">(${Math.round(s.avail)}%)</span>
+      <span class="reco-pct" style="color:${c}">(${s.pct}%)</span>
       <span class="reco-walk">🚶 ${walkMinutes(target, s)} דק' ליעד</span>
     </div>`;
   }).join('');
