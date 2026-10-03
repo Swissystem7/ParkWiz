@@ -28,6 +28,32 @@ test('bad pairs are rejected', () => {
   assert.equal(cmp.parsePairs('{"foo":1}').length, 0);
 });
 
+test('an empty or pair-less file keeps the saved pairs', () => {
+  const saved = samplePairs.map(cmp.pairObservation);
+  assert.equal(saved.length, 14);
+  assert.deepEqual(cmp.parsePairs(''), []);
+  for (const text of ['', '   \n', '[]', '{"foo":1}', 'not json']) {
+    const res = cmp.replacePairsFromText(saved, text);
+    assert.equal(res.replaced, false, JSON.stringify(text));
+    assert.equal(res.count, 0);
+    assert.equal(res.pairs, saved);
+    assert.equal(res.pairs.length, 14);
+  }
+  const res = cmp.replacePairsFromText(saved, JSON.stringify(samplePairs.slice(0, 3)));
+  assert.equal(res.replaced, true);
+  assert.equal(res.count, 3);
+  assert.equal(res.pairs.length, 3);
+});
+
+test('comparison page does not overwrite pairs when a loaded file has none', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'pilot-compare.html'), 'utf8');
+  const handler = html.slice(html.indexOf('getElementById("filePairs").addEventListener'));
+  const body = handler.slice(0, handler.indexOf('\n});'));
+  assert.match(body, /replacePairsFromText\(pairs,/);
+  assert.match(body, /if \(!res\.replaced\)[\s\S]*?setStatus\("addStatus"[\s\S]*?return;/);
+  assert.doesNotMatch(body, /pairs = CMP\.parsePairs/);
+});
+
 test('pairFromOccupancy copies the heuristic record into a pair', () => {
   const rec = occ.normalize({ ts: '2026-08-12T08:00:00', street: 'הרצל', total: 12, occupied: 5, source: 'heuristic-brightness' });
   const p = cmp.pairFromOccupancy(rec, 4, 'פקח א׳');

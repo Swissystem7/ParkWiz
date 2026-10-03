@@ -292,7 +292,12 @@ document.getElementById("btnAdd").addEventListener("click", () => {
 document.getElementById("btnSample").addEventListener("click", async () => {
   try {
     const res = await fetch("pilot/sample-pairs.json");
-    pairs = CMP.parsePairs(await res.text());
+    const loaded = CMP.replacePairsFromText(pairs, await res.text());
+    if (!loaded.replaced) {
+      setStatus("addStatus", "לא נמצאו זוגות בקובץ הדוגמה — הזוגות השמורים נשארו כמו שהיו.");
+      return;
+    }
+    pairs = loaded.pairs;
     pending = [];
     persist();
     setStatus("addStatus", "נטענה סדרת דוגמה — לא ספירת פקח.");
@@ -321,8 +326,14 @@ document.getElementById("fileOcc").addEventListener("change", async (e) => {
 document.getElementById("filePairs").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
-  pairs = CMP.parsePairs(await f.text());
+  const res = CMP.replacePairsFromText(pairs, await f.text());
+  if (!res.replaced) {
+    setStatus("addStatus", "לא נמצאו זוגות בקובץ — הזוגות השמורים נשארו כמו שהיו.");
+    return;
+  }
+  pairs = res.pairs;
   persist();
+  setStatus("addStatus", "נטענו " + res.count + " זוגות מהקובץ.");
   render();
 });
 
