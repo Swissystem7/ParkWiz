@@ -60,3 +60,19 @@ test('the prediction module contains no randomness', () => {
   const code = src.split('\n').filter((line) => !line.trim().startsWith('//')).join('\n');
   assert.ok(!code.includes('Math.random'), 'Math.random is back in predict.js');
 });
+
+test('genHourlyPattern handles non-finite avail values by treating them as 0', () => {
+  const result = genHourlyPattern(undefined, 0);
+  assert.ok(Array.isArray(result));
+  assert.equal(result.length, 7);
+  assert.ok(result.every(Number.isFinite), 'All values must be finite');
+  assert.ok(result.every(chance => chance >= MIN_CHANCE), 'All values must be >= MIN_CHANCE');
+});
+
+test('a numeric-string avail behaves like the number; NaN and non-numeric strings are rejected', () => {
+  assert.deepEqual(genHourlyPattern('70', 2), genHourlyPattern(70, 2));
+  assert.ok(genHourlyPattern(70, 2).some((chance) => chance > MIN_CHANCE), '70 must not collapse to the floor');
+  for (const bad of [NaN, 'abc']) {
+    assert.deepEqual(genHourlyPattern(bad, 2), genHourlyPattern(0, 2), String(bad));
+  }
+});
