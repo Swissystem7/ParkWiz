@@ -83,3 +83,14 @@ test('parsePairs throws TypeError for empty or whitespace-only input', () => {
     assert.throws(() => cmp.parsePairs(bad), TypeError);
   }
 });
+
+test('savePairs throws TypeError when list is not an array', () => {
+  assert.throws(() => cmp.savePairs(null), {
+    name: 'TypeError',
+    message: 'list must be an array',
+  });
+  assert.throws(() => cmp.savePairs('string'), {
+    name: 'TypeError',
+    message: 'list must be an array',
+  });
+});
