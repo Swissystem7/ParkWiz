@@ -73,7 +73,9 @@
   function percentile(sorted, p) {
     if (!sorted || !sorted.length) return 0;
     if (sorted.length === 1) return sorted[0];
-    const t = Math.max(0, Math.min(1, Number(p)));
+    const numericP = Number(p);
+    if (!Number.isFinite(numericP)) return sorted[0];
+    const t = Math.max(0, Math.min(1, numericP));
     const idx = (sorted.length - 1) * t;
     const lo = Math.floor(idx);
     const hi = Math.ceil(idx);
