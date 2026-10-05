@@ -69,9 +69,24 @@
     });
   }
 
+  // Accepts a Date, epoch milliseconds (number or numeric string) or a parseable
+  // date string. Anything else — an invalid Date, NaN, null, an unparseable
+  // string — falls back to the real current time instead of throwing from
+  // Intl.DateTimeFormat or silently scoring the street as of 1970.
+  function resolveNow(now) {
+    let nowMs = NaN;
+    if (now instanceof Date) nowMs = now.getTime();
+    else if (typeof now === 'number') nowMs = now;
+    else if (typeof now === 'string' && now.trim() !== '') {
+      const text = now.trim();
+      nowMs = /^-?\d+(\.\d+)?$/.test(text) ? Number(text) : Date.parse(text);
+    }
+    if (!Number.isFinite(nowMs)) nowMs = Date.now();
+    return { nowMs, date: new Date(nowMs) };
+  }
+
   function calculate({ baseline, streetIdx, areaKey = 'default-area', reports = [], now = new Date() }) {
-    const nowMs = now instanceof Date ? now.getTime() : Number(now);
-    const date = now instanceof Date ? now : new Date(nowMs);
+    const { nowMs, date } = resolveNow(now);
     const baselineScore = Number.isFinite(Number(baseline)) ? Number(baseline) : 0;
     const time = timeAdjustment(date);
     const modelClock = modelLocalDayHour(date);
@@ -114,6 +129,7 @@
     BASE_CONFIDENCE,
     MAX_CONFIDENCE,
     calculate,
+    resolveNow,
     timeAdjustment,
     modelLocalDayHour,
     validReports,
