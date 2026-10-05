@@ -10,8 +10,23 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.ParkWizExport = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (compare) {
+  // A cell that starts with = + - @ or a tab/CR is executed as a formula by
+  // Excel, LibreOffice and Google Sheets when the CSV is opened. Free-text
+  // fields here (note, street, lighting) come straight from a field worker's
+  // keyboard, and the reviewer who opens the file is a different person.
+  // Real numbers (-5, 0.45) are left alone: only text that merely begins with
+  // a trigger character gets a leading apostrophe, which spreadsheets show as
+  // plain text.
+  const FORMULA_LEAD = /^[=+\-@\t\r]/;
+  const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
+
+  function neutralizeFormula(s) {
+    if (typeof s !== 'string' || !FORMULA_LEAD.test(s) || PLAIN_NUMBER.test(s)) return s;
+    return "'" + s;
+  }
+
   function csvEscape(value) {
-    const s = value == null ? '' : String(value);
+    const s = value == null ? '' : neutralizeFormula(String(value));
     if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
     return s;
   }
@@ -129,6 +144,7 @@
 
   return {
     csvEscape,
+    neutralizeFormula,
     occupancyToCsv,
     pairsToCsv,
     logToCsv,
