@@ -1701,9 +1701,12 @@ function renderStreetCard(idx, schedulePrompt) {
   else if (prob >= 30) probText = `🎯 סיכוי בינוני (${prob}%) למצוא חניה ב-10 הדקות הקרובות — ייתכן סיבוב או שניים`;
   else probText = `🎯 סיכוי נמוך (${prob}%) — שקול רחוב אחר`;
   const pangoNum = 2 + (typeof pangoEvents !== 'undefined' ? pangoEvents.filter(ev=>ev.streetIdx===idx).length : 0);
-  const commScore = pwWeightedAvailability(idx, Date.now());
-  const commCount = PW_COMMUNITY_REPORTS.filter(r => r.streetIdx === idx && Date.now() - r.ts <= 7200000).length;
-  const model = getModelOutput(idx, new Date(Date.now() + selectedArrivalOffsetMin * 60000));
+  const nowMs = Date.now();
+  const commScore = pwWeightedAvailability(idx, nowMs);
+  // Same 2-hour window as the weighted score (MAX_AGE_MS in src/lib/availability.js),
+  // so the count never shows reports the score has already dropped.
+  const commCount = countActiveReports(PW_COMMUNITY_REPORTS.filter(r => r.streetIdx === idx), nowMs);
+  const model = getModelOutput(idx, new Date(nowMs + selectedArrivalOffsetMin * 60000));
   const confidencePct = Math.round(model.confidence * 100);
   const modelFactors = model.factors.map((factor) => factor.label).join(' · ');
   document.getElementById('scCommunity').innerHTML = probText +
