@@ -411,8 +411,14 @@
     ].join('\n');
   }
 
+  // Same formula guard as src/lib/export.js: a buyer-typed authority or unit
+  // name that starts with = + - @ must not run as a spreadsheet formula.
+  const FORMULA_LEAD = /^[=+\-@\t\r]/;
+  const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
+
   function csvEscape(value) {
-    const s = value == null ? '' : String(value);
+    let s = value == null ? '' : String(value);
+    if (FORMULA_LEAD.test(s) && !PLAIN_NUMBER.test(s)) s = "'" + s;
     if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
     return s;
   }

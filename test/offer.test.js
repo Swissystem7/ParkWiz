@@ -98,3 +98,17 @@ test('offer page is Hebrew RTL, honest, and wired into nav', () => {
   assert.match(doc, /169,800/);
   assert.match(doc, /תקנה 3\(3\)/);
 });
+
+// The quote CSV carries buyer-typed names. Same formula guard as the pilot exports.
+test('quote CSV neutralizes formula-leading text but keeps negative numbers', () => {
+  const q = offer.buildQuote({
+    authority: '=HYPERLINK("http://evil","עיריית נתניה")',
+    unit: '@אגף תנועה',
+    contactName: 'דנה',
+    packageId: offer.PACKAGES[0].id,
+  });
+  const csv = offer.quoteToCsv(q);
+  assert.match(csv, /authority,"'=HYPERLINK\(/);
+  assert.match(csv, /unit,'@אגף תנועה/);
+  assert.doesNotMatch(csv, /\n(authority|unit),[=@]/);
+});

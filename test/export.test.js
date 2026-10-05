@@ -123,3 +123,35 @@ test('decodeSharePayload rejects negative count values', () => {
   }));
   assert.equal(exp.decodeSharePayload(modifiedToken), null);
 });
+
+// A municipal reviewer opens these files in Excel. A note typed by a field
+// worker such as =HYPERLINK(...) or -2+3 must arrive as text, not as a formula.
+test('CSV cells that start with a formula trigger are neutralized', () => {
+  for (const bad of ['=HYPERLINK("http://x","go")', '+1+1', '-2+3', '@SUM(A1)', '\tcmd', '\rcmd']) {
+    const cell = exp.csvEscape(bad);
+    const unquoted = cell.startsWith('"') ? cell.slice(1, -1).replace(/""/g, '"') : cell;
+    assert.equal(unquoted, "'" + bad, `expected ${JSON.stringify(bad)} to be prefixed`);
+  }
+});
+
+test('plain numbers and ordinary text are not touched by the formula guard', () => {
+  assert.equal(exp.csvEscape(-5), '-5');
+  assert.equal(exp.csvEscape('-5'), '-5');
+  assert.equal(exp.csvEscape('-0.45'), '-0.45');
+  assert.equal(exp.csvEscape(0.45), '0.45');
+  assert.equal(exp.csvEscape('הרצל, נתניה'), '"הרצל, נתניה"');
+  assert.equal(exp.csvEscape('2026-08-12T08:00:00+03:00'), '2026-08-12T08:00:00+03:00');
+  assert.equal(exp.csvEscape('—'), '—');
+  assert.equal(exp.csvEscape(''), '');
+  assert.equal(exp.csvEscape(null), '');
+});
+
+test('a hostile note in the field log and pairs CSV is exported as text', () => {
+  const log = exp.logToCsv([
+    { day: 1, date: '2026-08-01', lighting: '=1+1', total: 12, systemOccupied: 4, manualOccupied: 5, note: '=HYPERLINK("http://evil","click")', source: 'paired' },
+  ]);
+  assert.match(log.split('\n')[1], /^1,2026-08-01,'=1\+1,12,4,5,"'=HYPERLINK\(""http:\/\/evil"",""click""\)",paired$/);
+  const pairsCsv = exp.pairsToCsv([{ ...pairs[0], note: '@cmd', street: '-x' }]);
+  assert.match(pairsCsv.split('\n')[1], /,'-x,/);
+  assert.match(pairsCsv.split('\n')[1], /,'@cmd,/);
+});
