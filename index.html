@@ -757,8 +757,11 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 
 <!-- History bottom sheet -->
 <div class="history-sheet" id="historySheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-title">📋 היסטוריית חניות</div>
+  <div class="sheet-handle" onclick="toggleHistory()" style="cursor:pointer" aria-label="סגור היסטוריה"></div>
+  <div class="sheet-title" style="display:flex;justify-content:space-between;align-items:center;">
+    <span>📋 היסטוריית חניות</span>
+    <button class="profile-close" onclick="toggleHistory()">סגור</button>
+  </div>
   <div class="history-list" id="historyList"></div>
   <div style="text-align:center;padding:8px 0 0;font-size:0.68rem;color:var(--muted);flex-shrink:0">
     <span style="cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('terms')">תנאי שימוש</span> ·
@@ -1781,7 +1784,12 @@ function renderLeaderboard() {
 }
 
 function renderHistory() {
-  document.getElementById('historyList').innerHTML = HISTORY.map(h=>`
+  const historyList = document.getElementById('historyList');
+  if (!HISTORY.length) {
+    historyList.innerHTML = '<div style="font-size:0.85rem;color:var(--muted);text-align:center;padding:24px 10px;">אין היסטוריית חניות עדיין.</div>';
+    return;
+  }
+  historyList.innerHTML = HISTORY.map(h=>`
     <div class="history-item">
       <div>
         <div class="hist-addr">📍 ${h.addr}</div>
