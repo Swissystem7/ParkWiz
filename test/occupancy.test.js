@@ -84,3 +84,20 @@ test('inspector accuracy is 1 minus absolute error over total', () => {
   assert.equal(occ.inspectorAccuracy('x', 3, 10), null);
 });
 
+
+test('formatTime never echoes an unparseable timestamp back to the page', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  // ts comes from an uploaded file; the dashboard used to drop the raw value
+  // into innerHTML when it did not parse as a date.
+  const payload = '<img src=x onerror=alert(1)>';
+  assert.equal(occ.formatTime(payload), '—');
+  assert.equal(occ.formatTime('not a date'), '—');
+  assert.equal(occ.formatTime(''), '—');
+  assert.equal(occ.formatTime(undefined), '—');
+  assert.notEqual(occ.formatTime('2026-07-18T09:00:00'), '—');
+  const rec = occ.normalize({ ts: payload, street: 'x', total: 5, occupied: 1 });
+  assert.ok(!occ.formatTime(rec.ts).includes('<'));
+  const dash = fs.readFileSync(path.join(__dirname, '..', 'pilot-dashboard.html'), 'utf8');
+  assert.ok(!dash.includes('repRows").innerHTML'), 'dashboard report rows must be built with textContent, not innerHTML');
+});

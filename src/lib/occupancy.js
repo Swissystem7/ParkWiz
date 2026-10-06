@@ -47,9 +47,13 @@
     return Math.round(n * 100) + '%';
   }
 
+  // An unparseable timestamp renders as a dash. It is never echoed back:
+  // ts comes straight from an uploaded occupancy file, and the dashboard
+  // puts the formatted value into innerHTML, so echoing would let a crafted
+  // record inject markup into the evaluator's report.
   function formatTime(ts) {
     const d = new Date(ts);
-    if (isNaN(d)) return ts || '—';
+    if (isNaN(d)) return '—';
     return d.toLocaleString('he-IL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   }
 

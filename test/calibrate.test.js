@@ -48,3 +48,7 @@ test('calibration wizard is Hebrew RTL with a timer and honesty banner', () => {
   assert.match(html, /heuristic/);
   assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
 });
+
+test('formatClock returns null for non-numeric input', () => {
+  assert.strictEqual(cal.formatClock('invalid'), null);
+});

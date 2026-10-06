@@ -114,6 +114,40 @@ test('normalizeDay rejects out-of-range days and clamps counts', () => {
   assert.equal(d.manualOccupied, 0);
 });
 
+test('pooled bias divides by the pairs that were actually counted', () => {
+  const pooled = proto.pooledAgreement([
+    { total: 10, systemOccupied: 8, manualOccupied: 6 },
+    { total: 10, systemOccupied: 'n/a', manualOccupied: 5 },
+    { total: 10, manualOccupied: 5 },
+    { total: 10, systemOccupied: 7, manualOccupied: 7 },
+  ]);
+  assert.equal(pooled.trials, 20);
+  assert.equal(pooled.agree, 18);
+  // signed error is +2 over 2 counted pairs, not over the 4 pairs offered
+  assert.equal(pooled.meanSignedError, 1);
+});
+
+test('days since outreach accept a Date, an epoch-ms number and a string alike', () => {
+  const asDate = new Date(Date.UTC(2026, 9, 6, 12));
+  assert.equal(proto.daysSince('2026-09-01', asDate), 35);
+  assert.equal(proto.daysSince('2026-09-01', asDate.getTime()), 35);
+  assert.equal(proto.daysSince('2026-09-01', '2026-10-06T12:00:00Z'), 35);
+  assert.equal(proto.daysSince('2026-09-01', NaN), null);
+  assert.equal(proto.daysSince('not-a-day', asDate), null);
+});
+
+test('PARK_NO_ACCESS still fires when now is given as epoch milliseconds', () => {
+  const v = proto.decidePilot({
+    pairs: fieldPairsFromSample(),
+    outreachSentAt: '2026-07-01',
+    now: Date.UTC(2026, 7, 13, 12),
+    cameraAccess: false,
+    integratorAsk: false,
+  });
+  assert.equal(v.code, 'PARK_NO_ACCESS');
+  assert.equal(v.daysSinceOutreach, 43);
+});
+
 test('vendor claims stay labeled as manufacturer statements', () => {
   assert.equal(proto.VENDOR_CLAIMS.length, 2);
   assert.ok(proto.VENDOR_CLAIMS.every((c) => c.note.includes('הצהרת יצרן')));

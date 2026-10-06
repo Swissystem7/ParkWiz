@@ -112,6 +112,7 @@
     if (!d) return '';
     if (d.startsWith('972')) return d;
     if (d.startsWith('0') && d.length >= 9) return '972' + d.slice(1);
+    if (d.length === 9 && d.startsWith('5')) return '972' + d;
     return d;
   }
 
@@ -410,8 +411,14 @@
     ].join('\n');
   }
 
+  // Same formula guard as src/lib/export.js: a buyer-typed authority or unit
+  // name that starts with = + - @ must not run as a spreadsheet formula.
+  const FORMULA_LEAD = /^[=+\-@\t\r]/;
+  const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
+
   function csvEscape(value) {
-    const s = value == null ? '' : String(value);
+    let s = value == null ? '' : String(value);
+    if (FORMULA_LEAD.test(s) && !PLAIN_NUMBER.test(s)) s = "'" + s;
     if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
     return s;
   }
