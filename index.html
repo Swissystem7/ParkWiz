@@ -352,7 +352,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 /* ── Route view (מסלול + חניות בדרך) ── */
 .route-panel{padding:9px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(59,130,246,.06)}
 .rp-title{font-size:0.7rem;color:var(--blue);font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
-.rp-close{color:var(--muted);cursor:pointer;font-size:0.72rem}
+.rp-close{background:none;border:none;padding:0;font:inherit;color:var(--muted);cursor:pointer;font-size:0.72rem}
 .rp-close:hover{color:var(--red)}
 .rp-item{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.72rem}
 .rp-item:last-of-type{border:none}
@@ -431,7 +431,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
         <button class="btn btn-primary" style="width:100%;margin-top:10px;font-size:0.78rem;background:var(--purple);color:#fff" onclick="closeParkPricing()">צור קשר</button>
       </div>
     </div>
-    <span style="display:block;text-align:center;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline" onclick="closeParkPricing()">המשך עם Free</span>
+    <button type="button" style="background:none;border:none;padding:0;font:inherit;display:block;text-align:center;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline" onclick="closeParkPricing()">המשך עם Free</button>
     <div style="text-align:center;margin-top:10px;font-size:0.68rem;color:var(--muted)">
       <button type="button" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('terms')">תנאי שימוש (דמו)</button> ·
       <button type="button" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('privacy')">מדיניות פרטיות (דמו)</button>
@@ -620,7 +620,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
     </div>
     <!-- Parkings along route -->
     <div class="route-panel" id="routePanel" style="display:none">
-      <div class="rp-title"><span>🅿️ חניות בדרך ליעד</span><span class="rp-close" onclick="clearRoute()">✕ נקה מסלול</span></div>
+      <div class="rp-title"><span>🅿️ חניות בדרך ליעד</span><button type="button" class="rp-close" onclick="clearRoute()">✕ נקה מסלול</button></div>
       <div id="routeParkList"></div>
       <div class="rp-disclaimer">* אינטגרציית פנגו — הדמיה. בגרסה מסחרית: שיתוף פעולה עם ספקי תשלום חניה.</div>
     </div>
@@ -2575,7 +2575,7 @@ init();
 .pw-field{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:0.85rem;font-family:inherit;margin-bottom:10px;direction:rtl}
 .pw-field:focus{outline:none;border-color:var(--green)}
 .pw-error{color:var(--red);font-size:0.75rem;margin-bottom:8px;min-height:1em}
-.pw-close{display:block;text-align:center;margin-top:10px;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline}
+.pw-close{display:block;width:100%;background:none;border:none;padding:0;font:inherit;text-align:center;margin-top:10px;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline}
 .pw-legal-body{font-size:0.8rem;color:rgba(224,240,224,.75);line-height:1.7;text-align:right}
 .pw-legal-body p{margin-bottom:10px}
 /* Onboarding */
@@ -2649,7 +2649,7 @@ init();
     <input class="pw-field" id="pwAuthPass" type="password" placeholder="סיסמה">
     <div class="pw-error" id="pwAuthError"></div>
     <button class="pw-submit" id="pwAuthSubmit" onclick="pwSubmitAuth()">התחבר</button>
-    <span class="pw-close" onclick="pwCloseAuth()">סגור</span>
+    <button type="button" class="pw-close" onclick="pwCloseAuth()">סגור</button>
   </div>
 </div>
 
@@ -2658,7 +2658,7 @@ init();
   <div class="pw-modal">
     <h2 id="pwLegalTitle">תנאי שימוש</h2>
     <div class="pw-legal-body" id="pwLegalBody"></div>
-    <span class="pw-close" onclick="document.getElementById('pwLegalOverlay').classList.remove('show')">סגור</span>
+    <button type="button" class="pw-close" onclick="document.getElementById('pwLegalOverlay').classList.remove('show')">סגור</button>
   </div>
 </div>
 
@@ -2685,7 +2685,7 @@ init();
     <div class="pw-fb-stars" id="pwFbStars"></div>
     <textarea class="pw-fb-text" id="pwFbText" placeholder="ספר לנו מה אהבת ומה כדאי לשפר..."></textarea>
     <button class="pw-submit" style="margin-top:10px" onclick="pwSubmitFeedback()">שלח משוב</button>
-    <span class="pw-close" onclick="document.getElementById('pwFbOverlay').classList.remove('show')">ביטול</span>
+    <button type="button" class="pw-close" onclick="document.getElementById('pwFbOverlay').classList.remove('show')">ביטול</button>
   </div>
 </div>
 
