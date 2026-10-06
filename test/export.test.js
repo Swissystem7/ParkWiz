@@ -18,7 +18,7 @@ const pairs = [
 test('occupancy CSV has a header and one row per record', () => {
   const csv = exp.occupancyToCsv(occupancy);
   const lines = csv.split('\n');
-  assert.equal(lines[0], 'ts,street,total,occupied,source,confidence');
+  assert.equal(lines[0], exp.CSV_BOM + 'ts,street,total,occupied,source,confidence');
   assert.equal(lines.length, 3);
   assert.match(lines[1], /heuristic-brightness/);
 });
@@ -77,7 +77,7 @@ test('field-log CSV keeps empty days as blank cells', () => {
     { day: 2, date: '2026-08-02', lighting: '', total: null, systemOccupied: null, manualOccupied: null, note: '', source: '' },
   ]);
   const lines = csv.split('\n');
-  assert.equal(lines[0], 'day,date,lighting,total,systemOccupied,manualOccupied,note,source');
+  assert.equal(lines[0], exp.CSV_BOM + 'day,date,lighting,total,systemOccupied,manualOccupied,note,source');
   assert.match(lines[1], /"פקח, ""לילה"""/);
   assert.match(lines[2], /^2,2026-08-02,,,,,,$/);
 });
