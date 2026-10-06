@@ -12,11 +12,22 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.ParkWizCompare = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (occ) {
+  // A count that was never entered is not a count of zero. Number('') and
+  // Number(null) are both 0, so a blank inspector field used to be saved as
+  // "inspector saw 0 occupied" with a real-looking accuracy. Only a number or
+  // a non-blank numeric string is a count; everything else is missing (NaN),
+  // and inspectorAccuracy then rejects the pair.
+  function count(value) {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string' && value.trim() !== '') return Number(value);
+    return NaN;
+  }
+
   function pairObservation(input) {
     if (!input || typeof input !== 'object') return null;
-    const total = Number(input.total);
-    const sys = Number(input.systemOccupied != null ? input.systemOccupied : input.occupied);
-    const man = Number(input.manualOccupied);
+    const total = count(input.total);
+    const sys = count(input.systemOccupied != null ? input.systemOccupied : input.occupied);
+    const man = count(input.manualOccupied);
     const accuracy = occ.inspectorAccuracy(sys, man, total);
     if (accuracy == null) return null;
     const t = total;
