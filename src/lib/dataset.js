@@ -352,14 +352,23 @@
     const list = Array.isArray(sceneReports) ? sceneReports : [];
     let n = 0;
     let agree = 0;
+    let skipped = 0;
     const byLighting = {};
     list.forEach((s) => {
-      n += s.n;
-      agree += s.agree;
-      const key = s.lighting || 'day';
+      // A scene report is only summed when it carries a real pair of counts.
+      // Before this guard a null entry threw, a missing count turned the whole
+      // total into NaN, and numeric strings were concatenated ("012" spots).
+      const counts = sceneCounts(s);
+      if (!counts) {
+        skipped += 1;
+        return;
+      }
+      n += counts.n;
+      agree += counts.agree;
+      const key = typeof s.lighting === 'string' && s.lighting ? s.lighting : 'day';
       if (!byLighting[key]) byLighting[key] = { n: 0, agree: 0, rate: null };
-      byLighting[key].n += s.n;
-      byLighting[key].agree += s.agree;
+      byLighting[key].n += counts.n;
+      byLighting[key].agree += counts.agree;
     });
     Object.keys(byLighting).forEach((k) => {
       const b = byLighting[k];
@@ -368,14 +377,38 @@
     return {
       n,
       agree,
+      skipped,
       rate: n ? agree / n : null,
-      wilson: proto && proto.wilsonInterval ? proto.wilsonInterval(agree, n, 1.96) : null,
+      wilson: n && proto && proto.wilsonInterval ? proto.wilsonInterval(agree, n, 1.96) : null,
       byLighting,
     };
   }
 
+  // Non-negative integer count from a number or a numeric string; null otherwise.
+  // Blank strings, booleans and arrays are not counts (same rule as compare.js).
+  function countOf(value) {
+    if (typeof value === 'string') {
+      if (!value.trim()) return null;
+      value = Number(value);
+    }
+    if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) return null;
+    return value;
+  }
+
+  function sceneCounts(report) {
+    if (!report || typeof report !== 'object' || Array.isArray(report)) return null;
+    const n = countOf(report.n);
+    const agree = countOf(report.agree);
+    if (n == null || agree == null || agree > n) return null;
+    return { n, agree };
+  }
+
+  function sceneListOrAll(sceneList) {
+    return Array.isArray(sceneList) ? sceneList : scenes();
+  }
+
   function evaluate(mode, sceneList) {
-    const list = sceneList || scenes();
+    const list = sceneListOrAll(sceneList);
     const sceneReports = list.map((s) => evaluateScene(s, mode || 'v2'));
     const summary = rollup(sceneReports);
     return {
@@ -390,7 +423,7 @@
   }
 
   function compareMethods(sceneList) {
-    const list = sceneList || scenes();
+    const list = sceneListOrAll(sceneList);
     const v2 = evaluate('v2', list);
     const normalized = evaluate('normalized', list);
     const legacy = evaluate('legacy', list);
