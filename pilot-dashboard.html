@@ -228,8 +228,13 @@ function makeReport(){
   ];
 
   document.getElementById("repHeadline").textContent=headline;
-  document.getElementById("repRows").innerHTML=rows.map(([a,b])=>
-    `<div class="row"><span>${a}</span><span>${b}</span></div>`).join("");
+  const repRows=document.getElementById("repRows");
+  repRows.replaceChildren();
+  rows.forEach(([a,b])=>{
+    const row=document.createElement("div"); row.className="row";
+    [a,b].forEach((txt)=>{ const s=document.createElement("span"); s.textContent=txt; row.appendChild(s); });
+    repRows.appendChild(row);
+  });
   const p=document.getElementById("reportPanel");
   p.classList.remove("hidden");
   p.scrollIntoView({behavior:"smooth",block:"nearest"});

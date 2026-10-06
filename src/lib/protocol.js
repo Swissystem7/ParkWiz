@@ -59,6 +59,10 @@
     let trials = 0;
     let agree = 0;
     let signed = 0;
+    // Only pairs that actually enter the sum may enter the bias denominator:
+    // a pair with a missing count is skipped here, so counting it in
+    // list.length would silently shrink the mean signed error toward zero.
+    let counted = 0;
     list.forEach((p) => {
       const t = p.total;
       const sys = Number(p.systemOccupied);
@@ -67,6 +71,7 @@
       trials += t;
       agree += t - Math.abs(sys - man);
       signed += sys - man;
+      counted += 1;
     });
     if (!trials) {
       return { trials: 0, agree: 0, rate: null, meanSignedError: null, wilson: null };
@@ -75,7 +80,7 @@
       trials,
       agree,
       rate: agree / trials,
-      meanSignedError: signed / list.length,
+      meanSignedError: signed / counted,
       wilson: wilsonInterval(agree, trials, Z95),
     };
   }
@@ -207,7 +212,11 @@
   function daysSince(isoDay, now) {
     const a = dayMs(isoDay);
     if (!Number.isFinite(a)) return null;
-    const t = now instanceof Date ? now.getTime() : Date.parse(now);
+    // Accept a Date, an epoch-ms number, or a parseable date string. A bare
+    // number used to fall through Date.parse and come back NaN, which turned
+    // the elapsed-days check off and made PARK_NO_ACCESS unreachable.
+    const t = now instanceof Date ? now.getTime()
+      : (typeof now === 'number' ? now : Date.parse(now));
     if (!Number.isFinite(t)) return null;
     return Math.floor((t - a) / 86400000);
   }

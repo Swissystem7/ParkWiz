@@ -103,7 +103,7 @@
       signed += p.systemOccupied - p.manualOccupied;
       if (p.accuracy < min) min = p.accuracy;
       if (p.accuracy > max) max = p.accuracy;
-      if (p.accuracy === 1) perfect += 1;
+      if (p.accuracy >= 1 - 1e-5) perfect += 1;
       if (p.source === 'sample') sample += 1;
     });
     return {
