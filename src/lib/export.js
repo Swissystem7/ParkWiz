@@ -123,20 +123,44 @@
     // Validate that 'n' is a non-negative integer
     if (n < 0 || n !== Math.floor(n)) return null;
     const numOrNull = (v) => (v == null || v === '' ? null : (Number.isFinite(Number(v)) ? Number(v) : null));
+
+    // The hash is forgeable: anyone can edit the token by hand and the summary
+    // page would print whatever came out. Every figure the page shows must
+    // stay inside the domain the encoder can produce: accuracies in 0..1,
+    // non-negative error, perfect <= count, last counts within last total.
+    // A token outside those bounds is reported as corrupt, not rendered.
+    const meanAccuracy = numOrNull(slim.a);
+    const minAccuracy = numOrNull(slim.i);
+    const maxAccuracy = numOrNull(slim.x);
+    const meanAbsError = numOrNull(slim.e);
+    const perfect = slim.p == null || slim.p === '' ? 0 : numOrNull(slim.p);
+    const lastSystem = numOrNull(slim.ls);
+    const lastManual = numOrNull(slim.lm);
+    const lastTotal = numOrNull(slim.lt);
+
+    const inUnit = (v) => v == null || (v >= 0 && v <= 1);
+    if (!inUnit(meanAccuracy) || !inUnit(minAccuracy) || !inUnit(maxAccuracy)) return null;
+    if (minAccuracy != null && maxAccuracy != null && minAccuracy > maxAccuracy) return null;
+    if (meanAbsError != null && meanAbsError < 0) return null;
+    if (perfect == null || perfect < 0 || perfect !== Math.floor(perfect) || perfect > n) return null;
+    if (lastTotal != null && lastTotal < 0) return null;
+    const inTotal = (v) => v == null || (v >= 0 && (lastTotal == null || v <= lastTotal));
+    if (!inTotal(lastSystem) || !inTotal(lastManual)) return null;
+
     return {
       version: 1,
       street: slim.s != null ? String(slim.s) : '—',
       count: n,
-      meanAccuracy: numOrNull(slim.a),
-      minAccuracy: numOrNull(slim.i),
-      maxAccuracy: numOrNull(slim.x),
-      meanAbsError: numOrNull(slim.e),
-      perfect: Number.isFinite(Number(slim.p)) ? Number(slim.p) : 0,
+      meanAccuracy,
+      minAccuracy,
+      maxAccuracy,
+      meanAbsError,
+      perfect,
       firstTs: slim.f ? String(slim.f) : '',
       lastTs: slim.t ? String(slim.t) : '',
-      lastSystem: numOrNull(slim.ls),
-      lastManual: numOrNull(slim.lm),
-      lastTotal: numOrNull(slim.lt),
+      lastSystem,
+      lastManual,
+      lastTotal,
       generatedAt: slim.g ? String(slim.g) : '',
       sampleOnly: slim.d === 1,
     };

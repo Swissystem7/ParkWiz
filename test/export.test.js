@@ -124,6 +124,55 @@ test('decodeSharePayload rejects negative count values', () => {
   assert.equal(exp.decodeSharePayload(modifiedToken), null);
 });
 
+// The share hash is just base64 — anyone can edit it by hand. The read-only
+// summary page prints the decoded numbers verbatim, so a doctored token must
+// not be able to show 150% accuracy, more perfect pairs than pairs, or a last
+// count larger than the lot. Out-of-domain figures mean a corrupt link.
+test('decodeSharePayload rejects figures outside the domain the encoder produces', () => {
+  const slimOf = (token) => JSON.parse(exp.fromUrlB64(token));
+  const tokenOf = (slim) => exp.toUrlB64(JSON.stringify(slim));
+  const good = slimOf(exp.encodeSharePayload(exp.buildPilotPacket({ pairs })));
+  assert.notEqual(exp.decodeSharePayload(tokenOf(good)), null);
+
+  const tampered = [
+    { a: 1.5 },           // mean accuracy above 100%
+    { a: -0.1 },          // negative accuracy
+    { i: 1.2 },           // min accuracy above 100%
+    { x: 7 },             // max accuracy above 100%
+    { i: 0.9, x: 0.5 },   // min above max
+    { e: -3 },            // negative mean absolute error
+    { p: 99 },            // more perfect pairs than pairs (n = 2)
+    { p: -1 },            // negative perfect count
+    { p: 1.5 },           // fractional perfect count
+    { p: 'abc' },         // non-numeric perfect count
+    { lt: -12 },          // negative lot size
+    { ls: 40 },           // last system count above last total (12)
+    { lm: -2 },           // negative last manual count
+  ];
+  for (const patch of tampered) {
+    const token = tokenOf({ ...good, ...patch });
+    assert.equal(exp.decodeSharePayload(token), null, JSON.stringify(patch));
+  }
+
+  // Boundary values the encoder can legitimately produce still decode.
+  const edge = exp.decodeSharePayload(tokenOf({ ...good, a: 1, i: 0, x: 1, e: 0, p: 2, ls: 12, lm: 0 }));
+  assert.equal(edge.meanAccuracy, 1);
+  assert.equal(edge.minAccuracy, 0);
+  assert.equal(edge.perfect, 2);
+  assert.equal(edge.lastSystem, 12);
+  assert.equal(edge.lastManual, 0);
+
+  // A missing perfect field still means zero, and an empty series (n = 0) with
+  // null figures is a valid, if empty, summary.
+  const noPerfect = exp.decodeSharePayload(tokenOf({ ...good, p: undefined }));
+  assert.equal(noPerfect.perfect, 0);
+  const empty = exp.decodeSharePayload(exp.encodeSharePayload(exp.buildPilotPacket({ pairs: [] })));
+  assert.equal(empty.count, 0);
+  assert.equal(empty.perfect, 0);
+  assert.equal(empty.meanAccuracy, null);
+  assert.equal(empty.lastTotal, null);
+});
+
 // A municipal reviewer opens these files in Excel. A note typed by a field
 // worker such as =HYPERLINK(...) or -2+3 must arrive as text, not as a formula.
 test('CSV cells that start with a formula trigger are neutralized', () => {
