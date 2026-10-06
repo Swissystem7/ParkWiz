@@ -144,13 +144,22 @@
     };
   }
 
+  // Records are always returned in timestamp order, whichever input shape
+  // they came in. summarize() takes first/last positionally and the report
+  // and dashboard print the last record as the current reading, so an
+  // uploaded JSON array in file order (two sessions concatenated, an export
+  // sorted newest-first) must not be trusted to already be chronological.
+  function byTs(a, b) {
+    return String(a.ts).localeCompare(String(b.ts));
+  }
+
   function parse(text, fallbackStreet) {
     const raw = String(text || '').trim();
     if (!raw) return [];
     if (raw[0] === '[') {
       try {
         const a = JSON.parse(raw);
-        if (Array.isArray(a)) return a.map((o) => normalize(o, fallbackStreet)).filter(Boolean);
+        if (Array.isArray(a)) return a.map((o) => normalize(o, fallbackStreet)).filter(Boolean).sort(byTs);
       } catch (e) { /* fall through to JSONL */ }
     }
     const out = [];
@@ -162,7 +171,7 @@
         if (n) out.push(n);
       } catch (e) { /* skip bad line */ }
     }
-    return out.sort((a, b) => String(a.ts).localeCompare(String(b.ts)));
+    return out.sort(byTs);
   }
 
   function summarize(records) {
