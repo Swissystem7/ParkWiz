@@ -123,9 +123,27 @@ function fakeElement(tag) {
   return el;
 }
 
+// Inline script blocks, located with indexOf rather than a regexp: CodeQL reads
+// any script-tag regexp as an HTML sanitiser and flags it (js/bad-tag-filter).
+function scriptBlocks(html) {
+  const open = '<script>';
+  const close = '</script>';
+  const blocks = [];
+  let from = 0;
+  for (;;) {
+    const start = html.indexOf(open, from);
+    if (start === -1) break;
+    const end = html.indexOf(close, start + open.length);
+    if (end === -1) break;
+    blocks.push(html.slice(start + open.length, end));
+    from = end + close.length;
+  }
+  return blocks;
+}
+
 function runEvalPage(dataset) {
   const html = fs.readFileSync(path.join(__dirname, '..', 'pilot-eval.html'), 'utf8');
-  const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+  const blocks = scriptBlocks(html);
   assert.ok(blocks.length >= 1, 'pilot-eval.html has an inline script');
   const byId = {};
   const document = {
