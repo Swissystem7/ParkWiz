@@ -148,6 +148,9 @@ test('decodeSharePayload rejects figures outside the domain the encoder produces
     { lt: -12 },          // negative lot size
     { ls: 40 },           // last system count above last total (12)
     { lm: -2 },           // negative last manual count
+    { a: 0.95, i: 0.5, x: 0.9 }, // mean above max
+    { a: 0.2, i: 0.5, x: 0.9 },  // mean below min
+    { n: 0, p: 0 },              // a score for zero measurements
   ];
   for (const patch of tampered) {
     const token = tokenOf({ ...good, ...patch });
