@@ -111,8 +111,12 @@
     return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
   }
 
+  // An untimed save (null / blank / non-numeric elapsed) is never under target:
+  // Number(null) is 0, which would read as a 0-second calibration.
   function underTarget(elapsedMs) {
-    return Number(elapsedMs) <= TARGET_SEC * 1000;
+    if (elapsedMs == null || elapsedMs === '') return false;
+    const n = Number(elapsedMs);
+    return Number.isFinite(n) && n >= 0 && n <= TARGET_SEC * 1000;
   }
 
   return {
