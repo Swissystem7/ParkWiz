@@ -148,7 +148,7 @@
       <details class="data">
         <summary>הזנת נתונים ידנית (JSONL / JSON)</summary>
         <div class="drop" id="drop">גררו קובץ occupancy לכאן, או הדביקו למטה</div>
-        <textarea id="ta" placeholder='{"ts":"2026-07-18T09:00:00","street":"שדרות ניצה","totalSpots":24,"occupiedSpots":10,"occupancyRate":0.42}
+        <textarea id="ta" aria-label="הדבקת נתוני תפוסה (JSONL או JSON)" placeholder='{"ts":"2026-07-18T09:00:00","street":"שדרות ניצה","totalSpots":24,"occupiedSpots":10,"occupancyRate":0.42}
 ... שורה לכל רשומה (JSONL), או מערך JSON'></textarea>
         <div style="margin-top:8px"><button id="btnLoad">טען נתונים</button></div>
       </details>
@@ -175,7 +175,18 @@ function hourOf(ts){ const d=new Date(ts); return isNaN(d)?null:d.getHours(); }
 
 // ---- render ----
 function render(){
-  if(!RECORDS.length) return;
+  if(!RECORDS.length) {
+    document.getElementById("streetName").textContent = "—";
+    document.getElementById("lastUpdated").textContent = "—";
+    document.getElementById("recCount").textContent = "0 רשומות";
+    document.getElementById("kCur").textContent = "—";
+    document.getElementById("kPeak").textContent = "—";
+    document.getElementById("kAvg").textContent = "—";
+    document.getElementById("tiles").innerHTML = "<div style='color:var(--muted);font-size:12.5px;padding:10px 0'>אין נתונים להצגה. העלו קובץ כדי להתחיל.</div>";
+    document.getElementById("chart").innerHTML = "<div style='text-align:center;color:var(--muted);padding:30px 10px;font-size:12.5px'>אין נתונים להצגת התרשים</div>";
+    document.getElementById("reportPanel").classList.add("hidden");
+    return;
+  }
   const sum = OCC.summarize(RECORDS);
   const last = sum.last;
   document.getElementById("streetName").textContent = last.street;
@@ -270,6 +281,7 @@ drop.addEventListener("drop",ev=>{
     .then(t=>{ if(!loadFrom(t,"pilot/sample-occupancy.json (דוגמה)")){ throw 0; } })
     .catch(()=>{
       document.getElementById("srcLabel").textContent="אין קובץ — טענו occupancy.json";
+      render();
     });
 })();
 </script>
