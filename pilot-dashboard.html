@@ -206,7 +206,10 @@ function drawChart(recs){
 
 // ---- city report: peak window + headline ----
 function makeReport(){
-  if(!RECORDS.length) return;
+  if(!RECORDS.length) {
+    alert("אין נתונים להפקת דוח. טען נתונים תחילה.");
+    return;
+  }
   const sum = OCC.summarize(RECORDS);
   const peak = sum.peak, low = sum.low;
   const ph=hourOf(peak.ts);

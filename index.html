@@ -1781,7 +1781,12 @@ function renderLeaderboard() {
 }
 
 function renderHistory() {
-  document.getElementById('historyList').innerHTML = HISTORY.map(h=>`
+  const historyList = document.getElementById('historyList');
+  if (!HISTORY.length) {
+    historyList.innerHTML = '<div class="profile-history-empty" style="text-align:center;padding-top:20px;">עדיין אין היסטוריית חניה.</div>';
+    return;
+  }
+  historyList.innerHTML = HISTORY.map(h=>`
     <div class="history-item">
       <div>
         <div class="hist-addr">📍 ${h.addr}</div>
