@@ -85,10 +85,19 @@
     };
   }
 
+  // A date that is not on the calendar (month 13, 31 February) is NaN, not a
+  // silently rolled-over day: Date.UTC would otherwise turn 2026-02-31 into
+  // 3 March and shift every pilot day and the outreach countdown with it.
   function dayMs(isoDay) {
     const m = String(isoDay || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (!m) return NaN;
-    return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    const y = Number(m[1]);
+    const mo = Number(m[2]);
+    const d = Number(m[3]);
+    const t = Date.UTC(y, mo - 1, d);
+    const back = new Date(t);
+    if (back.getUTCFullYear() !== y || back.getUTCMonth() !== mo - 1 || back.getUTCDate() !== d) return NaN;
+    return t;
   }
 
   function addDays(isoDay, n) {
@@ -116,8 +125,11 @@
 
   function normalizeDay(input) {
     if (!input || typeof input !== 'object') return null;
+    // Day numbers are calendar slots 1..PILOT_DAYS. A fractional day from an
+    // imported file (2.5) used to get its own slot, so the 30-day grid grew to
+    // 31 rows and the extra row was never reachable from the day picker.
     const day = Number(input.day);
-    if (!Number.isFinite(day) || day < 1 || day > PILOT_DAYS) return null;
+    if (!Number.isInteger(day) || day < 1 || day > PILOT_DAYS) return null;
     const numOrNull = (v) => {
       if (v == null || v === '') return null;
       const n = Number(v);

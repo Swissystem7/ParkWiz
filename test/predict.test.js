@@ -53,6 +53,30 @@ test('the stable wobble stays inside its documented band', () => {
   }
 });
 
+test('a missing or unparseable availability never yields NaN chances', () => {
+  for (const avail of [undefined, null, NaN, 'abc', '', {}]) {
+    const pattern = genHourlyPattern(avail, 3);
+    assert.equal(pattern.length, HOURLY_SLOTS.length);
+    for (const chance of pattern) assert.equal(chance, MIN_CHANCE, `avail ${String(avail)}`);
+  }
+});
+
+test('a numeric string availability is accepted like a number', () => {
+  assert.deepEqual(genHourlyPattern('60', 3), genHourlyPattern(60, 3));
+});
+
+test('availability outside 0..100 is clamped instead of overflowing the range', () => {
+  assert.deepEqual(genHourlyPattern(250, 2), genHourlyPattern(100, 2));
+  assert.deepEqual(genHourlyPattern(-50, 2), genHourlyPattern(0, 2));
+  for (const chance of genHourlyPattern(-50, 2)) assert.equal(chance, MIN_CHANCE);
+});
+
+test('a non-numeric street index degrades to street 0 instead of NaN', () => {
+  assert.deepEqual(genHourlyPattern(60, 'x'), genHourlyPattern(60, 0));
+  assert.deepEqual(genHourlyPattern(60, undefined), genHourlyPattern(60, 0));
+  for (const hour of HOURLY_SLOTS) assert.ok(Number.isFinite(stableVar(null, hour)));
+});
+
 // PW-005 is a product promise, not just an implementation detail: the same
 // street and hour must always show the same chance. Guard the source itself.
 test('the prediction module contains no randomness', () => {

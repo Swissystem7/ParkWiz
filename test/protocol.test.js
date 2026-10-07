@@ -114,6 +114,34 @@ test('normalizeDay rejects out-of-range days and clamps counts', () => {
   assert.equal(d.manualOccupied, 0);
 });
 
+test('a fractional day number never adds a 31st row to the 30-day log', () => {
+  assert.equal(proto.normalizeDay({ day: 2.5, total: 10, systemOccupied: 1, manualOccupied: 1 }), null);
+  assert.equal(proto.normalizeDay({ day: '2.5', total: 10, systemOccupied: 1, manualOccupied: 1 }), null);
+  assert.equal(proto.normalizeDay({ day: '3', total: 10, systemOccupied: 1, manualOccupied: 1 }).day, 3);
+  const imported = JSON.stringify([
+    { day: 2.5, total: 10, systemOccupied: 3, manualOccupied: 4 },
+    { day: 4, total: 10, systemOccupied: 3, manualOccupied: 4 },
+  ]);
+  assert.deepEqual(proto.parseLog(imported).map((x) => x.day), [4]);
+  const merged = proto.mergeLog(proto.buildCalendar('2026-08-01', 30), JSON.parse(imported));
+  assert.equal(merged.length, 30);
+  assert.ok(merged.every((x) => Number.isInteger(x.day)));
+  assert.equal(merged[3].manualOccupied, 4);
+});
+
+test('dates that are not on the calendar are rejected instead of rolled over', () => {
+  assert.equal(proto.addDays('2026-13-01', 0), '');
+  assert.equal(proto.addDays('2026-02-31', 0), '');
+  assert.equal(proto.addDays('2026-02-28', 1), '2026-03-01');
+  assert.equal(proto.addDays('2024-02-29', 0), '2024-02-29');
+  assert.equal(proto.daysSince('2026-02-31', new Date(Date.UTC(2026, 2, 10))), null);
+  assert.equal(proto.daysSince('2026-02-28', new Date(Date.UTC(2026, 2, 10))), 10);
+  // an unusable start date leaves the calendar undated rather than mis-dated
+  const cal = proto.buildCalendar('2026-13-01', 30);
+  assert.equal(cal.length, 30);
+  assert.equal(cal[0].date, '');
+});
+
 test('pooled bias divides by the pairs that were actually counted', () => {
   const pooled = proto.pooledAgreement([
     { total: 10, systemOccupied: 8, manualOccupied: 6 },
