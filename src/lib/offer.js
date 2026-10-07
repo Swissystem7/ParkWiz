@@ -443,7 +443,10 @@
       ['sent', q.sent],
       ['payment', q.payment],
     ];
-    return rows.map((row) => row.map(csvEscape).join(',')).join('\n');
+    // Same UTF-8 byte-order mark as src/lib/export.js: the quote is opened in
+    // Excel on Windows, where a mark-less file shows the Hebrew unit name as
+    // gibberish.
+    return '\uFEFF' + rows.map((row) => row.map(csvEscape).join(',')).join('\n');
   }
 
   return {

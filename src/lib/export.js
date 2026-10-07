@@ -18,6 +18,12 @@
   // a trigger character gets a leading apostrophe, which spreadsheets show as
   // plain text.
   const FORMULA_LEAD = /^[=+\-@\t\r]/;
+
+  // The files are opened in Excel on a municipal Windows PC. Without a UTF-8
+  // byte-order mark Excel decodes a .csv in the machine's ANSI code page, so
+  // every Hebrew street name, lighting label and inspector note turns into
+  // gibberish. The mark is invisible in every other spreadsheet and editor.
+  const CSV_BOM = '\uFEFF';
   const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
 
   function neutralizeFormula(s) {
@@ -36,7 +42,7 @@
     rows.forEach((row) => {
       lines.push(header.map((key) => csvEscape(row[key])).join(','));
     });
-    return lines.join('\n');
+    return CSV_BOM + lines.join('\n');
   }
 
   function occupancyToCsv(records) {
@@ -167,6 +173,7 @@
   }
 
   return {
+    CSV_BOM,
     csvEscape,
     neutralizeFormula,
     occupancyToCsv,
