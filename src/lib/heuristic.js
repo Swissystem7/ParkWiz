@@ -314,8 +314,10 @@
     list.forEach((it) => {
       if (it && it.cur && Number.isFinite(it.cur.mean)) means.push(it.cur.mean);
     });
+    // True median: with an even patch count, average the two middle means
+    // instead of taking the upper one, which biased a split lot towards 'day'.
     const globalMean = means.length
-      ? means.slice().sort((a, b) => a - b)[Math.floor(means.length / 2)]
+      ? percentile(means.slice().sort((a, b) => a - b), 0.5)
       : (o.globalMean != null ? o.globalMean : 120);
     const lighting = o.lighting || classifyLighting(globalMean);
     const estimates = list.map((it) => {
