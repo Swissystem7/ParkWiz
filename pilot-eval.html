@@ -126,11 +126,18 @@ function lightHe(key) {
   return "יום";
 }
 
+// Percentage-point gain of v2 over v1. With no comparisons improved is null and
+// the KPI shows a dash, not "+0.0" (null >= 0 is true in JS).
+function deltaPts(improved) {
+  if (typeof improved !== "number" || !Number.isFinite(improved)) return "—";
+  return (improved >= 0 ? "+" : "") + (improved * 100).toFixed(1);
+}
+
 function run() {
   const cmp = DS.compareMethods();
   document.getElementById("kV2").textContent = pct(cmp.v2.rate);
   document.getElementById("kV1").textContent = pct(cmp.legacy.rate);
-  document.getElementById("kDelta").textContent = (cmp.improved >= 0 ? "+" : "") + (cmp.improved * 100).toFixed(1);
+  document.getElementById("kDelta").textContent = deltaPts(cmp.improved);
   document.getElementById("kN").textContent = String(cmp.v2.n);
   const w = cmp.v2.wilson;
   document.getElementById("wilsonNote").textContent = w
