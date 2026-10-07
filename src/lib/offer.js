@@ -225,8 +225,10 @@
     ].join('\n');
   }
 
+  // RFC 6068: % ? & # inside the address must be percent-encoded, or a typed
+  // address like a@b.com?bcc=x@y.com adds its own headers to the draft.
   function mailtoHref(to, subject, body) {
-    const addr = trim(to);
+    const addr = trim(to).replace(/[%?&#]/g, encodeURIComponent);
     const params = [];
     if (trim(subject)) params.push('subject=' + encodeURIComponent(trim(subject)));
     if (trim(body)) params.push('body=' + encodeURIComponent(String(body)));
