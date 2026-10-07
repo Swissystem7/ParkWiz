@@ -302,7 +302,8 @@
         amountIls = null;
       }
     }
-    if (!Number.isFinite(cameras) || cameras < 1 || cameras > 5) {
+    // A camera is a whole device: 1.5 used to pass and print as 2 on the quote.
+    if (!Number.isInteger(cameras) || cameras < 1 || cameras > 5) {
       errors.push('מספר מצלמות: 1 עד 5.');
     }
     if (!Number.isFinite(durationDays) || durationDays < 1 || durationDays > 366) {
