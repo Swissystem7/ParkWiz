@@ -108,8 +108,13 @@
   }
 
   function toIntlPhone(phone) {
-    const d = digitsOnly(phone);
+    let d = digitsOnly(phone);
     if (!d) return '';
+    // 00 is the international dialing prefix from Israel (00972...), and people
+    // often keep the domestic trunk 0 after the country code (+972 052...).
+    // wa.me wants neither, so a pasted 00972526333106 must not become 9720972...
+    if (d.startsWith('00')) d = d.slice(2);
+    if (d.startsWith('9720')) d = '972' + d.slice(4);
     if (d.startsWith('972')) return d;
     if (d.startsWith('0') && d.length >= 9) return '972' + d.slice(1);
     if (d.length === 9 && d.startsWith('5')) return '972' + d;
