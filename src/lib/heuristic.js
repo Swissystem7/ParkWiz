@@ -70,6 +70,31 @@
     return 'day';
   }
 
+  // A calibration rectangle is stored as image fractions { x, y, w, h } in
+  // 0..1. It comes straight from an uploaded spots file or localStorage, so it
+  // can sit partly or fully outside the frame. Returns the integer pixel rect
+  // clipped to the image, or null when nothing of it lies inside the image —
+  // callers must skip such a spot instead of handing getImageData a width of
+  // zero (or a negative one), which throws and aborts the whole lot estimate.
+  function spotPixelRect(spot, imageWidth, imageHeight) {
+    const W = Math.floor(Number(imageWidth));
+    const H = Math.floor(Number(imageHeight));
+    if (!spot || !Number.isFinite(W) || !Number.isFinite(H) || W <= 0 || H <= 0) return null;
+    const fx = Number(spot.x);
+    const fy = Number(spot.y);
+    const fw = Number(spot.w);
+    const fh = Number(spot.h);
+    if (![fx, fy, fw, fh].every(Number.isFinite) || fw <= 0 || fh <= 0) return null;
+    const x = Math.max(0, Math.floor(fx * W));
+    const y = Math.max(0, Math.floor(fy * H));
+    if (x >= W || y >= H) return null;
+    // Keep the original 1px floor for hairline rectangles, then clip to the frame.
+    const w = Math.min(Math.max(1, Math.floor(fw * W)), W - x);
+    const h = Math.min(Math.max(1, Math.floor(fh * H)), H - y);
+    if (fx + fw <= 0 || fy + fh <= 0 || w <= 0 || h <= 0) return null;
+    return { x, y, w, h };
+  }
+
   function percentile(sorted, p) {
     if (!sorted || !sorted.length) return 0;
     if (sorted.length === 1) return sorted[0];
@@ -376,6 +401,7 @@
     statsFromSamples,
     statsFromRgba,
     classifyLighting,
+    spotPixelRect,
     percentile,
     lightingGain,
     normalizedContrastScore,
