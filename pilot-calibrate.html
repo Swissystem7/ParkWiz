@@ -350,16 +350,18 @@ function rgbaForRect(img, spot) {
   c.height = img.naturalHeight || img.height;
   const g = c.getContext("2d");
   g.drawImage(img, 0, 0, c.width, c.height);
-  const x = Math.max(0, Math.floor(spot.x * c.width));
-  const y = Math.max(0, Math.floor(spot.y * c.height));
-  const w = Math.max(1, Math.floor(spot.w * c.width));
-  const h = Math.max(1, Math.floor(spot.h * c.height));
-  return g.getImageData(x, y, Math.min(w, c.width - x), Math.min(h, c.height - y)).data;
+  // A spot from an uploaded file can lie outside the frame; getImageData throws
+  // on a zero/negative width, so such a spot yields null instead of aborting the lot.
+  const r = HEU.spotPixelRect(spot, c.width, c.height);
+  if (!r) return null;
+  return g.getImageData(r.x, r.y, r.w, r.h).data;
 }
 
 function refFromImg(img, spot) {
   if (!img) return null;
-  const st = HEU.statsFromRgba(rgbaForRect(img, spot), HEU.SAMPLE_STRIDE);
+  const data = rgbaForRect(img, spot);
+  if (!data) return null;
+  const st = HEU.statsFromRgba(data, HEU.SAMPLE_STRIDE);
   st.lighting = HEU.classifyLighting(st.mean);
   return st;
 }
@@ -389,10 +391,10 @@ function computeEstimate() {
     const nightData = state.hasNight && state.night ? rgbaForRect(state.night, spot) : null;
     return {
       id: spot.id,
-      cur: HEU.statsFromRgba(curData, HEU.SAMPLE_STRIDE),
+      cur: curData ? HEU.statsFromRgba(curData, HEU.SAMPLE_STRIDE) : null,
       empty: emptyData ? HEU.statsFromRgba(emptyData, HEU.SAMPLE_STRIDE) : null,
       emptyNight: nightData ? HEU.statsFromRgba(nightData, HEU.SAMPLE_STRIDE) : null,
-      curSamples: HEU.lumaSamples(curData, HEU.SAMPLE_STRIDE),
+      curSamples: curData ? HEU.lumaSamples(curData, HEU.SAMPLE_STRIDE) : null,
       emptySamples: emptyData ? HEU.lumaSamples(emptyData, HEU.SAMPLE_STRIDE) : null,
       emptyNightSamples: nightData ? HEU.lumaSamples(nightData, HEU.SAMPLE_STRIDE) : null,
     };

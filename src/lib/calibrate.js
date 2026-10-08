@@ -27,16 +27,32 @@
     const w = num(s.w);
     const h = num(s.h);
     if (x == null || y == null || w == null || h == null || w <= 0 || h <= 0) return null;
+    // Reference stats come from an imported JSON pack, so every field is
+    // untrusted. A missing or non-finite spread stat is zero (no contrast),
+    // never negative, and a median of 0 is a real value, not a missing one:
+    // `Number(r.median) || mean` used to replace a black reference frame's
+    // median with its mean. Percentiles are only meaningful as a pair, so a
+    // half-missing pair collapses to the median (zero range) instead of
+    // inflating the range by the one value that happened to be present.
     const ref = (r) => {
       if (!r || !Number.isFinite(Number(r.mean))) return null;
+      const mean = Number(r.mean);
+      const median = Number.isFinite(Number(r.median)) ? Number(r.median) : mean;
+      const spread = (v) => {
+        const n = Number(v);
+        return Number.isFinite(n) && n > 0 ? n : 0;
+      };
+      const p10 = Number(r.p10);
+      const p90 = Number(r.p90);
+      const hasPercentiles = Number.isFinite(p10) && Number.isFinite(p90);
       return {
-        mean: Number(r.mean),
-        variance: Number(r.variance) || 0,
-        n: Number(r.n) || 0,
-        median: Number(r.median) || Number(r.mean),
-        mad: Number(r.mad) || 0,
-        p10: Number(r.p10) || 0,
-        p90: Number(r.p90) || 0,
+        mean,
+        variance: spread(r.variance),
+        n: Math.floor(spread(r.n)),
+        median,
+        mad: spread(r.mad),
+        p10: hasPercentiles ? Math.min(p10, p90) : median,
+        p90: hasPercentiles ? Math.max(p10, p90) : median,
         lighting: r.lighting != null ? String(r.lighting) : '',
       };
     };
@@ -84,7 +100,9 @@
   function buildPack(input) {
     const base = normalizePack(Object.assign(emptyPack(input && input.street), input || {}));
     if (!base) return null;
-    base.savedAt = (input && input.savedAt) || new Date().toISOString();
+    base.savedAt = (input && input.savedAt != null && input.savedAt !== '')
+      ? String(input.savedAt)
+      : new Date().toISOString();
     base.hasEmpty = base.spots.some((s) => s.emptyRef);
     base.hasNightEmpty = base.spots.some((s) => s.nightRef);
     return base;
@@ -103,14 +121,21 @@
   }
 
   function formatClock(ms) {
-    const t = Math.max(0, Math.round(Number(ms) || 0) / 1000);
+    const n = Number(ms);
+    if (!Number.isFinite(n)) return null;
+    const t = Math.max(0, Math.round(n) / 1000);
     const m = Math.floor(t / 60);
     const s = Math.floor(t % 60);
     return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
   }
 
+  // Mirrors formatClock: an elapsed time that cannot be formatted (null,
+  // undefined, '') is not under target either. Number(null) is 0, so the old
+  // check reported a missing clock as a 00:00 success.
   function underTarget(elapsedMs) {
-    return Number(elapsedMs) <= TARGET_SEC * 1000;
+    const n = Number(elapsedMs);
+    if (elapsedMs == null || elapsedMs === '' || !Number.isFinite(n)) return false;
+    return n <= TARGET_SEC * 1000;
   }
 
   return {

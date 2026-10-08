@@ -119,3 +119,44 @@ test('score is always clamped to legal range', () => {
   assert.equal(high.score, 100);
   assert.equal(low.score, 0);
 });
+
+test('now accepts a Date, epoch milliseconds, a numeric string and an ISO string alike', () => {
+  const iso = '2026-07-14T18:00:00+03:00';
+  const ms = Date.parse(iso);
+  const fromDate = model.calculate({ ...baselineInput, now: new Date(iso) });
+  assert.equal(fromDate.score, 50);
+  assert.deepEqual(model.calculate({ ...baselineInput, now: ms }), fromDate);
+  assert.deepEqual(model.calculate({ ...baselineInput, now: String(ms) }), fromDate);
+  assert.deepEqual(model.calculate({ ...baselineInput, now: iso }), fromDate);
+});
+
+test('an invalid now never throws and falls back to the current time, not to 1970', () => {
+  const before = model.modelLocalDayHour(new Date());
+  const results = [new Date(NaN), NaN, null, '', 'not a date', {}].map((now) => model.calculate({ ...baselineInput, now }));
+  const after = model.modelLocalDayHour(new Date());
+  for (const result of results) {
+    assert.ok(Number.isFinite(result.score));
+    const time = result.factors.find((factor) => factor.type === 'time');
+    const matchesNow = (time.day === before.day && time.hour === before.hour)
+      || (time.day === after.day && time.hour === after.hour);
+    assert.ok(matchesNow, `time factor ${time.day}/${time.hour} is not the current hour`);
+  }
+  for (const now of [new Date(NaN), null, 'not a date']) {
+    assert.ok(Math.abs(model.resolveNow(now).nowMs - Date.now()) < 1000);
+  }
+});
+
+test('an invalid now does not resurrect reports that expired long ago', () => {
+  const createdAt = Date.parse('2020-01-01T10:00:00+02:00');
+  const longExpired = {
+    source: 'user',
+    streetIdx: 1,
+    areaKey: 'netanya-center',
+    count: 3,
+    confidence: 0.9,
+    createdAt,
+    expiresAt: createdAt + 5 * 60 * 1000,
+  };
+  const result = model.calculate({ ...baselineInput, reports: [longExpired], now: null });
+  assert.equal(result.validReportCount, 0);
+});

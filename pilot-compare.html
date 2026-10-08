@@ -225,8 +225,9 @@ function render() {
     btn.type = "button";
     btn.textContent = "שמור זוג";
     btn.addEventListener("click", () => {
-      const man = Number(inp.value);
-      const pair = CMP.pairFromOccupancy(rec, man, "");
+      // Pass the raw field value: a blank field must be rejected by the
+      // library, not coerced to 0 here and saved as an inspector count.
+      const pair = CMP.pairFromOccupancy(rec, inp.value, "");
       if (!pair) { setStatus("addStatus", "הזינו מספר שלם של מקומות תפוסים."); return; }
       pairs = pairs.filter((p) => p.ts !== pair.ts || p.street !== pair.street);
       pairs.push(pair);

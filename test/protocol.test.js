@@ -114,6 +114,68 @@ test('normalizeDay rejects out-of-range days and clamps counts', () => {
   assert.equal(d.manualOccupied, 0);
 });
 
+test('a fractional day number never adds a 31st row to the 30-day log', () => {
+  assert.equal(proto.normalizeDay({ day: 2.5, total: 10, systemOccupied: 1, manualOccupied: 1 }), null);
+  assert.equal(proto.normalizeDay({ day: '2.5', total: 10, systemOccupied: 1, manualOccupied: 1 }), null);
+  assert.equal(proto.normalizeDay({ day: '3', total: 10, systemOccupied: 1, manualOccupied: 1 }).day, 3);
+  const imported = JSON.stringify([
+    { day: 2.5, total: 10, systemOccupied: 3, manualOccupied: 4 },
+    { day: 4, total: 10, systemOccupied: 3, manualOccupied: 4 },
+  ]);
+  assert.deepEqual(proto.parseLog(imported).map((x) => x.day), [4]);
+  const merged = proto.mergeLog(proto.buildCalendar('2026-08-01', 30), JSON.parse(imported));
+  assert.equal(merged.length, 30);
+  assert.ok(merged.every((x) => Number.isInteger(x.day)));
+  assert.equal(merged[3].manualOccupied, 4);
+});
+
+test('dates that are not on the calendar are rejected instead of rolled over', () => {
+  assert.equal(proto.addDays('2026-13-01', 0), '');
+  assert.equal(proto.addDays('2026-02-31', 0), '');
+  assert.equal(proto.addDays('2026-02-28', 1), '2026-03-01');
+  assert.equal(proto.addDays('2024-02-29', 0), '2024-02-29');
+  assert.equal(proto.daysSince('2026-02-31', new Date(Date.UTC(2026, 2, 10))), null);
+  assert.equal(proto.daysSince('2026-02-28', new Date(Date.UTC(2026, 2, 10))), 10);
+  // an unusable start date leaves the calendar undated rather than mis-dated
+  const cal = proto.buildCalendar('2026-13-01', 30);
+  assert.equal(cal.length, 30);
+  assert.equal(cal[0].date, '');
+});
+
+test('pooled bias divides by the pairs that were actually counted', () => {
+  const pooled = proto.pooledAgreement([
+    { total: 10, systemOccupied: 8, manualOccupied: 6 },
+    { total: 10, systemOccupied: 'n/a', manualOccupied: 5 },
+    { total: 10, manualOccupied: 5 },
+    { total: 10, systemOccupied: 7, manualOccupied: 7 },
+  ]);
+  assert.equal(pooled.trials, 20);
+  assert.equal(pooled.agree, 18);
+  // signed error is +2 over 2 counted pairs, not over the 4 pairs offered
+  assert.equal(pooled.meanSignedError, 1);
+});
+
+test('days since outreach accept a Date, an epoch-ms number and a string alike', () => {
+  const asDate = new Date(Date.UTC(2026, 9, 6, 12));
+  assert.equal(proto.daysSince('2026-09-01', asDate), 35);
+  assert.equal(proto.daysSince('2026-09-01', asDate.getTime()), 35);
+  assert.equal(proto.daysSince('2026-09-01', '2026-10-06T12:00:00Z'), 35);
+  assert.equal(proto.daysSince('2026-09-01', NaN), null);
+  assert.equal(proto.daysSince('not-a-day', asDate), null);
+});
+
+test('PARK_NO_ACCESS still fires when now is given as epoch milliseconds', () => {
+  const v = proto.decidePilot({
+    pairs: fieldPairsFromSample(),
+    outreachSentAt: '2026-07-01',
+    now: Date.UTC(2026, 7, 13, 12),
+    cameraAccess: false,
+    integratorAsk: false,
+  });
+  assert.equal(v.code, 'PARK_NO_ACCESS');
+  assert.equal(v.daysSinceOutreach, 43);
+});
+
 test('vendor claims stay labeled as manufacturer statements', () => {
   assert.equal(proto.VENDOR_CLAIMS.length, 2);
   assert.ok(proto.VENDOR_CLAIMS.every((c) => c.note.includes('הצהרת יצרן')));

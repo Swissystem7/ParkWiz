@@ -11,6 +11,7 @@
     { id: 'compare', href: './pilot-compare.html', label: 'השוואת דיוק' },
     { id: 'log', href: './pilot-log.html', label: 'יומן 30 יום' },
     { id: 'report', href: './pilot-report.html', label: 'דוח פיילוט' },
+    { id: 'summary', href: './pilot-summary.html', label: 'סיכום לקריאה בלבד' },
     { id: 'privacy', href: './pilot-privacy.html', label: 'בקשת גישה / פרטיות' },
   ];
 

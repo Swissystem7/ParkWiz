@@ -67,3 +67,30 @@ test('an empty series has no accuracy to report', () => {
   assert.equal(s.meanSignedError, null);
   assert.equal(s.sampleOnly, false);
 });
+
+test('normalizePack throws TypeError for non-string or blank input', () => {
+  for (const bad of [null, undefined, 0, '', ' ', '\t\n']) {
+    assert.throws(() => cmp.normalizePack(bad), TypeError);
+  }
+});
+
+test('normalizePack returns trimmed text for valid string input', () => {
+  assert.equal(cmp.normalizePack('  [{"x":1}]  '), '[{"x":1}]');
+});
+
+test('parsePairs throws TypeError for empty or whitespace-only input', () => {
+  for (const bad of ['', '   ']) {
+    assert.throws(() => cmp.parsePairs(bad), TypeError);
+  }
+});
+
+test('savePairs throws TypeError when list is not an array', () => {
+  assert.throws(() => cmp.savePairs(null), {
+    name: 'TypeError',
+    message: 'list must be an array'
+  });
+  assert.throws(() => cmp.savePairs('string'), {
+    name: 'TypeError',
+    message: 'list must be an array'
+  });
+});

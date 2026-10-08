@@ -111,10 +111,16 @@
   }
 
   function toIntlPhone(phone) {
-    const d = digitsOnly(phone);
+    let d = digitsOnly(phone);
     if (!d) return '';
+    // 00 is the international dialing prefix from Israel (00972...), and people
+    // often keep the domestic trunk 0 after the country code (+972 052...).
+    // wa.me wants neither, so a pasted 00972526333106 must not become 9720972...
+    if (d.startsWith('00')) d = d.slice(2);
+    if (d.startsWith('9720')) d = '972' + d.slice(4);
     if (d.startsWith('972')) return d;
     if (d.startsWith('0') && d.length >= 9) return '972' + d.slice(1);
+    if (d.length === 9 && d.startsWith('5')) return '972' + d;
     return d;
   }
 
@@ -240,8 +246,10 @@
     ].join('\n');
   }
 
+  // RFC 6068: % ? & # inside the address must be percent-encoded, or a typed
+  // address like a@b.com?bcc=x@y.com adds its own headers to the draft.
   function mailtoHref(to, subject, body) {
-    const addr = trim(to);
+    const addr = trim(to).replace(/[%?&#]/g, encodeURIComponent);
     const params = [];
     if (trim(subject)) params.push('subject=' + encodeURIComponent(trim(subject)));
     if (trim(body)) params.push('body=' + encodeURIComponent(String(body)));
@@ -317,7 +325,8 @@
         amountIls = null;
       }
     }
-    if (!Number.isFinite(cameras) || cameras < 1 || cameras > 5) {
+    // A camera is a whole device: 1.5 used to pass and print as 2 on the quote.
+    if (!Number.isInteger(cameras) || cameras < 1 || cameras > 5) {
       errors.push('מספר מצלמות: 1 עד 5.');
     }
     if (!Number.isFinite(durationDays) || durationDays < 1 || durationDays > 366) {
@@ -431,8 +440,14 @@
     ].join('\n');
   }
 
+  // Same formula guard as src/lib/export.js: a buyer-typed authority or unit
+  // name that starts with = + - @ must not run as a spreadsheet formula.
+  const FORMULA_LEAD = /^[=+\-@\t\r]/;
+  const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
+
   function csvEscape(value) {
-    const s = value == null ? '' : String(value);
+    let s = value == null ? '' : String(value);
+    if (FORMULA_LEAD.test(s) && !PLAIN_NUMBER.test(s)) s = "'" + s;
     if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
     return s;
   }
@@ -458,7 +473,10 @@
       ['sent', q.sent],
       ['payment', q.payment],
     ];
-    return rows.map((row) => row.map(csvEscape).join(',')).join('\n');
+    // Same UTF-8 byte-order mark as src/lib/export.js: the quote is opened in
+    // Excel on Windows, where a mark-less file shows the Hebrew unit name as
+    // gibberish.
+    return '\uFEFF' + rows.map((row) => row.map(csvEscape).join(',')).join('\n');
   }
 
   return {

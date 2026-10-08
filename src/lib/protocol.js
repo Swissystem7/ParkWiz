@@ -59,6 +59,10 @@
     let trials = 0;
     let agree = 0;
     let signed = 0;
+    // Only pairs that actually enter the sum may enter the bias denominator:
+    // a pair with a missing count is skipped here, so counting it in
+    // list.length would silently shrink the mean signed error toward zero.
+    let counted = 0;
     list.forEach((p) => {
       const t = p.total;
       const sys = Number(p.systemOccupied);
@@ -67,6 +71,7 @@
       trials += t;
       agree += t - Math.abs(sys - man);
       signed += sys - man;
+      counted += 1;
     });
     if (!trials) {
       return { trials: 0, agree: 0, rate: null, meanSignedError: null, wilson: null };
@@ -75,15 +80,24 @@
       trials,
       agree,
       rate: agree / trials,
-      meanSignedError: signed / list.length,
+      meanSignedError: signed / counted,
       wilson: wilsonInterval(agree, trials, Z95),
     };
   }
 
+  // A date that is not on the calendar (month 13, 31 February) is NaN, not a
+  // silently rolled-over day: Date.UTC would otherwise turn 2026-02-31 into
+  // 3 March and shift every pilot day and the outreach countdown with it.
   function dayMs(isoDay) {
     const m = String(isoDay || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (!m) return NaN;
-    return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    const y = Number(m[1]);
+    const mo = Number(m[2]);
+    const d = Number(m[3]);
+    const t = Date.UTC(y, mo - 1, d);
+    const back = new Date(t);
+    if (back.getUTCFullYear() !== y || back.getUTCMonth() !== mo - 1 || back.getUTCDate() !== d) return NaN;
+    return t;
   }
 
   function addDays(isoDay, n) {
@@ -111,8 +125,11 @@
 
   function normalizeDay(input) {
     if (!input || typeof input !== 'object') return null;
+    // Day numbers are calendar slots 1..PILOT_DAYS. A fractional day from an
+    // imported file (2.5) used to get its own slot, so the 30-day grid grew to
+    // 31 rows and the extra row was never reachable from the day picker.
     const day = Number(input.day);
-    if (!Number.isFinite(day) || day < 1 || day > PILOT_DAYS) return null;
+    if (!Number.isInteger(day) || day < 1 || day > PILOT_DAYS) return null;
     const numOrNull = (v) => {
       if (v == null || v === '') return null;
       const n = Number(v);
@@ -207,7 +224,11 @@
   function daysSince(isoDay, now) {
     const a = dayMs(isoDay);
     if (!Number.isFinite(a)) return null;
-    const t = now instanceof Date ? now.getTime() : Date.parse(now);
+    // Accept a Date, an epoch-ms number, or a parseable date string. A bare
+    // number used to fall through Date.parse and come back NaN, which turned
+    // the elapsed-days check off and made PARK_NO_ACCESS unreachable.
+    const t = now instanceof Date ? now.getTime()
+      : (typeof now === 'number' ? now : Date.parse(now));
     if (!Number.isFinite(t)) return null;
     return Math.floor((t - a) / 86400000);
   }

@@ -16,7 +16,10 @@
   const LUMA_G = 0.7152;
   const LUMA_B = 0.0722;
   // Sample every 4th pixel (RGBA stride 16) — same as the original kit loop.
+  // A stride is a byte offset into RGBA data, so it must be a multiple of 4:
+  // any other step reads G/B/A bytes as if they were R/G/B of a real pixel.
   const SAMPLE_STRIDE = 16;
+  const RGBA_BYTES = 4;
 
   const DAY_LUMA_MIN = 70;
   const DUSK_LUMA_MIN = 35;
@@ -70,10 +73,37 @@
     return 'day';
   }
 
+  // A calibration rectangle is stored as image fractions { x, y, w, h } in
+  // 0..1. It comes straight from an uploaded spots file or localStorage, so it
+  // can sit partly or fully outside the frame. Returns the integer pixel rect
+  // clipped to the image, or null when nothing of it lies inside the image —
+  // callers must skip such a spot instead of handing getImageData a width of
+  // zero (or a negative one), which throws and aborts the whole lot estimate.
+  function spotPixelRect(spot, imageWidth, imageHeight) {
+    const W = Math.floor(Number(imageWidth));
+    const H = Math.floor(Number(imageHeight));
+    if (!spot || !Number.isFinite(W) || !Number.isFinite(H) || W <= 0 || H <= 0) return null;
+    const fx = Number(spot.x);
+    const fy = Number(spot.y);
+    const fw = Number(spot.w);
+    const fh = Number(spot.h);
+    if (![fx, fy, fw, fh].every(Number.isFinite) || fw <= 0 || fh <= 0) return null;
+    const x = Math.max(0, Math.floor(fx * W));
+    const y = Math.max(0, Math.floor(fy * H));
+    if (x >= W || y >= H) return null;
+    // Keep the original 1px floor for hairline rectangles, then clip to the frame.
+    const w = Math.min(Math.max(1, Math.floor(fw * W)), W - x);
+    const h = Math.min(Math.max(1, Math.floor(fh * H)), H - y);
+    if (fx + fw <= 0 || fy + fh <= 0 || w <= 0 || h <= 0) return null;
+    return { x, y, w, h };
+  }
+
   function percentile(sorted, p) {
     if (!sorted || !sorted.length) return 0;
     if (sorted.length === 1) return sorted[0];
-    const t = Math.max(0, Math.min(1, Number(p)));
+    const numericP = Number(p);
+    if (!Number.isFinite(numericP)) return sorted[0];
+    const t = Math.max(0, Math.min(1, numericP));
     const idx = (sorted.length - 1) * t;
     const lo = Math.floor(idx);
     const hi = Math.ceil(idx);
@@ -83,7 +113,9 @@
 
   function lumaSamples(data, stride) {
     const step = Number(stride);
-    const use = Number.isFinite(step) && step >= 4 ? Math.floor(step) : SAMPLE_STRIDE;
+    const use = Number.isFinite(step) && step >= RGBA_BYTES
+      ? Math.floor(step / RGBA_BYTES) * RGBA_BYTES
+      : SAMPLE_STRIDE;
     const out = [];
     if (!data || typeof data.length !== 'number' || data.length < 4) return out;
     for (let i = 0; i + 2 < data.length; i += use) {
@@ -374,6 +406,7 @@
     statsFromSamples,
     statsFromRgba,
     classifyLighting,
+    spotPixelRect,
     percentile,
     lightingGain,
     normalizedContrastScore,

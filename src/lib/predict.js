@@ -21,13 +21,25 @@
   const HOURLY_SLOTS = Object.freeze([8, 10, 12, 14, 16, 18, 20]);
   const MIN_CHANCE = 0.05;
 
+  // A non-numeric street index or hour must not leak NaN into every slot:
+  // it degrades to the wobble of street 0 / hour 0 instead.
+  function finiteOr(value, fallback) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
   function stableVar(streetIdx, hour) {
-    const x = Math.sin((streetIdx + 1) * 12.9898 + hour * 78.233) * 43758.5453;
+    const street = finiteOr(streetIdx, 0);
+    const h = finiteOr(hour, 0);
+    const x = Math.sin((street + 1) * 12.9898 + h * 78.233) * 43758.5453;
     return ((x - Math.floor(x)) - 0.5) * 0.15;
   }
 
+  // avail is a percentage (0..100). A missing or unparseable value used to
+  // produce seven NaN chances, which broke the documented MIN_CHANCE..1 range;
+  // it now behaves like an empty street (every slot at the floor).
   function genHourlyPattern(avail, streetIdx) {
-    const base = avail / 100;
+    const base = Math.max(0, Math.min(1, finiteOr(avail, 0) / 100));
     return HOURLY_SLOTS.map((h) => {
       const rush = RUSH_WEIGHT[h] || 0;
       return +Math.max(MIN_CHANCE, Math.min(1, base + rush + stableVar(streetIdx, h))).toFixed(3);

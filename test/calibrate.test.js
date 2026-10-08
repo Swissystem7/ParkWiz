@@ -48,3 +48,50 @@ test('calibration wizard is Hebrew RTL with a timer and honesty banner', () => {
   assert.match(html, /heuristic/);
   assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
 });
+
+test('formatClock returns null for non-numeric input', () => {
+  assert.strictEqual(cal.formatClock('invalid'), null);
+});
+
+test('underTarget is false when there is no elapsed time to judge', () => {
+  for (const bad of [null, undefined, '', 'soon', NaN, Infinity]) {
+    assert.equal(cal.underTarget(bad), false, `underTarget(${String(bad)})`);
+  }
+  assert.equal(cal.underTarget(0), true);
+  assert.equal(cal.underTarget('179000'), true);
+});
+
+test('an imported reference keeps a median of zero instead of swapping in the mean', () => {
+  const spot = cal.normalizeSpot({ x: 0.1, y: 0.1, w: 0.2, h: 0.2, emptyRef: { mean: 3, median: 0, variance: 4 } }, 0);
+  assert.equal(spot.emptyRef.median, 0);
+  assert.equal(spot.emptyRef.mean, 3);
+});
+
+test('imported reference stats are never negative or non-finite', () => {
+  const spot = cal.normalizeSpot({
+    x: 0.1, y: 0.1, w: 0.2, h: 0.2,
+    emptyRef: { mean: 120, median: 'x', variance: -9, mad: Infinity, n: -2.5, p10: 100, p90: 140 },
+    nightRef: { mean: 30, median: 28, variance: '', mad: 2, n: 12.7, p10: 'nope', p90: 40 },
+  }, 0);
+  assert.deepEqual(spot.emptyRef, {
+    mean: 120, variance: 0, n: 0, median: 120, mad: 0, p10: 100, p90: 140, lighting: '',
+  });
+  // A half-missing percentile pair collapses to the median rather than
+  // reporting a 0..40 range built from the one value that was present.
+  assert.deepEqual(spot.nightRef, {
+    mean: 30, variance: 0, n: 12, median: 28, mad: 2, p10: 28, p90: 28, lighting: '',
+  });
+});
+
+test('a swapped percentile pair is reordered so p10 <= p90', () => {
+  const spot = cal.normalizeSpot({ x: 0, y: 0, w: 1, h: 1, emptyRef: { mean: 50, p10: 90, p90: 10 } }, 0);
+  assert.equal(spot.emptyRef.p10, 10);
+  assert.equal(spot.emptyRef.p90, 90);
+});
+
+test('buildPack stores savedAt as a string even when given a number', () => {
+  const pack = cal.buildPack({ street: 'הרצל', savedAt: 1700000000000, spots: [] });
+  assert.equal(pack.savedAt, '1700000000000');
+  const fresh = cal.buildPack({ street: 'הרצל', savedAt: '', spots: [] });
+  assert.match(fresh.savedAt, /^\d{4}-\d{2}-\d{2}T/);
+});

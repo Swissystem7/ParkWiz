@@ -12,11 +12,22 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.ParkWizCompare = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (occ) {
+  // A count that was never entered is not a count of zero. Number('') and
+  // Number(null) are both 0, so a blank inspector field used to be saved as
+  // "inspector saw 0 occupied" with a real-looking accuracy. Only a number or
+  // a non-blank numeric string is a count; everything else is missing (NaN),
+  // and inspectorAccuracy then rejects the pair.
+  function count(value) {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string' && value.trim() !== '') return Number(value);
+    return NaN;
+  }
+
   function pairObservation(input) {
     if (!input || typeof input !== 'object') return null;
-    const total = Number(input.total);
-    const sys = Number(input.systemOccupied != null ? input.systemOccupied : input.occupied);
-    const man = Number(input.manualOccupied);
+    const total = count(input.total);
+    const sys = count(input.systemOccupied != null ? input.systemOccupied : input.occupied);
+    const man = count(input.manualOccupied);
     const accuracy = occ.inspectorAccuracy(sys, man, total);
     if (accuracy == null) return null;
     const t = total;
@@ -45,8 +56,19 @@
     });
   }
 
+  function normalizePack(input) {
+    if (typeof input !== 'string') {
+      throw new TypeError('Input must be a string');
+    }
+    const trimmed = input.trim();
+    if (!trimmed) {
+      throw new TypeError('Input cannot be empty or whitespace-only');
+    }
+    return trimmed;
+  }
+
   function parsePairs(text) {
-    const raw = String(text || '').trim();
+    const raw = normalizePack(text);
     if (!raw) return [];
     let list = [];
     if (raw[0] === '[') {
@@ -92,7 +114,7 @@
       signed += p.systemOccupied - p.manualOccupied;
       if (p.accuracy < min) min = p.accuracy;
       if (p.accuracy > max) max = p.accuracy;
-      if (p.accuracy === 1) perfect += 1;
+      if (p.accuracy >= 1 - 1e-5) perfect += 1;
       if (p.source === 'sample') sample += 1;
     });
     return {
@@ -117,6 +139,9 @@
   }
 
   function savePairs(list) {
+    if (!Array.isArray(list)) {
+      throw new TypeError('list must be an array');
+    }
     try {
       localStorage.setItem(occ.LS.pairs, JSON.stringify(list || []));
     } catch (e) { /* quota / private mode */ }
@@ -129,5 +154,6 @@
     summarizePairs,
     loadStoredPairs,
     savePairs,
+    normalizePack,
   };
 });
