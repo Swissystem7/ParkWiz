@@ -1198,7 +1198,7 @@ function openRent(i) {
       <input placeholder="MM/YY" maxlength="5" style="flex:1;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px;font-size:.75rem;direction:ltr">
       <input placeholder="CVV" maxlength="3" style="width:52px;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px;font-size:.75rem;direction:ltr">
     </div>
-    <button id="rentPayBtn" onclick="payRent(${i})" disabled
+    <button id="rentPayBtn" onclick="payRent(${i})" aria-label="תשלום" disabled
       style="width:100%;background:#4b5563;color:#fff;border:none;border-radius:10px;padding:10px;font-size:.85rem;font-weight:700;cursor:pointer"></button>
     <div style="text-align:center;margin-top:8px"><b style="font-size:.72rem;color:var(--muted);cursor:pointer" onclick="document.getElementById('rentOverlay').classList.remove('show')">ביטול</b></div>
     <div style="font-size:.6rem;color:var(--muted);margin-top:6px;text-align:center">🔒 בגרסה המסחרית: סליקה דרך Stripe/Tranzila · המשכיר מקבל 85% · ביטוח צד ג' כלול</div>`;
