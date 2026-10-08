@@ -16,7 +16,10 @@
   const LUMA_G = 0.7152;
   const LUMA_B = 0.0722;
   // Sample every 4th pixel (RGBA stride 16) — same as the original kit loop.
+  // A stride is a byte offset into RGBA data, so it must be a multiple of 4:
+  // any other step reads G/B/A bytes as if they were R/G/B of a real pixel.
   const SAMPLE_STRIDE = 16;
+  const RGBA_BYTES = 4;
 
   const DAY_LUMA_MIN = 70;
   const DUSK_LUMA_MIN = 35;
@@ -110,7 +113,9 @@
 
   function lumaSamples(data, stride) {
     const step = Number(stride);
-    const use = Number.isFinite(step) && step >= 4 ? Math.floor(step) : SAMPLE_STRIDE;
+    const use = Number.isFinite(step) && step >= RGBA_BYTES
+      ? Math.floor(step / RGBA_BYTES) * RGBA_BYTES
+      : SAMPLE_STRIDE;
     const out = [];
     if (!data || typeof data.length !== 'number' || data.length < 4) return out;
     for (let i = 0; i + 2 < data.length; i += use) {
