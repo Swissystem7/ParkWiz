@@ -1280,7 +1280,10 @@ function pruneUserReports(nowMs = Date.now()) {
 
 function getModelOutput(streetIdx, targetDate = new Date()) {
   const now = targetDate instanceof Date ? targetDate : new Date(targetDate);
-  pruneUserReports(now.getTime());
+  // Prune by the real clock, never by targetDate: the hourly series asks about
+  // future slots, and pruning at tomorrow 08:00 would delete reports that are
+  // still live right now. The model ignores reports expired at targetDate anyway.
+  pruneUserReports();
   return AVAILABILITY_MODEL.calculate({
     baseline: STREET_BASELINE_AVAILABILITY[streetIdx],
     streetIdx,
