@@ -234,8 +234,15 @@
   }
 
   function decidePilot(input) {
-    const pairs = (input && Array.isArray(input.pairs)) ? input.pairs : [];
-    const summary = compare.summarizePairs(pairs);
+    const all = (input && Array.isArray(input.pairs)) ? input.pairs : [];
+    // The stop rule runs on inspector counts only. A sample series with one
+    // field day typed over it used to count every sample pair toward
+    // MIN_PAIRS and the pooled rate, so a single real count could pass as a
+    // field CONTINUE or PARK.
+    const allSummary = compare.summarizePairs(all);
+    const pairs = allSummary.sampleOnly ? all : all.filter((p) => !p || p.source !== 'sample');
+    const sampleSkipped = all.length - pairs.length;
+    const summary = allSummary.sampleOnly ? allSummary : compare.summarizePairs(pairs);
     const pooled = pooledAgreement(pairs);
     const hasCalibrationPlan = !!(input && input.hasCalibrationPlan);
     const cameraAccess = !!(input && input.cameraAccess);
@@ -284,6 +291,9 @@
       }
     }
 
+    if (sampleSkipped > 0) {
+      reasons.push(sampleSkipped + ' זוגות דוגמה (sample) לא נספרו — פסק הדין רק על ספירות שטח.');
+    }
     reasons.push('אין בפסק הדין הזה המלצת אכיפה או זיהוי לוחיות.');
 
     return {
