@@ -148,6 +148,9 @@ test('decodeSharePayload rejects figures outside the domain the encoder produces
     { lt: -12 },          // negative lot size
     { ls: 40 },           // last system count above last total (12)
     { lm: -2 },           // negative last manual count
+    { a: 0.95, i: 0.5, x: 0.9 }, // mean above max
+    { a: 0.2, i: 0.5, x: 0.9 },  // mean below min
+    { n: 0, p: 0 },              // a score for zero measurements
   ];
   for (const patch of tampered) {
     const token = tokenOf({ ...good, ...patch });
@@ -203,4 +206,12 @@ test('a hostile note in the field log and pairs CSV is exported as text', () => 
   const pairsCsv = exp.pairsToCsv([{ ...pairs[0], note: '@cmd', street: '-x' }]);
   assert.match(pairsCsv.split('\n')[1], /,'-x,/);
   assert.match(pairsCsv.split('\n')[1], /,'@cmd,/);
+});
+
+test('decodeSharePayload accepts a mean that overshoots max only by float rounding', () => {
+  const same = [0.1, 0.1, 0.1].map((accuracy, k) => ({ ...pairs[0], ts: '2026-08-12T0' + k + ':00:00+03:00', accuracy }));
+  const token = exp.encodeSharePayload(exp.buildPilotPacket({ pairs: same }));
+  const decoded = exp.decodeSharePayload(token);
+  assert.notEqual(decoded, null);
+  assert.ok(decoded.meanAccuracy > decoded.maxAccuracy, 'fixture should exercise the rounding overshoot');
 });
