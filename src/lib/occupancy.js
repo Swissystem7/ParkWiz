@@ -25,8 +25,11 @@
   }
 
   function occupancyRate(r) {
-    if (!r || !r.total) return 0;
-    return r.occupied / r.total;
+    if (!r || typeof r !== 'object') return 0;
+    const total = num(r.total);
+    const occupied = num(r.occupied);
+    if (total == null || total <= 0 || occupied == null) return 0;
+    return occupied / total;
   }
 
   // Agreement between heuristic/system count and a manual inspector count.
