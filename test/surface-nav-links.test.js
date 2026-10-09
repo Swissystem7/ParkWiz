@@ -34,6 +34,8 @@ globalThis.document = fakeDocument;
 require('../src/lib/surface-nav');
 const { LINKS, mountSurfaceNav } = globalThis.ParkWizSurfaceNav;
 
+const OFF_NAV = new Set(['marketplace.html', 'pilot-dashboard.html']);
+
 function navHosts() {
   const hosts = [];
   for (const name of fs.readdirSync(root)) {
@@ -64,6 +66,12 @@ test('every surface that mounts the nav is a known nav id', () => {
   assert.ok(hosts.length >= 14, `expected the nav on every surface, found ${hosts.length}`);
   const ids = new Set(LINKS.map((l) => l.id));
   for (const { page, active } of hosts) {
+    // Kept in the repo but cut from the buyer-facing nav: they mount the nav
+    // without a current-page marker and must stay out of LINKS.
+    if (OFF_NAV.has(page)) {
+      assert.ok(!ids.has(active), `${page} was cut from the nav but "${active}" is back in LINKS`);
+      continue;
+    }
     assert.ok(ids.has(active), `${page} uses data-active="${active}" which is not in LINKS`);
     const link = LINKS.find((l) => l.id === active);
     const target = link.href === './' ? 'index.html' : link.href.replace(/^\.\//, '');
