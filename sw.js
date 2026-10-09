@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v7';
+const CACHE = 'parkwiz-field-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -19,6 +19,9 @@ const ASSETS = [
   './manifest.json',
   './icon.svg',
   './availability-model.js',
+  // Fetched at runtime by index.html (municipal lots layer + trip planner).
+  // Without it in the shell the layer silently fails on the first offline visit.
+  './netanya-lots.geojson',
   './pilot/shell.css',
   './pilot/print.css',
   './pilot/sample-occupancy.json',
