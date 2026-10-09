@@ -95,3 +95,24 @@ test('buildPack stores savedAt as a string even when given a number', () => {
   const fresh = cal.buildPack({ street: 'הרצל', savedAt: '', spots: [] });
   assert.match(fresh.savedAt, /^\d{4}-\d{2}-\d{2}T/);
 });
+
+test('a null stat in an imported reference is missing, not a real zero', () => {
+  // JSON.stringify writes a NaN median or percentile as null.
+  const spot = cal.normalizeSpot({
+    x: 0.1, y: 0.1, w: 0.2, h: 0.2,
+    emptyRef: { mean: 120, median: null, variance: 4, p10: null, p90: 140 },
+    nightRef: { mean: null, median: 28 },
+  }, 0);
+  assert.equal(spot.emptyRef.median, 120);
+  assert.equal(spot.emptyRef.p10, 120);
+  assert.equal(spot.emptyRef.p90, 120);
+  assert.equal(spot.nightRef, null);
+  assert.equal(cal.normalizeSpot({ x: 0.1, y: 0.1, w: 0.2, h: 0.2, emptyRef: { mean: '', median: 5 } }, 0).emptyRef, null);
+});
+
+test('a spot with a blank or boolean coordinate is dropped instead of pinned to 0', () => {
+  assert.equal(cal.normalizeSpot({ x: null, y: 0.1, w: 0.2, h: 0.2 }, 0), null);
+  assert.equal(cal.normalizeSpot({ x: 0.1, y: '', w: 0.2, h: 0.2 }, 0), null);
+  assert.equal(cal.normalizeSpot({ x: false, y: 0.1, w: 0.2, h: 0.2 }, 0), null);
+  assert.equal(cal.normalizeSpot({ x: '0.1', y: 0, w: 0.2, h: 0.2 }, 0).x, 0.1);
+});
