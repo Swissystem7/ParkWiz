@@ -130,11 +130,11 @@
   }
 
   // Mirrors formatClock: an elapsed time that cannot be formatted (null,
-  // undefined, '') is not under target either. Number(null) is 0, so the old
-  // check reported a missing clock as a 00:00 success.
+  // undefined, '', non-numeric) or a negative one is not under target either.
+  // Number(null) is 0, so the old check reported a missing clock as a 00:00 success.
   function underTarget(elapsedMs) {
     const n = Number(elapsedMs);
-    if (elapsedMs == null || elapsedMs === '' || !Number.isFinite(n)) return false;
+    if (elapsedMs == null || elapsedMs === '' || !Number.isFinite(n) || n < 0) return false;
     return n <= TARGET_SEC * 1000;
   }
 
