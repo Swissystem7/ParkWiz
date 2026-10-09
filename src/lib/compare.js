@@ -103,6 +103,15 @@
     return list.map(pairObservation).filter(Boolean).sort(byTs);
   }
 
+  // A loaded file replaces the saved pairs only when it actually holds pairs.
+  // An empty or unreadable file must not wipe what the browser already has.
+  function replacePairsFromText(current, text) {
+    const loaded = parsePairs(text);
+    const kept = Array.isArray(current) ? current : [];
+    if (!loaded.length) return { pairs: kept, replaced: false, count: 0 };
+    return { pairs: loaded, replaced: true, count: loaded.length };
+  }
+
   function summarizePairs(pairs) {
     const list = Array.isArray(pairs) ? pairs.filter((p) => p && Number.isFinite(p.accuracy)) : [];
     if (!list.length) {
@@ -168,6 +177,7 @@
     pairFromOccupancy,
     parsePairs,
     byTs,
+    replacePairsFromText,
     summarizePairs,
     loadStoredPairs,
     savePairs,
