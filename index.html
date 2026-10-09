@@ -2006,13 +2006,24 @@ function positionUserDot() {
   if (userMarker) userMarker.setLatLng(xyToLatLng(userPos.x, userPos.y));
 }
 
+// Case-, niqqud- and apostrophe-insensitive key: "Gan Ha'ir" and "gan hair" match, so do האר"י / האר״י / הארי.
+function normalizeSearch(text) {
+  return String(text || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]/g, '')
+    .replace(/['"`\u2018\u2019\u201C\u201D\u05F3\u05F4]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function onSearch(val) {
   const ac = document.getElementById('autocomplete');
   const input = document.getElementById('searchInput');
   ac.replaceChildren();
-  const q = val.trim();
+  const q = normalizeSearch(val);
   if (!q) { ac.classList.remove('open'); if (input) input.setAttribute('aria-expanded', 'false'); return; }
-  const matches = TA_STREETS.filter(s=>s.includes(q)).slice(0,5);
+  const matches = TA_STREETS.filter(s=>normalizeSearch(s).includes(q)).slice(0,5);
   if (!matches.length) { ac.classList.remove('open'); if (input) input.setAttribute('aria-expanded', 'false'); return; }
   matches.forEach(s => {
     const item = document.createElement('div');
