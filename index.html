@@ -32,6 +32,9 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 .skip-link:focus{top:8px}
 .eval-banner{background:#0e7490;color:#ecfeff;padding:8px 12px;font-size:0.78rem;font-weight:600;text-align:center;z-index:31;flex-shrink:0;line-height:1.45}
 .eval-banner a{color:#fff;text-decoration:underline}
+/* Buyer view by default: the driver demo (Premium, XP, sign-up, rentals) is opt-in */
+body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
+.eval-banner #pwConsumerToggle{background:none;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:1px 8px;font:inherit;font-size:.72rem;cursor:pointer;margin-inline-end:6px}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
@@ -372,9 +375,34 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 </style>
 </head>
 <body>
+<script>
+/* Buyer view first: the driver demo is opt-in and remembered per browser. */
+(function () {
+  var KEY = 'parkwiz_consumer_demo';
+  var on = false;
+  try { on = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  if (on) document.body.classList.add('consumer-demo-on');
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('pwConsumerToggle');
+    if (!btn) return;
+    function paint() {
+      var isOn = document.body.classList.contains('consumer-demo-on');
+      btn.setAttribute('aria-pressed', String(isOn));
+      btn.textContent = isOn ? 'הסתר את דמו הנהגים' : 'הצג גם את דמו הנהגים (Premium, XP, הרשמה)';
+    }
+    btn.addEventListener('click', function () {
+      var isOn = document.body.classList.toggle('consumer-demo-on');
+      try { localStorage.setItem(KEY, isOn ? '1' : '0'); } catch (e) {}
+      paint();
+    });
+    paint();
+  });
+})();
+</script>
 <a class="skip-link" href="#searchInput">דלג לחיפוש</a>
 <div id="pwSurfaceNav" data-active="map" style="position:relative;z-index:9999"></div>
 <div class="eval-banner" role="note">
+  <button type="button" id="pwConsumerToggle" aria-pressed="false">הצג גם את דמו הנהגים (Premium, XP, הרשמה)</button>
   המפה למטה היא הדגמת ממשק (נתוני <b>הדגמה</b>). הפיילוט המדיד לעירייה:
   <a href="./offer.html">הצעה / הזמן פיילוט</a>
   ·
@@ -428,7 +456,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
           <li>סטטיסטיקות</li>
           <li>תמיכה עסקית</li>
         </ul>
-        <button class="btn btn-primary" style="width:100%;margin-top:10px;font-size:0.78rem;background:var(--purple);color:#fff" onclick="closeParkPricing()">צור קשר</button>
+        <button class="btn btn-primary" style="width:100%;margin-top:10px;font-size:0.78rem;background:var(--purple);color:#fff" onclick="closeParkPricing();pwGoContact()">צור קשר</button>
       </div>
     </div>
     <span style="display:block;text-align:center;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline" onclick="closeParkPricing()">המשך עם Free</span>
@@ -485,15 +513,15 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
     <div class="logo-sub">העוזר החכם לחניה ברחוב</div>
     <div class="logo-sub" style="color:var(--green);opacity:.8">הסתברויות אמיתיות, לא הבטחות</div>
   </div>
-  <span class="free-pill" id="planPill">FREE</span>
+  <span class="free-pill" data-consumer-demo id="planPill">FREE</span>
   <div class="search-wrap">
     <input class="search-box" id="searchInput" placeholder="חפש רחוב בנתניה..." autocomplete="off" oninput="onSearch(this.value)" onblur="setTimeout(closeAC,200)" aria-label="חיפוש רחוב בנתניה" aria-autocomplete="list" aria-controls="autocomplete" aria-expanded="false">
     <div class="autocomplete" id="autocomplete" role="listbox" aria-label="הצעות רחובות"></div>
   </div>
-  <button class="btn btn-ghost" onclick="liveParkingEvent()" aria-label="הוסף אירוע הדגמה למפה">DEMO</button>
+  <button class="btn btn-ghost" data-consumer-demo onclick="liveParkingEvent()" aria-label="הוסף אירוע הדגמה למפה">DEMO</button>
   <button class="heatmap-btn" id="heatmapBtn" onclick="toggleHeatmap()" aria-pressed="false" aria-label="הצג או הסתר שכבת חום">🌡️ חום</button>
-  <button class="premium-btn" onclick="showParkPricing()" aria-label="פתיחת מחירי פרמיום — הדגמה">ParkWiz Premium ⚡</button>
-  <div class="pw-auth-area" id="pwAuthArea">
+  <button class="premium-btn" data-consumer-demo onclick="showParkPricing()" aria-label="פתיחת מחירי פרמיום — הדגמה">ParkWiz Premium ⚡</button>
+  <div class="pw-auth-area" data-consumer-demo id="pwAuthArea">
     <button class="btn btn-ghost" style="color:var(--green);border-color:rgba(34,197,94,.4)" onclick="pwOpenAuth('login')">התחבר</button>
   </div>
 </div>
@@ -586,7 +614,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
     <!-- Arrival mode: curb map around destination -->
     <div class="live-feed" id="arrivalPanel" style="display:none;border-color:rgba(74,222,128,.4)"></div>
     <!-- Demo community feed (canned sample messages — not a live network) -->
-    <div class="live-feed">
+    <div class="live-feed" data-consumer-demo>
       <div class="feed-title"><span class="live-dot" style="background:var(--yellow)"></span>הודעות דמו לדוגמה <span style="font-size:.6rem;color:#eab308;background:rgba(234,179,8,.12);border-radius:6px;padding:1px 5px;font-weight:600">לא קהילה חיה</span></div>
       <div id="feedItem" class="feed-item" aria-live="polite">טוען...</div>
       <div id="feedTime" class="feed-time"></div>
@@ -596,14 +624,14 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
       </div>
     </div>
     <!-- Private parking marketplace (demo inventory only) -->
-    <div class="live-feed" style="border-color:rgba(168,85,247,.35)">
+    <div class="live-feed" data-consumer-demo style="border-color:rgba(168,85,247,.35)">
       <div class="feed-title" style="color:#c084fc">🏠 חניות פרטיות להשכרה <span style="font-size:.6rem;color:#eab308;background:rgba(234,179,8,.12);border-radius:6px;padding:1px 5px;font-weight:600">מלאי דמו</span></div>
       <div id="privList"></div>
       <div style="font-size:.65rem;color:var(--muted)">יש לך חניה פרטית? <button type="button" style="background:none;border:none;color:#c084fc;cursor:pointer;font:inherit;font-weight:700;text-decoration:underline;padding:0" onclick="showToast('🏠 הדגמה: אין פרסום חי — ראו marketplace.html')">השכר אותה (דמו) →</button></div>
       <div style="font-size:.62rem;color:var(--muted);margin-top:3px">🔒 בדמו: רק רשומות מקומיות. חניה ציבורית לא נמכרת — ואין סליקה אמיתית.</div>
     </div>
     <!-- מד צפיפות קהילה: הפתרון לביצה-ותרנגולת — שכונה אחת בכל פעם -->
-    <div class="live-feed" style="border-color:rgba(56,189,248,.35)">
+    <div class="live-feed" data-consumer-demo style="border-color:rgba(56,189,248,.35)">
       <div class="feed-title" style="color:#38bdf8">📡 צפיפות דיווח — מרכז נתניה <span style="font-size:.6rem;color:#eab308;background:rgba(234,179,8,.12);border-radius:6px;padding:1px 5px;font-weight:600">מספרי דמו קבועים</span></div>
       <div style="display:flex;align-items:center;gap:8px;margin:4px 0">
         <div style="flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden" role="img" aria-label="מד דמו: 34 מתוך 50"><div style="width:68%;height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e)"></div></div>
@@ -634,7 +662,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
   </div>
 
   <!-- Gamification panel -->
-  <div class="game-panel" id="gamePanel">
+  <div class="game-panel" data-consumer-demo id="gamePanel">
     <div class="rank-badge">
       <div class="rank-icon">🥈</div>
       <div class="rank-title">מוצא חניה</div>
@@ -689,7 +717,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 </div>
 
 <!-- WhatsApp community banner -->
-<div class="wa-banner" id="waBanner">
+<div class="wa-banner" data-consumer-demo id="waBanner">
   <span>💬</span>
   <span class="wa-banner-text">הצטרף לקהילת החניה של השכונה שלך ב-WhatsApp</span>
   <button class="wa-join-btn" onclick="joinWaCommunity()">הצטרף</button>
@@ -735,14 +763,6 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
         <div class="leaving-slider-val" id="sliderVal">1</div>
         <input type="range" min="1" max="3" value="1" oninput="document.getElementById('sliderVal').textContent=this.value" id="spotsSlider">
         <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px"><span>1</span><span>2</span><span>3+</span></div>
-      </div>
-      <!-- optional plate, normalized+validated by normalizePlate (FACT-PW-1) -->
-      <div style="margin-top:10px">
-        <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">🔢 מספר רכב שיצא (רשות):</div>
-        <input id="leavingPlate" inputmode="numeric" maxlength="12" placeholder="12-345-67"
-          oninput="pwPlateFormat(this)"
-          style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border,#334155);background:transparent;color:inherit;font-size:0.95rem;letter-spacing:1px">
-        <div id="leavingPlateHint" style="font-size:0.66rem;color:var(--muted);margin-top:3px;min-height:14px"></div>
       </div>
       <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="leavingSubmit()">שלח דיווח ✅</button>
       <button class="cancel-btn" onclick="cancelLeaving()">ביטול</button>
@@ -848,7 +868,6 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 
 <!-- Tested logic modules. Same files run under `node --test`; here they attach
      to the global scope so the classic script below can use them unchanged. -->
-<script src="src/lib/plate.js"></script>
 <script src="src/lib/availability.js"></script>
 <script src="src/lib/predict.js"></script>
 <script src="src/lib/probability.js"></script>
@@ -2040,28 +2059,8 @@ function leavingPickType(type, btn) {
   }, 280);
 }
 
-// normalizePlate (FACT-PW-1) — הלוגיקה ב-src/lib/plate.js, מכוסה בטסטים.
-function pwPlateFormat(el){
-  const hint=document.getElementById('leavingPlateHint');
-  if(!el.value.trim()){hint.textContent='';hint.style.color='';return;}
-  const r=normalizePlate(el.value.replace(/[^\d-]/g,''));
-  if(r.valid){el.value=r.formatted;hint.textContent='✓ מספר תקין';hint.style.color='var(--green)';}
-  else{hint.textContent='מספר לא תקין (7 או 8 ספרות)';hint.style.color='#f87171';}
-}
-
 function leavingSubmit() {
   const count = parseInt(document.getElementById('spotsSlider').value);
-  const plateEl = document.getElementById('leavingPlate');
-  const plateRaw = plateEl ? plateEl.value.trim() : '';
-  if (plateRaw) {
-    const pr = normalizePlate(plateRaw);
-    if (!pr.valid) {
-      const h = document.getElementById('leavingPlateHint');
-      h.textContent = 'מספר לא תקין — תקן או השאר ריק'; h.style.color = '#f87171';
-      return;
-    }
-    window.__lastLeavingPlate = pr.formatted; // recorded with the report
-  }
   if (leavingDelayMin > 0) { addFutureReport(count); return; }
   document.getElementById('leavingStep2').style.display = 'none';
   document.getElementById('leavingStep3').style.display = 'block';
@@ -2103,12 +2102,13 @@ function doReportLeaving(count, xpGain) {
   const nowMs = Date.now();
   pushCommunityLeaving(idx, reportCount, nowMs);
   bumpStreetAvail(idx, reportCount * 6);
-  creditXp(xpGain);
+  const driverDemo = document.body.classList.contains('consumer-demo-on');
+  if (driverDemo) creditXp(xpGain);
   HISTORY.unshift({addr:'רח\' '+STREETS_DEF[idx].name, time:'עכשיו', saved:'? דקות', pts:xpGain});
   renderHistory();
   prependFeed(`👤 משתמש דיווח: ${count} מקום${count>1?'ות':''} פנ${count>1?'ו':'ה'} ב${STREETS_DEF[idx].name}`, STREETS_DEF[idx].name);
   renderAll();
-  showToast('✅ תודה! +' + xpGain + ' נקודות אמינות 🏆');
+  showToast(driverDemo ? '✅ תודה! +' + xpGain + ' נקודות אמינות 🏆' : '✅ הדיווח נרשם בדפדפן הזה בלבד (דמו)');
 }
 
 // ─── Live Feed ───────────────────────────────────────────────────
@@ -2315,7 +2315,7 @@ function answerFound(ans) {
     localStorage.setItem('parkwiz_found_feedback', JSON.stringify(arr));
   } catch(e) {}
   renderAll();
-  showToast(ans === 'no' ? '😞 תודה — עדכנו את ההסתברות של ' + s.name : '💚 תודה! הדיווח שלך משפר את הדיוק');
+  showToast(ans === 'no' ? '😞 תודה — עדכנו את ההסתברות של ' + s.name : '💚 תודה! הדיווח עודכן בדפדפן הזה בלבד');
   foundStreetIdx = null;
 }
 
@@ -2469,7 +2469,7 @@ function startNavigation() {
   if (!route.active) { showToast('בחר יעד קודם 🗺️'); return; }
   document.getElementById('streetCardOverlay').classList.remove('show');
   navState = { active:true, start:Date.now(), promptShown:false, timer:null };
-  showToast('🧭 ניווט התחיל — נסיעה בטוחה!');
+  showToast('🧭 הדמיית ניווט (8 שניות) — לא ניווט אמיתי');
   navState.timer = setInterval(navStep, 50);
 }
 
@@ -2509,7 +2509,7 @@ function finishNavigation() {
     if (d < nd) { nd = d; nearest = p; }
   });
   if (nearest) { nearest.taken = true; userPos = { x:nearest.x, y:nearest.y }; positionUserDot(); }
-  showToast('✅ הגעת! החניה סומנה כתפוסה');
+  showToast('✅ סוף הדמיית הניווט — החניה סומנה כתפוסה בדפדפן הזה בלבד');
   userScore += 20; updateXP(20);
   renderRoutePanel();
   renderAll();
@@ -2572,6 +2572,7 @@ init();
 .pw-modal{background:var(--bg2);border:1px solid rgba(34,197,94,.3);border-radius:20px;padding:24px;width:min(400px,92vw);max-height:88vh;overflow-y:auto}
 .pw-modal h2{font-size:1.05rem;font-weight:900;text-align:center;margin-bottom:6px}
 .pw-modal .sub{text-align:center;color:var(--muted);font-size:0.8rem;margin-bottom:16px}
+.pw-modal a{color:#7dd3fc;text-decoration:underline}
 .pw-tabs{display:flex;gap:6px;margin-bottom:16px}
 .pw-tab{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer}
 .pw-tab.active{border-color:var(--green);background:rgba(34,197,94,.12);color:var(--green)}
@@ -2687,7 +2688,8 @@ init();
     <div class="sub">איך היית מדרג את ParkWiz?</div>
     <div class="pw-fb-stars" id="pwFbStars"></div>
     <textarea class="pw-fb-text" id="pwFbText" placeholder="ספר לנו מה אהבת ומה כדאי לשפר..."></textarea>
-    <button class="pw-submit" style="margin-top:10px" onclick="pwSubmitFeedback()">שלח משוב</button>
+    <div class="sub" style="margin-top:6px">הכפתור למטה שומר רק בדפדפן הזה. כדי שהמשוב יגיע אלינו: <a id="pwFbForm" href="https://docs.google.com/forms/d/e/1FAIpQLSdT8YduNx-VWKM3bWGUJdiSj4Sw9D-EA6R6c-oYVYCQmOVXxQ/viewform?usp=pp_url&amp;entry.368039752=ParkWiz" target="_blank" rel="noopener">שלחו משוב בטופס</a> (טופס Google, נפתח בחלון חדש; כתבו בלי פרטים אישיים). לפיילוט או שאלה: <a href="#pwContact" onclick="document.getElementById('pwFbOverlay').classList.remove('show')">טופס הפנייה</a>.</div>
+    <button class="pw-submit" style="margin-top:10px" onclick="pwSubmitFeedback()">שמור משוב בדפדפן</button>
     <span class="pw-close" onclick="document.getElementById('pwFbOverlay').classList.remove('show')">ביטול</span>
   </div>
 </div>
@@ -2766,7 +2768,8 @@ pwRenderAuthArea();
 /* ── Gate primary action: "אני עוזב" report ── */
 const _pwOrigStartLeaving = startLeaving;
 startLeaving = function() {
-  if (!pwGetUser()) { pwOpenAuth('signup', true); return; }
+  // Buyer view: no sign-up wall. The demo account belongs to the driver demo only.
+  if (document.body.classList.contains('consumer-demo-on') && !pwGetUser()) { pwOpenAuth('signup', true); return; }
   _pwOrigStartLeaving();
 };
 const _pwOrigDoReport = doReportLeaving;
@@ -2794,6 +2797,7 @@ const PW_LEGAL = {
 <p><strong>1. הרשמה מקומית.</strong> אפשר לצפות במפה בלי להירשם; ההרשמה נדרשת רק לדיווח «אני עוזב». השם והאימייל שתזין/י נשמרים רק ב־localStorage בדפדפן הזה, ועותק של האימייל נשמר גם ביומן האנליטיקה המקומי. הסיסמה אינה נשמרת כלל. שום פרט מאלה לא נשלח לשרת, ואין חשבון ענן. התנתקות מוחקת את פרטי החשבון אך לא את העותק ביומן; מחיקת נתוני האתר מוחקת את שניהם.</p>
 <p><strong>2. מיקום.</strong> אם תאשר/י גישה למיקום בדפדפן, הוא משמש להצגת «אתה כאן» במפה בלבד. אין מעקב מסלול ואין שיתוף עם מפרסמים.</p>
 <p><strong>3. מה נשמר מקומית.</strong> העדפות, דיווחים, משוב ומצב Premium-דמו נשמרים ב־localStorage בדפדפן שלך. מחיקת נתוני האתר מוחקת אותם.</p>
+<p><strong>3א. טופס משוב.</strong> רק אם תלחצו «שלחו משוב בטופס», הטקסט שתכתבו שם נשלח לטופס Google של המפתח (שירות חיצוני, בכפוף למדיניות של Google). אל תכתבו שם פרטים אישיים.</p>
 <p><strong>4. אנליטיקה.</strong> אירועי track (אם קיימים) הם מקומיים להדגמה — אין שרת אנליטיקה בריפו.</p>
 <p><strong>5. פיילוט מצלמה.</strong> מדידת תפוסה אנונימית ממצלמה עירונית אינה רצה בריפו זה; ראו <a href="./pilot-privacy.html">בקשת גישה / פרטיות</a>.</p>
 <p><strong>6. עדכונים.</strong> נוסח זה מתאר את הדמו כפי שהוא בריפו. שינוי מהותי יופיע כאן.</p>` }
@@ -2828,9 +2832,15 @@ function pwFinishOb() {
   localStorage.setItem('parkwiz_onboarded', '1');
   document.getElementById('pwObOverlay').classList.remove('show');
 }
-if (!localStorage.getItem('parkwiz_onboarded')) {
+if (document.body.classList.contains('consumer-demo-on') && !localStorage.getItem('parkwiz_onboarded')) {
   pwRenderOb();
   document.getElementById('pwObOverlay').classList.add('show');
+}
+
+/* ── Contact: scroll to the one real channel (src/lib/contact.js) ── */
+function pwGoContact() {
+  const el = document.getElementById('pwContact');
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); const a = el.querySelector('a'); if (a) a.focus(); }
 }
 
 /* ── Feedback widget ── */
@@ -2854,7 +2864,8 @@ function pwSubmitFeedback() {
   } catch(e) {}
   track('feedback', { rating: pwFbRating });
   document.getElementById('pwFbOverlay').classList.remove('show');
-  showToast('תודה על המשוב! 💚');
+  showToast('💾 נשמר רק בדפדפן הזה — לא נשלח אלינו. לשליחה: טופס הפנייה בראש הדף');
+  pwGoContact();
 }
 
 track('app_open');
