@@ -15,8 +15,13 @@
     { id: 'check', label: 'בדיקה ושמירה', seconds: 30 },
   ]);
 
+  // Number(null), Number('') and Number(false) are all 0, and JSON.stringify
+  // writes a NaN stat as null, so a missing value in an imported pack would
+  // pass as a real zero. Only numbers and non-blank numeric strings count.
   function num(v) {
-    const n = Number(v);
+    let n = NaN;
+    if (typeof v === 'number') n = v;
+    else if (typeof v === 'string' && v.trim() !== '') n = Number(v);
     return Number.isFinite(n) ? n : null;
   }
 
@@ -35,16 +40,16 @@
     // half-missing pair collapses to the median (zero range) instead of
     // inflating the range by the one value that happened to be present.
     const ref = (r) => {
-      if (!r || !Number.isFinite(Number(r.mean))) return null;
-      const mean = Number(r.mean);
-      const median = Number.isFinite(Number(r.median)) ? Number(r.median) : mean;
+      const mean = r ? num(r.mean) : null;
+      if (mean == null) return null;
+      const median = num(r.median) != null ? num(r.median) : mean;
       const spread = (v) => {
-        const n = Number(v);
-        return Number.isFinite(n) && n > 0 ? n : 0;
+        const n = num(v);
+        return n != null && n > 0 ? n : 0;
       };
-      const p10 = Number(r.p10);
-      const p90 = Number(r.p90);
-      const hasPercentiles = Number.isFinite(p10) && Number.isFinite(p90);
+      const p10 = num(r.p10);
+      const p90 = num(r.p90);
+      const hasPercentiles = p10 != null && p90 != null;
       return {
         mean,
         variance: spread(r.variance),
