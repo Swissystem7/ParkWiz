@@ -1998,14 +1998,26 @@ function addFutureReport(count) {
   renderAll();
 }
 
+// A scheduled "leaving in N min" report only draws a pin until readyAt; once the
+// spot actually opens it must feed the same community/model reports as an
+// immediate report, or the street keeps showing "עמוס" next to "מתפנה עכשיו!".
 function pruneFutureReports() {
   const now = Date.now();
   const before = futureReports.length;
+  let promoted = false;
+  futureReports.forEach(r => {
+    if (r.promoted || now < r.readyAt) return;
+    r.promoted = true;
+    promoted = true;
+    const count = Math.max(1, Math.min(3, Number(r.count) || 1));
+    pushCommunityLeaving(r.streetIdx, count, r.readyAt);
+    bumpStreetAvail(r.streetIdx, count * 6);
+  });
   futureReports = futureReports.filter(r => {
     if (now >= r.expireAt) return false;               // auto-expire: time + 3 min
     return true;
   });
-  if (futureReports.length !== before) renderAll();
+  if (promoted || futureReports.length !== before) renderAll();
 }
 setInterval(pruneFutureReports, 5000);
 
