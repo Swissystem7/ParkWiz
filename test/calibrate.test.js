@@ -49,6 +49,21 @@ test('calibration wizard is Hebrew RTL with a timer and honesty banner', () => {
   assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
 });
 
+test('underTarget never reports an untimed or invalid elapsed as under target', () => {
+  assert.equal(cal.underTarget(null), false);
+  assert.equal(cal.underTarget(undefined), false);
+  assert.equal(cal.underTarget(''), false);
+  assert.equal(cal.underTarget('abc'), false);
+  assert.equal(cal.underTarget(-1), false);
+  assert.equal(cal.underTarget(0), true);
+  assert.equal(cal.underTarget(180000), true);
+});
+
+test('calibration wizard does not claim a save time when the clock never started', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'pilot-calibrate.html'), 'utf8');
+  assert.match(html, /if \(!state\.startedAt\) \{\s*note\.textContent = "כיול נשמר \(השעון לא הופעל/);
+});
+
 test('formatClock returns null for non-numeric input', () => {
   assert.strictEqual(cal.formatClock('invalid'), null);
 });
