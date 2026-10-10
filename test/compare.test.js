@@ -21,6 +21,16 @@ test('pairObservation uses inspectorAccuracy and clamps to total', () => {
   assert.equal(over.accuracy, 0);
 });
 
+test('count returns NaN for invalid or non-finite numeric input', () => {
+  assert.ok(Number.isNaN(cmp.count('123abc')));
+  assert.ok(Number.isNaN(cmp.count('   ')));
+  assert.ok(Number.isNaN(cmp.count('')));
+  assert.ok(Number.isNaN(cmp.count('Infinity')));
+  assert.ok(Number.isNaN(cmp.count(Number.POSITIVE_INFINITY)));
+  assert.equal(cmp.count('  7  '), 7);
+  assert.equal(cmp.count(7), 7);
+});
+
 test('bad pairs are rejected', () => {
   assert.equal(cmp.pairObservation(null), null);
   assert.equal(cmp.pairObservation({ total: 0, systemOccupied: 1, manualOccupied: 1 }), null);
@@ -31,7 +41,7 @@ test('bad pairs are rejected', () => {
 test('an empty or pair-less file keeps the saved pairs', () => {
   const saved = samplePairs.map(cmp.pairObservation);
   assert.equal(saved.length, 14);
-  assert.deepEqual(cmp.parsePairs(''), []);
+  assert.throws(() => cmp.parsePairs(''), TypeError);
   for (const text of ['', '   \n', '[]', '{"foo":1}', 'not json']) {
     const res = cmp.replacePairsFromText(saved, text);
     assert.equal(res.replaced, false, JSON.stringify(text));
