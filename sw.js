@@ -45,6 +45,7 @@ const ASSETS = [
   './src/lib/protocol.js',
   './src/lib/export.js',
   './src/lib/offer.js',
+  './src/lib/contact.js',
   './src/lib/surface-nav.js',
   './src/lib/pwa.js',
   './src/lib/probability.js',
