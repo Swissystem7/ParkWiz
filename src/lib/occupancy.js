@@ -19,7 +19,11 @@
     calibration: 'pw_pilot_calibration',
   });
 
+  // Only numbers and non-blank numeric strings count. Number('') and
+  // Number(true) are 0 and 1, so an empty spreadsheet cell used to read as
+  // zero cars and shadow the occupancyRate fallback for that record.
   function num(v) {
+    if (typeof v !== 'number' && (typeof v !== 'string' || !v.trim())) return null;
     const n = Number(v);
     return Number.isFinite(n) ? n : null;
   }
