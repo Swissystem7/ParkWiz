@@ -1896,8 +1896,9 @@ function onSearch(val) {
   const ac = document.getElementById('autocomplete');
   const input = document.getElementById('searchInput');
   ac.replaceChildren();
-  if (!val.trim()) { ac.classList.remove('open'); if (input) input.setAttribute('aria-expanded', 'false'); return; }
-  const matches = TA_STREETS.filter(s=>s.includes(val)).slice(0,5);
+  const q = val.trim();
+  if (!q) { ac.classList.remove('open'); if (input) input.setAttribute('aria-expanded', 'false'); return; }
+  const matches = TA_STREETS.filter(s=>s.includes(q)).slice(0,5);
   if (!matches.length) { ac.classList.remove('open'); if (input) input.setAttribute('aria-expanded', 'false'); return; }
   matches.forEach(s => {
     const item = document.createElement('div');
