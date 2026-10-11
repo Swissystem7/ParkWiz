@@ -112,9 +112,9 @@ td input{max-width:88px;padding:5px 6px}
 
   <section class="panel">
     <h2>הערכות ממתינות לספירה</h2>
-    <p class="hint">רשומות occupancy בלי ספירת פקח עדיין. מלאו את העמודה «פקח» ושמרו.</p>
+    <p class="hint">רשומות occupancy בלי ספירת פקח עדיין. מלאו את העמודה «פקח» ושמרו. «פריים #» הוא מספר התמונה בסדר העיבוד (1..N) ולא משתנה כששומרים שורה — הקלידו את הספירה מאותה שורה בדף הספירה.</p>
     <table>
-      <thead><tr><th>זמן</th><th>רחוב</th><th>מערכת</th><th>סך הכול</th><th>פקח</th><th></th></tr></thead>
+      <thead><tr><th>פריים #</th><th>זמן</th><th>רחוב</th><th>מערכת</th><th>סך הכול</th><th>פקח</th><th></th></tr></thead>
       <tbody id="pendingBody"></tbody>
     </table>
     <p class="hint" id="pendingEmpty">אין הערכות ממתינות.</p>
@@ -208,7 +208,7 @@ function render() {
   pb.replaceChildren();
   pending.forEach((rec, idx) => {
     const tr = document.createElement("tr");
-    [fmt(rec.ts), rec.street, rec.occupied, rec.total].forEach((v) => {
+    [rec.frame != null ? rec.frame : "—", fmt(rec.ts), rec.street, rec.occupied, rec.total].forEach((v) => {
       const td = document.createElement("td");
       td.textContent = String(v);
       tr.appendChild(td);
@@ -218,7 +218,7 @@ function render() {
     inp.type = "number";
     inp.min = "0";
     inp.step = "1";
-    inp.setAttribute("aria-label", "ספירת פקח לרשומה " + (idx + 1));
+    inp.setAttribute("aria-label", "ספירת פקח לפריים " + (rec.frame != null ? rec.frame : idx + 1));
     tdIn.appendChild(inp);
     const tdBtn = document.createElement("td");
     const btn = document.createElement("button");
@@ -262,8 +262,14 @@ function streetName() {
   return document.getElementById("fStreet").value.trim() || "רחוב לא צוין";
 }
 
+// Fixed 1..N frame numbers from the series order, so a saved row does not
+// shift the numbering of the rows still waiting (PILOT-KIT step 14).
+function numberFrames(list) {
+  return (list || []).map((r, i) => Object.assign({}, r, { frame: i + 1 }));
+}
+
 function loadPendingFromOccupancy(list) {
-  pending = (list || []).slice();
+  pending = numberFrames(list);
   const st = pending[0] && pending[0].street;
   if (st) document.getElementById("fStreet").value = st;
   render();
@@ -384,7 +390,7 @@ document.getElementById("btnClear").addEventListener("click", () => {
 (function init() {
   pairs = CMP.loadStoredPairs();
   const recs = OCC.loadStoredOccupancy();
-  if (recs.length && !pairs.length) pending = recs;
+  if (recs.length && !pairs.length) pending = numberFrames(recs);
   if (pairs[0] && pairs[0].street) document.getElementById("fStreet").value = pairs[0].street;
   render();
 })();
