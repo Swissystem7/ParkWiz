@@ -56,6 +56,23 @@
     });
   }
 
+  // Pairs are ordered by the instant they were taken, not by the text of the
+  // timestamp. A field phone stamps local time (+03:00) while an export from
+  // toISOString() is in UTC (Z), so as strings 07:30+03:00 (04:30Z) sorted
+  // after 05:00Z. Timestamps that do not parse (blank, 'day-3') keep their old
+  // place: before every dated pair, in string order among themselves.
+  function byTs(a, b) {
+    const sa = String(a.ts);
+    const sb = String(b.ts);
+    const ta = Date.parse(sa);
+    const tb = Date.parse(sb);
+    const da = Number.isFinite(ta);
+    const db = Number.isFinite(tb);
+    if (da && db && ta !== tb) return ta - tb;
+    if (da !== db) return da ? 1 : -1;
+    return sa.localeCompare(sb);
+  }
+
   function normalizePack(input) {
     if (typeof input !== 'string') {
       throw new TypeError('Input must be a string');
@@ -83,8 +100,7 @@
         try { list.push(JSON.parse(s)); } catch (e) { /* skip */ }
       }
     }
-    return list.map(pairObservation).filter(Boolean)
-      .sort((a, b) => String(a.ts).localeCompare(String(b.ts)));
+    return list.map(pairObservation).filter(Boolean).sort(byTs);
   }
 
   // A loaded file replaces the saved pairs only when it actually holds pairs.
@@ -160,6 +176,7 @@
     pairObservation,
     pairFromOccupancy,
     parsePairs,
+    byTs,
     replacePairsFromText,
     summarizePairs,
     loadStoredPairs,

@@ -231,7 +231,7 @@ function render() {
       if (!pair) { setStatus("addStatus", "הזינו מספר שלם של מקומות תפוסים."); return; }
       pairs = pairs.filter((p) => p.ts !== pair.ts || p.street !== pair.street);
       pairs.push(pair);
-      pairs.sort((a, b) => String(a.ts).localeCompare(String(b.ts)));
+      pairs.sort(CMP.byTs);
       pending = pending.filter((r) => !(r.ts === rec.ts && r.street === rec.street));
       persist();
       render();
