@@ -99,9 +99,9 @@ a{color:var(--brand)}
         <ul class="plain">
           <li>רק אם הפיילוט עומד בכלל העצירה</li>
           <li>אם רוצים פטור ממכרז: מתחת לרף תקנה 3(3)</li>
-          <li>רף צד ג׳ ל־16.7–15.8.2026: <b>169,800 ₪</b> — לא קובץ רשמי 2026</li>
+          <li>רף צד ג׳ ל־16.9.2026–15.10.2026: <b>171,500 ₪</b> — לא קובץ רשמי 2026; מתעדכן ב־16 בכל חודש</li>
         </ul>
-        <p class="hint">Camlytics מפרסמת 10 $ לערוץ לחודש. פומבה לנהג: 29.90 ₪/חודש. אף אחד מאלה אינו חוזה נתניה.</p>
+        <p class="hint">Camlytics מפרסמת 10 $ לערוץ לחודש. <a href="https://parkinto.com/pricing/">Parkinto</a> (תפוסה ממצלמה קיימת, עם עירייה נורבגית כלקוחה): 69 $ למצלמה לחודש + 99 $ לאתר לחודש לסטטיסטיקה (נקרא 28.9.2026). פומבה לנהג: 29.90 ₪/חודש. אף אחד מאלה אינו חוזה נתניה.</p>
       </article>
     </div>
     <p class="hint">לא מוצע: מנוי נהגים, Premium (הדגמה בלבד במפה), מרקטפלייס, או «הכנסות מקנסות».</p>
@@ -215,7 +215,7 @@ a{color:var(--brand)}
         <input id="qContact" placeholder="שם, אם ידוע">
       </div>
     </div>
-    <p class="hint" id="qCapHint">רף פטור צד ג׳ (16.7–15.8.2026): 169,800 ₪ לעירייה. קובץ רשמי 2026 של משרד הפנים: לא נמצא מקור.</p>
+    <p class="hint" id="qCapHint">רף פטור צד ג׳ (16.9.2026–15.10.2026): 171,500 ₪ לעירייה. קובץ רשמי 2026 של משרד הפנים: לא נמצא מקור.</p>
     <div class="actions">
       <button type="button" class="primary" id="btnQuote">בנה הצעה</button>
       <button type="button" id="btnQuoteTxt">הורד TXT</button>
@@ -240,7 +240,7 @@ a{color:var(--brand)}
         <tr><th>מה מקבלים</th><td>אחוז הסכמה מול ספירת פקח, עקומת תפוסה, CSV — או פסק דין PARK כנה</td></tr>
         <tr><th>מה לא</th><td>אכיפה, LPR, מנוי נהגים, SLA, ערבות, סליקה</td></tr>
         <tr><th>למה בלי מכרז עכשיו</th><td>אין חוזה כספי. אחרי פיילוט, אם בכלל — הצעת מחיר מתחת לתקנה 3(3)</td></tr>
-        <tr><th>רף הפטור</th><td>26,000 ₪ בנוסח התקנה, צמוד למדד. חישוב צד ג׳ 16.7–15.8.2026: 169,800 ₪. קובץ רשמי 2026: לא נמצא מקור</td></tr>
+        <tr><th>רף הפטור</th><td>26,000 ₪ בנוסח התקנה, צמוד למדד. חישוב צד ג׳ 16.9.2026–15.10.2026: 171,500 ₪ (מתעדכן ב־16 בכל חודש). קובץ רשמי 2026: לא נמצא מקור</td></tr>
         <tr><th>מחיר שוק לתפוסה</th><td>לא נמצא מקור ישראלי. Camlytics: 10 $/ערוץ/חודש (לא חוזה עירייה)</td></tr>
         <tr><th>מצב המדידה</th><td>דיוק מול פקח טרם נמדד בשטח</td></tr>
         <tr><th>סטטוס הפנייה</th><td>טיוטה. לא נשלחה</td></tr>
@@ -295,6 +295,13 @@ a{color:var(--brand)}
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
+  (function markStaleCap() {
+    const st = O.exemptionStatus(new Date().toISOString());
+    if (!st.expired) return;
+    const warn = ' אזהרה: הרף הזה פג תוקף ב־' + O.EXEMPTION.thirdPartyWindow.split('–')[1] + '. לא לצטט אותו — לבדוק רף מעודכן מול הגזבר.';
+    $('qCapHint').textContent += warn;
+    $('qCapHint').classList.add('err');
+  })();
   $('channel').addEventListener('change', syncChannel);
   syncChannel();
 

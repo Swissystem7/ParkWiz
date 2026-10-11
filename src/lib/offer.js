@@ -31,11 +31,14 @@
     regulationUrl: 'https://he.wikisource.org/wiki/%D7%AA%D7%A7%D7%A0%D7%95%D7%AA_%D7%94%D7%A2%D7%99%D7%A8%D7%99%D7%95%D7%AA_(%D7%9E%D7%9B%D7%A8%D7%96%D7%99%D7%9D)',
     baseIls: 26000,
     officialIndexed2021: 145500,
-    thirdPartyIls: 169800,
-    thirdPartyWindow: '16.7.2026–15.8.2026',
+    thirdPartyIls: 171500,
+    thirdPartyWindow: '16.9.2026–15.10.2026',
+    windowStart: '2026-09-16',
+    windowEnd: '2026-10-15',
+    checkedOn: '2026-09-27',
     thirdPartySource: 'https://www.c-on.com/copy-of-%D7%9E%D7%9B%D7%A8%D7%96%D7%99%D7%9D',
     official2026File: null,
-    note: '169,800 ₪ הוא חישוב צד ג׳ לחלון יולי–אוגוסט 2026, לא קובץ רשמי של משרד הפנים. פטור עדיין דורש גזבר.',
+    note: '171,500 ₪ הוא חישוב צד ג׳ (c-on) לחלון 16.9–15.10.2026 לפי מדד שפורסם 15.9.2026, לא קובץ רשמי של משרד הפנים. הרף מתעדכן ב־16 בכל חודש. פטור עדיין דורש גזבר.',
   });
 
   const VENDOR_PRICES = Object.freeze([
@@ -146,6 +149,19 @@
     const n = Number(amountIls);
     if (!Number.isFinite(n)) return false;
     return n >= EXEMPTION.thirdPartyIls;
+  }
+
+  // The cap is CPI-linked and changes on the 16th of every month. Outside its window it is a stale number.
+  function exemptionStatus(atIso) {
+    const day = String(atIso || new Date().toISOString()).slice(0, 10);
+    const current = day >= EXEMPTION.windowStart && day <= EXEMPTION.windowEnd;
+    return {
+      day,
+      current,
+      expired: day > EXEMPTION.windowEnd,
+      windowStart: EXEMPTION.windowStart,
+      windowEnd: EXEMPTION.windowEnd,
+    };
   }
 
   function validateBook(input) {
@@ -367,6 +383,9 @@
         regulation: EXEMPTION.regulation,
         thirdPartyCapIls: EXEMPTION.thirdPartyIls,
         thirdPartyWindow: EXEMPTION.thirdPartyWindow,
+        windowStart: EXEMPTION.windowStart,
+        windowEnd: EXEMPTION.windowEnd,
+        capExpired: exemptionStatus(generatedAt).expired,
         aboveCap: v.amountIls != null && aboveExemption(v.amountIls),
         note: EXEMPTION.note,
       },
@@ -381,9 +400,11 @@
   function quoteToText(quote) {
     const q = quote || {};
     const amount = q.amountIls == null ? 'לא מולא' : formatIls(q.amountIls);
-    const cap = q.exemption && q.exemption.aboveCap
-      ? 'אזהרה: הסכום אינו מתחת לרף הפטור המחושב לצד ג׳. זה כנראה דורש מכרז.'
-      : 'אם רוצים פטור לפי תקנה 3(3) — לאמת את רף המדד מול הגזבר ביום החתימה.';
+    const cap = q.exemption && q.exemption.capExpired
+      ? 'אזהרה: רף הפטור שבדף (' + formatIls(q.exemption.thirdPartyCapIls) + ', ' + (q.exemption.thirdPartyWindow || '') + ') פג תוקף לפני תאריך ההצעה. לא לצטט אותו — לבדוק את הרף המעודכן מול הגזבר.'
+      : q.exemption && q.exemption.aboveCap
+        ? 'אזהרה: הסכום אינו מתחת לרף הפטור המחושב לצד ג׳. זה כנראה דורש מכרז.'
+        : 'אם רוצים פטור לפי תקנה 3(3) — לאמת את רף המדד מול הגזבר ביום החתימה.';
     return [
       'ParkWiz — הצעת מחיר / הצעת פיילוט',
       q.status || 'טיוטה',
@@ -447,6 +468,7 @@
       ['amountIls', q.amountIls],
       ['amountLabel', q.amountLabel],
       ['aboveExemptionCap', q.exemption && q.exemption.aboveCap],
+      ['exemptionCapExpired', q.exemption && q.exemption.capExpired],
       ['realOffer', q.realOffer],
       ['sent', q.sent],
       ['payment', q.payment],
@@ -471,6 +493,7 @@
     isValidEmail,
     packageById,
     aboveExemption,
+    exemptionStatus,
     validateBook,
     buildPilotSubject,
     buildPilotBody,
