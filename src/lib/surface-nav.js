@@ -13,8 +13,6 @@
     { id: 'report', href: './pilot-report.html', label: 'דוח פיילוט' },
     { id: 'summary', href: './pilot-summary.html', label: 'סיכום לקריאה בלבד' },
     { id: 'privacy', href: './pilot-privacy.html', label: 'בקשת גישה / פרטיות' },
-    { id: 'dash', href: './pilot-dashboard.html', label: 'דשבורד פיילוט עירוני' },
-    { id: 'market', href: './marketplace.html', label: 'שוק חניות פרטיות' },
   ];
 
   function ensureNavCss() {
