@@ -104,9 +104,9 @@ test('normalizePack returns trimmed text for valid string input', () => {
   assert.equal(cmp.normalizePack('  [{"x":1}]  '), '[{"x":1}]');
 });
 
-test('parsePairs throws TypeError for empty or whitespace-only input', () => {
+test('parsePairs returns no pairs for empty or whitespace-only input', () => {
   for (const bad of ['', '   ']) {
-    assert.throws(() => cmp.parsePairs(bad), TypeError);
+    assert.deepEqual(cmp.parsePairs(bad), []);
   }
 });
 

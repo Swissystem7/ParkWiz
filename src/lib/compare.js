@@ -85,7 +85,10 @@
   }
 
   function parsePairs(text) {
-    const raw = normalizePack(text);
+    if (typeof text !== 'string') {
+      throw new TypeError('Input must be a string');
+    }
+    const raw = text.trim();
     if (!raw) return [];
     let list = [];
     if (raw[0] === '[') {
