@@ -48,6 +48,8 @@ test('demo/atidim.html includes all required operator components', () => {
   // 7. Offline PWA icon and service worker registration
   assert.match(html, /<link rel="icon" href="\.\.\/icon\.svg">/);
   assert.match(html, /navigator\.serviceWorker\.register\('\.\.\/sw\.js'/);
+  // 8. Interactive stall click handler
+  assert.match(html, /canvas\.addEventListener\('click'/);
 });
 
 test('index.html and offer.html provide direct entry points to demo/atidim.html', () => {

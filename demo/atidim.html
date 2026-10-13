@@ -32,7 +32,7 @@ h1{font-size:1.25rem;margin:0;font-weight:700}
 .card-hdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
 .card-hdr h2{font-size:1.05rem;margin:0;font-weight:700}
 .stream-box{position:relative;width:100%;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
-canvas{display:block;width:100%;height:auto;max-height:480px;aspect-ratio:16/9;background:#05070c}
+canvas{display:block;width:100%;height:auto;max-height:480px;aspect-ratio:16/9;background:#05070c;cursor:pointer}
 .hud{position:absolute;top:10px;right:12px;left:12px;display:flex;justify-content:space-between;pointer-events:none;font-family:monospace;font-size:11.5px;color:#a7f3d0;text-shadow:0 1px 3px #000}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
 button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer}
@@ -79,7 +79,7 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
 
   <section class="card" aria-label="שידור מצלמה ושכבת זיהוי תאים">
     <div class="card-hdr">
-      <div><h2>שידור מצלמת שטח ושכבת זיהוי תפוסה (Overlay)</h2><div class="sub" id="camDesc">מצלמה 01 · כניסה מזרחית (שער ראשי, אזור A)</div></div>
+      <div><h2>שידור מצלמת שטח ושכבת זיהוי תפוסה (Overlay)</h2><div class="sub" id="camDesc">מצלמה 01 · כניסה מזרחית (שער ראשי, אזור A) · לחצו על תא לשינוי תפוסה ידני</div></div>
       <div style="font-size:12px;color:var(--muted)" id="frameClock">2026-10-13 16:48:22</div>
     </div>
     <div class="stream-box">
@@ -231,6 +231,20 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
       document.getElementById('hudCam').textContent = camId.toUpperCase() + ' RTSP H.264 1080p30';
       spots = model.createDefaultCameraSpots(); updateMetrics(); drawScene();
     });
+  canvas.addEventListener('click', function(e){
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX / canvas.width;
+    const clickY = (e.clientY - rect.top) * scaleY / canvas.height;
+    const clickedSpot = spots.find(function(s){
+      return clickX >= s.x && clickX <= (s.x + s.w) && clickY >= s.y && clickY <= (s.y + s.h);
+    });
+    if (clickedSpot) {
+      clickedSpot.occupied = !clickedSpot.occupied;
+      updateMetrics();
+      drawScene();
+    }
   });
   setInterval(function(){ const now = new Date(); document.getElementById('frameClock').textContent = now.toISOString().replace('T', ' ').substring(0, 19); }, 1000);
   updateMetrics(); drawScene(); renderChart();
