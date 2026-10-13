@@ -49,3 +49,13 @@ test('demo/atidim.html includes all required operator components', () => {
   assert.match(html, /<link rel="icon" href="\.\.\/icon\.svg">/);
   assert.match(html, /navigator\.serviceWorker\.register\('\.\.\/sw\.js'/);
 });
+
+test('index.html and offer.html provide direct entry points to demo/atidim.html', () => {
+  const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(indexHtml, /href="\.\/demo\/atidim\.html"/);
+  assert.match(indexHtml, /פארק עתידים/);
+
+  const offerHtml = fs.readFileSync(path.join(root, 'offer.html'), 'utf8');
+  assert.match(offerHtml, /href="\.\/demo\/atidim\.html"/);
+  assert.match(offerHtml, /דמו מפעיל חניון/);
+});
