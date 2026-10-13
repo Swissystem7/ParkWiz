@@ -13,6 +13,9 @@
     { id: 'report', href: './pilot-report.html', label: 'דוח פיילוט' },
     { id: 'summary', href: './pilot-summary.html', label: 'סיכום לקריאה בלבד' },
     { id: 'privacy', href: './pilot-privacy.html', label: 'בקשת גישה / פרטיות' },
+    // Lives in demo/ so its own nav is hand-written with ../ links; this entry
+    // is how the root surfaces reach it.
+    { id: 'atidim', href: './demo/atidim.html', label: 'הדגמת מפעיל חניון' },
   ];
 
   function ensureNavCss() {

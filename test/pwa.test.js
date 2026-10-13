@@ -43,7 +43,10 @@ test('service worker caches the field shell and not a third-party CDN', () => {
 });
 
 test('PWA helper registers a same-origin worker and labels the offline state', () => {
-  assert.match(pwa, /serviceWorker\.register\('\.\/sw\.js'/);
+  // The URL is now derived from data-sw-base (root pages still get './sw.js';
+  // demo/ pages get '../sw.js'), so the literal call site takes a variable.
+  assert.match(pwa, /serviceWorker\.register\(url \|\| '\.\/sw\.js', \{ scope: scope \|\| '\.\/' \}\)/);
+  assert.match(pwa, /register\(base \+ 'sw\.js', base\)/);
   assert.match(pwa, /אין רשת — עובדים מהמטמון המקומי/);
   assert.match(compare, /src="src\/lib\/pwa\.js"/);
   assert.match(compare, /id="pwInstallBtn"/);

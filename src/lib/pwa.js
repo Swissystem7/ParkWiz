@@ -34,9 +34,20 @@
     }
   }
 
-  function register() {
+  // Pages in a subdirectory (demo/) set <html data-sw-base="../"> so they
+  // register the one root worker with the root scope instead of asking for a
+  // demo/sw.js that does not exist — otherwise the subdirectory surface is the
+  // only one that never works offline.
+  function register(url, scope) {
     if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function () { /* file:// or blocked */ });
+    navigator.serviceWorker.register(url || './sw.js', { scope: scope || './' })
+      .catch(function () { /* file:// or blocked */ });
+  }
+
+  function swBase() {
+    const el = typeof document !== 'undefined' && document.documentElement;
+    const base = el && el.getAttribute('data-sw-base');
+    return base && /^(\.\.?\/)+$/.test(base) ? base : './';
   }
 
   let deferredPrompt = null;
@@ -67,7 +78,8 @@
   function boot() {
     if (typeof document === 'undefined') return;
     ensureCss();
-    register();
+    const base = swBase();
+    register(base + 'sw.js', base);
     syncOnline();
     bindInstall();
     window.addEventListener('online', syncOnline);
@@ -79,5 +91,5 @@
     else boot();
   }
 
-  root.ParkWizPwa = { boot, register };
+  root.ParkWizPwa = { boot, register, swBase };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
