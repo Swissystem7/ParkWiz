@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "lotId": "atidim",
+  "name": "פארק עתידים, תל אביב",
+  "source": "synthetic",
+  "note": "מודל סכמטי של חניון פארק עתידים להדגמה ולסימולציה. לא סקר שטח, לא מדידה חיה ולא נתוני חניון אמיתיים. השורות מסודרות לפי מרחק הליכה מהכניסה: הראשונה בקובץ היא הקרובה ביותר.",
+  "imageWidth": 1000,
+  "imageHeight": 700,
+  "zones": [
+    {"id": "A", "label": "מגרש A — חניון עליון, מול הכניסה", "level": 0},
+    {"id": "B", "label": "מגרש B — חניון מקורה, מפלס -1", "level": -1},
+    {"id": "C", "label": "מגרש C — מבקרים, מול מגדל 4", "level": 0}
+  ],
+  "spots": [
+    {"idPrefix": "A1-", "count": 14, "zone": "A", "level": 0, "kind": "regular", "x": 0.03, "y": 0.05, "w": 0.062, "h": 0.075, "axis": "x", "gap": 0.004},
+    {"idPrefix": "A2-", "count": 14, "zone": "A", "level": 0, "kind": "regular", "x": 0.03, "y": 0.14, "w": 0.062, "h": 0.075, "axis": "x", "gap": 0.004},
+    {"idPrefix": "A3-", "count": 14, "zone": "A", "level": 0, "kind": "regular", "x": 0.03, "y": 0.26, "w": 0.062, "h": 0.075, "axis": "x", "gap": 0.004},
+    {"idPrefix": "A4-", "count": 14, "zone": "A", "level": 0, "kind": "regular", "x": 0.03, "y": 0.35, "w": 0.062, "h": 0.075, "axis": "x", "gap": 0.004},
+    {"idPrefix": "B1-", "count": 16, "zone": "B", "level": -1, "kind": "reserved", "x": 0.02, "y": 0.50, "w": 0.054, "h": 0.07, "axis": "x", "gap": 0.004},
+    {"idPrefix": "B2-", "count": 16, "zone": "B", "level": -1, "kind": "regular", "x": 0.02, "y": 0.59, "w": 0.054, "h": 0.07, "axis": "x", "gap": 0.004},
+    {"idPrefix": "B3-", "count": 16, "zone": "B", "level": -1, "kind": "regular", "x": 0.02, "y": 0.70, "w": 0.054, "h": 0.07, "axis": "x", "gap": 0.004},
+    {"idPrefix": "B4-", "count": 16, "zone": "B", "level": -1, "kind": "regular", "x": 0.02, "y": 0.79, "w": 0.054, "h": 0.07, "axis": "x", "gap": 0.004},
+    {"idPrefix": "C1-", "count": 10, "zone": "C", "level": 0, "kind": "regular", "x": 0.05, "y": 0.90, "w": 0.06, "h": 0.065, "axis": "x", "gap": 0.005},
+    {"idPrefix": "C-EV-", "count": 2, "zone": "C", "level": 0, "kind": "ev", "x": 0.70, "y": 0.90, "w": 0.06, "h": 0.065, "axis": "x", "gap": 0.005},
+    {"idPrefix": "C-ACC-", "count": 2, "zone": "C", "level": 0, "kind": "accessible", "x": 0.84, "y": 0.90, "w": 0.07, "h": 0.065, "axis": "x", "gap": 0.005}
+  ]
+}
