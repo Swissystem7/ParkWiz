@@ -45,4 +45,7 @@ test('demo/atidim.html includes all required operator components', () => {
   // 6. Contact / CTA
   assert.match(html, /פיילוט ללא עלות/);
   assert.match(html, /offer\.html/);
+  // 7. Offline PWA icon and service worker registration
+  assert.match(html, /<link rel="icon" href="\.\.\/icon\.svg">/);
+  assert.match(html, /navigator\.serviceWorker\.register\('\.\.\/sw\.js'/);
 });

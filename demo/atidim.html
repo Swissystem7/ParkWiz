@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ParkWiz — דמו מפעיל חניון פארק עתידים | CityZone</title>
+<link rel="icon" href="../icon.svg">
 <style>
 :root{
   --bg:#0b0f19; --panel:#111827; --panel2:#1f2937; --ink:#f3f4f6; --muted:#9ca3af;
@@ -233,6 +234,9 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
   });
   setInterval(function(){ const now = new Date(); document.getElementById('frameClock').textContent = now.toISOString().replace('T', ' ').substring(0, 19); }, 1000);
   updateMetrics(); drawScene(); renderChart();
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(function(){});
+  }
 })();
 </script>
 </body>
