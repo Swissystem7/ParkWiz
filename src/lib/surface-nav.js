@@ -13,7 +13,16 @@
     { id: 'report', href: './pilot-report.html', label: 'דוח פיילוט' },
     { id: 'summary', href: './pilot-summary.html', label: 'סיכום לקריאה בלבד' },
     { id: 'privacy', href: './pilot-privacy.html', label: 'בקשת גישה / פרטיות' },
+    { id: 'atidim', href: './demo/atidim.html', label: 'דמו חניון' },
   ];
+
+  // Hrefs are written relative to the repo root. A surface that lives in a
+  // subdirectory (demo/atidim.html) sets data-base="../" on the nav host so the
+  // same one list keeps working instead of forking into a second nav.
+  function resolveHref(href, base) {
+    if (!base) return href;
+    return base + (href === './' ? '' : href.replace(/^\.\//, ''));
+  }
 
   function ensureNavCss() {
     if (typeof document === 'undefined' || document.getElementById('pw-surface-nav-css')) return;
@@ -29,6 +38,7 @@
     if (!host) return;
     ensureNavCss();
     const active = host.getAttribute('data-active') || '';
+    const base = host.getAttribute('data-base') || '';
     host.className = 'pw-surface-nav';
     host.setAttribute('aria-label', 'ניווט ParkWiz');
     host.replaceChildren();
@@ -42,7 +52,7 @@
       if (item.id === active) {
         el.className = 'here';
         el.setAttribute('aria-current', 'page');
-      } else el.href = item.href;
+      } else el.href = resolveHref(item.href, base);
       host.appendChild(el);
     });
   }
@@ -56,5 +66,5 @@
     else boot();
   }
 
-  root.ParkWizSurfaceNav = { LINKS, mountSurfaceNav };
+  root.ParkWizSurfaceNav = { LINKS, mountSurfaceNav, resolveHref };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

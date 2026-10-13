@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — דמו חניון למפעיל</title>
+<meta name="description" content="הדגמה חיה בדפדפן למפעיל חניון: תפוס/פנוי על 12 מקומות, בתאורות שונות, כולל המלכודות שבהן ההיוריסטיקה נכשלת. פריימים מסונתזים — לא חניון אמיתי ולא מצלמה חיה.">
+<meta name="theme-color" content="#0e7490">
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" type="image/svg+xml" href="../icon.svg">
+<link rel="stylesheet" href="../pilot/shell.css">
+<link rel="stylesheet" href="../pilot/print.css">
+<style>
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 72px}
+h1{font-size:1.35rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.panel h2{font-size:.95rem;margin:0 0 10px}
+.steps{display:flex;flex-wrap:wrap;gap:6px}
+.steps button{display:flex;gap:6px;align-items:baseline}
+.steps button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.steps .num{font-weight:800;opacity:.75}
+.say{margin:10px 0 0;font-size:.88rem;border-inline-start:3px solid var(--brand);padding:2px 10px}
+.scenebtns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.scenebtns button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.scenebtns button.trap{border-color:#f59e0b;color:var(--warn)}
+.scenebtns button.trap[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:#fff}
+.bays{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media(max-width:620px){.bays{grid-template-columns:repeat(3,1fr)}}
+.bay{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.bay canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
+.bay .verdict{font-size:.72rem;font-weight:700;padding:4px 6px;display:flex;justify-content:space-between;gap:4px}
+.bay.occ .verdict{background:rgba(220,38,38,.1);color:var(--occ)}
+.bay.free .verdict{background:rgba(22,163,74,.1);color:var(--free)}
+.bay .miss{color:var(--warn)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 0}
+@media(max-width:720px){.kpis{grid-template-columns:1fr 1fr}}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.kpi .n{font-size:1.15rem;font-weight:800}
+.kpi .l{font-size:.7rem;color:var(--muted)}
+.hint{font-size:.78rem;color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+a{color:var(--brand)}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">דלג לתוכן</a>
+<div id="pwSurfaceNav" data-active="atidim" data-base="../"></div>
+<div class="wrap" id="main">
+  <h1>דמו חניון — הדגמה למפעיל</h1>
+  <p class="sub">שבעה תנאי תאורה על אותם 12 מקומות. ההערכה מתחשבת כאן ועכשיו בדפדפן, בלי שרת ובלי רשת.</p>
+
+  <div class="banner">
+    <b>הפריימים האלה מסונתזים בקוד</b> (<code>src/lib/dataset.js</code>) — הם <b>לא</b> חניון אמיתי, לא צילום אמיתי ולא מצלמה חיה. מפעיל חניון הוא <b>יעד פגישה, לא לקוח</b>: אין הסכם, אין התקנה ואין נתוני חניון אמיתיים בדף הזה.
+    <b>דיוק מול ספירה ידנית בשטח עדיין לא נמדד.</b> ההסכמה שמוצגת למטה היא מול התוויות שאנחנו ציירנו במחולל — לא מול ספירה של אדם בחניון. אין כאן זיהוי לוחיות, זיהוי פנים, שמירת וידאו או אכיפה.
+  </div>
+
+  <div id="pwContact" data-source="demo/atidim.html"></div>
+
+  <section class="panel no-print">
+    <h2>תסריט ההדגמה — 5 צעדים, כ־7 דקות</h2>
+    <div class="steps" id="stepBtns" role="group" aria-label="צעדי ההדגמה"></div>
+    <p class="say" id="sayLine" role="status"></p>
+  </section>
+
+  <section class="panel">
+    <h2>הפריים — מצלמה אחת, 12 מקומות מסומנים</h2>
+    <div class="scenebtns" id="sceneBtns" role="group" aria-label="בחירת תנאי תאורה"></div>
+    <div class="bays" id="bays"></div>
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="kOcc">—</div><div class="l">תפוסה לפי המערכת</div></div>
+      <div class="kpi"><div class="n" id="kPct">—</div><div class="l">אחוז תפוסה</div></div>
+      <div class="kpi"><div class="n" id="kAgree">—</div><div class="l">הסכמה מול התוויות (לא פקח)</div></div>
+      <div class="kpi"><div class="n" id="kLight">—</div><div class="l">התאורה בסצנה</div></div>
+    </div>
+    <p class="hint" id="methodLine" style="margin:10px 0 0"></p>
+    <p class="hint" id="sceneNote" style="margin:4px 0 0"></p>
+    <p class="hint" style="margin:10px 0 0">
+      שתי הסצנות הכתומות הן מלכודות: שם ההיוריסטיקה נשברת, וזה מופיע בדף במקום להיות מוסתר. על הפריימים המסונתזים האלה השיטה מחזיקה גם בדמדומים, בלילה ועל אספלט רטוב — <b>וזו בדיוק הסיבה שזה לא נקרא דיוק שדה.</b> אספלט אמיתי, פנסים אמיתיים וגשם אמיתי הם מה שהפיילוט מודד.
+      הנוסחאות והקבועים לביקורת: <a href="../pilot-method.html">מתודולוגיה</a>; עקומת תפוסה שעתית על סדרה: <a href="../pilot-report.html">דוח הפיילוט</a>.
+    </p>
+  </section>
+
+  <div class="foot">ParkWiz · דמו למפעיל חניון · פריימים מסונתזים, בלי מצלמה חיה ובלי שרת</div>
+</div>
+<script src="../src/lib/contact.js"></script>
+<script src="../src/lib/heuristic.js"></script>
+<script src="../src/lib/protocol.js"></script>
+<script src="../src/lib/dataset.js"></script>
+<script src="../src/lib/surface-nav.js"></script>
+<script>
+"use strict";
+
+const DS = window.ParkWizDataset;
+const HEU = window.ParkWizHeuristic;
+
+// The seven conditions the meeting walks through, in demo order. Every id must
+// exist in src/lib/dataset.js SCENE_DEFS — the scenes are generated there, so
+// nothing here is a picture of a real lot.
+const DEMO_SCENES = [
+  { id: "day-mixed", label: "יום — חניון חצי מלא" },
+  { id: "day-full", label: "שיא — חניון מלא" },
+  { id: "dusk-mixed", label: "דמדומים" },
+  { id: "night-mixed", label: "לילה" },
+  { id: "wet-mixed", label: "אספלט רטוב" },
+  { id: "shadow-false", label: "מלכודת: צל על מקום ריק", trap: true },
+  { id: "camouflage-day", label: "מלכודת: רכב בצבע אספלט", trap: true },
+];
+
+// The presenter's script. Each step says which scene to show and what to say,
+// so a 20-minute meeting does not lose the thread. A null scene leaves whatever
+// is on screen alone — those two steps are talk, not a click.
+const STEPS = [
+  { label: "פתיחה", scene: null,
+    say: "«לפני שנתחיל: הפריימים האלה מסונתזים, לא החניון שלכם, ואין לי עדיין מספר דיוק שדה. מה שאמיתי כאן זה הקוד שמחשב.»" },
+  { label: "תפוס / פנוי", scene: "day-mixed",
+    say: "«מצלמה אחת, 12 מקומות מסומנים מראש. הדפדפן מחשב עכשיו תפוס/פנוי לכל מלבן. שימו לב למה שאין: לוחית רישוי, פנים, וידאו שנשמר.»" },
+  { label: "תאורה", scene: "night-mixed",
+    say: "«אותם 12 מקומות, אותם רכבים, רק התאורה השתנתה — ועל הפריימים המסונתזים האלה השיטה מחזיקה גם בלילה. בדיוק בגלל זה אני לא קורא לזה דיוק שדה: אספלט אמיתי, פנסים אמיתיים וגשם אמיתי זה מה שהפיילוט מודד.» (עוברים גם על «דמדומים» ו«אספלט רטוב».)" },
+  { label: "איפה זה נשבר", scene: "shadow-false",
+    say: "«עכשיו תראו אותי נכשל: צל על מקום ריק נספר כתפוס, ורכב בצבע אספלט נספר כפנוי. אני לא מסתיר את זה — זה בדף.»" },
+  { label: "מה מקבלים", scene: null,
+    say: "«אותה מצלמה, שבעה תנאים, שבעה מספרים — מסדרה כזו נבנית עקומת התפוסה לפי שעה. מה שאני מבקש זה 100 פריימים מהמצלמה שלכם, כדי לראות אם זה מחזיק בשטח.»" },
+];
+
+const LIGHT_HE = { day: "יום", dusk: "דמדומים", night: "לילה", wet: "רטוב" };
+
+const built = new Map();
+DS.scenes().forEach((s) => built.set(s.id, s));
+
+const reportCache = new Map();
+
+function reportFor(id) {
+  if (!reportCache.has(id)) {
+    reportCache.set(id, DS.evaluateScene(built.get(id), "v2"));
+  }
+  return reportCache.get(id);
+}
+
+function pct(n) {
+  return n == null ? "—" : Math.round(n * 100) + "%";
+}
+
+function drawPatch(canvas, rgba) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const img = ctx.createImageData(DS.PATCH_W, DS.PATCH_H);
+  img.data.set(rgba);
+  ctx.putImageData(img, 0, 0);
+}
+
+function renderScene(id) {
+  const scene = built.get(id);
+  const report = reportFor(id);
+  const bays = document.getElementById("bays");
+  bays.replaceChildren();
+
+  report.spots.forEach((judged, i) => {
+    const fig = document.createElement("div");
+    fig.className = "bay " + (judged.predicted ? "occ" : "free");
+    const canvas = document.createElement("canvas");
+    canvas.width = DS.PATCH_W;
+    canvas.height = DS.PATCH_H;
+    canvas.setAttribute("role", "img");
+    canvas.setAttribute("aria-label",
+      "מקום " + (i + 1) + " — המערכת: " + (judged.predicted ? "תפוס" : "פנוי") +
+      ", התווית: " + (judged.expected ? "תפוס" : "פנוי"));
+    drawPatch(canvas, scene.spots[i].cur);
+    fig.appendChild(canvas);
+    const v = document.createElement("div");
+    v.className = "verdict";
+    const left = document.createElement("span");
+    left.textContent = (i + 1) + ". " + (judged.predicted ? "תפוס" : "פנוי");
+    v.appendChild(left);
+    const mark = document.createElement("span");
+    if (judged.agree) {
+      mark.textContent = "✓";
+    } else {
+      mark.className = "miss";
+      mark.textContent = "✗ תווית: " + (judged.expected ? "תפוס" : "פנוי");
+    }
+    v.appendChild(mark);
+    fig.appendChild(v);
+    bays.appendChild(fig);
+  });
+
+  const occupied = report.spots.filter((s) => s.predicted).length;
+  document.getElementById("kOcc").textContent = occupied + " / " + report.n;
+  document.getElementById("kPct").textContent = report.n ? pct(occupied / report.n) : "—";
+  document.getElementById("kAgree").textContent = report.agree + " / " + report.n;
+  document.getElementById("kLight").textContent = LIGHT_HE[report.lighting] || report.lighting;
+  // The scene declares its lighting; the heuristic classifies it on its own and
+  // can land elsewhere (a wet frame is handled as dusk). Show both, not one.
+  const classified = report.spots.length ? report.spots[0].lighting : "";
+  document.getElementById("methodLine").textContent =
+    "איך זה חושב: " + HEU.methodLabelHe(report.method) + " — היוריסטיקה, לא בינה מלאכותית." +
+    (classified ? " ההיוריסטיקה סיווגה את התאורה כ«" + (LIGHT_HE[classified] || classified) + "»." : "");
+  document.getElementById("sceneNote").textContent = "הסצנה: " + (report.note || "");
+
+  document.querySelectorAll("#sceneBtns button").forEach((b) => {
+    b.setAttribute("aria-pressed", b.dataset.scene === id ? "true" : "false");
+  });
+}
+
+function renderSceneButtons() {
+  const host = document.getElementById("sceneBtns");
+  host.replaceChildren();
+  DEMO_SCENES.forEach((s) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = s.label;
+    b.dataset.scene = s.id;
+    if (s.trap) b.className = "trap";
+    b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => renderScene(s.id));
+    host.appendChild(b);
+  });
+}
+
+function selectStep(index) {
+  const step = STEPS[index];
+  document.getElementById("sayLine").textContent = step.say;
+  document.querySelectorAll("#stepBtns button").forEach((b, i) => {
+    b.setAttribute("aria-pressed", i === index ? "true" : "false");
+  });
+  if (step.scene) renderScene(step.scene);
+}
+
+function renderStepButtons() {
+  const host = document.getElementById("stepBtns");
+  host.replaceChildren();
+  STEPS.forEach((step, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-pressed", "false");
+    const num = document.createElement("span");
+    num.className = "num";
+    num.textContent = String(i + 1);
+    b.appendChild(num);
+    b.appendChild(document.createTextNode(step.label));
+    b.addEventListener("click", () => selectStep(i));
+    host.appendChild(b);
+  });
+}
+
+renderStepButtons();
+renderSceneButtons();
+renderScene("day-mixed");
+selectStep(0);
+</script>
+</body>
+</html>
