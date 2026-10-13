@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v9';
+const CACHE = 'parkwiz-field-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -16,6 +16,10 @@ const ASSETS = [
   './pilot-log.html',
   './pilot-brief.html',
   './marketplace.html',
+  // Operator demo for the CityZone / Atidim meeting. It never fetches at
+  // runtime (the frames are generated in src/lib/dataset.js), but it must be in
+  // the shell so it opens in a meeting room with no network.
+  './demo/atidim.html',
   './manifest.json',
   './icon.svg',
   './availability-model.js',
