@@ -9,6 +9,7 @@
 | **למי** | מעריך UI; הקונה הנקוב לעתיד — יחידת חדשנות / אגף תנועה וחניה, עיריית נתניה — לא נהגים משלמים. |
 | **איך** | HTML/JS ונילה על [GitHub Pages](https://swissystem7.github.io/ParkWiz/). בלי שרת, בלי הזנה עירונית חיה, בלי צינור מצלמה בריפו. |
 | **בדיקה** | `node --test test/*.js` (או `npm test`) — בלי תלויות npm. |
+| **גודל PR** | `npm run pr-size` — auto_merger ממזג עד 400 שורות שינוי; הפקודה מציעה פיצול. ראו [docs/PR-SIZE.md](docs/PR-SIZE.md). |
 
 ## [דמו חי](https://swissystem7.github.io/ParkWiz/)
 

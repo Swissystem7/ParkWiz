@@ -26,3 +26,22 @@ jobs:
           else
             node --test
           fi
+
+  # auto_merger only merges a PR of at most 400 changed lines, so say so here
+  # instead of letting an oversized PR sit open. See docs/PR-SIZE.md.
+  size:
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'oversize-ok')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: PR size budget
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/pr-size.js --check --base "origin/$BASE_REF" --head "$HEAD_SHA"

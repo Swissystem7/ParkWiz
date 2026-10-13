@@ -3,6 +3,7 @@
   "private": true,
   "description": "Netanya street-parking demo and municipal occupancy pilot kit",
   "scripts": {
-    "test": "node --test test/*.js"
+    "test": "node --test test/*.js",
+    "pr-size": "node scripts/pr-size.js"
   }
 }
