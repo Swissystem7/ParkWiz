@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'">
+<title>ParkWiz — פארק עתידים · דמו מפעיל CityZone</title>
+<link rel="stylesheet" href="../pilot/print.css">
+<style>
+  :root{
+    --bg:#f4f6f8; --panel:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --brand:#0e7490; --free:#16a34a; --occ:#dc2626;
+    --shadow:0 1px 2px rgba(15,23,42,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0b0f14;--panel:#111820;--ink:#e2e8f0;--muted:#94a3b8;--line:#1e293b;--brand:#22d3ee;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Hebrew",sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+  .banner{background:#fffbeb;border:1px solid #f59e0b;color:#92400e;border-radius:12px;padding:10px 14px;font-size:.86rem;margin-bottom:16px}
+  header{margin-bottom:18px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px}
+  .grid{display:grid;gap:14px}
+  @media(min-width:720px){.grid.cols2{grid-template-columns:1.1fr .9fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+  .panel h2{font-size:13px;margin:0 0 12px;color:var(--muted);font-weight:600}
+  .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+  @media(min-width:720px){.kpis{grid-template-columns:repeat(4,1fr)}}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .kpi .n{font-size:28px;font-weight:700}
+  .kpi .l{font-size:12px;color:var(--muted)}
+  .kpi.free .n{color:var(--free)}
+  .kpi.occ .n{color:var(--occ)}
+  .ctl{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .ctl label{font-size:12px;color:var(--muted);font-weight:600}
+  .ctl input[type=range]{flex:1 1 220px;min-width:180px;accent-color:var(--brand)}
+  .ctl .hr{font-variant-numeric:tabular-nums;font-size:19px;font-weight:700;min-width:62px;text-align:center}
+  .ctl button{font:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:9px;border:1px solid var(--brand);background:transparent;color:var(--brand);cursor:pointer}
+  .ctl button[aria-pressed=true]{background:var(--brand);color:var(--panel)}
+  .ctl .note{font-size:12px;color:var(--muted);flex-basis:100%}
+  #bayCanvas{width:100%;max-width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#3f4650;display:block}
+  .legend{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted)}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:middle}
+  .chartwrap{overflow-x:auto}
+  svg.chart{display:block;width:100%;height:auto}
+  .privacy{font-size:13px;color:var(--muted)}
+  .privacy ul{margin:8px 0 0;padding-inline-start:18px}
+  .foot{margin-top:20px;text-align:center;font-size:11px;color:var(--muted)}
+  a.back{color:var(--brand);text-decoration:none;font-size:13px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p><a class="back" href="../pilot-brief.html">← חזרה לתקציר פיילוט</a></p>
+  <header>
+    <h1 id="siteTitle">פארק עתידים — מסך מפעיל (דמו)</h1>
+    <div class="sub" id="siteSub">CityZone · תפוס/פנוי ממצלמה קיימת — <b>לא שידור חי</b></div>
+  </header>
+  <div class="banner" role="note">
+    <b>הדגמה לפגישה 18–19.10.</b> עקומה ומפת חניות סינתטיות לצורך מצגת. אין חיבור למצלמה בזמן אמת בדף זה.
+    <span id="dataNote"></span>
+  </div>
+
+  <div class="ctl">
+    <label for="hourRange">שעה בדמו</label>
+    <span class="hr" id="hourOut" aria-hidden="true">—</span>
+    <input id="hourRange" type="range" min="0" max="23" step="1" value="10" dir="ltr"
+           aria-label="שעה בדמו — גרירה מציגה את התפוסה באותה שעה">
+    <button id="nowBtn" type="button" aria-pressed="true">עכשיו</button>
+    <span class="note" id="followNote"></span>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi free"><div class="n" id="kFree">—</div><div class="l">מקומות פנויים (X)</div></div>
+    <div class="kpi occ"><div class="n" id="kOcc">—</div><div class="l">מקומות תפוסים (Y)</div></div>
+    <div class="kpi"><div class="n" id="kOccPct">—</div><div class="l">אחוז תפוסה</div></div>
+    <div class="kpi"><div class="n" id="kTotal">—</div><div class="l">סה״כ מקומות בחניון</div></div>
+  </div>
+
+  <div class="grid cols2">
+    <section class="panel">
+      <h2>מפת חניות — פנוי (ירוק) / תפוס (אדום)</h2>
+      <!-- Attributes match LOGICAL below; the script rescales them for the
+           display. Without them the canvas lays out at 300x150 until it does. -->
+      <canvas id="bayCanvas" width="640" height="360" role="img" aria-label="מפת חניות סינתטית"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--free)"></span>פנוי</span>
+        <span><span class="dot" style="background:var(--occ)"></span>תפוס</span>
+        <span id="canvasCaption"></span>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>תפוסה שעתית (היום — מודל דמו)</h2>
+      <div class="chartwrap"><div id="hourlyChart"></div></div>
+      <div class="legend"><span>הקו המקווקו מסמן את השעה שמוצגת במונים</span></div>
+    </section>
+  </div>
+
+  <section class="panel privacy" style="margin-top:14px">
+    <h2>פרטיות ואחסון</h2>
+    <ul>
+      <li><b>לא נשמרות לוחיות רישוי</b> — רק מונה תפוס/פנוי.</li>
+      <li><b>לא נשמר וידאו</b> — אין ארכיון הקלטות בדמו.</li>
+      <li><b>עיבוד בקצה המצלמה</b> — מספרים בלבד ללוח המפעיל; אין העברת צילום לענן בגרסה זו.</li>
+    </ul>
+  </section>
+
+  <div class="foot">ParkWiz · Refs #136 · המשך #120 #121 #123 · offline / GitHub Pages</div>
+</div>
+
+<script src="../src/lib/atidim-lot.js"></script>
+<script src="../src/lib/occupancy.js"></script>
+<script>
+"use strict";
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("../sw.js", { scope: "../" }).catch(function () {});
+}
+const LOT = window.ParkWizAtidimLot;
+const OCC = window.ParkWizOccupancy;
+const $ = (id) => document.getElementById(id);
+
+let config = { ...LOT.DEFAULT };
+let hour = 10;
+// The page tracks the wall clock until the presenter grabs the slider, so the
+// demo opens on "now" but can still be walked through the whole day by hand.
+let follow = true;
+let dpr = 0;
+
+// Fixed drawing size; the backing store is scaled to the device so the lot
+// stays sharp on a meeting-room projector.
+const LOGICAL = { w: 640, h: 360 };
+
+function canvasCtx() {
+  const canvas = $("bayCanvas");
+  const ratio = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+  if (ratio !== dpr) {
+    dpr = ratio;
+    canvas.width = Math.round(LOGICAL.w * ratio);
+    canvas.height = Math.round(LOGICAL.h * ratio);
+  }
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  return ctx;
+}
+
+// roundRect is recent; without a fallback an older browser would throw here
+// and leave the operator looking at a blank canvas.
+function rrect(ctx, x, y, w, h, r) {
+  const rad = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.beginPath();
+  if (typeof ctx.roundRect === "function") {
+    ctx.roundRect(x, y, w, h, rad);
+    return;
+  }
+  ctx.moveTo(x + rad, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rad);
+  ctx.arcTo(x + w, y + h, x, y + h, rad);
+  ctx.arcTo(x, y + h, x, y, rad);
+  ctx.arcTo(x, y, x + w, y, rad);
+  ctx.closePath();
+}
+
+function drawCar(ctx, x, y, w, h) {
+  const cw = w * 0.74;
+  const ch = h * 0.8;
+  const cx = x + (w - cw) / 2;
+  const cy = y + (h - ch) / 2;
+  ctx.fillStyle = "#1c1f28";
+  rrect(ctx, cx, cy, cw, ch, Math.min(9, cw / 4));
+  ctx.fill();
+  ctx.fillStyle = "#2e3544";
+  rrect(ctx, cx + cw * 0.08, cy + ch * 0.17, cw * 0.84, ch * 0.3, 4);
+  ctx.fill();
+}
+
+// Plan view of the lot: asphalt, aisles and painted bay lines, with a car in
+// every occupied bay. Reads as a camera view of a lot rather than a grid.
+function drawLot(snapshot) {
+  const ctx = canvasCtx();
+  const cols = Number(snapshot.cols) || Number(config.cols) || 6;
+  const rows = Number(snapshot.rows) || Number(config.rows) || 3;
+  const bays = Array.isArray(snapshot.bays) ? snapshot.bays : [];
+  const W = LOGICAL.w;
+  const H = LOGICAL.h;
+  const pad = 14;
+  const innerW = W - pad * 2;
+  const innerH = H - pad * 2;
+  const aisleRatio = 0.34;
+  const bayH = innerH / (rows + Math.max(0, rows - 1) * aisleRatio);
+  const aisleH = bayH * aisleRatio;
+  const bayW = innerW / cols;
+
+  ctx.fillStyle = "#3f4650";
+  ctx.fillRect(0, 0, W, H);
+
+  for (let r = 0; r < rows; r++) {
+    const rowY = pad + r * (bayH + aisleH);
+    ctx.fillStyle = "#525a66";
+    ctx.fillRect(pad, rowY, innerW, bayH);
+    if (r < rows - 1) {
+      ctx.fillStyle = "#454c55";
+      ctx.fillRect(pad, rowY + bayH, innerW, aisleH);
+      ctx.strokeStyle = "#9aa3ad";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([9, 7]);
+      ctx.beginPath();
+      ctx.moveTo(pad + 10, rowY + bayH + aisleH / 2);
+      ctx.lineTo(pad + innerW - 10, rowY + bayH + aisleH / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // Painted bay lines.
+    ctx.strokeStyle = "#d7dde4";
+    ctx.lineWidth = 1.5;
+    for (let c = 0; c <= cols; c++) {
+      const lx = pad + c * bayW;
+      ctx.beginPath();
+      ctx.moveTo(lx, rowY);
+      ctx.lineTo(lx, rowY + bayH);
+      ctx.stroke();
+    }
+  }
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  bays.forEach((occupied, i) => {
+    const c = i % cols;
+    const r = Math.floor(i / cols);
+    const x = pad + c * bayW;
+    const y = pad + r * (bayH + aisleH);
+    ctx.fillStyle = occupied ? "rgba(220,38,38,.34)" : "rgba(22,163,74,.42)";
+    ctx.fillRect(x + 2, y + 2, bayW - 4, bayH - 4);
+    ctx.strokeStyle = occupied ? "#dc2626" : "#16a34a";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 2, y + 2, bayW - 4, bayH - 4);
+    if (occupied) drawCar(ctx, x, y, bayW, bayH);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 12px system-ui,sans-serif";
+    ctx.fillText(String(i + 1), x + bayW / 2, y + bayH - 11);
+  });
+}
+
+function label(h) {
+  return String(h).padStart(2, "0") + ":00";
+}
+
+function render() {
+  const snap = LOT.snapshotAt(hour, config);
+  $("kFree").textContent = String(snap.free);
+  $("kOcc").textContent = String(snap.occupied);
+  $("kOccPct").textContent = OCC.pct(snap.pct);
+  $("kTotal").textContent = String(snap.total);
+  $("hourOut").textContent = label(hour);
+  $("hourRange").value = String(hour);
+  $("nowBtn").setAttribute("aria-pressed", follow ? "true" : "false");
+  $("followNote").textContent = follow
+    ? "המונים עוקבים אחרי השעה בפועל (" + (config.timezone || LOT.DEFAULT.timezone) + "). גררו את המחוון כדי לעבור על היום."
+    : "תצוגה ידנית של " + label(hour) + " — לחצו „עכשיו” לחזרה לשעה הנוכחית.";
+  $("canvasCaption").textContent = snap.free + " פנויים מתוך " + snap.total + " · " + label(hour);
+  drawLot(snap);
+  $("hourlyChart").innerHTML = OCC.chartSvg(LOT.hourlySeries(config), {
+    width: 520,
+    height: 220,
+    stroke: "var(--brand)",
+    markIndex: hour,
+  });
+}
+
+function nowHour() {
+  return LOT.localHour(new Date(), config.timezone);
+}
+
+function start() {
+  $("siteTitle").textContent = config.site + " — מסך מפעיל (דמו)";
+  $("dataNote").textContent = config.meetingNote ? " " + config.meetingNote : "";
+  hour = nowHour();
+  render();
+  $("hourRange").addEventListener("input", (e) => {
+    follow = false;
+    hour = Number(e.target.value);
+    render();
+  });
+  $("nowBtn").addEventListener("click", () => {
+    follow = true;
+    hour = nowHour();
+    render();
+  });
+  window.addEventListener("resize", () => drawLot(LOT.snapshotAt(hour, config)));
+  setInterval(() => {
+    if (!follow) return;
+    const h = nowHour();
+    if (h === hour) return;
+    hour = h;
+    render();
+  }, 60000);
+}
+
+// A failed fetch is expected on file:// — the built-in lot keeps the demo up.
+fetch("atidim-data.json")
+  .then((r) => (r.ok ? r.json() : null))
+  .catch(() => null)
+  .then((data) => {
+    if (data) config = { ...LOT.DEFAULT, ...data };
+    start();
+  });
+</script>
+</body>
+</html>

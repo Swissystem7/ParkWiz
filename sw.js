@@ -1,8 +1,10 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v9';
+const CACHE = 'parkwiz-field-v11';
 const ASSETS = [
   './',
   './index.html',
+  './demo/atidim.html',
+  './demo/atidim-data.json',
   './offer.html',
   './pilot-kit.html',
   './pilot-calibrate.html',
@@ -38,6 +40,7 @@ const ASSETS = [
   './pilot/dataset/manifest.json',
   './pilot/dataset/labels.json',
   './src/lib/occupancy.js',
+  './src/lib/atidim-lot.js',
   './src/lib/heuristic.js',
   './src/lib/dataset.js',
   './src/lib/calibrate.js',
