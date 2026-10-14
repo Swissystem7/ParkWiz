@@ -3,6 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
 const demoPath = path.join(root, 'demo', 'atidim.html');
@@ -60,4 +61,17 @@ test('index.html and offer.html provide direct entry points to demo/atidim.html'
   const offerHtml = fs.readFileSync(path.join(root, 'offer.html'), 'utf8');
   assert.match(offerHtml, /href="\.\/demo\/atidim\.html"/);
   assert.match(offerHtml, /דמו מפעיל חניון/);
+});
+
+test('demo/atidim.html inline JavaScript compiles with zero syntax errors', () => {
+  const html = fs.readFileSync(demoPath, 'utf8');
+  const scriptRegex = /<script(?![^>]*src=)>([\s\S]*?)<\/script>/gi;
+  let match;
+  let count = 0;
+  while ((match = scriptRegex.exec(html)) !== null) {
+    const code = match[1];
+    assert.doesNotThrow(() => new vm.Script(code), 'inline script must parse cleanly');
+    count++;
+  }
+  assert.ok(count > 0, 'must test at least one inline script block');
 });

@@ -231,6 +231,7 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
       document.getElementById('hudCam').textContent = camId.toUpperCase() + ' RTSP H.264 1080p30';
       spots = model.createDefaultCameraSpots(); updateMetrics(); drawScene();
     });
+  });
   canvas.addEventListener('click', function(e){
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
