@@ -82,7 +82,9 @@
   <div class="grid cols2">
     <section class="panel">
       <h2>מפת חניות — פנוי (ירוק) / תפוס (אדום)</h2>
-      <canvas id="bayCanvas" role="img" aria-label="מפת חניות סינתטית"></canvas>
+      <!-- Attributes match LOGICAL below; the script rescales them for the
+           display. Without them the canvas lays out at 300x150 until it does. -->
+      <canvas id="bayCanvas" width="640" height="360" role="img" aria-label="מפת חניות סינתטית"></canvas>
       <div class="legend">
         <span><span class="dot" style="background:var(--free)"></span>פנוי</span>
         <span><span class="dot" style="background:var(--occ)"></span>תפוס</span>
