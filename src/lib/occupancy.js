@@ -245,9 +245,20 @@
     });
     const line = list.map((r, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(occupancyRate(r)).toFixed(1)}`).join(' ');
     const stroke = o.stroke || '#0e7490';
+    // Optional: call out one record (the hour the counters are showing) so the
+    // curve and the live tiles read as the same moment.
+    let mark = '';
+    // typeof, not Number(): Number(null) is 0 and would mark midnight.
+    const mi = typeof o.markIndex === 'number' ? o.markIndex : -1;
+    if (Number.isInteger(mi) && mi >= 0 && mi < n) {
+      const mx = x(mi), my = y(occupancyRate(list[mi]));
+      mark = `<line x1="${mx.toFixed(1)}" y1="${m.t}" x2="${mx.toFixed(1)}" y2="${m.t + ih}" stroke="${stroke}" stroke-width="1" stroke-dasharray="4 4" opacity=".7"/>`
+        + `<circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="4.5" fill="${stroke}"/>`;
+    }
     return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="עקומת תפוסה">
       ${grid}${xlab}
       <path d="${line}" fill="none" stroke="${stroke}" stroke-width="2.5"/>
+      ${mark}
     </svg>`;
   }
 
