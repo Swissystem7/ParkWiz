@@ -88,7 +88,7 @@ test('Hebrew RTL operator demo page is offline-safe and meeting-ready', () => {
   assert.match(html, /lang="he"/);
   assert.match(html, /dir="rtl"/);
   assert.match(html, /class="banner"/);
-  assert.match(html, /id="bayCanvas"/);
+  assert.match(html, /id="bayCanvas"[^>]*width="640"[^>]*height="360"/);
   assert.match(html, /id="kFree"/);
   assert.match(html, /id="kOccPct"/);
   assert.match(html, /id="hourlyChart"/);
