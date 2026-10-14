@@ -63,5 +63,5 @@ test('the municipal lots layer is part of the offline shell', () => {
 test('cache name is versioned so a changed asset list re-installs', () => {
   assert.match(sw, /const CACHE = 'parkwiz-field-v\d+';/);
   const v = Number(sw.match(/parkwiz-field-v(\d+)/)[1]);
-  assert.ok(v >= 8, 'adding netanya-lots.geojson to ASSETS requires a cache bump');
+  assert.ok(v >= 10, 'adding demo/atidim assets to ASSETS requires a cache bump');
 });

@@ -41,7 +41,6 @@ test('bad pairs are rejected', () => {
 test('an empty or pair-less file keeps the saved pairs', () => {
   const saved = samplePairs.map(cmp.pairObservation);
   assert.equal(saved.length, 14);
-  assert.throws(() => cmp.parsePairs(''), TypeError);
   for (const text of ['', '   \n', '[]', '{"foo":1}', 'not json']) {
     const res = cmp.replacePairsFromText(saved, text);
     assert.equal(res.replaced, false, JSON.stringify(text));

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'">
+<title>ParkWiz — פארק עתידים · דמו מפעיל CityZone</title>
+<link rel="stylesheet" href="../pilot/print.css">
+<style>
+  :root{
+    --bg:#f4f6f8; --panel:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --brand:#0e7490; --free:#16a34a; --occ:#dc2626;
+    --shadow:0 1px 2px rgba(15,23,42,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0b0f14;--panel:#111820;--ink:#e2e8f0;--muted:#94a3b8;--line:#1e293b;--brand:#22d3ee;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Hebrew",sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+  .banner{background:#fffbeb;border:1px solid #f59e0b;color:#92400e;border-radius:12px;padding:10px 14px;font-size:.86rem;margin-bottom:16px}
+  header{margin-bottom:18px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px}
+  .grid{display:grid;gap:14px}
+  @media(min-width:720px){.grid.cols2{grid-template-columns:1.1fr .9fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+  .panel h2{font-size:13px;margin:0 0 12px;color:var(--muted);font-weight:600}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .kpi .n{font-size:28px;font-weight:700}
+  .kpi .l{font-size:12px;color:var(--muted)}
+  #bayCanvas{width:100%;max-width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#0f172a;display:block}
+  .legend{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted)}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:middle}
+  .chartwrap{overflow-x:auto}
+  svg.chart{display:block;width:100%;height:auto}
+  .privacy{font-size:13px;color:var(--muted)}
+  .privacy ul{margin:8px 0 0;padding-inline-start:18px}
+  .foot{margin-top:20px;text-align:center;font-size:11px;color:var(--muted)}
+  a.back{color:var(--brand);text-decoration:none;font-size:13px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p><a class="back" href="../pilot-brief.html">← חזרה לתקציר פיילוט</a></p>
+  <header>
+    <h1 id="siteTitle">פארק עתידים — מסך מפעיל (דמו)</h1>
+    <div class="sub" id="siteSub">CityZone · תפוס/פנוי ממצלמה קיימת — <b>לא שידור חי</b></div>
+  </header>
+  <div class="banner" role="note">
+    <b>הדגמה לפגישה 18–19.10.</b> עקומה ומפת חניות סינתטיות לצורך מצגת. אין חיבור למצלמה בזמן אמת בדף זה.
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="n" id="kFree">—</div><div class="l">מקומות פנויים (X)</div></div>
+    <div class="kpi"><div class="n" id="kOcc">—</div><div class="l">מקומות תפוסים (Y)</div></div>
+    <div class="kpi"><div class="n" id="kOccPct">—</div><div class="l">אחוז תפוסה</div></div>
+  </div>
+
+  <div class="grid cols2">
+    <section class="panel">
+      <h2>מפת חניות — פנוי (ירוק) / תפוס (אדום)</h2>
+      <canvas id="bayCanvas" width="640" height="360" role="img" aria-label="מפת חניות סינתטית"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--free)"></span>פנוי</span>
+        <span><span class="dot" style="background:var(--occ)"></span>תפוס</span>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>תפוסה שעתית (היום — מודל דמו)</h2>
+      <div class="chartwrap"><div id="hourlyChart"></div></div>
+    </section>
+  </div>
+
+  <section class="panel privacy" style="margin-top:14px">
+    <h2>פרטיות ואחסון</h2>
+    <ul>
+      <li><b>לא נשמרות לוחיות רישוי</b> — רק מונה תפוס/פנוי.</li>
+      <li><b>לא נשמר וידאו</b> — אין ארכיון הקלטות בדמו.</li>
+      <li><b>עיבוד בקצה המצלמה</b> — מספרים בלבד ללוח המפעיל; אין העברת צילום לענן בגרסה זו.</li>
+    </ul>
+  </section>
+
+  <div class="foot">ParkWiz · Refs #136 · המשך #120 #121 #123 · offline / GitHub Pages</div>
+</div>
+
+<script src="../src/lib/atidim-lot.js"></script>
+<script src="../src/lib/occupancy.js"></script>
+<script>
+"use strict";
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("../sw.js", { scope: "../" }).catch(function () {});
+}
+const LOT = window.ParkWizAtidimLot;
+const OCC = window.ParkWizOccupancy;
+let config = { ...LOT.DEFAULT };
+
+function drawBays(snapshot) {
+  const canvas = document.getElementById("bayCanvas");
+  const ctx = canvas.getContext("2d");
+  const cols = snapshot.cols || config.cols;
+  const rows = snapshot.rows || config.rows;
+  const pad = 16;
+  const gap = 8;
+  const w = canvas.width - pad * 2;
+  const h = canvas.height - pad * 2;
+  const cellW = (w - gap * (cols - 1)) / cols;
+  const cellH = (h - gap * (rows - 1)) / rows;
+  ctx.fillStyle = "#0f172a";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  snapshot.bays.forEach((occupied, i) => {
+    const c = i % cols;
+    const r = Math.floor(i / cols);
+    const x = pad + c * (cellW + gap);
+    const y = pad + r * (cellH + gap);
+    ctx.fillStyle = occupied ? "#dc2626" : "#16a34a";
+    ctx.strokeStyle = "rgba(255,255,255,.25)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(x, y, cellW, cellH, 6);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 14px system-ui,sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(String(i + 1), x + cellW / 2, y + cellH / 2);
+  });
+}
+
+function renderLive() {
+  const snap = LOT.liveSnapshot(new Date(), config);
+  document.getElementById("kFree").textContent = String(snap.free);
+  document.getElementById("kOcc").textContent = String(snap.occupied);
+  document.getElementById("kOccPct").textContent = OCC.pct(snap.pct);
+  drawBays(snap);
+}
+
+function renderChart() {
+  const series = LOT.hourlySeries(config);
+  document.getElementById("hourlyChart").innerHTML = OCC.chartSvg(series, {
+    width: 520,
+    height: 220,
+    stroke: "var(--brand)",
+  });
+}
+
+fetch("atidim-data.json")
+  .then((r) => (r.ok ? r.json() : LOT.DEFAULT))
+  .then((data) => {
+    config = { ...LOT.DEFAULT, ...data };
+    document.getElementById("siteTitle").textContent = config.site + " — מסך מפעיל (דמו)";
+    renderChart();
+    renderLive();
+    setInterval(renderLive, 60000);
+  })
+  .catch(() => {
+    renderChart();
+    renderLive();
+  });
+</script>
+</body>
+</html>
