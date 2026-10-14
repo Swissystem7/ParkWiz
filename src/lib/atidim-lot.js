@@ -69,6 +69,27 @@
     return out;
   }
 
+  // The order bays get taken in. A hash scatter rather than left-to-right, so
+  // the lot does not read as an obviously fake solid block on screen. Fixed
+  // order, so it is also monotone: a bay taken at 09:00 is still taken at
+  // 10:00, and dragging the demo hour makes cars arrive and leave instead of
+  // teleporting across the lot.
+  function arrivalOrder(total) {
+    const t = Math.max(0, Math.trunc(Number(total)) || 0);
+    const idx = [];
+    for (let i = 0; i < t; i++) idx.push(i);
+    return idx.sort((a, b) => ((a * 2654435761) % 1000003) - ((b * 2654435761) % 1000003));
+  }
+
+  function bayLayout(occupied, total) {
+    const t = Math.max(0, Math.trunc(Number(total)) || 0);
+    const occ = clampInt(occupied, 0, t);
+    const out = new Array(t).fill(false);
+    const order = arrivalOrder(t);
+    for (let i = 0; i < occ; i++) out[order[i]] = true;
+    return out;
+  }
+
   function hourlySeries(lot) {
     const l = lot || DEFAULT;
     const total = totalBays(l);
@@ -101,17 +122,22 @@
     return Number.isFinite(h) ? h : 0;
   }
 
-  function liveSnapshot(now, lot) {
+  // Any hour, so the operator page can scrub the day without faking a Date.
+  function snapshotAt(hour, lot) {
     const l = lot || DEFAULT;
-    const h = localHour(now, l.timezone);
-    const st = stateAt(h, l);
+    const st = stateAt(hour, l);
     return {
       ...st,
-      bays: bayStates(st.occupied, st.total),
+      bays: bayLayout(st.occupied, st.total),
       cols: l.cols,
       rows: l.rows,
       site: l.site || DEFAULT.site,
     };
+  }
+
+  function liveSnapshot(now, lot) {
+    const l = lot || DEFAULT;
+    return snapshotAt(localHour(now, l.timezone), l);
   }
 
   return {
@@ -120,8 +146,11 @@
     baselineRateForHour,
     stateAt,
     bayStates,
+    arrivalOrder,
+    bayLayout,
     hourlySeries,
     localHour,
+    snapshotAt,
     liveSnapshot,
     occupiedAtRate,
   };

@@ -41,6 +41,13 @@ test('bad pairs are rejected', () => {
 test('an empty or pair-less file keeps the saved pairs', () => {
   const saved = samplePairs.map(cmp.pairObservation);
   assert.equal(saved.length, 14);
+  // Blank text is a no-op, not an error: replacePairsFromText below relies on
+  // the empty list to decide it has nothing to replace. A non-string is still
+  // a caller bug and still throws.
+  assert.deepEqual(cmp.parsePairs(''), []);
+  assert.deepEqual(cmp.parsePairs('   \n'), []);
+  assert.throws(() => cmp.parsePairs(null), TypeError);
+  assert.throws(() => cmp.parsePairs(undefined), TypeError);
   for (const text of ['', '   \n', '[]', '{"foo":1}', 'not json']) {
     const res = cmp.replacePairsFromText(saved, text);
     assert.equal(res.replaced, false, JSON.stringify(text));
