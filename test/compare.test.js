@@ -41,7 +41,10 @@ test('bad pairs are rejected', () => {
 test('an empty or pair-less file keeps the saved pairs', () => {
   const saved = samplePairs.map(cmp.pairObservation);
   assert.equal(saved.length, 14);
-  assert.throws(() => cmp.parsePairs(''), TypeError);
+  // An empty string is a readable file with no pairs, so it parses to []. Only
+  // a non-string input (a stray null from a failed read) is a TypeError.
+  assert.deepEqual(cmp.parsePairs(''), []);
+  assert.throws(() => cmp.parsePairs(null), TypeError);
   for (const text of ['', '   \n', '[]', '{"foo":1}', 'not json']) {
     const res = cmp.replacePairsFromText(saved, text);
     assert.equal(res.replaced, false, JSON.stringify(text));
