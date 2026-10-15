@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v10';
+const CACHE = 'parkwiz-field-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -16,9 +16,6 @@ const ASSETS = [
   './pilot-log.html',
   './pilot-brief.html',
   './marketplace.html',
-  './demo/atidim.html',
-  // Fetched at runtime by demo/atidim.html for the operator-editable labels.
-  './demo/atidim-data.json',
   './manifest.json',
   './icon.svg',
   './availability-model.js',
@@ -41,7 +38,6 @@ const ASSETS = [
   './pilot/dataset/manifest.json',
   './pilot/dataset/labels.json',
   './src/lib/occupancy.js',
-  './src/lib/atidim-lot.js',
   './src/lib/heuristic.js',
   './src/lib/dataset.js',
   './src/lib/calibrate.js',
@@ -55,6 +51,10 @@ const ASSETS = [
   './src/lib/probability.js',
   './src/lib/availability.js',
   './src/lib/predict.js',
+  './src/lib/atidim-lot.js',
+  './demo/atidim.html',
+  // Operator-editable labels for the Atidim demo (PR #137 split).
+  './demo/atidim-data.json',
 ];
 
 self.addEventListener('install', (event) => {
