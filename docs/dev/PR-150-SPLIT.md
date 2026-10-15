@@ -1,5 +1,25 @@
 # Splitting PR #150 into auto_merger-sized PRs
 
+> **Status, 2026-10-15 — read this before following the plan below.**
+> This document was written against `master` at `e1a7549`. `master` has since
+> moved, and parts of PR #150 landed through a *different* split (#154
+> "part 2/5", #157 "part 5/5"). Two claims below are now stale:
+>
+> - **`master` is no longer red.** #162 fixed the `test/compare.test.js`
+>   assertion independently, asserting `parsePairs(null)` throws. This branch
+>   no longer touches that file; the wider blank-string cases ride with #149.
+> - **Slices 2–5 are superseded.** `master` already carries
+>   `demo/atidim.html`, `docs/launch/CITYZONE-ATIDIM.md`,
+>   `test/atidim-demo-page.test.js` and the camera-view work in
+>   `src/lib/atidim-lot.js`. The demo page was built by extending
+>   `src/lib/atidim-lot.js` rather than adding `src/lib/atidim-demo-lot.js`,
+>   and it draws its lot on a canvas instead of calling `OCC.chartSvg`. Do not
+>   replay slices 2–5 as written; the sizing method and the per-slice
+>   reasoning are what is still worth reading.
+>
+> Slice 1 — the `chartSvg({ markIndex })` helper and its test — is the only
+> part not on `master`, and it is what this branch ships.
+
 `auto_merger` merges PRs of at most **400 changed lines** (additions + deletions).
 PR #150 is `10 files changed, 897 insertions(+), 3 deletions(-)` = **900 changed
 lines**, so it can never merge as one piece. Refs #151.
@@ -59,12 +79,13 @@ Shipped as code on this branch.
   `-1 / 24 / 1.5 / NaN / null / '10' / true / {}` draw nothing. Replaces the
   `chart marker calls out one hour and is opt-in` case that PR #150 had buried
   in `test/atidim-demo.test.js`, and does not need the demo lot module.
-- `test/compare.test.js` — `master` asserts `parsePairs('')` throws
+- `test/compare.test.js` — `master` asserted `parsePairs('')` throws
   `TypeError`, but `src/lib/compare.js` returns `[]` for blank input (by
-  design — `replacePairsFromText` depends on it). **`npm test` on master is
-  currently 313/314 with that one failure.** PR #150 fixed it in passing; it
-  is 8 lines and unblocks CI for every slice below, so it rides along here
-  rather than waiting behind the Atidim work.
+  design — `replacePairsFromText` depends on it). PR #150 fixed it in passing;
+  it is 8 lines and unblocked CI for every slice below, so it rides along here
+  rather than waiting behind the Atidim work. **Superseded:** #162 has since
+  landed the same correction on `master` in its narrower form, so this branch
+  drops the file; the wider blank-string cases ride with #149.
 
 ### Slice 2 — demo lot model
 
@@ -158,50 +179,22 @@ From a worktree on `master` + slice 1:
 
 1. Materialized slices 2–5 (`git show 78e6be8:<path>` into place, including the
    `sw.js` patch) → `npm test` **337/337 pass**. Confirms slice 1's `markIndex`
-   is exactly what `demo/atidim.html` calls and what PR #150's page test
-   asserts.
+   is exactly what PR #150's `demo/atidim.html` calls and what its page test
+   asserts. (The `demo/atidim.html` that actually landed on `master` via #154
+   draws its lot on a canvas and does not call `OCC.chartSvg`, so `markIndex`
+   currently has no page caller.)
 2. Swapped in the split `test/atidim-demo.test.js` (78 lines) and
    `test/atidim-page-shell.test.js` (48 lines) → **336/336 pass**. Confirms the
    test split loses no coverage (the missing case moved to
    `test/occupancy-chart-mark.test.js` in slice 1, which adds six).
 3. Removed slices 2–5 again → **320/320 pass** on slice 1 alone, up from
-   master's 313/314.
+   master's then-313/314.
 
 ## Hand-off
 
 This branch carries slice 1 only. Slices 2–5 need a push per branch, which
-this worktree cannot do. After this PR merges:
-
-```sh
-# per slice, from a checkout that can push:
-git checkout master && git pull
-git checkout -b <slice-branch>
-# ...the checkout commands from the slice above...
-npm test
-git commit -am "<slice message>" && git push -u origin <slice-branch>
-gh pr create --fill --base master
-```
-
-Then close #150, pointing at the replacements:
-
-```sh
-gh pr close 150 --comment "$(cat <<'EOF'
-Closing in favour of smaller PRs: this one is 900 changed lines and
-auto_merger merges at most 400 (#151).
-
-Split into, in order:
-
-- #<n1> — shared `chartSvg({ markIndex })` marker + the stale
-  `test/compare.test.js` assertion that is red on master (80 lines)
-- #<n2> — `src/lib/atidim-demo-lot.js` + model tests (241 lines)
-- #<n3> — `demo/atidim.html`, `demo/atidim-data.json` and the offline shell
-  (374 lines)
-- #<n4> — `test/atidim-page.test.js`, the page behaviour test (210 lines)
-- #<n5> — `docs/launch/CITYZONE-ATIDIM.md`, the meeting runbook (53 lines)
-
-Nothing is dropped; the plan and the per-slice checkout commands are in
-`docs/dev/PR-150-SPLIT.md`. #<n1> and #<n2> are independent; #<n3>-#<n5>
-need the ones before them.
-EOF
-)"
-```
+this worktree cannot do — and per the status note at the top, they have been
+superseded by #154/#157 and should not be replayed verbatim. After this PR
+merges, the only follow-up worth opening is a caller for
+`chartSvg({ markIndex })` on the operator pages, or teaching
+`test/sw-precache.test.js` to recurse into `demo/`.
