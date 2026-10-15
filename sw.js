@@ -54,6 +54,7 @@ const ASSETS = [
   './src/lib/atidim-lot.js',
   './demo/atidim.html',
   './demo/atidim-board.html',
+  // Operator-editable labels for the Atidim demo.
   './demo/atidim-data.json',
 ];
 
