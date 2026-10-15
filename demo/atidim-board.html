@@ -43,6 +43,11 @@
   #bayCanvas{width:100%;max-width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#3f4650;display:block}
   .legend{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted)}
   .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:middle}
+  .mhead{font-size:1.05rem;font-weight:700;margin:4px 0 0}
+  .band{position:relative;height:13px;border-radius:7px;background:var(--line);margin:10px 0 8px;overflow:hidden}
+  .bandfill{position:absolute;top:0;bottom:0;background:var(--free);opacity:.8;border-radius:7px}
+  .mnote{font-size:13px;color:var(--muted);margin:4px 0 0}
+  .mtone{font-size:12px;color:var(--muted);margin:10px 0 0;font-weight:600}
   .chartwrap{overflow-x:auto}
   svg.chart{display:block;width:100%;height:auto}
   .privacy{font-size:13px;color:var(--muted)}
@@ -105,6 +110,27 @@
     </section>
   </div>
 
+  <!-- Waze-style margin (#201): a window of arrival times and the range of free
+       bays across it, never one number that reads as a spot held for the driver. -->
+  <section class="panel" style="margin-top:14px" aria-labelledby="marginTitle">
+    <h2 id="marginTitle">שולי הגעה — חלון, לא נקודה</h2>
+    <div class="ctl">
+      <label for="etaRange">זמן נסיעה</label>
+      <span class="hr" id="etaOut">—</span>
+      <input id="etaRange" type="range" min="0" max="45" step="1" value="8" dir="ltr" aria-label="זמן נסיעה בדקות עד החניון">
+      <label for="bufferRange">שולי ביטחון</label>
+      <span class="hr" id="bufferOut">—</span>
+      <input id="bufferRange" type="range" min="0" max="30" step="1" value="5" dir="ltr" aria-label="שולי ביטחון בדקות סביב זמן ההגעה">
+    </div>
+    <!-- Both sliders rewrite the window, so it is announced like the counters. -->
+    <div aria-live="polite">
+      <p class="mhead" id="marginHead">—</p>
+      <div class="band" dir="ltr" aria-hidden="true"><span class="bandfill" id="marginBand"></span></div>
+      <p class="mnote" id="marginAdvice"></p>
+    </div>
+    <p class="mtone" id="marginTone"></p>
+  </section>
+
   <section class="panel privacy" style="margin-top:14px">
     <h2>פרטיות ואחסון</h2>
     <ul>
@@ -119,6 +145,7 @@
 
 <script src="../src/lib/atidim-lot.js"></script>
 <script src="../src/lib/occupancy.js"></script>
+<script src="../src/lib/margin.js"></script>
 <script>
 "use strict";
 if ("serviceWorker" in navigator) {
@@ -126,10 +153,13 @@ if ("serviceWorker" in navigator) {
 }
 const LOT = window.ParkWizAtidimLot;
 const OCC = window.ParkWizOccupancy;
+const MARGIN = window.ParkWizMargin;
 const $ = (id) => document.getElementById(id);
 
 let config = { ...LOT.DEFAULT };
 let hour = 10;
+let eta = MARGIN.DEFAULT_ETA_MIN;
+let buffer = MARGIN.DEFAULT_BUFFER_MIN;
 // The page tracks the wall clock until the presenter grabs the slider, so the
 // demo opens on "now" but can still be walked through the whole day by hand.
 let follow = true;
@@ -253,6 +283,32 @@ function label(h) {
   return String(h).padStart(2, "0") + ":00";
 }
 
+// While the counters follow the clock the margin starts from the real minute;
+// once the presenter grabs the hour slider it starts at :00 of that hour.
+function marginStartMinutes() {
+  return follow ? LOT.localMinuteOfDay(new Date(), config.timezone) : hour * 60;
+}
+
+function renderMargin() {
+  $("etaOut").textContent = eta + " דק׳";
+  $("bufferOut").textContent = "±" + buffer + " דק׳";
+  $("etaRange").value = String(eta);
+  $("bufferRange").value = String(buffer);
+  const m = MARGIN.arrivalMargin({
+    freeByHour: MARGIN.freeByHourFromSeries(LOT.hourlySeries(config)), total: LOT.totalBays(config),
+    nowMinutes: marginStartMinutes(), etaMinutes: eta, bufferMinutes: buffer,
+  });
+  if (!m) { $("marginHead").textContent = "אין מספיק נתונים לחלון הגעה."; return; }
+  $("marginHead").textContent = m.headline;
+  $("marginAdvice").textContent = m.advice;
+  // No bare "N free at 10:38" anywhere: that is the number the margin replaces.
+  $("marginTone").textContent = m.tone + " · מגמה: " + m.trendLabel + " · שולי אי־ודאות: ±"
+    + m.slack + " מקומות — החלון מתרחב כשההגעה רחוקה יותר.";
+  const scale = 100 / (m.capacity || 1);
+  $("marginBand").style.left = m.low * scale + "%";
+  $("marginBand").style.width = Math.max(2, (m.high - m.low) * scale) + "%";
+}
+
 function render() {
   const snap = LOT.snapshotAt(hour, config);
   $("kFree").textContent = String(snap.free);
@@ -273,6 +329,7 @@ function render() {
     stroke: "var(--brand)",
     markIndex: hour,
   });
+  renderMargin();
 }
 
 function nowHour() {
@@ -289,6 +346,10 @@ function start() {
     hour = Number(e.target.value);
     render();
   });
+  // The two margin sliders move the window only — they must not drop the
+  // counters out of clock-follow the way the hour scrubber does.
+  $("etaRange").addEventListener("input", (e) => { eta = Number(e.target.value); renderMargin(); });
+  $("bufferRange").addEventListener("input", (e) => { buffer = Number(e.target.value); renderMargin(); });
   $("nowBtn").addEventListener("click", () => {
     follow = true;
     hour = nowHour();

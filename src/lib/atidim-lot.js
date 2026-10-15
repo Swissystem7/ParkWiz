@@ -396,6 +396,19 @@
     return Number.isFinite(h) ? ((h % 24) + 24) % 24 : 0;
   }
 
+  // Minute-of-day in the board's own time zone. The hour is enough for the
+  // counters, but an arrival margin is quoted in minutes (see src/lib/margin.js),
+  // so rounding "now" down to the hour would slide the whole window.
+  function localMinuteOfDay(now, timeZone) {
+    const d = now instanceof Date ? now : new Date(now);
+    if (Number.isNaN(d.getTime())) return 0;
+    const parts = lotClockParts(d, timeZone || DEFAULT.timezone);
+    const h = Number(parts.hour);
+    const m = Number(parts.minute);
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return 0;
+    return (((h % 24) + 24) % 24) * 60 + clampInt(m, 0, 59);
+  }
+
   // Any hour, so the board can scrub the day without faking a Date.
   function snapshotAt(hour, lot) {
     const l = lot || DEFAULT;
@@ -441,6 +454,7 @@
     bayLayout,
     hourlySeries,
     localHour,
+    localMinuteOfDay,
     snapshotAt,
     liveSnapshot,
     occupiedAtRate,
