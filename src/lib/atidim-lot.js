@@ -61,12 +61,14 @@
 
   // Wall-clock parts at the lot, falling back to the host's local time if the
   // runtime has no IANA time-zone data (old WebView, --without-intl build).
-  function lotClockParts(date) {
+  // `timeZone` is overridable so a demo page can honour the zone that came out
+  // of demo/atidim-data.json instead of hard-coding the lot's own.
+  function lotClockParts(date, timeZone) {
     const when = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
     try {
       const parts = {};
       const fmt = new Intl.DateTimeFormat('en-GB', {
-        timeZone: LOT_TIME_ZONE,
+        timeZone: timeZone || LOT_TIME_ZONE,
         hour12: false,
         year: 'numeric',
         month: '2-digit',
@@ -284,7 +286,9 @@
     site: 'פארק עתידים — חניון מגדלי A',
     cols: 6,
     rows: 3,
-    timezone: 'Asia/Jerusalem',
+    // Same zone as the camera model, named once — the two views of this lot
+    // must not be able to disagree about what hour it is.
+    timezone: LOT_TIME_ZONE,
   });
 
   function totalBays(lot) {
@@ -373,7 +377,7 @@
       const st = stateAt(h, l);
       series.push({
         hour: h,
-        ts: `2026-10-18T${String(h).padStart(2, '0')}:00:00`,
+        ts: `2026-10-18T${pad2(h)}:00:00`,
         street: l.site || DEFAULT.site,
         total,
         occupied: st.occupied,
@@ -383,18 +387,14 @@
     return series;
   }
 
+  // Hour-of-day in the demo lot's own time zone. Shares lotClockParts, so the
+  // demo clock gets the same no-Intl fallback and the same midnight-as-"24"
+  // fix the camera clock has, instead of its own second formatter.
   function localHour(now, timeZone) {
     const d = now instanceof Date ? now : new Date(now);
     if (Number.isNaN(d.getTime())) return 0;
-    const tz = timeZone || DEFAULT.timezone;
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: tz,
-      hour: '2-digit',
-      hour12: false,
-    }).formatToParts(d);
-    const hourPart = parts.find((p) => p.type === 'hour');
-    const h = Number(hourPart && hourPart.value);
-    return Number.isFinite(h) ? h : 0;
+    const h = Number(lotClockParts(d, timeZone || DEFAULT.timezone).hour);
+    return Number.isFinite(h) ? ((h % 24) + 24) % 24 : 0;
   }
 
   // Any hour, so the operator page can scrub the day without faking a Date.
