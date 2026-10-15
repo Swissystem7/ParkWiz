@@ -94,6 +94,9 @@ test('Hebrew RTL operator board page is offline-safe and meeting-ready', () => {
   assert.match(html, /id="bayCanvas"[^>]*width="640"[^>]*height="360"/);
   assert.match(html, /id="kFree"/);
   assert.match(html, /id="kOccPct"/);
+  // The counters change under the scrubber, so they live in a polite live
+  // region — same contract as the counters on demo/atidim.html.
+  assert.match(html, /class="kpis"[^>]*aria-live="polite"/);
   assert.match(html, /id="hourlyChart"/);
   assert.match(html, /id="kTotal"/);
   // Presenter controls: scrub the day, then jump back to the real hour.
