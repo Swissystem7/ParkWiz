@@ -2,14 +2,17 @@
 // Pure functions, zero dependencies, UMD pattern.
 //
 // Two views of the same lot live here, and they are deliberately separate:
-//   * The operator model (ATIDIM_LOT, getHourlyCurve, camera-spot helpers) —
-//     the real 220-space lot with its three camera feeds, used for occupancy
-//     stats and the camera-stream overlay.
-//   * The demo model (DEFAULT, snapshotAt, bayLayout, …) — an 18-bay synthetic
-//     lot with no camera feed, used by demo/atidim.html so the operator page
-//     renders reproducibly on a laptop with no hardware attached.
-// Keep both: the demo page must stay runnable offline, and the operator model
-// must stay the single source of truth for the real lot's numbers.
+//   * The camera model (ATIDIM_LOT, getHourlyCurve, CAMERA_VIEWS,
+//     createCameraSpots) — the real 220-space lot with its three camera feeds,
+//     behind demo/atidim.html: occupancy stats and the camera-stream overlay.
+//   * The board model (DEFAULT, snapshotAt, bayLayout, hourlySeries) — an
+//     18-bay synthetic lot with no camera feed, for the full-lot plan view and
+//     the day scrubber: deterministic and monotone at every hour of the day, so
+//     the page renders reproducibly on a laptop with no hardware attached.
+// Keep both: the board view must stay runnable offline at any hour, and the
+// camera model must stay the single source of truth for the real lot's numbers.
+// Both read the wall clock through lotClockParts, so neither can report an
+// hour the other disagrees with.
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -61,12 +64,14 @@
 
   // Wall-clock parts at the lot, falling back to the host's local time if the
   // runtime has no IANA time-zone data (old WebView, --without-intl build).
-  function lotClockParts(date) {
+  // `timeZone` is overridable so a page can honour the zone that came out of
+  // demo/atidim-data.json instead of hard-coding the lot's own.
+  function lotClockParts(date, timeZone) {
     const when = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
     try {
       const parts = {};
       const fmt = new Intl.DateTimeFormat('en-GB', {
-        timeZone: LOT_TIME_ZONE,
+        timeZone: timeZone || LOT_TIME_ZONE,
         hour12: false,
         year: 'numeric',
         month: '2-digit',
@@ -276,15 +281,15 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Operator demo lot (demo/atidim.html): no camera feed, hour-of-day curve plus
-  // a deterministic bay fill for the canvas and the stat tiles.
+  // Operator board lot: no camera feed, hour-of-day curve plus a deterministic
+  // bay fill for the plan view and the stat tiles.
   // ---------------------------------------------------------------------------
 
   const DEFAULT = Object.freeze({
     site: 'פארק עתידים — חניון מגדלי A',
     cols: 6,
     rows: 3,
-    timezone: 'Asia/Jerusalem',
+    timezone: LOT_TIME_ZONE,
   });
 
   function totalBays(lot) {
@@ -347,8 +352,8 @@
   // The order bays get taken in. A hash scatter rather than left-to-right, so
   // the lot does not read as an obviously fake solid block on screen. Fixed
   // order, so it is also monotone: a bay taken at 09:00 is still taken at
-  // 10:00, and dragging the demo hour makes cars arrive and leave instead of
-  // teleporting across the lot.
+  // 10:00, and dragging the board's hour makes cars arrive and leave instead
+  // of teleporting across the lot.
   function arrivalOrder(total) {
     const t = Math.max(0, Math.trunc(Number(total)) || 0);
     const idx = [];
@@ -373,7 +378,7 @@
       const st = stateAt(h, l);
       series.push({
         hour: h,
-        ts: `2026-10-18T${String(h).padStart(2, '0')}:00:00`,
+        ts: `2026-10-18T${pad2(h)}:00:00`,
         street: l.site || DEFAULT.site,
         total,
         occupied: st.occupied,
@@ -383,21 +388,19 @@
     return series;
   }
 
+  // Hour-of-day in the board's own time zone. Shares lotClockParts with the
+  // camera clock, which buys two things the hand-rolled Intl call did not have:
+  // the no-Intl fallback, and midnight reported as 0 instead of 24 (an
+  // hourCycle-h24 runtime answered "24", and baselineRateForHour(24) is 0 — the
+  // board drew an empty lot between 00:00 and 01:00 instead of the night floor).
   function localHour(now, timeZone) {
     const d = now instanceof Date ? now : new Date(now);
     if (Number.isNaN(d.getTime())) return 0;
-    const tz = timeZone || DEFAULT.timezone;
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: tz,
-      hour: '2-digit',
-      hour12: false,
-    }).formatToParts(d);
-    const hourPart = parts.find((p) => p.type === 'hour');
-    const h = Number(hourPart && hourPart.value);
-    return Number.isFinite(h) ? h : 0;
+    const h = Number(lotClockParts(d, timeZone || DEFAULT.timezone).hour);
+    return Number.isFinite(h) ? ((h % 24) + 24) % 24 : 0;
   }
 
-  // Any hour, so the operator page can scrub the day without faking a Date.
+  // Any hour, so the board can scrub the day without faking a Date.
   function snapshotAt(hour, lot) {
     const l = lot || DEFAULT;
     const st = stateAt(hour, l);
@@ -416,7 +419,7 @@
   }
 
   return {
-    // Operator model — the real 220-space lot and its camera feeds.
+    // Camera model — the real 220-space lot and its three camera feeds.
     ATIDIM_LOT,
     HOURLY_RATES,
     PEAK_THRESHOLD,
@@ -432,7 +435,7 @@
     calculateOccupancy,
     transitionSpot,
     validatePrivacyCompliance,
-    // Demo model — the 18-bay synthetic lot behind demo/atidim.html.
+    // Board model — the 18-bay synthetic lot and its day-long curve.
     DEFAULT,
     totalBays,
     baselineRateForHour,
