@@ -132,6 +132,43 @@
     return getHourlyCurve(capacity)[h];
   }
 
+  // Waze-style arrival margin (issue #201). The curve is a typical day, not a
+  // promise, so instead of one exact time the driver gets a window of ±N
+  // minutes around the planned arrival. N grows where the curve moves fast
+  // (cars arriving or leaving in a wave) and where the lot runs near full,
+  // because that is where a single prediction is most likely to be wrong.
+  const MARGIN_STEP_MIN = 5;
+  const MARGIN_MIN_MIN = 5;
+  const MARGIN_MAX_MIN = 30;
+
+  function clockLabel(totalMinutes) {
+    const m = ((Math.round(totalMinutes) % 1440) + 1440) % 1440;
+    return pad2(Math.floor(m / 60)) + ':' + pad2(m % 60);
+  }
+
+  function computeArrivalMargin(hour, capacity = ATIDIM_LOT.totalCapacity) {
+    const pt = hourlyPoint(hour, capacity);
+    const h = pt.hour;
+    const prev = HOURLY_RATES[(h + 23) % 24];
+    const next = HOURLY_RATES[(h + 1) % 24];
+    const swing = Math.max(Math.abs(pt.rate - prev), Math.abs(next - pt.rate));
+    const fullness = pt.rate >= PEAK_THRESHOLD ? 10 : (pt.rate >= 0.7 ? 5 : 0);
+    const raw = MARGIN_MIN_MIN + swing * 40 + fullness;
+    const marginMinutes = clamp(Math.round(raw / MARGIN_STEP_MIN) * MARGIN_STEP_MIN, MARGIN_MIN_MIN, MARGIN_MAX_MIN);
+    const from = clockLabel(h * 60 - marginMinutes);
+    const to = clockLabel(h * 60 + marginMinutes);
+    return {
+      hour: h,
+      label: pt.label,
+      expectedAvailable: pt.available,
+      marginMinutes,
+      from,
+      to,
+      textHe: 'הגעה ב-' + pt.label + '? תכננו חלון ' + from + '–' + to + ' (±' + marginMinutes +
+        ' דק׳) · צפויים כ-' + pt.available + ' מקומות פנויים · חיזוי, לא הבטחה.',
+    };
+  }
+
   // Overlay geometry per camera. Each camera watches a different zone, so
   // switching cameras in the demo has to change the frame, the monitored stall
   // count and the HUD banner — not just the button that looks pressed.
@@ -426,6 +463,7 @@
     lotHour,
     getHourlyCurve,
     hourlyPoint,
+    computeArrivalMargin,
     createCameraSpots,
     createDefaultCameraSpots,
     calculateOccupancy,
