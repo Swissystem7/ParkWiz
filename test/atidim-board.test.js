@@ -1,6 +1,6 @@
-// The demo page markup on master (#154/#155) is asserted by
-// test/atidim-demo-page.test.js; this file covers the demo lot model, the
-// shared chart marker, the labels file and the offline shell entries.
+// The board model behind demo/atidim-board.html: an 18-bay synthetic lot with
+// a day-long curve, kept separate from the 220-space camera model that
+// demo/atidim.html draws (see test/atidim-lot-camera-views.test.js).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -11,9 +11,10 @@ const lot = require('../src/lib/atidim-lot');
 const occ = require('../src/lib/occupancy');
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 
+const htmlPath = path.join(root, 'demo', 'atidim-board.html');
 const dataPath = path.join(root, 'demo', 'atidim-data.json');
 
-test('Atidim lot model uses 18 bays and peaks in business hours', () => {
+test('Atidim board lot uses 18 bays and peaks in business hours', () => {
   assert.equal(lot.totalBays(lot.DEFAULT), 18);
   const morning = lot.stateAt(10, lot.DEFAULT);
   const night = lot.stateAt(3, lot.DEFAULT);
@@ -83,13 +84,52 @@ test('chart marker calls out one hour and is opt-in', () => {
   }
 });
 
-test('service worker precaches the Atidim demo shell', () => {
+test('Hebrew RTL operator board page is offline-safe and meeting-ready', () => {
+  const html = fs.readFileSync(htmlPath, 'utf8');
+  const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  assert.equal(data.cols * data.rows, 18);
+  assert.match(html, /lang="he"/);
+  assert.match(html, /dir="rtl"/);
+  assert.match(html, /class="banner"/);
+  assert.match(html, /id="bayCanvas"[^>]*width="640"[^>]*height="360"/);
+  assert.match(html, /id="kFree"/);
+  assert.match(html, /id="kOccPct"/);
+  // The counters change under the scrubber, so they live in a polite live
+  // region — same contract as the counters on demo/atidim.html.
+  assert.match(html, /class="kpis"[^>]*aria-live="polite"/);
+  assert.match(html, /id="hourlyChart"/);
+  assert.match(html, /id="kTotal"/);
+  // Presenter controls: scrub the day, then jump back to the real hour.
+  assert.match(html, /id="hourRange"[^>]*type="range"/);
+  assert.match(html, /id="nowBtn"/);
+  assert.match(html, /max="23"/);
+  assert.match(html, /לא נשמרות לוחיות|אין שמירת לוחיות/);
+  assert.match(html, /לא נשמר וידאו|אין שמירת וידאו/);
+  assert.match(html, /עיבוד בקצה|בקצה המצלמה/);
+  assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
+  assert.match(html, /src\/lib\/atidim-lot\.js/);
+  assert.match(html, /fetch\(\s*["']atidim-data\.json["']\s*\)/);
+});
+
+test('the two Atidim demo pages link to each other', () => {
+  const board = fs.readFileSync(htmlPath, 'utf8');
+  const camera = fs.readFileSync(path.join(root, 'demo', 'atidim.html'), 'utf8');
+  assert.match(board, /href="\.\/atidim\.html"/, 'board page points at the camera demo');
+  assert.match(camera, /href="\.\/atidim-board\.html"/, 'camera demo points at the board page');
+});
+
+test('service worker precaches both Atidim demo shells', () => {
   const block = sw.slice(sw.indexOf('const ASSETS'), sw.indexOf('];') + 2);
   const assets = [...block.matchAll(/'(\.\/[^']*)'/g)].map((m) => m[1]);
-  assert.ok(assets.includes('./demo/atidim.html'));
-  assert.ok(assets.includes('./demo/atidim-data.json'));
-  assert.ok(assets.includes('./src/lib/atidim-lot.js'));
-  for (const rel of ['./demo/atidim.html', './demo/atidim-data.json', './src/lib/atidim-lot.js']) {
+  const needed = [
+    './demo/atidim.html',
+    './demo/atidim-board.html',
+    './demo/atidim-data.json',
+    './src/lib/atidim-lot.js',
+    './src/lib/occupancy.js',
+  ];
+  for (const rel of needed) {
+    assert.ok(assets.includes(rel), rel + ' must be precached');
     assert.ok(fs.existsSync(path.join(root, rel.replace(/^\.\//, ''))), rel);
   }
 });
