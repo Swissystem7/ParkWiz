@@ -124,6 +124,8 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
       <div style="font-size:11.5px;color:var(--muted);margin-top:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
         <span id="chartPeak">שעות שיא</span><span style="color:var(--brand)" id="chartNow">● השעה הנוכחית</span>
       </div>
+      <!-- Waze-style margin (#201): a window, not a single time. -->
+      <p class="hint" id="arrivalMargin" role="note">מרווח הגעה: מחשב…</p>
     </section>
 
     <section class="card" aria-label="חיבור מצלמות וארכיטקטורה">
@@ -262,6 +264,10 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
     }
     const now = curve[nowHour];
     document.getElementById('chartNow').textContent = '● השעה הנוכחית (' + now.label + ' · ' + now.percentage + '%)';
+    // Margin for an arrival at the next full hour, phrased as a window so the
+    // driver leaves early instead of racing one predicted minute.
+    document.getElementById('arrivalMargin').textContent = 'מרווח הגעה (בסגנון Waze): ' +
+      model.computeArrivalMargin((nowHour + 1) % 24, CAPACITY).textHe;
   }
 
   function refresh() { updateMetrics(); drawScene(); }
