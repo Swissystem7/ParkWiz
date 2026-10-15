@@ -1,6 +1,17 @@
 // ParkWiz — Park Atidim (CityZone) parking-lot occupancy model.
 // Pure functions, zero dependencies, UMD pattern.
-// Specifically tailored for lot operators (camera stream overlay, occupancy stats, hourly curve).
+//
+// Two views of the same lot live here, and they are deliberately separate:
+//   * The operator camera model (ATIDIM_LOT, getHourlyCurve, CAMERA_VIEWS,
+//     createCameraSpots) — the real 220-space lot with its three camera feeds,
+//     behind demo/atidim.html: occupancy stats and the camera-stream overlay.
+//   * The board model (DEFAULT, snapshotAt, bayLayout, hourlySeries) — an
+//     18-bay synthetic lot with no camera feed, behind demo/atidim-board.html,
+//     so the plan view and the day scrubber render reproducibly on a laptop
+//     with no hardware attached.
+// Keep both: the board page must stay runnable offline on any hour of the day,
+// and the camera model must stay the single source of truth for the real lot's
+// numbers.
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -52,12 +63,14 @@
 
   // Wall-clock parts at the lot, falling back to the host's local time if the
   // runtime has no IANA time-zone data (old WebView, --without-intl build).
-  function lotClockParts(date) {
+  // `timeZone` is overridable so the board page can honour the zone that came
+  // out of demo/atidim-data.json instead of hard-coding the lot's own.
+  function lotClockParts(date, timeZone) {
     const when = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
     try {
       const parts = {};
       const fmt = new Intl.DateTimeFormat('en-GB', {
-        timeZone: LOT_TIME_ZONE,
+        timeZone: timeZone || LOT_TIME_ZONE,
         hour12: false,
         year: 'numeric',
         month: '2-digit',
@@ -266,7 +279,143 @@
     };
   }
 
+  // ---------------------------------------------------------------------------
+  // Operator board lot (demo/atidim-board.html): no camera feed, hour-of-day
+  // curve plus a deterministic bay fill for the plan view and the stat tiles.
+  // ---------------------------------------------------------------------------
+
+  const DEFAULT = Object.freeze({
+    site: 'פארק עתידים — חניון מגדלי A',
+    cols: 6,
+    rows: 3,
+    timezone: LOT_TIME_ZONE,
+  });
+
+  function totalBays(lot) {
+    const l = lot || DEFAULT;
+    const c = Number(l.cols);
+    const r = Number(l.rows);
+    if (!Number.isFinite(c) || !Number.isFinite(r) || c <= 0 || r <= 0) return 0;
+    return c * r;
+  }
+
+  // Weekday office-park curve (0–1). Peaks mid-morning and late afternoon.
+  function baselineRateForHour(hour) {
+    const h = Number(hour);
+    if (!Number.isFinite(h) || h < 0 || h > 23) return 0;
+    if (h < 6 || h >= 22) return 0.12;
+    if (h >= 7 && h < 9) return 0.35 + (h - 7) * 0.12;
+    if (h >= 9 && h < 12) return 0.68 + (h === 10 ? 0.06 : 0);
+    if (h === 12) return 0.55;
+    if (h >= 13 && h < 17) return 0.62 + (h === 15 ? 0.08 : 0);
+    if (h >= 17 && h < 20) return 0.48 - (h - 17) * 0.08;
+    return 0.22;
+  }
+
+  function clampInt(n, min, max) {
+    return Math.max(min, Math.min(max, Math.round(n)));
+  }
+
+  function occupiedAtRate(total, rate) {
+    const t = Number(total);
+    const r = Math.max(0, Math.min(1, Number(rate)));
+    if (!Number.isFinite(t) || t <= 0) return 0;
+    return clampInt(r * t, 0, t);
+  }
+
+  function stateAt(hour, lot) {
+    const l = lot || DEFAULT;
+    const total = totalBays(l);
+    const rate = baselineRateForHour(hour);
+    const occupied = occupiedAtRate(total, rate);
+    const free = total - occupied;
+    return {
+      hour: Number(hour),
+      total,
+      occupied,
+      free,
+      rate,
+      pct: total ? occupied / total : 0,
+    };
+  }
+
+  // Deterministic fill: lowest indices occupied first (stable for demo screenshots).
+  function bayStates(occupied, total) {
+    const t = Number(total);
+    const occ = clampInt(occupied, 0, t);
+    const out = [];
+    for (let i = 0; i < t; i++) out.push(i < occ);
+    return out;
+  }
+
+  // The order bays get taken in. A hash scatter rather than left-to-right, so
+  // the lot does not read as an obviously fake solid block on screen. Fixed
+  // order, so it is also monotone: a bay taken at 09:00 is still taken at
+  // 10:00, and dragging the board's hour makes cars arrive and leave instead
+  // of teleporting across the lot.
+  function arrivalOrder(total) {
+    const t = Math.max(0, Math.trunc(Number(total)) || 0);
+    const idx = [];
+    for (let i = 0; i < t; i++) idx.push(i);
+    return idx.sort((a, b) => ((a * 2654435761) % 1000003) - ((b * 2654435761) % 1000003));
+  }
+
+  function bayLayout(occupied, total) {
+    const t = Math.max(0, Math.trunc(Number(total)) || 0);
+    const occ = clampInt(occupied, 0, t);
+    const out = new Array(t).fill(false);
+    const order = arrivalOrder(t);
+    for (let i = 0; i < occ; i++) out[order[i]] = true;
+    return out;
+  }
+
+  function hourlySeries(lot) {
+    const l = lot || DEFAULT;
+    const total = totalBays(l);
+    const series = [];
+    for (let h = 0; h < 24; h++) {
+      const st = stateAt(h, l);
+      series.push({
+        hour: h,
+        ts: `2026-10-18T${pad2(h)}:00:00`,
+        street: l.site || DEFAULT.site,
+        total,
+        occupied: st.occupied,
+        source: 'atidim-demo',
+      });
+    }
+    return series;
+  }
+
+  // Hour-of-day in the board's own time zone. Shares lotClockParts, so the
+  // board gets the same no-Intl fallback the camera clock has.
+  function localHour(now, timeZone) {
+    const d = now instanceof Date ? now : new Date(now);
+    if (Number.isNaN(d.getTime())) return 0;
+    const h = Number(lotClockParts(d, timeZone || DEFAULT.timezone).hour);
+    return Number.isFinite(h) ? ((h % 24) + 24) % 24 : 0;
+  }
+
+  // Any hour, so the board can scrub the day without faking a Date.
+  function snapshotAt(hour, lot) {
+    const l = lot || DEFAULT;
+    const st = stateAt(hour, l);
+    return {
+      ...st,
+      bays: bayLayout(st.occupied, st.total),
+      cols: l.cols,
+      rows: l.rows,
+      site: l.site || DEFAULT.site,
+    };
+  }
+
+  function liveSnapshot(now, lot) {
+    const l = lot || DEFAULT;
+    return snapshotAt(localHour(now, l.timezone), l);
+  }
+
   return {
+    // Camera model — the real 220-space lot and its three camera feeds.
     ATIDIM_LOT,
     HOURLY_RATES,
     PEAK_THRESHOLD,
@@ -282,5 +431,18 @@
     calculateOccupancy,
     transitionSpot,
     validatePrivacyCompliance,
+    // Board model — the 18-bay synthetic lot behind demo/atidim-board.html.
+    DEFAULT,
+    totalBays,
+    baselineRateForHour,
+    stateAt,
+    bayStates,
+    arrivalOrder,
+    bayLayout,
+    hourlySeries,
+    localHour,
+    snapshotAt,
+    liveSnapshot,
+    occupiedAtRate,
   };
 });
