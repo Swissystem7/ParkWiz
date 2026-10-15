@@ -2513,7 +2513,11 @@ function finishNavigation() {
   });
   if (nearest) { nearest.taken = true; userPos = { x:nearest.x, y:nearest.y }; positionUserDot(); }
   showToast('✅ סוף הדמיית הניווט — החניה סומנה כתפוסה בדפדפן הזה בלבד');
-  userScore += 20; updateXP(20);
+  // Same buyer-view rule as doReportLeaving (#113): only the driver demo
+  // credits XP. In the buyer view the XP widget is hidden, so updateXP would
+  // drop a "+20 XP" pop at the page corner (the hidden widget's rect is 0,0)
+  // right after a toast that never promised points.
+  if (document.body.classList.contains('consumer-demo-on')) creditXp(20);
   renderRoutePanel();
   renderAll();
 }
