@@ -77,12 +77,14 @@
     <span class="note" id="followNote"></span>
   </div>
 
-  <div class="kpis">
+  <!-- Live region, like demo/atidim.html: dragging the hour rewrites these
+       four numbers, and a screen reader has to hear the new ones. -->
+  <section class="kpis" aria-label="מדדי תפוסה בשעה שמוצגת" aria-live="polite">
     <div class="kpi free"><div class="n" id="kFree">—</div><div class="l">מקומות פנויים (X)</div></div>
     <div class="kpi occ"><div class="n" id="kOcc">—</div><div class="l">מקומות תפוסים (Y)</div></div>
     <div class="kpi"><div class="n" id="kOccPct">—</div><div class="l">אחוז תפוסה</div></div>
     <div class="kpi"><div class="n" id="kTotal">—</div><div class="l">סה״כ מקומות בחניון</div></div>
-  </div>
+  </section>
 
   <div class="grid cols2">
     <section class="panel">
