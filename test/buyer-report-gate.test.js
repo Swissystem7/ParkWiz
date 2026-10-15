@@ -25,3 +25,11 @@ test('in buyer view a report earns no XP and the toast says it stayed in this br
   assert.match(body, /if \(driverDemo\) creditXp\(xpGain\)/);
   assert.match(body, /הדיווח נרשם בדפדפן הזה בלבד/);
 });
+
+test('in buyer view a scheduled "leaving in N min" report earns no XP either', () => {
+  const i = html.indexOf('function addFutureReport(');
+  const body = html.slice(i, html.indexOf('\n}\n', i));
+  assert.match(body, /if \(driverDemo\) creditXp\(xpGain\)/);
+  assert.match(body, /דיווח עתידי נרשם בדפדפן הזה בלבד/);
+  assert.doesNotMatch(body, /^\s*creditXp\(xpGain\);/m, 'XP is never credited unconditionally');
+});
