@@ -56,6 +56,12 @@
         btn.classList.remove('show');
       });
     }
+    // Installed from the browser menu instead of our button: the saved prompt
+    // is spent, so hide the button rather than offer an install that cannot run.
+    window.addEventListener('appinstalled', function () {
+      deferredPrompt = null;
+      if (btn) btn.classList.remove('show');
+    });
   }
 
   function boot() {

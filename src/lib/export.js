@@ -147,6 +147,15 @@
     const inUnit = (v) => v == null || (v >= 0 && v <= 1);
     if (!inUnit(meanAccuracy) || !inUnit(minAccuracy) || !inUnit(maxAccuracy)) return null;
     if (minAccuracy != null && maxAccuracy != null && minAccuracy > maxAccuracy) return null;
+    // A mean can never sit outside its own min..max. The encoder sends the raw
+    // sum / count, which may overshoot by a rounding hair (three 0.1s average
+    // to 0.10000000000000002), so allow that much and no more.
+    const EPS = 1e-9;
+    if (meanAccuracy != null && minAccuracy != null && meanAccuracy < minAccuracy - EPS) return null;
+    if (meanAccuracy != null && maxAccuracy != null && meanAccuracy > maxAccuracy + EPS) return null;
+    // An empty series has no figures: n = 0 with an accuracy or a perfect
+    // count would print a score for zero measurements.
+    if (n === 0 && (meanAccuracy != null || minAccuracy != null || maxAccuracy != null || meanAbsError != null || perfect > 0)) return null;
     if (meanAbsError != null && meanAbsError < 0) return null;
     if (perfect == null || perfect < 0 || perfect !== Math.floor(perfect) || perfect > n) return null;
     if (lastTotal != null && lastTotal < 0) return null;

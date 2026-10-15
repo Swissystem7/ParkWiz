@@ -20,6 +20,13 @@ test('ignores spaces and dashes already in the input', () => {
   assert.equal(normalizePlate(' 12 34 567 ').formatted, '12-345-67');
 });
 
+test('accepts en dash, em dash and Hebrew maqaf as separators', () => {
+  assert.equal(normalizePlate('12–345–67').formatted, '12-345-67');
+  assert.equal(normalizePlate('123—45—678').formatted, '123-45-678');
+  assert.equal(normalizePlate('12־345־67').formatted, '12-345-67');
+  assert.equal(normalizePlate('12–345–67').plate, '1234567');
+});
+
 test('rejects plates that are too short or too long', () => {
   assert.equal(normalizePlate('123456').valid, false);
   assert.equal(normalizePlate('123456789').valid, false);

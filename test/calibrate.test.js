@@ -49,6 +49,21 @@ test('calibration wizard is Hebrew RTL with a timer and honesty banner', () => {
   assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
 });
 
+test('underTarget never reports an untimed or invalid elapsed as under target', () => {
+  assert.equal(cal.underTarget(null), false);
+  assert.equal(cal.underTarget(undefined), false);
+  assert.equal(cal.underTarget(''), false);
+  assert.equal(cal.underTarget('abc'), false);
+  assert.equal(cal.underTarget(-1), false);
+  assert.equal(cal.underTarget(0), true);
+  assert.equal(cal.underTarget(180000), true);
+});
+
+test('calibration wizard does not claim a save time when the clock never started', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'pilot-calibrate.html'), 'utf8');
+  assert.match(html, /if \(!state\.startedAt\) \{\s*note\.textContent = "כיול נשמר \(השעון לא הופעל/);
+});
+
 test('formatClock returns null for non-numeric input', () => {
   assert.strictEqual(cal.formatClock('invalid'), null);
 });
@@ -94,4 +109,25 @@ test('buildPack stores savedAt as a string even when given a number', () => {
   assert.equal(pack.savedAt, '1700000000000');
   const fresh = cal.buildPack({ street: 'הרצל', savedAt: '', spots: [] });
   assert.match(fresh.savedAt, /^\d{4}-\d{2}-\d{2}T/);
+});
+
+test('a null stat in an imported reference is missing, not a real zero', () => {
+  // JSON.stringify writes a NaN median or percentile as null.
+  const spot = cal.normalizeSpot({
+    x: 0.1, y: 0.1, w: 0.2, h: 0.2,
+    emptyRef: { mean: 120, median: null, variance: 4, p10: null, p90: 140 },
+    nightRef: { mean: null, median: 28 },
+  }, 0);
+  assert.equal(spot.emptyRef.median, 120);
+  assert.equal(spot.emptyRef.p10, 120);
+  assert.equal(spot.emptyRef.p90, 120);
+  assert.equal(spot.nightRef, null);
+  assert.equal(cal.normalizeSpot({ x: 0.1, y: 0.1, w: 0.2, h: 0.2, emptyRef: { mean: '', median: 5 } }, 0).emptyRef, null);
+});
+
+test('a spot with a blank or boolean coordinate is dropped instead of pinned to 0', () => {
+  assert.equal(cal.normalizeSpot({ x: null, y: 0.1, w: 0.2, h: 0.2 }, 0), null);
+  assert.equal(cal.normalizeSpot({ x: 0.1, y: '', w: 0.2, h: 0.2 }, 0), null);
+  assert.equal(cal.normalizeSpot({ x: false, y: 0.1, w: 0.2, h: 0.2 }, 0), null);
+  assert.equal(cal.normalizeSpot({ x: '0.1', y: 0, w: 0.2, h: 0.2 }, 0).x, 0.1);
 });

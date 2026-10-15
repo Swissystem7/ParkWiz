@@ -8,7 +8,9 @@
 // the raw value of a text field, so no caller changes behaviour.
 //
 // Accepted formats: 7 digits -> XX-XXX-XX, 8 digits -> XXX-XX-XXX.
-// Spaces and dashes in the input are ignored.
+// Spaces and dashes in the input are ignored. Any Unicode dash counts, not just
+// the ASCII hyphen: a plate pasted from a Hebrew document or a phone keyboard
+// often carries an en dash (12–345–67) or the Hebrew maqaf (12־345־67).
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -18,7 +20,7 @@
 
   function normalizePlate(input) {
     if (typeof input !== 'string') return { ...INVALID };
-    const plate = input.replace(/[\s-]/g, '');
+    const plate = input.replace(/[\s\p{Pd}]/gu, '');
     if (!/^\d{7,8}$/.test(plate)) return { ...INVALID };
     const formatted = plate.length === 7
       ? `${plate.slice(0, 2)}-${plate.slice(2, 5)}-${plate.slice(5)}`

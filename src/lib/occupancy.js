@@ -19,14 +19,21 @@
     calibration: 'pw_pilot_calibration',
   });
 
+  // Only numbers and non-blank numeric strings count. Number('') and
+  // Number(true) are 0 and 1, so an empty spreadsheet cell used to read as
+  // zero cars and shadow the occupancyRate fallback for that record.
   function num(v) {
+    if (typeof v !== 'number' && (typeof v !== 'string' || !v.trim())) return null;
     const n = Number(v);
     return Number.isFinite(n) ? n : null;
   }
 
   function occupancyRate(r) {
-    if (!r || !r.total) return 0;
-    return r.occupied / r.total;
+    if (!r || typeof r !== 'object') return 0;
+    const total = num(r.total);
+    const occupied = num(r.occupied);
+    if (total == null || total <= 0 || occupied == null) return 0;
+    return occupied / total;
   }
 
   // Agreement between heuristic/system count and a manual inspector count.
@@ -227,11 +234,13 @@
       grid += `<line x1="${m.l}" y1="${yy}" x2="${m.l + iw}" y2="${yy}" stroke="#e5e7eb"/>`;
       grid += `<text x="${m.l - 6}" y="${yy + 4}" text-anchor="end" font-size="11" fill="#6b7280">${g}%</text>`;
     }
+    // Axis labels use the hour as recorded (same as the heatmap), not
+    // Date#getHours, which shifted every label by the viewer's UTC offset.
     const step = Math.max(1, Math.ceil(n / 8));
     list.forEach((r, i) => {
       if (i % step) return;
-      const d = new Date(r.ts);
-      const lbl = isNaN(d) ? String(i + 1) : String(d.getHours()).padStart(2, '0') + ':00';
+      const h = hourFromTs(r.ts);
+      const lbl = h == null ? String(i + 1) : String(h).padStart(2, '0') + ':00';
       xlab += `<text x="${x(i)}" y="${H - 10}" text-anchor="middle" font-size="11" fill="#6b7280">${lbl}</text>`;
     });
     const line = list.map((r, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(occupancyRate(r)).toFixed(1)}`).join(' ');

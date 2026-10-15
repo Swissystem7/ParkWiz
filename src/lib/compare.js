@@ -18,8 +18,13 @@
   // a non-blank numeric string is a count; everything else is missing (NaN),
   // and inspectorAccuracy then rejects the pair.
   function count(value) {
-    if (typeof value === 'number') return value;
-    if (typeof value === 'string' && value.trim() !== '') return Number(value);
+    if (typeof value === 'number') return Number.isFinite(value) ? value : NaN;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed === '') return NaN;
+      const n = Number(trimmed);
+      return Number.isFinite(n) ? n : NaN;
+    }
     return NaN;
   }
 
@@ -85,7 +90,10 @@
   }
 
   function parsePairs(text) {
-    const raw = normalizePack(text);
+    if (typeof text !== 'string') {
+      throw new TypeError('Input must be a string');
+    }
+    const raw = text.trim();
     if (!raw) return [];
     let list = [];
     if (raw[0] === '[') {
@@ -106,8 +114,11 @@
   // A loaded file replaces the saved pairs only when it actually holds pairs.
   // An empty or unreadable file must not wipe what the browser already has.
   function replacePairsFromText(current, text) {
-    const loaded = parsePairs(text);
     const kept = Array.isArray(current) ? current : [];
+    if (typeof text !== 'string' || !text.trim()) {
+      return { pairs: kept, replaced: false, count: 0 };
+    }
+    const loaded = parsePairs(text);
     if (!loaded.length) return { pairs: kept, replaced: false, count: 0 };
     return { pairs: loaded, replaced: true, count: loaded.length };
   }
@@ -173,6 +184,7 @@
   }
 
   return {
+    count,
     pairObservation,
     pairFromOccupancy,
     parsePairs,

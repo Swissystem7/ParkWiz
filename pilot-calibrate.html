@@ -444,9 +444,14 @@ function savePack() {
     }));
   } catch (e) { /* quota */ }
   download("calibration.json", JSON.stringify(pack, null, 2));
-  const elapsed = state.startedAt ? Date.now() - state.startedAt : 0;
+  const note = document.getElementById("estNote");
+  if (!state.startedAt) {
+    note.textContent = "כיול נשמר (השעון לא הופעל — אין זמן למדוד). הקובץ מסומן heuristic-occupancy.";
+    return;
+  }
+  const elapsed = Date.now() - state.startedAt;
   const clock = CAL.formatClock(elapsed);
-  document.getElementById("estNote").textContent =
+  note.textContent =
     (CAL.underTarget(elapsed) ? "כיול נשמר תוך " : "כיול נשמר אחרי ") +
     clock + ". הקובץ מסומן heuristic-occupancy.";
 }

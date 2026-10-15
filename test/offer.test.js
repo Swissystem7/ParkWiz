@@ -5,13 +5,13 @@ const path = require('node:path');
 const offer = require('../src/lib/offer');
 
 test('formats shekels and rejects a fake official 2026 exemption file', () => {
-  assert.equal(offer.formatIls(169800), '169,800 ₪');
+  assert.equal(offer.formatIls(171500), '171,500 ₪');
   assert.equal(offer.formatIls(0), '0 ₪');
   assert.equal(offer.formatIls(null), '—');
   assert.equal(offer.EXEMPTION.baseIls, 26000);
-  assert.equal(offer.EXEMPTION.thirdPartyIls, 169800);
+  assert.equal(offer.EXEMPTION.thirdPartyIls, 171500);
   assert.equal(offer.EXEMPTION.official2026File, null);
-  assert.equal(offer.aboveExemption(169800), true);
+  assert.equal(offer.aboveExemption(171500), true);
   assert.equal(offer.aboveExemption(48000), false);
 });
 
