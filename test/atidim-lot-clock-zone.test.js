@@ -6,7 +6,7 @@
 // runtimes with no IANA zone data and the midnight-reported-as-"24" fix. Both
 // now go through lotClockParts, which takes an overridable zone so a demo page
 // can honour the zone that came out of demo/atidim-data.json.
-// Slice 1 of the PR #194 split — see docs/dev/PR-194-SPLIT.md.
+// Pinned when PR #184 was resolved against master (Refs #191, #195; test folded from the Lenovo loop's #194).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 

@@ -41,7 +41,13 @@ test('bad pairs are rejected', () => {
 test('an empty or pair-less file keeps the saved pairs', () => {
   const saved = samplePairs.map(cmp.pairObservation);
   assert.equal(saved.length, 14);
+  // Blank text is a no-op, not an error: replacePairsFromText below relies on
+  // the empty list to decide it has nothing to replace. A non-string is still
+  // a caller bug and still throws.
+  assert.deepEqual(cmp.parsePairs(''), []);
+  assert.deepEqual(cmp.parsePairs('   \n'), []);
   assert.throws(() => cmp.parsePairs(null), TypeError);
+  assert.throws(() => cmp.parsePairs(undefined), TypeError);
   for (const text of ['', '   \n', '[]', '{"foo":1}', 'not json']) {
     const res = cmp.replacePairsFromText(saved, text);
     assert.equal(res.replaced, false, JSON.stringify(text));
@@ -114,9 +120,20 @@ test('normalizePack returns trimmed text for valid string input', () => {
   assert.equal(cmp.normalizePack('  [{"x":1}]  '), '[{"x":1}]');
 });
 
+// parsePairs and normalizePack treat blank input differently on purpose, and
+// conflating the two is what broke this file before: normalizePack rejects a
+// blank pack because there is nothing to normalize, while parsePairs reads a
+// file the operator picked and reports "no pairs in it" so the caller can keep
+// the saved pairs. Only a non-string is a programming error for parsePairs.
 test('parsePairs returns no pairs for empty or whitespace-only input', () => {
-  for (const bad of ['', '   ']) {
+  for (const bad of ['', '   ', '\t\n']) {
     assert.deepEqual(cmp.parsePairs(bad), []);
+  }
+});
+
+test('parsePairs throws TypeError only for non-string input', () => {
+  for (const bad of [null, undefined, 0, [], {}]) {
+    assert.throws(() => cmp.parsePairs(bad), TypeError);
   }
 });
 
