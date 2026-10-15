@@ -114,9 +114,20 @@ test('normalizePack returns trimmed text for valid string input', () => {
   assert.equal(cmp.normalizePack('  [{"x":1}]  '), '[{"x":1}]');
 });
 
+// parsePairs and normalizePack treat blank input differently on purpose, and
+// conflating the two is what broke this file before: normalizePack rejects a
+// blank pack because there is nothing to normalize, while parsePairs reads a
+// file the operator picked and reports "no pairs in it" so the caller can keep
+// the saved pairs. Only a non-string is a programming error for parsePairs.
 test('parsePairs returns no pairs for empty or whitespace-only input', () => {
-  for (const bad of ['', '   ']) {
+  for (const bad of ['', '   ', '\t\n']) {
     assert.deepEqual(cmp.parsePairs(bad), []);
+  }
+});
+
+test('parsePairs throws TypeError only for non-string input', () => {
+  for (const bad of [null, undefined, 0, [], {}]) {
+    assert.throws(() => cmp.parsePairs(bad), TypeError);
   }
 });
 
