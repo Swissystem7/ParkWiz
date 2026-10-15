@@ -3,8 +3,6 @@ const CACHE = 'parkwiz-field-v11';
 const ASSETS = [
   './',
   './index.html',
-  './demo/atidim.html',
-  './demo/atidim-data.json',
   './offer.html',
   './pilot-kit.html',
   './pilot-calibrate.html',
@@ -40,7 +38,6 @@ const ASSETS = [
   './pilot/dataset/manifest.json',
   './pilot/dataset/labels.json',
   './src/lib/occupancy.js',
-  './src/lib/atidim-lot.js',
   './src/lib/heuristic.js',
   './src/lib/dataset.js',
   './src/lib/calibrate.js',
@@ -54,6 +51,10 @@ const ASSETS = [
   './src/lib/probability.js',
   './src/lib/availability.js',
   './src/lib/predict.js',
+  './src/lib/atidim-lot.js',
+  './demo/atidim.html',
+  // Operator-editable labels for the Atidim demo.
+  './demo/atidim-data.json',
 ];
 
 self.addEventListener('install', (event) => {

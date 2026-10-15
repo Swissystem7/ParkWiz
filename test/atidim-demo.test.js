@@ -1,3 +1,6 @@
+// The demo page markup on master (#154/#155) is asserted by
+// test/atidim-demo-page.test.js; this file covers the demo lot model, the
+// shared chart marker, the labels file and the offline shell entries.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -8,7 +11,6 @@ const lot = require('../src/lib/atidim-lot');
 const occ = require('../src/lib/occupancy');
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 
-const htmlPath = path.join(root, 'demo', 'atidim.html');
 const dataPath = path.join(root, 'demo', 'atidim-data.json');
 
 test('Atidim lot model uses 18 bays and peaks in business hours', () => {
@@ -79,30 +81,6 @@ test('chart marker calls out one hour and is opt-in', () => {
   for (const bad of [-1, 24, 1.5, null, undefined, 'x']) {
     assert.doesNotMatch(occ.chartSvg(series, { markIndex: bad }), /stroke-dasharray/, String(bad));
   }
-});
-
-test('Hebrew RTL operator demo page is offline-safe and meeting-ready', () => {
-  const html = fs.readFileSync(htmlPath, 'utf8');
-  const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-  assert.equal(data.cols * data.rows, 18);
-  assert.match(html, /lang="he"/);
-  assert.match(html, /dir="rtl"/);
-  assert.match(html, /class="banner"/);
-  assert.match(html, /id="bayCanvas"[^>]*width="640"[^>]*height="360"/);
-  assert.match(html, /id="kFree"/);
-  assert.match(html, /id="kOccPct"/);
-  assert.match(html, /id="hourlyChart"/);
-  assert.match(html, /id="kTotal"/);
-  // Presenter controls: scrub the day, then jump back to the real hour.
-  assert.match(html, /id="hourRange"[^>]*type="range"/);
-  assert.match(html, /id="nowBtn"/);
-  assert.match(html, /max="23"/);
-  assert.match(html, /לא נשמרות לוחיות|אין שמירת לוחיות/);
-  assert.match(html, /לא נשמר וידאו|אין שמירת וידאו/);
-  assert.match(html, /עיבוד בקצה|בקצה המצלמה/);
-  assert.doesNotMatch(html, /unpkg|cdnjs|googleapis/i);
-  assert.match(html, /src\/lib\/atidim-lot\.js/);
-  assert.match(html, /fetch\(\s*["']atidim-data\.json["']\s*\)/);
 });
 
 test('service worker precaches the Atidim demo shell', () => {
