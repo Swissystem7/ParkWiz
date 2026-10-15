@@ -10,13 +10,22 @@ PR #145's head commit is `476d614` (`refs/pull/145/head`, local
 `origin/claude/ParkWiz-144-20261015-002637`). Every file below is that commit's
 version unless the notes say otherwise.
 
-| # | Slice | Paths | Changed lines | Needs |
-|---|-------|-------|---------------|-------|
-| 1 | **Demo lot model + opt-in chart marker** (this PR) | `src/lib/atidim-lot.js`, `src/lib/occupancy.js`, `test/atidim-model.test.js`, `test/compare.test.js`, this file | ~365 | — |
-| 2 | **Hebrew RTL operator demo page + offline shell** | `demo/atidim.html`, `demo/atidim-data.json`, `sw.js`, `test/sw-precache.test.js`, `test/atidim-shell.test.js` | ~372 | 1 |
-| 3 | **Page boot tests + presenter playbook** | `test/atidim-page.test.js`, `docs/launch/CITYZONE-ATIDIM.md` | ~247 | 2 |
+| # | Slice | Paths | Changed lines | Needs | Status |
+|---|-------|-------|---------------|-------|--------|
+| 1 | **Demo lot model + opt-in chart marker** (this PR) | `src/lib/atidim-lot.js`, `src/lib/occupancy.js`, `test/atidim-model.test.js`, `test/compare.test.js`, this file | ~365 | — | this PR |
+| 2 | **Hebrew RTL operator demo page + offline shell** | `demo/atidim.html`, `sw.js`, `test/sw-precache.test.js`, `test/atidim-demo-page.test.js` | ~372 | 1 | landed |
+| 3 | **Page boot tests + presenter playbook** | `test/atidim-lot-camera-views.test.js`, `docs/launch/CITYZONE-ATIDIM.md` | ~247 | 2 | landed |
 
 Totals are additions + deletions, i.e. the number `auto_merger` checks.
+
+**Slices 2 and 3 landed ahead of this one**, via #154 and #157 rather than as
+literal slices of #145: `master` now has `demo/atidim.html`, its `sw.js`
+precache entries, `docs/launch/CITYZONE-ATIDIM.md` and the page/camera tests.
+The page there inlines its own data instead of fetching
+`demo/atidim-data.json`, and it drives the *operator* model
+(`getHourlyCurve`, `createCameraSpots`) rather than the demo model below — so
+slice 1 is still unlanded and still worth landing: it is what any page needs to
+render a lot with no camera hardware attached.
 
 ## Why these seams
 
@@ -28,56 +37,38 @@ independently reviewable and independently useful:
 1. **Slice 1** adds the 18-bay synthetic demo lot (deterministic hourly curve,
    monotone bay fill) alongside the existing real 220-space operator model, plus
    an opt-in `markIndex` marker on the shared occupancy chart. Reusable by any
-   page; nothing else in the repo changes behaviour. It also fixes
-   `test/compare.test.js`, which asserts `parsePairs('')` throws while
-   `src/lib/compare.js` has returned `[]` since #117 — **`master` is red on this
-   test today**, so it is folded in here to get the suite green before the rest.
+   page; nothing else in the repo changes behaviour. It also widened
+   `test/compare.test.js`, which asserted `parsePairs('')` throws while
+   `src/lib/compare.js` has returned `[]` since #117. `master` was red on that
+   test when this was written; #162 has since fixed it there the narrow way
+   (assert `null` throws), and this slice keeps the wider version — blank text
+   returns `[]`, a non-string throws.
 2. **Slice 2** is the demo page itself plus its precache entries, so the page is
    openable (including offline / GitHub Pages) the moment it merges. It also
-   un-breaks the links in `docs/CITYZONE_ATIDIM_PITCH.md`, which already points
-   at `demo/atidim.html` on `master` — a file nothing has added yet.
+   un-breaks the links in `docs/CITYZONE_ATIDIM_PITCH.md`, which already pointed
+   at `demo/atidim.html` before any file existed there.
 3. **Slice 3** is the regression net and the meeting script for the page.
 
-## Building slices 2 and 3
+## What is left
 
-```sh
-git fetch origin 'refs/pull/145/head:pr145'      # or use origin/claude/ParkWiz-144-20261015-002637
-git switch -c split/145-2-atidim-demo-page origin/master
-git checkout pr145 -- demo/atidim.html demo/atidim-data.json sw.js test/sw-precache.test.js
-# then add test/atidim-shell.test.js (see notes) and: npm test
+Only slice 1 (this PR). Slices 2 and 3 are on `master` already — don't rebuild
+them from `refs/pull/145/head`, you would re-add a second demo page.
 
-git switch -c split/145-3-atidim-page-tests origin/master
-git checkout pr145 -- test/atidim-page.test.js docs/launch/CITYZONE-ATIDIM.md
-npm test
-```
+Two things #145 wanted are still not on `master`, and are deliberately **out of
+this PR's scope** so slice 1 stays a pure model change:
 
-Rebase 2 on `master` after 1 merges, and 3 after 2 merges; the slices touch
-disjoint files, so neither rebase conflicts.
-
-## Notes for the slice authors
-
-- **Slice 2 needs its own test.** PR #145 put every Atidim test in one
-  `test/atidim-demo.test.js`; its first five tests are the model and now live in
-  `test/atidim-model.test.js` (slice 1). Carry the remaining two — the static
-  page-shell and service-worker assertions — into a new
-  `test/atidim-shell.test.js`: Hebrew `lang`/`dir="rtl"`, the synthetic-data
-  banner, the `640x360` canvas attributes, the KPI and `hourRange`/`nowBtn`
-  ids, the three Hebrew privacy promises (no plates, no video, edge
-  processing), no CDN hosts, and `./demo/atidim.html`,
-  `./demo/atidim-data.json`, `./src/lib/atidim-lot.js` present in `ASSETS`.
-  Do not re-add the five model tests — they would duplicate slice 1.
-- **Slice 2 must keep the cache bump.** `sw.js` goes to `parkwiz-field-v11` and
-  `test/sw-precache.test.js` raises its floor to match; without it a laptop that
-  already opened the shell serves the stale page on the morning of the meeting.
-- **Slice 3's doc overlaps an existing one.** `master` already has
-  `docs/CITYZONE_ATIDIM_PITCH.md` (same meeting, same demo link). Prefer folding
-  #145's unique part — the 3-minute "how to run the demo" presenter script —
-  into that file over adding a second CityZone doc. Hebrew stays Hebrew either
-  way.
+- **The demo page does not use the demo model yet.** `demo/atidim.html` renders
+  the real 220-space lot. Wiring it (or a second plan-view panel) to
+  `snapshotAt` / `bayLayout` and passing `markIndex` to `OCC.chartSvg` is a
+  follow-up, and is the reason this slice exports them.
+- **No cache bump.** #145 moved `sw.js` to `parkwiz-field-v11`; `master` is at
+  `v10` and already precaches `demo/atidim.html`, so nothing is stale. Whoever
+  wires the page up should bump it then, with
+  `test/sw-precache.test.js`'s floor.
 
 ## Verification
 
-The three slices stacked on `master` are the content of #145 and run green:
-`npm test` → 329 tests, 0 failures. Slice 1 alone is also green.
+Slice 1 on top of `master`: `npm test` → 341 tests, 0 failures.
 
-When all three are open, close #145 with a comment listing them.
+#145 can be closed once this merges; slices 2 and 3 of its content already
+shipped as #154 and #157.

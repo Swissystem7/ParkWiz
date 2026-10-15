@@ -2,9 +2,9 @@
 // Pure functions, zero dependencies, UMD pattern.
 //
 // Two views of the same lot live here, and they are deliberately separate:
-//   * The operator model (ATIDIM_LOT, getHourlyCurve, camera-spot helpers) —
-//     the real 220-space lot with its three camera feeds, used for occupancy
-//     stats and the camera-stream overlay.
+//   * The operator model (ATIDIM_LOT, getHourlyCurve, the camera-spot and
+//     lot-clock helpers) — the real 220-space lot with its three camera feeds,
+//     used for occupancy stats and the camera-stream overlay.
 //   * The demo model (DEFAULT, snapshotAt, bayLayout, …) — an 18-bay synthetic
 //     lot with no camera feed, used by the operator demo page so it renders
 //     reproducibly on a laptop with no hardware attached.
@@ -284,7 +284,7 @@
     site: 'פארק עתידים — חניון מגדלי A',
     cols: 6,
     rows: 3,
-    timezone: 'Asia/Jerusalem',
+    timezone: LOT_TIME_ZONE,
   });
 
   function totalBays(lot) {
@@ -296,6 +296,8 @@
   }
 
   // Weekday office-park curve (0–1). Peaks mid-morning and late afternoon.
+  // Deliberately not HOURLY_RATES: that is the real lot's measured curve, and
+  // the demo lot must not be read as a measurement of anything.
   function baselineRateForHour(hour) {
     const h = Number(hour);
     if (!Number.isFinite(h) || h < 0 || h > 23) return 0;
@@ -308,6 +310,7 @@
     return 0.22;
   }
 
+  // Rounds, unlike the operator model's clamp(), because a bay count is whole.
   function clampInt(n, min, max) {
     return Math.max(min, Math.min(max, Math.round(n)));
   }
@@ -383,6 +386,10 @@
     return series;
   }
 
+  // Not lotHour(): that one is pinned to the real lot's zone and falls back to
+  // "now" when handed an unusable date, which is right for a live HUD clock.
+  // The demo page scrubs arbitrary timestamps, so here an unreadable date has
+  // to resolve to a fixed hour instead of silently jumping to the wall clock.
   function localHour(now, timeZone) {
     const d = now instanceof Date ? now : new Date(now);
     if (Number.isNaN(d.getTime())) return 0;
