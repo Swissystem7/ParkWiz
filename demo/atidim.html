@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — דמו מפעיל חניון פארק עתידים | CityZone</title>
+<link rel="icon" href="../icon.svg">
+<style>
+:root{
+  --bg:#0b0f19; --panel:#111827; --panel2:#1f2937; --ink:#f3f4f6; --muted:#9ca3af;
+  --line:#374151; --brand:#06b6d4; --free:#22c55e; --free-bg:rgba(34,197,94,.15);
+  --occ:#ef4444; --warn:#f59e0b; --shadow:0 4px 12px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+a{color:var(--brand);text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:16px 14px 60px}
+header.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:14px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-badge{background:var(--brand);color:#000;font-weight:800;padding:4px 8px;border-radius:6px;font-size:12px}
+h1{font-size:1.25rem;margin:0;font-weight:700}
+.sub{color:var(--muted);font-size:.82rem}
+.badge-live{background:var(--free-bg);border:1px solid var(--free);color:var(--free);font-size:11.5px;padding:3px 10px;border-radius:99px;display:inline-flex;align-items:center;gap:6px}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--free);box-shadow:0 0 8px var(--free)}
+.sim-note{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.45);border-radius:10px;padding:10px 12px;margin-bottom:18px;font-size:.82rem;color:#fcd34d}
+.sim-note b{color:var(--warn)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+.kpi .num{font-size:2rem;font-weight:800;line-height:1.1;color:var(--brand)}
+.kpi .lbl{font-size:.8rem;color:var(--muted);margin-top:4px}
+.kpi.free .num{color:var(--free)}
+.kpi.occ .num{color:var(--occ)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:var(--shadow)}
+.card-hdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.card-hdr h2{font-size:1.05rem;margin:0;font-weight:700}
+.stream-box{position:relative;width:100%;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+canvas{display:block;width:100%;height:auto;max-height:480px;aspect-ratio:16/9;background:#05070c;cursor:pointer}
+canvas:focus-visible{outline:3px solid var(--brand);outline-offset:-3px}
+.hud{position:absolute;top:10px;right:12px;left:12px;display:flex;justify-content:space-between;pointer-events:none;font-family:monospace;font-size:11.5px;color:#a7f3d0;text-shadow:0 1px 3px #000}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer}
+button:hover{border-color:var(--brand);color:#fff}
+button.active{background:var(--brand);color:#000;border-color:var(--brand)}
+.hint{font-size:11.5px;color:var(--muted);margin-top:10px}
+.bay-status{font-size:12px;color:var(--brand);min-height:1.4em;margin-top:6px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+.chart-box{width:100%;overflow-x:auto}
+svg.chart{width:100%;height:190px;display:block}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:10px}
+.step{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px}
+.step-num{display:inline-block;background:var(--brand);color:#000;font-weight:800;width:22px;height:22px;border-radius:50%;text-align:center;font-size:12px;line-height:22px;margin-bottom:6px}
+.step h3{margin:0 0 4px;font-size:.9rem}
+.step p{margin:0;font-size:.78rem;color:var(--muted)}
+.privacy-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:8px}
+.priv-item{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:10px 12px;font-size:.82rem}
+.priv-item b{color:var(--free)}
+.cta{background:linear-gradient(135deg,rgba(6,182,212,.15),rgba(17,24,39,.95));border:1px solid var(--brand);border-radius:12px;padding:16px;text-align:center}
+.cta h3{margin:0 0 6px;font-size:1.1rem}
+.cta p{margin:0 0 12px;color:var(--muted);font-size:.85rem}
+.btn-primary{display:inline-block;background:var(--brand);color:#000;font-weight:700;padding:9px 18px;border-radius:8px;font-size:.9rem}
+footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
+@media(max-width:540px){.kpis{grid-template-columns:1fr 1fr} h1{font-size:1.1rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="brand-badge">ParkWiz</span>
+      <div>
+        <h1>מערכת ניהול תפוסת חניון — פארק עתידים</h1>
+        <div class="sub">דמו מפעיל חניון מבוסס מצלמות קיימות | CityZone &amp; Park Atidim</div>
+      </div>
+    </div>
+    <div class="badge-live"><span class="pulse"></span><span>רשת מצלמות מחוברת (RTSP / Edge)</span></div>
+  </header>
+
+  <!-- The frame below is drawn in the browser, not streamed. Saying so on the
+       page keeps the demo honest in front of an operator who knows their lot. -->
+  <p class="sim-note" role="note">
+    <b>הבהרה:</b> הפריים שמוצג כאן הוא <b>הדמיה ממוחשבת</b> (Canvas) של תצוגת המצלמה — אין כאן שידור חי מחניון עתידים.
+    המונים והגרף מחושבים מ<b>עקומת התפוסה האופיינית</b> של הפארק לשעה הנוכחית. בפיילוט הפריים מוחלף בשידור RTSP מהמצלמה הקיימת בשער,
+    והמונים מוזנים מזיהוי התאים בפועל.
+  </p>
+
+  <section class="kpis" aria-label="מדדי תפוסה בזמן אמת" aria-live="polite">
+    <div class="kpi free"><div class="num" id="kpiAvailable">—</div><div class="lbl">מקומות פנויים כעת (מתוך 220)</div></div>
+    <div class="kpi occ"><div class="num" id="kpiOccupied">—</div><div class="lbl">מקומות תפוסים בחניון</div></div>
+    <div class="kpi"><div class="num" id="kpiRate">—</div><div class="lbl">אחוז תפוסה כולל · <span id="kpiStatus" style="color:var(--free)">מחשב…</span></div></div>
+    <div class="kpi free"><div class="num" id="kpiCameraView">—</div><div class="lbl">תאים פנויים בפריים המצלמה (פנוי / מנוטר)</div></div>
+  </section>
+
+  <section class="card" aria-label="שידור מצלמה ושכבת זיהוי תאים">
+    <div class="card-hdr">
+      <div><h2>שידור מצלמת שטח ושכבת זיהוי תפוסה (Overlay)</h2><div class="sub" id="camDesc">מצלמה 01 · כניסה מזרחית (שער ראשי, אזור A)</div></div>
+      <div style="font-size:12px;color:var(--muted)" id="frameClock">—</div>
+    </div>
+    <div class="stream-box">
+      <div class="hud"><span id="hudCam">CAM-01 [EAST GATE] 1080p30</span><span id="hudPerf">SIM · INFERENCE: 14ms · EDGE-AI</span></div>
+      <canvas id="lotCanvas" width="960" height="540" tabindex="0" role="img"
+        aria-label="תצוגת מצלמת חניון עם סימון תאי חניה — ירוק פנוי, אדום תפוס. ניתן לנווט בין התאים בחצים ולשנות תפוסה ברווח או Enter."></canvas>
+    </div>
+    <div class="toolbar">
+      <button type="button" id="btnToggleOverlay" class="active" aria-pressed="true">הסתר שכבת זיהוי תאים</button>
+      <button type="button" id="btnArrive">+ הדמה כניסת רכב</button>
+      <button type="button" id="btnLeave">- הדמה יציאת רכב</button>
+      <button type="button" id="btnAuto" aria-pressed="false">הפעל זרימה אוטומטית</button>
+      <button type="button" id="btnReset">אפס למצב השעה הנוכחית</button>
+      <span style="flex:1"></span>
+      <button type="button" class="cam-sel active" data-cam="cam-01">מצלמה 01</button>
+      <button type="button" class="cam-sel" data-cam="cam-02">מצלמה 02 (מפלס -1)</button>
+      <button type="button" class="cam-sel" data-cam="cam-03">מצלמה 03 (מתחם 7)</button>
+    </div>
+    <p class="hint">לחצו על תא בפריים (או נווטו בחצים ולחצו רווח) כדי לשנות תפוסה ידנית — כך בודקים את המונה מול ספירה בעין.</p>
+    <p class="bay-status" id="bayStatus" role="status" aria-live="polite"></p>
+  </section>
+
+  <div class="grid-2">
+    <section class="card" aria-label="גרף תפוסה שעתית">
+      <div class="card-hdr"><div><h2>התפלגות תפוסה יומית בחניון עתידים</h2><div class="sub">ממוצע שעות שיא ושפל (220 מקומות)</div></div></div>
+      <div class="chart-box"><svg id="hourlyChart" class="chart" viewBox="0 0 540 190" role="img" aria-label="גרף תפוסה לאורך שעות היממה"></svg></div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
+        <span id="chartPeak">שעות שיא</span><span style="color:var(--brand)" id="chartNow">● השעה הנוכחית</span>
+      </div>
+    </section>
+
+    <section class="card" aria-label="חיבור מצלמות וארכיטקטורה">
+      <div class="card-hdr"><div><h2>איך זה עובד עם המצלמות הקיימות שלכם</h2><div class="sub">אפס חומרה חדשה — התחברות לתשתית הקיימת</div></div></div>
+      <div class="steps">
+        <div class="step"><span class="step-num">1</span><h3>חיבור RTSP / ONVIF</h3><p>מתחברים ל-NVR או למצלמות ה-IP הקיימות בחניון עתידים ללא מתיחת כבלים.</p></div>
+        <div class="step"><span class="step-num">2</span><h3>כיול תאים מהיר</h3><p>סימון גבולות התאים (Bounding Boxes) על גבי הפריים תוך 3 דקות.</p></div>
+        <div class="step"><span class="step-num">3</span><h3>עיבוד קצה (Edge)</h3><p>החישוב מתבצע מקומית בשער. הווידאו לעולם אינו נשלח לענן.</p></div>
+        <div class="step"><span class="step-num">4</span><h3>הפצת מידע ו-API</h3><p>שילוט פנוי/תפוס בכניסה, עדכון דשבורד מנהל ואפליקציית עובדי הפארק.</p></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card" aria-label="מדיניות פרטיות">
+    <div class="card-hdr"><div><h2>פרטיות מובטחת כברירת מחדל (Privacy by Design)</h2><div class="sub">עמידה מלאה בהנחיות הרשות להגנת הפרטיות ו-GDPR</div></div></div>
+    <div class="privacy-list">
+      <div class="priv-item"><b>ללא זיהוי לוחיות רישוי (No LPR):</b> המערכת בודקת נוכחות פיזית של רכב בתא בלבד. אין קריאה או שמירה של מספרי רכב.</div>
+      <div class="priv-item"><b>ללא זיהוי פנים:</b> אין יכולת או מודול לזיהוי ביומטרי של הולכי רגל או נהגים.</div>
+      <div class="priv-item"><b>הווידאו אינו נשמר:</b> הניתוח מתבצע בזיכרון נדיף (RAM) בלבד ומומר מיד למספר תפוסה נומרי (0 או 1).</div>
+      <div class="priv-item"><b>עיבוד שטח מקומי:</b> שרת הקצה מאובטח בתוך רשת החניון ללא תלות בענן ציבורי.</div>
+      <div class="priv-item"><b>הדף הזה עובד גם ללא רשת:</b> כל הקוד והנתונים מקומיים (ללא CDN, ללא אנליטיקס) — אפשר להציג אותו בחניון גם בלי קליטה.</div>
+    </div>
+  </section>
+
+  <div class="cta">
+    <h3>רוצים לבדוק את המערכת בחניון פארק עתידים?</h3>
+    <p>פיילוט ללא עלות למשך שבועיים על גבי מצלמת כניסה קיימת — חיבור תוך 24 שעות.</p>
+    <a href="../offer.html" class="btn-primary">לפרטי ההצעה ותיאום הפיילוט ←</a>
+  </div>
+  <footer>ParkWiz · טכנולוגיית חישת תפוסת חניה מבוססת וידאו חכם · פותח עבור CityZone ועיריית תל אביב-יפו</footer>
+</div>
+
+<script src="../src/lib/atidim-lot.js"></script>
+<script>
+(function(){
+  const model = window.ParkWizAtidimLot;
+  const CAPACITY = model.ATIDIM_LOT.totalCapacity;
+  let currentCam = 'cam-01';
+  // The frame is seeded from the park's own hourly curve, so the counters and
+  // the chart below agree instead of telling two different stories.
+  let seededHour = model.lotHour();
+  let spots = model.createCameraSpots(currentCam, seededHour);
+  let showOverlay = true; let autoTimer = null; let selected = -1;
+  const canvas = document.getElementById('lotCanvas');
+  const ctx = canvas.getContext('2d');
+
+  function updateMetrics() {
+    const occ = model.calculateOccupancy(spots, CAPACITY);
+    document.getElementById('kpiAvailable').textContent = occ.available;
+    document.getElementById('kpiOccupied').textContent = occ.estimatedLotOccupied;
+    document.getElementById('kpiRate').textContent = occ.percentage + '%';
+    document.getElementById('kpiStatus').textContent = occ.statusHe;
+    document.getElementById('kpiStatus').style.color = occ.status === 'full' ? 'var(--occ)' : (occ.status === 'busy' ? 'var(--warn)' : 'var(--free)');
+    document.getElementById('kpiCameraView').textContent = occ.availableInView + ' / ' + occ.totalInView;
+  }
+
+  // Safari < 16 and older WebViews have no ctx.roundRect; without a fallback the
+  // whole draw throws and the operator sees a blank black frame.
+  function roundedRect(x, y, w, h, r) {
+    const rad = Math.max(0, Math.min(r, w / 2, h / 2));
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function') { ctx.roundRect(x, y, w, h, rad); return; }
+    ctx.moveTo(x + rad, y);
+    ctx.lineTo(x + w - rad, y); ctx.quadraticCurveTo(x + w, y, x + w, y + rad);
+    ctx.lineTo(x + w, y + h - rad); ctx.quadraticCurveTo(x + w, y + h, x + w - rad, y + h);
+    ctx.lineTo(x + rad, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - rad);
+    ctx.lineTo(x, y + rad); ctx.quadraticCurveTo(x, y, x + rad, y);
+    ctx.closePath();
+  }
+
+  function drawScene() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+    bgGrad.addColorStop(0, '#151b26'); bgGrad.addColorStop(1, '#0c1017');
+    ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = '#273344'; ctx.lineWidth = 3; ctx.beginPath();
+    ctx.moveTo(0, H * 0.32); ctx.lineTo(W, H * 0.32);
+    ctx.moveTo(0, H * 0.58); ctx.lineTo(W, H * 0.58);
+    ctx.moveTo(0, H * 0.92); ctx.lineTo(W, H * 0.92); ctx.stroke();
+
+    ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2; ctx.setLineDash([16, 12]);
+    ctx.beginPath(); ctx.moveTo(0, H * 0.28); ctx.lineTo(W, H * 0.28); ctx.stroke(); ctx.setLineDash([]);
+
+    spots.forEach(function(s, i){
+      const sx = s.x * W, sy = s.y * H, sw = s.w * W, sh = s.h * H;
+      ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1.5; ctx.strokeRect(sx, sy, sw, sh);
+      if (s.occupied) {
+        ctx.fillStyle = '#1e293b'; roundedRect(sx + 4, sy + 6, sw - 8, sh - 12, 6); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(sx + 8, sy + 10, sw - 16, (sh - 12) * 0.35);
+        ctx.fillStyle = '#334155'; ctx.fillRect(sx + 10, sy + sh * 0.38, sw - 20, sh * 0.35);
+      }
+      if (showOverlay) {
+        ctx.strokeStyle = s.occupied ? '#ef4444' : '#22c55e'; ctx.lineWidth = 2;
+        ctx.fillStyle = s.occupied ? 'rgba(239,68,68,.18)' : 'rgba(34,197,94,.18)';
+        ctx.fillRect(sx, sy, sw, sh); ctx.strokeRect(sx, sy, sw, sh);
+        ctx.fillStyle = s.occupied ? '#ef4444' : '#22c55e'; ctx.fillRect(sx, sy - 14, 38, 14);
+        ctx.fillStyle = '#000'; ctx.font = 'bold 9px monospace'; ctx.fillText(s.id, sx + 3, sy - 4);
+      }
+      if (i === selected) {
+        ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 3; ctx.setLineDash([6, 4]);
+        ctx.strokeRect(sx - 3, sy - 3, sw + 6, sh + 6); ctx.setLineDash([]);
+      }
+    });
+
+    ctx.fillStyle = 'rgba(255,255,255,.015)';
+    for (let y = 0; y < H; y += 4) { ctx.fillRect(0, y, W, 1); }
+  }
+
+  function renderChart() {
+    const curve = model.getHourlyCurve(CAPACITY);
+    const nowHour = model.lotHour();
+    const svg = document.getElementById('hourlyChart');
+    const W = 540, H = 190, padX = 30, padY = 25, chartW = W - padX * 2, chartH = H - padY * 2, barW = (chartW / 24) - 4;
+    let html = '<line x1="' + padX + '" y1="' + (H - padY) + '" x2="' + (W - padX) + '" y2="' + (H - padY) + '" stroke="#374151" stroke-width="1"/>';
+    const peakPct = Math.round(model.PEAK_THRESHOLD * 100);
+    const peakY = H - padY - (chartH * model.PEAK_THRESHOLD);
+    html += '<line x1="' + padX + '" y1="' + peakY + '" x2="' + (W - padX) + '" y2="' + peakY + '" stroke="#ef4444" stroke-dasharray="4,4" stroke-width="1"/>';
+    html += '<text x="' + (W - padX - 4) + '" y="' + (peakY - 4) + '" fill="#ef4444" font-size="9" text-anchor="end">קו שיא ' + peakPct + '%</text>';
+    curve.forEach(function(pt, i){
+      const x = padX + i * (chartW / 24) + 2, barH = pt.rate * chartH, y = H - padY - barH, isCur = pt.hour === nowHour;
+      const fill = isCur ? '#06b6d4' : (pt.isPeak ? '#ef4444' : '#374151');
+      html += '<rect x="' + x + '" y="' + y + '" width="' + barW + '" height="' + barH + '" rx="2" fill="' + fill + '"><title>' + pt.label + ' · ' + pt.percentage + '% (' + pt.occupied + ' תפוסים)</title></rect>';
+      if (i % 3 === 0) html += '<text x="' + (x + barW / 2) + '" y="' + (H - padY + 14) + '" fill="#9ca3af" font-size="9" text-anchor="middle">' + pt.label + '</text>';
+    });
+    svg.innerHTML = html;
+
+    // Captions are derived from the curve, so editing HOURLY_RATES cannot leave
+    // the page quoting a peak window the bars no longer show.
+    const peaks = curve.filter(function(pt){ return pt.isPeak; });
+    if (peaks.length > 0) {
+      const avg = Math.round(peaks.reduce(function(sum, pt){ return sum + pt.rate; }, 0) / peaks.length * 100);
+      document.getElementById('chartPeak').textContent =
+        'שעות שיא: ' + peaks[0].label + ' - ' + peaks[peaks.length - 1].label + ' (תפוסה ממוצעת ' + avg + '%)';
+    }
+    const now = curve[nowHour];
+    document.getElementById('chartNow').textContent = '● השעה הנוכחית (' + now.label + ' · ' + now.percentage + '%)';
+  }
+
+  function refresh() { updateMetrics(); drawScene(); }
+
+  function announce(text) { document.getElementById('bayStatus').textContent = text; }
+
+  function toggleSpot(index) {
+    const spot = spots[index];
+    if (!spot) return;
+    spot.occupied = !spot.occupied;
+    refresh();
+    announce('תא ' + spot.id + ' סומן כ' + (spot.occupied ? 'תפוס' : 'פנוי') + '.');
+  }
+
+  document.getElementById('btnToggleOverlay').addEventListener('click', function(){
+    showOverlay = !showOverlay; this.classList.toggle('active', showOverlay);
+    this.setAttribute('aria-pressed', String(showOverlay));
+    this.textContent = showOverlay ? 'הסתר שכבת זיהוי תאים' : 'הצג שכבת זיהוי תאים';
+    drawScene();
+  });
+  document.getElementById('btnArrive').addEventListener('click', function(){ spots = model.transitionSpot(spots, 'arrive'); refresh(); });
+  document.getElementById('btnLeave').addEventListener('click', function(){ spots = model.transitionSpot(spots, 'leave'); refresh(); });
+  document.getElementById('btnReset').addEventListener('click', function(){
+    seededHour = model.lotHour();
+    spots = model.createCameraSpots(currentCam, seededHour);
+    selected = -1; refresh(); renderChart();
+    announce('הפריים אופס למצב האופייני לשעה ' + model.hourlyPoint(seededHour).label + '.');
+  });
+  document.getElementById('btnAuto').addEventListener('click', function(){
+    if (autoTimer) {
+      clearInterval(autoTimer); autoTimer = null; this.classList.remove('active');
+      this.setAttribute('aria-pressed', 'false'); this.textContent = 'הפעל זרימה אוטומטית';
+    } else {
+      autoTimer = setInterval(function(){ spots = model.transitionSpot(spots, Math.random() > 0.5 ? 'arrive' : 'leave'); refresh(); }, 1600);
+      this.classList.add('active'); this.setAttribute('aria-pressed', 'true'); this.textContent = 'עצור זרימה אוטומטית';
+    }
+  });
+  document.querySelectorAll('.cam-sel').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.cam-sel').forEach(function(b){ b.classList.remove('active'); });
+      this.classList.add('active');
+      currentCam = this.getAttribute('data-cam');
+      const view = model.cameraView(currentCam);
+      document.getElementById('camDesc').textContent = view.label;
+      document.getElementById('hudCam').textContent = view.hud;
+      spots = model.createCameraSpots(currentCam, seededHour);
+      selected = -1; refresh();
+      announce(view.label + ' · ' + spots.length + ' תאים מנוטרים בפריים.');
+    });
+  });
+  canvas.addEventListener('click', function(e){
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const clickX = (e.clientX - rect.left) / rect.width;
+    const clickY = (e.clientY - rect.top) / rect.height;
+    const index = spots.findIndex(function(s){
+      return clickX >= s.x && clickX <= (s.x + s.w) && clickY >= s.y && clickY <= (s.y + s.h);
+    });
+    if (index >= 0) { selected = index; toggleSpot(index); }
+  });
+  // Keyboard parity for the canvas: a lot manager demoing on a laptop without a
+  // mouse, or anyone using a screen reader, can still walk the stalls.
+  canvas.addEventListener('keydown', function(e){
+    const cols = model.cameraView(currentCam).cols;
+    // The canvas bitmap is not mirrored by dir="rtl", so stall 1 sits at the
+    // left edge of the frame and ArrowRight moves to the next index.
+    const step = { ArrowRight: 1, ArrowLeft: -1, ArrowUp: -cols, ArrowDown: cols }[e.key];
+    if (step !== undefined) {
+      e.preventDefault();
+      selected = selected < 0 ? 0 : Math.min(spots.length - 1, Math.max(0, selected + step));
+      drawScene();
+      const spot = spots[selected];
+      announce('תא ' + spot.id + ' · ' + (spot.occupied ? 'תפוס' : 'פנוי'));
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (selected < 0) selected = 0;
+      toggleSpot(selected);
+    }
+  });
+  setInterval(function(){
+    document.getElementById('frameClock').textContent = model.formatLotClock(new Date());
+    // Crossing an hour boundary during a long demo must move the "now" marker.
+    if (model.lotHour() !== seededHour) { seededHour = model.lotHour(); renderChart(); }
+  }, 1000);
+  document.getElementById('frameClock').textContent = model.formatLotClock(new Date());
+  refresh(); renderChart();
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>

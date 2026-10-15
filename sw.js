@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v9';
+const CACHE = 'parkwiz-field-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -51,6 +51,8 @@ const ASSETS = [
   './src/lib/probability.js',
   './src/lib/availability.js',
   './src/lib/predict.js',
+  './src/lib/atidim-lot.js',
+  './demo/atidim.html',
 ];
 
 self.addEventListener('install', (event) => {
