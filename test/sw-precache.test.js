@@ -63,7 +63,5 @@ test('the municipal lots layer is part of the offline shell', () => {
 test('cache name is versioned so a changed asset list re-installs', () => {
   assert.match(sw, /const CACHE = 'parkwiz-field-v\d+';/);
   const v = Number(sw.match(/parkwiz-field-v(\d+)/)[1]);
-  // Cache-first: without a bump, a laptop that already opened the demo keeps
-  // serving the stale page on the morning of the meeting.
   assert.ok(v >= 11, 'changing the Atidim demo shell requires a cache bump');
 });
