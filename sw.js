@@ -53,6 +53,8 @@ const ASSETS = [
   './src/lib/predict.js',
   './src/lib/atidim-lot.js',
   './demo/atidim.html',
+  // Operator-editable labels for the Atidim demo (PR #137 split).
+  './demo/atidim-data.json',
 ];
 
 self.addEventListener('install', (event) => {

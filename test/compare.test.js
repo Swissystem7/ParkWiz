@@ -36,6 +36,10 @@ test('bad pairs are rejected', () => {
   assert.equal(cmp.pairObservation({ total: 0, systemOccupied: 1, manualOccupied: 1 }), null);
   assert.equal(cmp.pairObservation({ total: 10, systemOccupied: 'x', manualOccupied: 1 }), null);
   assert.equal(cmp.parsePairs('{"foo":1}').length, 0);
+  // The guard added for the count() hardening rejects non-strings only; an
+  // empty string is a legal (pair-less) file and is covered by the next test.
+  assert.throws(() => cmp.parsePairs(null), TypeError);
+  assert.throws(() => cmp.parsePairs(42), TypeError);
 });
 
 test('an empty or pair-less file keeps the saved pairs', () => {
