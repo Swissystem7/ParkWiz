@@ -2103,7 +2103,12 @@ function leavingSubmit() {
       countEl.textContent = '✅';
       countEl.style.fontSize = '3rem';
       const xpGain = 10 + count * 5;
-      labelEl.textContent = `תודה! +${xpGain} XP לדיווח מפורט 🏆`;
+      // Same buyer-view rule as doReportLeaving (#113): only the driver demo
+      // credits XP, so only the driver demo may promise it on the countdown card.
+      const driverDemo = document.body.classList.contains('consumer-demo-on');
+      labelEl.textContent = driverDemo
+        ? `תודה! +${xpGain} XP לדיווח מפורט 🏆`
+        : 'תודה! הדיווח נרשם בדפדפן הזה בלבד (דמו)';
       labelEl.style.color = 'var(--green)';
       setTimeout(() => {
         document.getElementById('leavingOverlay').classList.remove('show');
