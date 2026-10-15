@@ -2002,23 +2002,31 @@ function pushCommunityLeaving(idx, count, nowMs) {
   });
 }
 
+// Same buyer-view rule as doReportLeaving (#113): the scheduled report credits
+// XP and says "+N XP" only inside the driver demo. In the buyer view the XP
+// widget is hidden, so creditXp would pop "+N XP" at the page corner next to a
+// toast promising points the city employee never asked for.
 function addFutureReport(count) {
   if (!requireSelectedStreet()) return;
   const idx = selectedStreetIdx;
   const s = STREETS_DEF[idx];
+  const reportCount = Math.max(1, Math.min(3, Number(count) || 1));
   const now = Date.now();
   futureReports.push({
-    streetIdx: idx, count,
+    streetIdx: idx, count: reportCount,
     x: s.isH ? (0.15 + Math.random()*0.7) : s.pos,
     y: s.isH ? s.pos : (0.15 + Math.random()*0.7),
     readyAt: now + leavingDelayMin*60000,
     expireAt: now + (leavingDelayMin+3)*60000,
   });
-  const xpGain = 8 + count * 4;
-  creditXp(xpGain);
+  const xpGain = 8 + reportCount * 4;
+  const driverDemo = document.body.classList.contains('consumer-demo-on');
+  if (driverDemo) creditXp(xpGain);
   document.getElementById('leavingOverlay').classList.remove('show');
-  showToast(`🕐 דיווח עתידי נקלט! מקום יתפנה ב${s.name} בעוד ~${leavingDelayMin} דק' (+${xpGain} XP)`);
-  prependFeed(`👤 משתמש יוצא בעוד ~${leavingDelayMin} דק' ב${s.name} (${count} מקומ${count>1?'ות':''})`, s.name);
+  showToast(driverDemo
+    ? `🕐 דיווח עתידי נקלט! מקום יתפנה ב${s.name} בעוד ~${leavingDelayMin} דק' (+${xpGain} XP)`
+    : `🕐 דיווח עתידי נרשם בדפדפן הזה בלבד (דמו): מקום יתפנה ב${s.name} בעוד ~${leavingDelayMin} דק'`);
+  prependFeed(`👤 משתמש יוצא בעוד ~${leavingDelayMin} דק' ב${s.name} (${reportCount} מקומ${reportCount>1?'ות':''})`, s.name);
   renderAll();
 }
 
