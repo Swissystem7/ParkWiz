@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — פארק עתידים · מסך מפעיל (דמו CityZone)</title>
+<meta name="description" content="מסך מפעיל חניון בעברית: תפוס/פנוי מתוך שכבת מצלמה, עקומה שעתית ופרטיות. ספירה סינתטית מהמודל בריפו, לא מצלמה חיה.">
+<meta name="theme-color" content="#0e7490">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="../icon.svg">
+<link rel="stylesheet" href="../pilot/shell.css">
+<link rel="stylesheet" href="../pilot/print.css">
+<style>
+.wrap{max-width:900px;margin:0 auto;padding:18px 16px 64px}
+h1{font-size:1.3rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.86rem;margin:0 0 14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+@media(max-width:620px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:12px;text-align:center}
+.kpi .n{font-size:1.5rem;font-weight:800;color:var(--brand)}
+.kpi .l{font-size:.72rem;color:var(--muted)}
+#spotCanvas{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:10px;background:#0f1420}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:.76rem;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:middle}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:.74rem}
+.privacy ul{margin:8px 0 0;padding-inline-start:18px;font-size:.84rem;color:var(--muted)}
+.ok{color:var(--free);font-weight:700}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#mainAtidim">דלג לתוכן</a>
+<div class="wrap" id="mainAtidim">
+  <p style="font-size:.82rem"><a href="../pilot-brief.html" style="color:var(--brand);font-weight:600;text-decoration:none">← תקציר הפיילוט</a></p>
+  <h1 id="siteTitle">חניון פארק עתידים — מסך מפעיל</h1>
+  <p class="sub" id="siteSub">CityZone · תפוס/פנוי משכבת מצלמה קיימת, בלי זיהוי לוחיות</p>
+
+  <div class="banner" id="banner" role="note">
+    <b>דמו, לא מצלמה חיה.</b> הספירה כאן סינתטית ומגיעה מהמודל שבריפו
+    (<code>src/lib/atidim-lot.js</code>). אין חיבור RTSP, אין וידאו ואין מדידת שדה.
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="n" id="kFree">—</div><div class="l">מקומות פנויים</div></div>
+    <div class="kpi"><div class="n" id="kOcc">—</div><div class="l">מקומות תפוסים</div></div>
+    <div class="kpi"><div class="n" id="kPct">—</div><div class="l">אחוז תפוסה</div></div>
+    <div class="kpi"><div class="n" id="kStatus" style="font-size:1.05rem">—</div><div class="l">מצב החניון</div></div>
+  </div>
+
+  <section class="panel">
+    <h2 style="font-size:.9rem;margin:0 0 10px">שכבת מצלמה — פנוי (ירוק) / תפוס (אדום)</h2>
+    <canvas id="spotCanvas" width="760" height="330" role="img"
+            aria-label="שכבת זיהוי מקומות חניה סינתטית מעל תצוגת מצלמה"></canvas>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--free)"></span>פנוי</span>
+      <span><span class="dot" style="background:var(--occ)"></span>תפוס</span>
+      <span id="viewNote">—</span>
+    </div>
+    <div class="toolbar no-print" style="margin:12px 0 0">
+      <button type="button" id="btnArrive">רכב נכנס</button>
+      <button type="button" id="btnLeave">רכב יוצא</button>
+      <button type="button" id="btnReset">אפס לשכבת הבסיס</button>
+      <button type="button" class="primary no-print" id="btnPrint">הדפס / שמור כ־PDF</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 style="font-size:.9rem;margin:0 0 10px">עקומת תפוסה שעתית אופיינית (מודל פארק הייטק)</h2>
+    <div id="hourlyChart"></div>
+    <p class="sub" style="margin:10px 0 0">שעות שיא מסומנות במודל כ־<code>isPeak</code> (85% ומעלה). זו עקומה סינתטית, לא היסטוריה נמדדת.</p>
+  </section>
+
+  <section class="panel">
+    <h2 style="font-size:.9rem;margin:0 0 10px">אזורים ומצלמות קיימות</h2>
+    <table>
+      <thead><tr><th>אזור</th><th>תקן מקומות</th><th>מצלמה</th><th>מקומות בשדה הראייה</th></tr></thead>
+      <tbody id="zoneRows"></tbody>
+    </table>
+  </section>
+
+  <section class="panel privacy">
+    <h2 style="font-size:.9rem;margin:0 0 10px">פרטיות ואחסון</h2>
+    <ul>
+      <li><b>אין זיהוי לוחיות רישוי (No LPR)</b> — רק מונה תפוס/פנוי לכל מקום.</li>
+      <li><b>לא נשמר וידאו</b> — אין ארכיון הקלטות ואין העברת פריים לענן.</li>
+      <li><b>עיבוד בקצה המצלמה</b> — ללוח המפעיל עוברים מספרים בלבד.</li>
+    </ul>
+    <p class="sub" style="margin:10px 0 0">
+      בדיקת מבנה הרשומה שהדף מייצר: <span id="privacyCheck" class="ok">—</span>
+    </p>
+  </section>
+
+  <div class="foot">ParkWiz · דמו מפעיל פארק עתידים · נתונים סינתטיים · Refs #136</div>
+</div>
+<script src="../src/lib/occupancy.js"></script>
+<script src="../src/lib/atidim-lot.js"></script>
+<script>
+"use strict";
+
+const OCC = window.ParkWizOccupancy;
+const LOT = window.ParkWizAtidimLot;
+const CAP = LOT.ATIDIM_LOT.totalCapacity;
+
+let spots = LOT.createDefaultCameraSpots();
+
+function drawSpots() {
+  const canvas = document.getElementById("spotCanvas");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width;
+  const H = canvas.height;
+  // Flat backdrop, not a photo: no still is shipped, so the page stays
+  // offline-safe and makes no claim to be a real camera frame.
+  ctx.fillStyle = "#0f1420";
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#1b2433";
+  ctx.fillRect(0, H * 0.3, W, H * 0.7);
+  spots.forEach((s) => {
+    const x = s.x * W;
+    const y = s.y * H;
+    const w = s.w * W;
+    const h = s.h * H;
+    ctx.fillStyle = s.occupied ? "rgba(220,38,38,.72)" : "rgba(22,163,74,.72)";
+    ctx.strokeStyle = s.occupied ? "#fca5a5" : "#86efac";
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+  });
+}
+
+function renderCounts() {
+  const res = LOT.calculateOccupancy(spots, CAP);
+  document.getElementById("kFree").textContent = String(res.available);
+  document.getElementById("kOcc").textContent = String(res.estimatedLotOccupied);
+  document.getElementById("kPct").textContent = OCC.pct(res.rate);
+  document.getElementById("kStatus").textContent = res.statusHe;
+  document.getElementById("viewNote").textContent =
+    res.occupiedInView + " מתוך " + res.totalInView + " מקומות בשדה הראייה · הערכה לחניון: " + res.percentage + "%";
+  // The operator panel only ever receives counts. Prove it on screen.
+  const check = LOT.validatePrivacyCompliance({
+    ts: new Date().toISOString(),
+    cameraId: LOT.ATIDIM_LOT.cameras[0].id,
+    total: res.capacity,
+    occupied: res.estimatedLotOccupied,
+    source: "atidim-demo",
+  });
+  document.getElementById("privacyCheck").textContent = check.valid
+    ? "תקין — אין שדה מזהה אישי או לוחית ברשומה"
+    : "נמצאו שדות אסורים: " + check.violations.join(", ");
+}
+
+function render() {
+  drawSpots();
+  renderCounts();
+}
+
+// getHourlyCurve() is the lot model's own curve; chartSvg() is the same renderer
+// the pilot report and dashboard use, so the operator sees one chart style.
+function renderChart() {
+  const records = LOT.getHourlyCurve(CAP).map((p) => ({
+    ts: "2026-10-18T" + String(p.hour).padStart(2, "0") + ":00:00",
+    street: LOT.ATIDIM_LOT.name,
+    total: CAP,
+    occupied: p.occupied,
+    source: "atidim-demo",
+  }));
+  document.getElementById("hourlyChart").innerHTML = OCC.chartSvg(records, { width: 760, height: 220 });
+}
+
+function renderZones() {
+  const lot = LOT.ATIDIM_LOT;
+  const rows = lot.zones.map((z, i) => {
+    const cam = lot.cameras[i];
+    const cells = [
+      z.name,
+      String(z.capacity),
+      cam ? cam.name + " · " + cam.streamType : "—",
+      cam ? String(cam.spotsMonitored) : "—",
+    ];
+    return "<tr>" + cells.map((c) => "<td>" + c + "</td>").join("") + "</tr>";
+  });
+  document.getElementById("zoneRows").innerHTML = rows.join("");
+}
+
+document.getElementById("btnArrive").addEventListener("click", () => {
+  spots = LOT.transitionSpot(spots, "arrive");
+  render();
+});
+document.getElementById("btnLeave").addEventListener("click", () => {
+  spots = LOT.transitionSpot(spots, "leave");
+  render();
+});
+document.getElementById("btnReset").addEventListener("click", () => {
+  spots = LOT.createDefaultCameraSpots();
+  render();
+});
+document.getElementById("btnPrint").addEventListener("click", () => window.print());
+
+renderZones();
+renderChart();
+render();
+
+// Operator-editable labels for the meeting. A missing or broken file must not
+// blank the screen, so the model's own metadata stays as the fallback.
+fetch("./atidim-data.json")
+  .then((r) => (r.ok ? r.json() : null))
+  .then((data) => {
+    if (!data) return;
+    if (data.site) document.getElementById("siteTitle").textContent = data.site + " — מסך מפעיל";
+    if (data.operator) {
+      document.getElementById("siteSub").textContent =
+        data.operator + " · תפוס/פנוי משכבת מצלמה קיימת, בלי זיהוי לוחיות";
+    }
+    if (data.meetingNote) {
+      const note = document.createElement("div");
+      note.style.marginTop = "6px";
+      note.textContent = data.meetingNote;
+      document.getElementById("banner").appendChild(note);
+    }
+  })
+  .catch(() => {});
+</script>
+</body>
+</html>
