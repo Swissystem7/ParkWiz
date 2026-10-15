@@ -66,17 +66,8 @@
   // toISOString() is in UTC (Z), so as strings 07:30+03:00 (04:30Z) sorted
   // after 05:00Z. Timestamps that do not parse (blank, 'day-3') keep their old
   // place: before every dated pair, in string order among themselves.
-  function byTs(a, b) {
-    const sa = String(a.ts);
-    const sb = String(b.ts);
-    const ta = Date.parse(sa);
-    const tb = Date.parse(sb);
-    const da = Number.isFinite(ta);
-    const db = Number.isFinite(tb);
-    if (da && db && ta !== tb) return ta - tb;
-    if (da !== db) return da ? 1 : -1;
-    return sa.localeCompare(sb);
-  }
+  // One rule for pairs and occupancy records: occupancy.byTs.
+  const byTs = occ.byTs;
 
   function normalizePack(input) {
     if (typeof input !== 'string') {

@@ -156,8 +156,24 @@
   // and dashboard print the last record as the current reading, so an
   // uploaded JSON array in file order (two sessions concatenated, an export
   // sorted newest-first) must not be trusted to already be chronological.
+  //
+  // The order is by the instant the record was taken, not by the text of the
+  // timestamp. The sample series and a field phone stamp local time
+  // (16:00+03:00) while the kit stamps toISOString() in UTC (14:00Z, which is
+  // 17:00 local), so as strings the later kit reading sorted before the
+  // sample row and the sample row was printed as the current reading.
+  // Timestamps that do not parse (blank, "day-3") keep their old place:
+  // before every dated record, in string order among themselves.
   function byTs(a, b) {
-    return String(a.ts).localeCompare(String(b.ts));
+    const sa = String(a.ts);
+    const sb = String(b.ts);
+    const ta = Date.parse(sa);
+    const tb = Date.parse(sb);
+    const da = Number.isFinite(ta);
+    const db = Number.isFinite(tb);
+    if (da && db && ta !== tb) return ta - tb;
+    if (da !== db) return da ? 1 : -1;
+    return sa.localeCompare(sb);
   }
 
   function parse(text, fallbackStreet) {
@@ -290,6 +306,7 @@
     byHour,
     heatColor,
     hourHeatmapSvg,
+    byTs,
     summarize,
     planningNotes,
     chartSvg,
