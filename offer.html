@@ -174,7 +174,7 @@ a{color:var(--brand)}
     </div>
     <label for="accuracyNote">מצב המדידה (ייכתב בהודעה)</label>
     <input id="accuracyNote" value="טרם נמדד דיוק מול ספירת פקח בשטח.">
-    <label class="check">
+    <label class="check" for="confirmDraft">
       <input type="checkbox" id="confirmDraft">
       <span>אני מבין שהדף רק מכין טיוטה. השליחה עצמה — ממני, אחרי שבדקתי שאין הבטחות אכיפה או ROI.</span>
     </label>
@@ -184,8 +184,8 @@ a{color:var(--brand)}
       <button type="button" id="btnCopy">העתק טקסט</button>
     </div>
     <p class="err" id="bookErr" hidden role="alert"></p>
-    <p class="ok" id="bookOk" hidden aria-live="polite"></p>
-    <pre class="preview" id="bookPreview" hidden></pre>
+    <p class="ok" id="bookOk" hidden role="status" aria-live="polite"></p>
+    <pre class="preview" id="bookPreview" hidden role="region" aria-label="תצוגה מקדימה של טיוטת הפנייה"></pre>
   </section>
 
   <section class="panel" id="quote">
@@ -221,13 +221,17 @@ a{color:var(--brand)}
     <p class="hint" id="qCapHint">רף פטור צד ג׳ (16.9.2026–15.10.2026): 171,500 ₪ לעירייה. קובץ רשמי 2026 של משרד הפנים: לא נמצא מקור.</p>
     <div class="actions">
       <button type="button" class="primary" id="btnQuote">בנה הצעה</button>
+      <button type="button" id="btnQuoteCopy">העתק הצעה</button>
       <button type="button" id="btnQuoteTxt">הורד TXT</button>
       <button type="button" id="btnQuoteJson">הורד JSON</button>
       <button type="button" id="btnQuoteCsv">הורד CSV</button>
       <button type="button" id="btnQuotePrint">הדפס הצעה</button>
+      <button type="button" id="btnQuoteReset" style="background:#607066;color:#fff">איפוס הצעה</button>
     </div>
     <p class="err" id="quoteErr" hidden role="alert"></p>
-    <pre class="preview" id="quotePreview" hidden></pre>
+    <p class="ok" id="quoteOk" hidden role="status" aria-live="polite"></p>
+    <p class="hint" id="quoteEmpty">טרם נבנתה טיוטת הצעה. לחצו «בנה הצעה» כדי להפיק תצוגה מקדימה וייצוא.</p>
+    <pre class="preview" id="quotePreview" hidden role="region" aria-label="תצוגה מקדימה של הצעת המחיר"></pre>
   </section>
 
   <section class="pitch" id="pitch">
@@ -382,36 +386,85 @@ a{color:var(--brand)}
     });
   }
 
-  $('btnQuote').addEventListener('click', () => {
+  function requireValidQuote() {
     const q = currentQuote();
     lastQuote = q;
     $('quotePreview').hidden = false;
     $('quotePreview').textContent = O.quoteToText(q);
+    $('quoteEmpty').hidden = true;
     if (!q.ok) {
       $('quoteErr').hidden = false;
       $('quoteErr').textContent = q.errors.join(' ');
-    } else {
-      $('quoteErr').hidden = true;
+      $('quoteOk').hidden = true;
+      return null;
+    }
+    $('quoteErr').hidden = true;
+    return q;
+  }
+
+  $('btnQuote').addEventListener('click', () => {
+    const q = requireValidQuote();
+    if (q) {
+      $('quoteOk').hidden = false;
+      $('quoteOk').textContent = 'טיוטת ההצעה נבנתה בהצלחה. לא נשלח כלום.';
+    }
+  });
+
+  $('btnQuoteCopy').addEventListener('click', async () => {
+    const q = requireValidQuote();
+    if (!q) return;
+    const text = O.quoteToText(q);
+    try {
+      await navigator.clipboard.writeText(text);
+      $('quoteOk').hidden = false;
+      $('quoteOk').textContent = 'טיוטת ההצעה הועתקה ללוח. לא נשלח כלום.';
+    } catch (e) {
+      $('quoteErr').hidden = false;
+      $('quoteErr').textContent = 'ההעתקה נחסמה בדפדפן — העתיקו ידנית מהתצוגה.';
     }
   });
 
   $('btnQuoteTxt').addEventListener('click', () => {
-    const q = lastQuote || currentQuote();
+    const q = requireValidQuote();
+    if (!q) return;
     download((q.id || 'parkwiz-quote') + '.txt', O.quoteToText(q));
+    $('quoteOk').hidden = false;
+    $('quoteOk').textContent = 'קובץ TXT של ההצעה הורד.';
   });
   $('btnQuoteJson').addEventListener('click', () => {
-    const q = lastQuote || currentQuote();
+    const q = requireValidQuote();
+    if (!q) return;
     download((q.id || 'parkwiz-quote') + '.json', JSON.stringify(q, null, 2), 'application/json');
+    $('quoteOk').hidden = false;
+    $('quoteOk').textContent = 'קובץ JSON של ההצעה הורד.';
   });
   $('btnQuoteCsv').addEventListener('click', () => {
-    const q = lastQuote || currentQuote();
+    const q = requireValidQuote();
+    if (!q) return;
     download((q.id || 'parkwiz-quote') + '.csv', O.quoteToCsv(q), 'text/csv;charset=utf-8');
+    $('quoteOk').hidden = false;
+    $('quoteOk').textContent = 'קובץ CSV של ההצעה הורד.';
   });
   $('btnQuotePrint').addEventListener('click', () => {
-    lastQuote = lastQuote || currentQuote();
-    $('quotePreview').hidden = false;
-    $('quotePreview').textContent = O.quoteToText(lastQuote);
+    const q = requireValidQuote();
+    if (!q) return;
     window.print();
+  });
+  $('btnQuoteReset').addEventListener('click', () => {
+    lastQuote = null;
+    $('qPackage').value = 'pilot-free';
+    syncPackage();
+    $('qCameras').value = '1';
+    $('qDays').value = '30';
+    $('qAmount').value = '';
+    $('qContact').value = '';
+    $('quotePreview').hidden = true;
+    $('quotePreview').textContent = '';
+    $('quoteErr').hidden = true;
+    $('quoteErr').textContent = '';
+    $('quoteOk').hidden = false;
+    $('quoteOk').textContent = 'טופס ההצעה אופס לברירת המחדל (פיילוט חינם).';
+    $('quoteEmpty').hidden = false;
   });
   $('btnPrintPitch').addEventListener('click', () => window.print());
 })();
