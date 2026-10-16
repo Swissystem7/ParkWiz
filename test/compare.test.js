@@ -147,3 +147,13 @@ test('savePairs throws TypeError when list is not an array', () => {
     message: 'list must be an array'
   });
 });
+
+test('comparison page has empty state for saved pairs and accessible status regions', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'pilot-compare.html'), 'utf8');
+  assert.match(html, /<p class="hint" id="pairEmpty">/);
+  assert.match(html, /document\.getElementById\("pairEmpty"\)\.style\.display\s*=\s*pairs\.length \? "none" : "block"/);
+  assert.match(html, /id="addStatus"[^>]*role="status"[^>]*aria-live="polite"/);
+  assert.match(html, /id="exportStatus"[^>]*role="status"[^>]*aria-live="polite"/);
+  assert.match(html, /getElementById\("btnJson"\)\.addEventListener\("click",\s*\(\)\s*=>\s*\{[\s\S]*?if \(!pairs\.length\) \{ setStatus\("exportStatus", "אין זוגות לייצוא\."\); return; \}/);
+});
+
