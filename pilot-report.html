@@ -34,6 +34,8 @@ svg.chart{display:block;width:100%;height:auto}
 table{width:100%;border-collapse:collapse;font-size:.8rem}
 th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:right}
 th{color:var(--muted);font-weight:600}
+.status{min-height:1.3em;font-size:.86rem;font-weight:700;margin:8px 0 0}
+.hint{font-size:.78rem;color:var(--muted);margin-top:6px}
 </style>
 </head>
 <body>
@@ -58,6 +60,7 @@ th{color:var(--muted);font-weight:600}
     </label>
     <button type="button" id="btnFromKit">טען מערכת הפיילוט (localStorage)</button>
   </div>
+  <p class="status" id="reportStatus" role="status" aria-live="polite"></p>
 
   <section class="panel">
     <h2>כותרת הדוח</h2>
@@ -96,7 +99,7 @@ th{color:var(--muted);font-weight:600}
       </div>
       <button type="button" id="btnAcc">חשב דיוק</button>
     </div>
-    <p id="accOut" style="font-size:.95rem;font-weight:700;margin:12px 0 0">טרם הוזנה ספירה ידנית — אין דיוק לדווח.</p>
+    <p id="accOut" role="status" aria-live="polite" style="font-size:.95rem;font-weight:700;margin:12px 0 0">טרם הוזנה ספירה ידנית — אין דיוק לדווח.</p>
     <p id="pairOut" style="font-size:.86rem;margin:10px 0 0;color:var(--muted)">אין עדיין סדרת זוגות. <a href="./pilot-compare.html">השוואת דיוק</a> אוספת תצפיות ומחשבת ממוצע.</p>
   </section>
 
@@ -133,6 +136,7 @@ th{color:var(--muted);font-weight:600}
       <thead><tr><th>זמן</th><th>תפוסים</th><th>סך הכול</th><th>%</th><th>מקור</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table>
+    <p class="hint" id="recordsEmpty">אין רשומות תפוסה להצגה.</p>
   </section>
 
   <div class="foot">ParkWiz · דוח פיילוט · מסמך מדידה אנונימי · הודפס מקומית מהדפדפן</div>
@@ -167,6 +171,7 @@ function render() {
   const last = records[records.length - 1];
   document.getElementById("rStreet").textContent = last ? last.street : "—";
   document.getElementById("rCount").textContent = String(records.length);
+  document.getElementById("recordsEmpty").style.display = records.length ? "none" : "block";
   if (!last) {
     document.getElementById("rPeriod").textContent = "—";
     document.getElementById("rSource").textContent = "אין נתונים";
@@ -268,16 +273,24 @@ function restoreAccuracy() {
   } catch (e) {}
 }
 
+function setStatus(text) {
+  const el = document.getElementById("reportStatus");
+  if (el) el.textContent = text || "";
+}
+
 document.getElementById("btnPrint").addEventListener("click", () => window.print());
 document.getElementById("btnAcc").addEventListener("click", computeAccuracy);
 document.getElementById("btnCsv").addEventListener("click", () => {
+  if (!records.length) { setStatus("אין רשומות לייצוא."); return; }
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([EXP.occupancyToCsv(records)], { type: "text/csv" }));
   a.download = "occupancy.csv";
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 800);
+  setStatus("הורד CSV של הדוח.");
 });
 document.getElementById("btnJson").addEventListener("click", () => {
+  if (!records.length) { setStatus("אין רשומות לייצוא."); return; }
   const packet = EXP.buildPilotPacket({
     occupancy: records,
     pairs: CMP.loadStoredPairs(),
@@ -288,29 +301,39 @@ document.getElementById("btnJson").addEventListener("click", () => {
   a.download = "pilot-packet.json";
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 800);
+  setStatus("הורד JSON מלא של הדוח.");
 });
 document.getElementById("btnSample").addEventListener("click", async () => {
   try {
     const res = await fetch("pilot/sample-occupancy.json");
     apply(await res.json());
+    setStatus("נטען occupancy לדוגמה.");
   } catch (e) {
-    document.getElementById("accOut").textContent = "טעינת הדוגמה נכשלה — פתחו את הדף דרך GitHub Pages או שרת מקומי, או בחרו קובץ.";
+    setStatus("טעינת הדוגמה נכשלה — פתחו את הדף דרך GitHub Pages או שרת מקומי, או בחרו קובץ.");
   }
 });
 document.getElementById("fileOcc").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
-  apply(JSON.parse(await f.text()));
+  try {
+    apply(JSON.parse(await f.text()));
+    setStatus("נטען occupancy מהקובץ.");
+  } catch (err) {
+    setStatus("שגיאה בקריאת הקובץ — ודאו שזהו קובץ JSON תקין.");
+  }
 });
 document.getElementById("btnFromKit").addEventListener("click", () => {
   try {
     const raw = localStorage.getItem(LS_OCC);
-    if (!raw) { document.getElementById("accOut").textContent = "אין occupancy שמור מערכת הפיילוט בדפדפן זה."; return; }
+    if (!raw) { setStatus("אין occupancy שמור מערכת הפיילוט בדפדפן זה."); return; }
     apply(JSON.parse(raw));
     const st = localStorage.getItem(LS_STREET);
     if (st && records[0]) records.forEach((r) => { if (r.street === "—") r.street = st; });
     render();
-  } catch (e) {}
+    setStatus("נטענו " + records.length + " רשומות מערכת הפיילוט.");
+  } catch (e) {
+    setStatus("שגיאה בטעינת נתונים מערכת הפיילוט.");
+  }
 });
 
 (function init() {
