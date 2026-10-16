@@ -32,16 +32,17 @@ h1{font-size:1.35rem;margin:0 0 4px}
 <div class="wrap" id="mainSummary">
   <h1>סיכום פיילוט — לקריאה בלבד</h1>
   <p class="sub">קישור שנוצר בדפדפן. אין חשבון, אין שרת, ואין דרך לערוך את המספרים מכאן.</p>
-  <div class="banner" id="banner">
+  <div class="banner" id="banner" role="status" aria-live="polite">
     טוען את הסיכום מהכתובת…
   </div>
+  <p class="status" id="summaryStatus" role="status" aria-live="polite" style="min-height:1.2em;font-size:.86rem;font-weight:700;margin:8px 0 0"></p>
 
-  <section class="panel" id="body" hidden>
-    <h2>דיוק מול ספירת פקח</h2>
+  <section class="panel" id="body" role="region" aria-labelledby="summaryTitle" hidden>
+    <h2 id="summaryTitle">דיוק מול ספירת פקח</h2>
     <div class="kpis">
-      <div class="kpi"><div class="n" id="kMean">—</div><div class="l">דיוק ממוצע</div></div>
-      <div class="kpi"><div class="n" id="kN">—</div><div class="l">תצפיות מזווגות</div></div>
-      <div class="kpi"><div class="n" id="kPerfect">—</div><div class="l">התאמה מלאה</div></div>
+      <div class="kpi" id="kpiMean"><div class="n" id="kMean">—</div><div class="l">דיוק ממוצע</div></div>
+      <div class="kpi" id="kpiN"><div class="n" id="kN">—</div><div class="l">תצפיות מזווגות</div></div>
+      <div class="kpi" id="kpiPerfect"><div class="n" id="kPerfect">—</div><div class="l">התאמה מלאה</div></div>
     </div>
     <div class="meta" style="margin-top:14px">
       <div><span>רחוב / אתר</span><br><b id="rStreet">—</b></div>
@@ -53,7 +54,7 @@ h1{font-size:1.35rem;margin:0 0 4px}
     </div>
   </section>
 
-  <section class="panel" id="empty">
+  <section class="panel" id="empty" role="region" aria-label="הודעת סיכום ריק">
     <div class="empty">
       <b>אין סיכום בכתובת.</b>
       פתחו את <a href="./pilot-compare.html">השוואת הדיוק</a>, הזינו זוגות, ולחצו «העתק קישור סיכום».
@@ -63,6 +64,8 @@ h1{font-size:1.35rem;margin:0 0 4px}
 
   <div class="toolbar no-print">
     <button type="button" class="primary" id="btnPrint">הדפס / שמור כ־PDF</button>
+    <button type="button" id="btnCopyLink" aria-label="העתק קישור סיכום ללוח">העתק קישור</button>
+    <button type="button" id="btnCopySummary" aria-label="העתק תקציר נתוני פיילוט ללוח">העתק תקציר טקסט</button>
     <a href="./pilot-compare.html" style="font-size:.85rem">חזרה להשוואה</a>
   </div>
   <div class="foot">ParkWiz · סיכום לקריאה בלבד · הנתונים ב־hash של הכתובת</div>
@@ -80,24 +83,80 @@ const EXP = window.ParkWizExport;
 const pct = OCC.pct;
 const fmt = OCC.formatTime;
 
-document.getElementById("btnPrint").addEventListener("click", () => window.print());
+let currentData = null;
 
-const token = location.hash.replace(/^#/, "");
-const data = EXP.decodeSharePayload(token);
-const banner = document.getElementById("banner");
-if (!data) {
-  banner.innerHTML = "<b>הקישור ריק או פגום.</b> זה דף לקריאה בלבד — אין מסד נתונים מאחוריו.";
-} else {
-  document.getElementById("empty").hidden = true;
-  document.getElementById("body").hidden = false;
+function setStatus(msg, isErr) {
+  const el = document.getElementById("summaryStatus");
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e7490)";
+}
+
+async function copyText(text, successMsg) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setStatus(successMsg);
+  } catch (e) {
+    setStatus("ההעתקה ללוח נכשלה.", true);
+  }
+}
+
+function renderSummary() {
+  const token = location.hash.replace(/^#/, "");
+  const data = EXP.decodeSharePayload(token);
+  currentData = data;
+  const banner = document.getElementById("banner");
+  const emptySec = document.getElementById("empty");
+  const bodySec = document.getElementById("body");
+
+  if (!data) {
+    emptySec.hidden = false;
+    bodySec.hidden = true;
+    banner.innerHTML = "<b>הקישור ריק או פגום.</b> זה דף לקריאה בלבד — אין מסד נתונים מאחוריו.";
+    document.getElementById("kMean").textContent = "—";
+    document.getElementById("kN").textContent = "—";
+    document.getElementById("kPerfect").textContent = "—";
+    document.getElementById("rStreet").textContent = "—";
+    document.getElementById("rPeriod").textContent = "—";
+    document.getElementById("rRange").textContent = "—";
+    document.getElementById("rMae").textContent = "—";
+    document.getElementById("rLast").textContent = "—";
+    document.getElementById("rGen").textContent = "—";
+    return;
+  }
+
+  emptySec.hidden = true;
+  bodySec.hidden = false;
   if (data.sampleOnly) {
     banner.innerHTML = "<b>נתוני דוגמה, לא ספירת פקח.</b> המספרים בקישור סומנו כ־sample. אין לדווח אותם כמדידת שטח.";
   } else {
     banner.innerHTML = "<b>מסמך סיכום מקומי.</b> אין הזנה חיה ואין דרך לערוך מכאן. מקור: השוואת דיוק בדפדפן ששלח את הקישור.";
   }
-  document.getElementById("kMean").textContent = data.meanAccuracy == null ? "—" : pct(data.meanAccuracy);
-  document.getElementById("kN").textContent = String(data.count);
-  document.getElementById("kPerfect").textContent = String(data.perfect);
+
+  const meanStr = data.meanAccuracy == null ? "—" : pct(data.meanAccuracy);
+  const kMeanEl = document.getElementById("kMean");
+  const kNEl = document.getElementById("kN");
+  const kPerfEl = document.getElementById("kPerfect");
+
+  kMeanEl.textContent = meanStr;
+  kNEl.textContent = String(data.count);
+  kPerfEl.textContent = String(data.perfect);
+
+  kMeanEl.setAttribute("aria-label", "דיוק ממוצע: " + meanStr);
+  kNEl.setAttribute("aria-label", "תצפיות מזווגות: " + data.count);
+  kPerfEl.setAttribute("aria-label", "התאמה מלאה: " + data.perfect);
+
   document.getElementById("rStreet").textContent = data.street || "—";
   document.getElementById("rPeriod").textContent = (data.firstTs || data.lastTs)
     ? (fmt(data.firstTs) + " – " + fmt(data.lastTs))
@@ -110,7 +169,39 @@ if (!data) {
     ? "—"
     : (data.lastSystem + " / " + data.lastManual + " מתוך " + data.lastTotal);
   document.getElementById("rGen").textContent = data.generatedAt ? fmt(data.generatedAt) : "—";
+  setStatus("סיכום פיילוט נטען בהצלחה.");
 }
+
+document.getElementById("btnPrint").addEventListener("click", () => window.print());
+
+document.getElementById("btnCopyLink").addEventListener("click", () => {
+  if (!currentData) {
+    setStatus("אין קישור סיכום להעתקה.", true);
+    return;
+  }
+  copyText(location.href, "הקישור הועתק ללוח.");
+});
+
+document.getElementById("btnCopySummary").addEventListener("click", () => {
+  if (!currentData) {
+    setStatus("אין נתוני סיכום להעתקה.", true);
+    return;
+  }
+  const acc = currentData.meanAccuracy == null ? "—" : pct(currentData.meanAccuracy);
+  const text = [
+    "סיכום פיילוט ParkWiz:",
+    "רחוב / אתר: " + (currentData.street || "—"),
+    "דיוק ממוצע מול פקח: " + acc,
+    "תצפיות מזווגות: " + currentData.count,
+    "התאמה מלאה: " + currentData.perfect,
+    "שגיאה מוחלטת ממוצעת: " + (currentData.meanAbsError == null ? "—" : currentData.meanAbsError.toFixed(2)),
+    currentData.sampleOnly ? "(נתוני דוגמה בלבד — לא ספירת שטח)" : "(מקור: השוואת דיוק בדפדפן)"
+  ].join("\n");
+  copyText(text, "תקציר הטקסט הועתק ללוח.");
+});
+
+window.addEventListener("hashchange", renderSummary);
+renderSummary();
 </script>
 </body>
 </html>
