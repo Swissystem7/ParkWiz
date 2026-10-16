@@ -81,7 +81,7 @@ textarea{min-height:64px;resize:vertical}
     <button type="button" id="pwInstallBtn">הוסף למסך הבית</button>
     <button type="button" id="btnClear">מחק יומן בדפדפן זה</button>
   </div>
-  <p class="status" id="status" role="status"></p>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
 
   <section class="panel">
     <h2>פסק הדין לפי כלל העצירה</h2>
@@ -95,7 +95,7 @@ textarea{min-height:64px;resize:vertical}
       <div class="kpi"><div class="n" id="kCi">—</div><div class="l">רווח סמך 95% (Wilson)</div></div>
       <div class="kpi"><div class="n" id="kBias">—</div><div class="l">הטיה (מערכת − פקח)</div></div>
     </div>
-    <div class="verdict INSUFFICIENT" id="verdictBox">
+    <div class="verdict INSUFFICIENT" id="verdictBox" role="region" aria-live="polite" aria-labelledby="verdictLabel">
       <h3 id="verdictLabel">אין עדיין מספיק תצפיות לפסק דין.</h3>
       <ul id="verdictReasons"></ul>
     </div>
@@ -124,7 +124,8 @@ textarea{min-height:64px;resize:vertical}
   <section class="panel">
     <h2>30 הימים</h2>
     <p class="hint">לחצו על יום כדי למלא ספירה. ירוק = יש זוג. כתום = אין ספירה. חום = דוגמה.</p>
-    <div class="days" id="dayGrid"></div>
+    <div class="days" id="dayGrid" role="region" aria-label="30 ימי פיילוט"></div>
+    <p class="hint" id="daysEmpty" style="display:none">אין עדיין ימים עם ספירה ביומן זה. לחצו על יום כדי להזין ספירה או טענו יומן דוגמה.</p>
   </section>
 
   <section class="panel" id="editorPanel">
@@ -252,6 +253,9 @@ function renderEditor() {
 function renderGrid() {
   const host = document.getElementById("dayGrid");
   host.replaceChildren();
+  const filledCount = PRO.filledDays(state.days).length;
+  const daysEmpty = document.getElementById("daysEmpty");
+  if (daysEmpty) daysEmpty.style.display = filledCount ? "none" : "block";
   state.days.forEach((d) => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -423,6 +427,10 @@ document.getElementById("fileLog").addEventListener("change", async (e) => {
 });
 
 document.getElementById("btnCsv").addEventListener("click", () => {
+  if (!PRO.filledDays(state.days).length) {
+    setStatus("אין ימים עם ספירה לייצוא.");
+    return;
+  }
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([EXP.logToCsv(state.days)], { type: "text/csv" }));
   a.download = "pilot-log.csv";
@@ -432,6 +440,10 @@ document.getElementById("btnCsv").addEventListener("click", () => {
 });
 
 document.getElementById("btnJson").addEventListener("click", () => {
+  if (!PRO.filledDays(state.days).length) {
+    setStatus("אין ימים עם ספירה לייצוא.");
+    return;
+  }
   const doc = {
     version: 1,
     kind: "parkwiz-field-log",
