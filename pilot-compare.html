@@ -107,7 +107,7 @@ td input{max-width:88px;padding:5px 6px}
       </div>
       <button type="button" class="primary" id="btnAdd">הוסף זוג</button>
     </div>
-    <p class="status" id="addStatus"></p>
+    <p class="status" id="addStatus" role="status" aria-live="polite"></p>
   </section>
 
   <section class="panel">
@@ -129,11 +129,12 @@ td input{max-width:88px;padding:5px 6px}
       <button type="button" id="btnOpenShare">פתח סיכום</button>
       <button type="button" id="btnClear">מחק זוגות בדפדפן זה</button>
     </div>
-    <p class="status" id="exportStatus"></p>
+    <p class="status" id="exportStatus" role="status" aria-live="polite"></p>
     <table>
       <thead><tr><th>זמן</th><th>רחוב</th><th>מערכת</th><th>פקח</th><th>סך הכול</th><th>דיוק</th><th>מקור</th><th>הערה</th></tr></thead>
       <tbody id="pairBody"></tbody>
     </table>
+    <p class="hint" id="pairEmpty">אין זוגות שנשמרו עדיין.</p>
   </section>
 
   <div class="foot">ParkWiz · השוואת דיוק מקומית · נשמר בדפדפן זה בלבד · בלי שרת</div>
@@ -256,6 +257,7 @@ function render() {
     });
     tb.appendChild(tr);
   });
+  document.getElementById("pairEmpty").style.display = pairs.length ? "none" : "block";
 }
 
 function streetName() {
@@ -358,6 +360,7 @@ document.getElementById("btnCsv").addEventListener("click", () => {
   setStatus("exportStatus", "הורד CSV של הזוגות.");
 });
 document.getElementById("btnJson").addEventListener("click", () => {
+  if (!pairs.length) { setStatus("exportStatus", "אין זוגות לייצוא."); return; }
   download("pilot-packet.json", JSON.stringify(packet(), null, 2), "application/json");
   setStatus("exportStatus", "הורד JSON מלא (תפוסה + זוגות + סיכום).");
 });
