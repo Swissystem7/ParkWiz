@@ -14,7 +14,7 @@ const lot = require('../src/lib/atidim-lot');
 const occ = require('../src/lib/occupancy');
 const marginLib = require('../src/lib/margin');
 
-// The two <script src> tags carry attributes, so this matches the inline block.
+// The three <script src> tags carry attributes, so this matches the inline block.
 const inline = html.match(/<script>([\s\S]*?)<\/script>/);
 
 // 2026-10-19 07:30Z is 10:30 in Jerusalem — mid-morning, the hour the demo opens on.
