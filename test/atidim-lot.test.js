@@ -28,6 +28,12 @@ test('getHourlyCurve returns 24 hours with realistic park peak hours', () => {
   assert.equal(curve[10].occupied + curve[10].available, 220);
 });
 
+test('hourlyPoint wraps hour 24/-1/NaN to 0..23', () => {
+  assert.equal(lotModel.hourlyPoint(24).hour, 0);
+  assert.equal(lotModel.hourlyPoint(-1).hour, 23);
+  assert.equal(lotModel.hourlyPoint(NaN).hour, 0);
+});
+
 test('createDefaultCameraSpots produces 24 normalized spot boxes', () => {
   const spots = lotModel.createDefaultCameraSpots();
   assert.equal(spots.length, 24);
