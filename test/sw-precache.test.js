@@ -22,6 +22,19 @@ function htmlPages() {
   return fs.readdirSync(root).filter((f) => f.endsWith('.html'));
 }
 
+// Pages under demo/ reach their libs with ../src/lib/x.js; the precache list is
+// written from the repo root, so resolve the relative src against the page.
+function scriptSrcs(html, page) {
+  const dir = path.posix.dirname(page);
+  const out = [];
+  for (const m of html.matchAll(/<script[^>]*\ssrc=(["'])([^"']+)\1/g)) {
+    const src = m[2];
+    if (/^(https?:)?\/\//.test(src) || src.startsWith('data:')) continue;
+    out.push(path.posix.normalize(path.posix.join(dir, src)));
+  }
+  return out;
+}
+
 // Literal same-origin fetch targets inside a page's inline scripts.
 function runtimeFetches(html) {
   const out = [];
@@ -50,6 +63,24 @@ test('every same-origin file a page fetches at runtime is precached', () => {
     const html = fs.readFileSync(path.join(root, page), 'utf8');
     for (const target of runtimeFetches(html)) {
       if (!cached.has(target)) uncached.push(page + ' -> ' + target);
+    }
+  }
+  assert.deepEqual(uncached, []);
+});
+
+// runtimeFetches only sees fetch() calls, so a page that pulls in a new library
+// with <script src> could ship a feature that is blank offline — which is what
+// demo/atidim-board.html did to src/lib/margin.js when the margin panel landed.
+test('every library a precached page <script src>s is precached too', () => {
+  const cached = new Set(precachedAssets().map((a) => a.replace(/^\.\//, '')));
+  const pages = [...htmlPages(), ...fs.readdirSync(path.join(root, 'demo'))
+    .filter((f) => f.endsWith('.html')).map((f) => 'demo/' + f)];
+  const uncached = [];
+  for (const page of pages) {
+    if (!cached.has(page) && page.includes('/')) continue; // not in the shell at all
+    const html = fs.readFileSync(path.join(root, page), 'utf8');
+    for (const src of scriptSrcs(html, page)) {
+      if (!cached.has(src)) uncached.push(page + ' -> ' + src);
     }
   }
   assert.deepEqual(uncached, []);

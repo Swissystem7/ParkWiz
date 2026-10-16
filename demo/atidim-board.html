@@ -43,6 +43,9 @@
   #bayCanvas{width:100%;max-width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#3f4650;display:block}
   .legend{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted)}
   .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:middle}
+  /* The arrival margin: a headline window, a band drawn to scale against the
+     lot's capacity, the advice line, and the tone that never promises a spot. */
+  .ctl .hr.mv{font-size:15px;min-width:86px}
   .mhead{font-size:1.05rem;font-weight:700;margin:4px 0 0}
   .band{position:relative;height:13px;border-radius:7px;background:var(--line);margin:10px 0 8px;overflow:hidden}
   .bandfill{position:absolute;top:0;bottom:0;background:var(--free);opacity:.8;border-radius:7px}
@@ -116,11 +119,14 @@
     <h2 id="marginTitle">שולי הגעה — חלון, לא נקודה</h2>
     <div class="ctl">
       <label for="etaRange">זמן נסיעה</label>
-      <span class="hr" id="etaOut">—</span>
-      <input id="etaRange" type="range" min="0" max="45" step="1" value="8" dir="ltr" aria-label="זמן נסיעה בדקות עד החניון">
+      <span class="hr mv" id="etaOut">—</span>
+      <input id="etaRange" type="range" min="0" max="45" step="1" value="8" dir="ltr"
+             aria-label="זמן נסיעה בדקות עד החניון">
       <label for="bufferRange">שולי ביטחון</label>
-      <span class="hr" id="bufferOut">—</span>
-      <input id="bufferRange" type="range" min="0" max="30" step="1" value="5" dir="ltr" aria-label="שולי ביטחון בדקות סביב זמן ההגעה">
+      <span class="hr mv" id="bufferOut">—</span>
+      <input id="bufferRange" type="range" min="0" max="30" step="1" value="5" dir="ltr"
+             aria-label="שולי ביטחון בדקות סביב זמן ההגעה">
+      <span class="note">מבוסס על שעון החניון ועקומת הדמו — טווח מקומות פנויים, לא מספר בודד.</span>
     </div>
     <!-- Both sliders rewrite the window, so it is announced like the counters. -->
     <div aria-live="polite">
@@ -283,8 +289,10 @@ function label(h) {
   return String(h).padStart(2, "0") + ":00";
 }
 
-// While the counters follow the clock the margin starts from the real minute;
-// once the presenter grabs the hour slider it starts at :00 of that hour.
+// While the counters follow the clock the window starts from the real minute —
+// localHour would round "now" down and slide the whole window by up to 59
+// minutes. Once the presenter grabs the hour slider it starts at :00 of the
+// hour on show, so the window never contradicts the counters above it.
 function marginStartMinutes() {
   return follow ? LOT.localMinuteOfDay(new Date(), config.timezone) : hour * 60;
 }
@@ -295,13 +303,17 @@ function renderMargin() {
   $("etaRange").value = String(eta);
   $("bufferRange").value = String(buffer);
   const m = MARGIN.arrivalMargin({
-    freeByHour: MARGIN.freeByHourFromSeries(LOT.hourlySeries(config)), total: LOT.totalBays(config),
-    nowMinutes: marginStartMinutes(), etaMinutes: eta, bufferMinutes: buffer,
+    freeByHour: MARGIN.freeByHourFromSeries(LOT.hourlySeries(config)),
+    total: LOT.totalBays(config),
+    nowMinutes: marginStartMinutes(),
+    etaMinutes: eta,
+    bufferMinutes: buffer,
   });
   if (!m) { $("marginHead").textContent = "אין מספיק נתונים לחלון הגעה."; return; }
   $("marginHead").textContent = m.headline;
   $("marginAdvice").textContent = m.advice;
-  // No bare "N free at 10:38" anywhere: that is the number the margin replaces.
+  // No bare "N free at 10:38" anywhere — that is the number the margin replaces,
+  // so the width of the window is spelled out instead.
   $("marginTone").textContent = m.tone + " · מגמה: " + m.trendLabel + " · שולי אי־ודאות: ±"
     + m.slack + " מקומות — החלון מתרחב כשההגעה רחוקה יותר.";
   const scale = 100 / (m.capacity || 1);
@@ -346,17 +358,18 @@ function start() {
     hour = Number(e.target.value);
     render();
   });
-  // The two margin sliders move the window only — they must not drop the
-  // counters out of clock-follow the way the hour scrubber does.
-  $("etaRange").addEventListener("input", (e) => { eta = Number(e.target.value); renderMargin(); });
-  $("bufferRange").addEventListener("input", (e) => { buffer = Number(e.target.value); renderMargin(); });
   $("nowBtn").addEventListener("click", () => {
     follow = true;
     hour = nowHour();
     render();
   });
+  // The two margin sliders move the window only — unlike the hour scrubber they
+  // must not drop the counters out of clock-follow, nor redraw the canvas.
+  $("etaRange").addEventListener("input", (e) => { eta = Number(e.target.value); renderMargin(); });
+  $("bufferRange").addEventListener("input", (e) => { buffer = Number(e.target.value); renderMargin(); });
   window.addEventListener("resize", () => drawLot(LOT.snapshotAt(hour, config)));
   setInterval(() => {
+    renderMargin();
     if (!follow) return;
     const h = nowHour();
     if (h === hour) return;
