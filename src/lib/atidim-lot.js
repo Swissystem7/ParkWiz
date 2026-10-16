@@ -433,6 +433,17 @@
     return Number.isFinite(h) ? ((h % 24) + 24) % 24 : 0;
   }
 
+  // Minute-of-day at the lot (0–1439), for sub-hour arrival windows on the board.
+  function localMinuteOfDay(now, timeZone) {
+    const d = now instanceof Date ? now : new Date(now);
+    if (Number.isNaN(d.getTime())) return 0;
+    const p = lotClockParts(d, timeZone || DEFAULT.timezone);
+    const h = Number(p.hour);
+    const min = Number(p.minute);
+    if (!Number.isFinite(h) || !Number.isFinite(min)) return 0;
+    return (((h % 24) + 24) % 24) * 60 + min;
+  }
+
   // Any hour, so the board can scrub the day without faking a Date.
   function snapshotAt(hour, lot) {
     const l = lot || DEFAULT;
@@ -479,6 +490,7 @@
     bayLayout,
     hourlySeries,
     localHour,
+    localMinuteOfDay,
     snapshotAt,
     liveSnapshot,
     occupiedAtRate,
