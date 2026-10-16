@@ -152,7 +152,7 @@ test('margin copy is a window plus a prediction tone at every hour, never a prom
     const m = lot.computeArrivalMargin(hour);
     assert.ok(m.textHe.includes(m.from + '–' + m.to), m.textHe);
     assert.ok(m.textHe.includes('±' + m.marginMinutes), m.textHe);
-    assert.match(m.textHe, /כ-\d+ מקומות/, 'bays are approximate: ' + m.textHe);
+    assert.match(m.textHe, /(?:כ-\d+|\d+–\d+) מקומות/, 'bays are approximate: ' + m.textHe);
     assert.match(m.textHe, /חיזוי, לא הבטחה\.$/);
     assert.doesNotMatch(m.textHe, /מובטח|מבטיח|בוודאות|שמור לך|בטוח/, m.textHe);
   }

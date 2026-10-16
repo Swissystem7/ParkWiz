@@ -78,6 +78,8 @@
   .report .row span:last-child{font-weight:600}
   .pill{display:inline-block; font-size:11.5px; padding:2px 9px; border-radius:99px; background:var(--bg); border:1px solid var(--line); color:var(--muted)}
   .hidden{display:none}
+  .status{min-height:1.3em; font-size:13px; font-weight:700; margin:0 0 12px}
+  .empty-msg{color:var(--muted); font-size:13px; padding:12px 0}
   .foot{margin-top:24px; color:var(--muted); font-size:11.5px; text-align:center}
   @media(max-width:560px){ .kpis{grid-template-columns:1fr} h1{font-size:19px} }
 </style>
@@ -115,13 +117,15 @@
     <button class="primary" id="btnReport">הפק דוח עירוני</button>
     <span class="pill" id="recCount">— רשומות</span>
   </div>
+  <p class="status" id="dashStatus" role="status" aria-live="polite"></p>
 
   <div class="grid">
 
     <section class="panel">
       <h2>תפוסה נוכחית — מהקובץ / דוגמה מובנית</h2>
-      <div class="tiles" id="tiles"></div>
-      <div class="legend">
+      <div class="tiles" id="tiles" role="region" aria-label="תצוגת מקומות חניה"></div>
+      <p class="empty-msg" id="tilesEmpty" style="display:none">אין נתונים להצגה — טענו קובץ occupancy או הדביקו נתונים.</p>
+      <div class="legend" id="tilesLegend">
         <span><span class="dot" style="background:var(--free)"></span>חניה פנויה</span>
         <span><span class="dot" style="background:var(--occ)"></span>חניה תפוסה</span>
       </div>
@@ -135,11 +139,12 @@
 
     <section class="panel">
       <h2>תפוסה לאורך זמן</h2>
-      <div class="chartwrap"><div id="chart"></div></div>
+      <div class="chartwrap"><div id="chart" role="region" aria-label="תרשים תפוסה לאורך זמן"></div></div>
+      <p class="empty-msg" id="chartEmpty" style="display:none;text-align:center;padding:28px 0">אין נתונים להצגת תרשים תפוסה.</p>
     </section>
 
-    <section class="panel report hidden" id="reportPanel">
-      <h2>דוח עירוני — תובנות</h2>
+    <section class="panel report hidden" id="reportPanel" aria-labelledby="repTitle" aria-live="polite">
+      <h2 id="repTitle">דוח עירוני — תובנות</h2>
       <p class="headline" id="repHeadline"></p>
       <div id="repRows"></div>
     </section>
@@ -148,7 +153,7 @@
       <details class="data">
         <summary>הזנת נתונים ידנית (JSONL / JSON)</summary>
         <div class="drop" id="drop">גררו קובץ occupancy לכאן, או הדביקו למטה</div>
-        <textarea id="ta" placeholder='{"ts":"2026-07-18T09:00:00","street":"שדרות ניצה","totalSpots":24,"occupiedSpots":10,"occupancyRate":0.42}
+        <textarea id="ta" aria-label="הדבקת נתוני תפוסה בפורמט JSONL או JSON" placeholder='{"ts":"2026-07-18T09:00:00","street":"שדרות ניצה","totalSpots":24,"occupiedSpots":10,"occupancyRate":0.42}
 ... שורה לכל רשומה (JSONL), או מערך JSON'></textarea>
         <div style="margin-top:8px"><button id="btnLoad">טען נתונים</button></div>
       </details>
@@ -173,9 +178,37 @@ let RECORDS = [];
 function parseData(text){ return OCC.parse(text); }
 function hourOf(ts){ const d=new Date(ts); return isNaN(d)?null:d.getHours(); }
 
+function setStatus(msg, isErr){
+  const el = document.getElementById("dashStatus");
+  if(!el) return;
+  el.textContent = msg;
+  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e7490)";
+}
+
 // ---- render ----
 function render(){
-  if(!RECORDS.length) return;
+  const tilesEmpty = document.getElementById("tilesEmpty");
+  const chartEmpty = document.getElementById("chartEmpty");
+  const tilesLegend = document.getElementById("tilesLegend");
+  if(!RECORDS.length){
+    document.getElementById("streetName").textContent = "—";
+    document.getElementById("lastUpdated").textContent = "—";
+    document.getElementById("recCount").textContent = "0 רשומות";
+    document.getElementById("kCur").textContent = "—";
+    document.getElementById("kPeak").textContent = "—";
+    document.getElementById("kAvg").textContent = "—";
+    document.getElementById("tiles").innerHTML = "";
+    if(tilesEmpty) tilesEmpty.style.display = "block";
+    if(tilesLegend) tilesLegend.style.display = "none";
+    document.getElementById("chart").innerHTML = "";
+    if(chartEmpty) chartEmpty.style.display = "block";
+    document.getElementById("reportPanel").classList.add("hidden");
+    return;
+  }
+  if(tilesEmpty) tilesEmpty.style.display = "none";
+  if(chartEmpty) chartEmpty.style.display = "none";
+  if(tilesLegend) tilesLegend.style.display = "flex";
+
   const sum = OCC.summarize(RECORDS);
   const last = sum.last;
   document.getElementById("streetName").textContent = last.street;
@@ -190,6 +223,8 @@ function render(){
     el.className="tile "+(free?"free":"occ");
     el.textContent=i+1;
     el.title=free?"פנוי":"תפוס";
+    el.setAttribute("role", "img");
+    el.setAttribute("aria-label", "מקום " + (i + 1) + ": " + (free ? "פנוי" : "תפוס"));
     tiles.appendChild(el);
   }
 
@@ -206,7 +241,10 @@ function drawChart(recs){
 
 // ---- city report: peak window + headline ----
 function makeReport(){
-  if(!RECORDS.length) return;
+  if(!RECORDS.length){
+    setStatus("אין רשומות להפקת דוח עירוני.", true);
+    return;
+  }
   const sum = OCC.summarize(RECORDS);
   const peak = sum.peak, low = sum.low;
   const ph=hourOf(peak.ts);
@@ -238,18 +276,32 @@ function makeReport(){
   const p=document.getElementById("reportPanel");
   p.classList.remove("hidden");
   p.scrollIntoView({behavior:"smooth",block:"nearest"});
+  setStatus("דוח עירוני הופק בהצלחה.");
 }
 
 // ---- data loading ----
 function loadFrom(text,label){
   const parsed=parseData(text);
-  if(parsed.length){ RECORDS=parsed; document.getElementById("srcLabel").textContent=label; render(); return true; }
+  if(parsed.length){
+    RECORDS=parsed;
+    document.getElementById("srcLabel").textContent=label;
+    render();
+    setStatus("נטענו " + parsed.length + " רשומות בהצלחה.");
+    return true;
+  }
   return false;
 }
 
 document.getElementById("btnReport").addEventListener("click",makeReport);
 document.getElementById("btnLoad").addEventListener("click",()=>{
-  if(!loadFrom(document.getElementById("ta").value,"הזנה ידנית")) alert("לא נמצאו רשומות תקינות. בדקו את הפורמט.");
+  const val = (document.getElementById("ta").value || "").trim();
+  if(!val){
+    setStatus("אנא הדביקו נתוני תפוסה לפני הטעינה.", true);
+    return;
+  }
+  if(!loadFrom(val,"הזנה ידנית")){
+    setStatus("לא נמצאו רשומות תקינות. בדקו את הפורמט.", true);
+  }
 });
 
 // drag & drop
@@ -259,7 +311,12 @@ const drop=document.getElementById("drop"), ta=document.getElementById("ta");
 drop.addEventListener("drop",ev=>{
   const f=ev.dataTransfer.files[0]; if(!f) return;
   const rd=new FileReader();
-  rd.onload=()=>{ ta.value=rd.result; if(!loadFrom(rd.result,"קובץ: "+f.name)) alert("קובץ לא נקרא כרשומות תקינות."); };
+  rd.onload=()=>{
+    ta.value=rd.result;
+    if(!loadFrom(rd.result,"קובץ: "+f.name)){
+      setStatus("קובץ לא נקרא כרשומות תקינות.", true);
+    }
+  };
   rd.readAsText(f);
 });
 
@@ -270,6 +327,8 @@ drop.addEventListener("drop",ev=>{
     .then(t=>{ if(!loadFrom(t,"pilot/sample-occupancy.json (דוגמה)")){ throw 0; } })
     .catch(()=>{
       document.getElementById("srcLabel").textContent="אין קובץ — טענו occupancy.json";
+      render();
+      setStatus("אין קובץ נתונים — טענו occupancy.json או הדביקו נתונים.", true);
     });
 })();
 </script>
