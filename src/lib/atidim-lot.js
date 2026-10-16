@@ -146,6 +146,28 @@
     return pad2(Math.floor(m / 60)) + ':' + pad2(m % 60);
   }
 
+  // Free bays between the hours. The curve carries one point per hour, so
+  // stepping at :00 would make every sub-hour window flat — a point prediction
+  // wearing a window's clothes (src/lib/margin.js reads its own curve the same
+  // way, for the operator board).
+  function availableAtMinute(totalMinutes, capacity = ATIDIM_LOT.totalCapacity) {
+    const curve = getHourlyCurve(capacity);
+    const m = ((Math.round(Number(totalMinutes) || 0) % 1440) + 1440) % 1440;
+    const hour = Math.floor(m / 60);
+    const next = (hour + 1) % 24;
+    return curve[hour].available + (curve[next].available - curve[hour].available) * ((m % 60) / 60);
+  }
+
+  // Never one bare number: a window of times whose free-bay claim is a single
+  // count is still a point prediction, and "כ-1 מקומות פנויים" also reads as
+  // broken Hebrew. src/lib/margin.js#rangeLabel is the fuller ladder used by
+  // the board; the demo page quotes this one line.
+  function expectedBaysHe(low, high) {
+    if (high <= 0) return 'החיזוי לא מראה מקומות פנויים בחלון הזה';
+    if (low !== high) return 'צפויים ' + low + '–' + high + ' מקומות פנויים';
+    return low === 1 ? 'צפוי מקום פנוי אחד בלבד' : 'צפויים כ-' + low + ' מקומות פנויים';
+  }
+
   function computeArrivalMargin(hour, capacity = ATIDIM_LOT.totalCapacity) {
     const pt = hourlyPoint(hour, capacity);
     const h = pt.hour;
@@ -157,15 +179,27 @@
     const marginMinutes = clamp(Math.round(raw / MARGIN_STEP_MIN) * MARGIN_STEP_MIN, MARGIN_MIN_MIN, MARGIN_MAX_MIN);
     const from = clockLabel(h * 60 - marginMinutes);
     const to = clockLabel(h * 60 + marginMinutes);
+    // The window reaches into the neighbouring hours, where the curve can sit
+    // far from its value at the hour mark: the 08:00 window opens near 85 free
+    // bays and closes near 40, so quoting the 53 at 08:00 alone is the promise
+    // the margin exists to replace. The curve is piecewise linear and the
+    // window is at most ±30 minutes, so its extremes are at the edges or at the
+    // hour itself.
+    const seen = [h * 60 - marginMinutes, h * 60, h * 60 + marginMinutes]
+      .map((m) => availableAtMinute(m, capacity));
+    const expectedLow = Math.max(0, Math.floor(Math.min.apply(null, seen)));
+    const expectedHigh = Math.max(expectedLow, Math.ceil(Math.max.apply(null, seen)));
     return {
       hour: h,
       label: pt.label,
       expectedAvailable: pt.available,
+      expectedLow,
+      expectedHigh,
       marginMinutes,
       from,
       to,
       textHe: 'הגעה ב-' + pt.label + '? תכננו חלון ' + from + '–' + to + ' (±' + marginMinutes +
-        ' דק׳) · צפויים כ-' + pt.available + ' מקומות פנויים · חיזוי, לא הבטחה.',
+        ' דק׳) · ' + expectedBaysHe(expectedLow, expectedHigh) + ' · חיזוי, לא הבטחה.',
     };
   }
 
@@ -476,6 +510,7 @@
     lotHour,
     getHourlyCurve,
     hourlyPoint,
+    availableAtMinute,
     computeArrivalMargin,
     createCameraSpots,
     createDefaultCameraSpots,
