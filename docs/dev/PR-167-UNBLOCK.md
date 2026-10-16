@@ -40,13 +40,13 @@ input, and that contract still holds and is still tested.
 - Drops the contradictory assertion from the
   `an empty or pair-less file keeps the saved pairs` test. That test is about
   `replacePairsFromText`; the `parsePairs` assertion did not belong in it.
-- Splits the `parsePairs` contract into two named tests so the two halves cannot
-  be conflated again: blank string → `[]`, non-string → `TypeError`.
-- Adds a comment stating why blank is valid input for `parsePairs` and invalid
-  for `normalizePack`.
+- Pins the `parsePairs` blank-input contract in `test/compare-parsepairs-blank.test.js`
+  (blank string → `[]`, non-string → `TypeError`, blank file must not wipe saved
+  pairs, and `normalizePack` still rejects blank) so it cannot be conflated with
+  `normalizePack` again.
 
-No production code changed. `npm test`: **315 pass, 0 fail** (was 313 pass,
-1 fail).
+No production code changed. Run `npm test` — the suite must be fully green (was
+313 pass, 1 fail on `master` before #162).
 
 ## Merge order
 
