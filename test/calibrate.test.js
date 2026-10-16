@@ -131,3 +131,9 @@ test('a spot with a blank or boolean coordinate is dropped instead of pinned to 
   assert.equal(cal.normalizeSpot({ x: false, y: 0.1, w: 0.2, h: 0.2 }, 0), null);
   assert.equal(cal.normalizeSpot({ x: '0.1', y: 0, w: 0.2, h: 0.2 }, 0).x, 0.1);
 });
+
+test('calibration wizard binds the street label to streetName and wires the finish step', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'pilot-calibrate.html'), 'utf8');
+  assert.match(html, /<label[^>]*for="streetName"[^>]*>רחוב \/ אתר<\/label>/);
+  assert.match(html, /document\.getElementById\("btnNext"\)\.addEventListener\("click",\s*\(\)\s*=>\s*\{[\s\S]*?savePack\(\);/);
+});
