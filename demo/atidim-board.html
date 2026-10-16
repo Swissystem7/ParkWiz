@@ -86,6 +86,29 @@
     <div class="kpi"><div class="n" id="kTotal">—</div><div class="l">סה״כ מקומות בחניון</div></div>
   </section>
 
+  <section class="panel" style="margin-bottom:14px">
+    <h2>שולי הגעה — חיזוי לפי העקומה, לא הבטחה</h2>
+    <div class="ctl" style="margin-bottom:0">
+      <label for="etaRange">זמן נסיעה משוער (דק׳)</label>
+      <span class="hr" id="etaOut" aria-hidden="true">8</span>
+      <input id="etaRange" type="range" min="0" max="45" step="1" value="8" dir="ltr"
+             aria-label="זמן נסיעה משוער עד החניון">
+      <label for="bufferRange">חלון הגעה (± דק׳)</label>
+      <span class="hr" id="bufferOut" aria-hidden="true">5</span>
+      <input id="bufferRange" type="range" min="0" max="30" step="1" value="5" dir="ltr"
+             aria-label="רוחב חלון ההגעה סביב זמן ההגעה">
+      <span class="note">מבוסס על שעון החניון ועקומת הדמו — טווח מקומות פנויים, לא מספר בודד.</span>
+    </div>
+    <div aria-live="polite">
+      <div class="marginLive" style="margin-top:12px;font-size:14px;line-height:1.55">
+        <div id="marginHead" style="font-weight:700;font-size:15px">—</div>
+        <div id="marginBand" style="margin-top:6px">—</div>
+        <div id="marginAdvice" style="margin-top:6px;color:var(--muted)">—</div>
+        <div id="marginTone" style="margin-top:8px;font-size:12px;color:var(--muted)">—</div>
+      </div>
+    </div>
+  </section>
+
   <div class="grid cols2">
     <section class="panel">
       <h2>מפת חניות — פנוי (ירוק) / תפוס (אדום)</h2>
@@ -119,6 +142,7 @@
 
 <script src="../src/lib/atidim-lot.js"></script>
 <script src="../src/lib/occupancy.js"></script>
+<script src="../src/lib/margin.js"></script>
 <script>
 "use strict";
 if ("serviceWorker" in navigator) {
@@ -126,6 +150,7 @@ if ("serviceWorker" in navigator) {
 }
 const LOT = window.ParkWizAtidimLot;
 const OCC = window.ParkWizOccupancy;
+const MARGIN = window.ParkWizMargin;
 const $ = (id) => document.getElementById(id);
 
 let config = { ...LOT.DEFAULT };
@@ -253,6 +278,41 @@ function label(h) {
   return String(h).padStart(2, "0") + ":00";
 }
 
+function marginInputs() {
+  const eta = Number($("etaRange").value);
+  const buffer = Number($("bufferRange").value);
+  return {
+    etaMinutes: Number.isFinite(eta) ? eta : MARGIN.DEFAULT_ETA_MIN,
+    bufferMinutes: Number.isFinite(buffer) ? buffer : MARGIN.DEFAULT_BUFFER_MIN,
+  };
+}
+
+function renderMargin() {
+  if (!MARGIN) return;
+  const { etaMinutes, bufferMinutes } = marginInputs();
+  $("etaOut").textContent = String(etaMinutes);
+  $("bufferOut").textContent = String(bufferMinutes);
+  const curve = MARGIN.freeByHourFromSeries(LOT.hourlySeries(config));
+  const m = MARGIN.arrivalMargin({
+    freeByHour: curve,
+    total: LOT.totalBays(config),
+    nowMinutes: LOT.localMinuteOfDay(new Date(), config.timezone),
+    etaMinutes,
+    bufferMinutes,
+  });
+  if (!m) {
+    $("marginHead").textContent = "—";
+    $("marginBand").textContent = "—";
+    $("marginAdvice").textContent = "—";
+    $("marginTone").textContent = "—";
+    return;
+  }
+  $("marginHead").textContent = m.headline;
+  $("marginBand").textContent = m.rangeLabel + " · " + m.trendLabel;
+  $("marginAdvice").textContent = m.advice;
+  $("marginTone").textContent = m.tone;
+}
+
 function render() {
   const snap = LOT.snapshotAt(hour, config);
   $("kFree").textContent = String(snap.free);
@@ -273,6 +333,7 @@ function render() {
     stroke: "var(--brand)",
     markIndex: hour,
   });
+  renderMargin();
 }
 
 function nowHour() {
@@ -294,8 +355,11 @@ function start() {
     hour = nowHour();
     render();
   });
+  $("etaRange").addEventListener("input", () => render());
+  $("bufferRange").addEventListener("input", () => render());
   window.addEventListener("resize", () => drawLot(LOT.snapshotAt(hour, config)));
   setInterval(() => {
+    renderMargin();
     if (!follow) return;
     const h = nowHour();
     if (h === hour) return;
