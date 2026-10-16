@@ -12,8 +12,9 @@ const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'demo', 'atidim-board.html'), 'utf8');
 const lot = require('../src/lib/atidim-lot');
 const occ = require('../src/lib/occupancy');
+const marginLib = require('../src/lib/margin');
 
-// The two <script src> tags carry attributes, so this matches the inline block.
+// The three <script src> tags carry attributes, so this matches the inline block.
 const inline = html.match(/<script>([\s\S]*?)<\/script>/);
 
 // 2026-10-19 07:30Z is 10:30 in Jerusalem — mid-morning, the hour the demo opens on.
@@ -27,6 +28,7 @@ function fakeEl() {
     value: '',
     attrs: {},
     handlers: {},
+    style: {},
     setAttribute(k, v) { el.attrs[k] = v; },
     addEventListener(t, fn) { el.handlers[t] = fn; },
   };
@@ -88,6 +90,7 @@ async function boot(opts) {
       addEventListener: (t, fn) => { winHandlers[t] = fn; },
       ParkWizAtidimLot: lot,
       ParkWizOccupancy: occ,
+      ParkWizMargin: marginLib,
     },
     Date: FixedDate,
     Number,
@@ -188,6 +191,43 @@ test('the hourly chart marks the hour the counters are showing', async () => {
   assert.match(svg, /<circle/);
   get('hourRange').handlers.input({ target: { value: '16' } });
   assert.notEqual(get('hourlyChart').innerHTML, svg, 'marker follows the scrubber');
+});
+
+// 10:30 + the 8-minute default drive, ±5 minutes of margin.
+test('the arrival margin opens as a window around the ETA, never a single number', async () => {
+  const { get } = await boot();
+  assert.equal(get('etaOut').textContent, '8 דק׳');
+  assert.match(get('marginHead').textContent, /10:33–10:43 · \d+–\d+ מקומות פנויים/);
+  assert.match(get('marginTone').textContent, /חיזוי, לא הבטחה · מגמה: .+ · שולי אי־ודאות: ±1/);
+  assert.ok(parseFloat(get('marginBand').style.width) > 0, 'the band is drawn');
+});
+
+test('the margin sliders widen the window without touching the counters', async () => {
+  const { get } = await boot();
+  const span = () => parseFloat(get('marginBand').style.width);
+  const tight = span();
+  const occupied = get('kOcc').textContent;
+  get('bufferRange').handlers.input({ target: { value: '30' } });
+  assert.equal(get('bufferOut').textContent, '±30 דק׳');
+  assert.match(get('marginHead').textContent, /10:08–11:08/);
+  assert.ok(span() > tight, `a 30-minute margin must be wider than 5 (${span()} vs ${tight})`);
+  get('etaRange').handlers.input({ target: { value: '0' } });
+  assert.match(get('marginHead').textContent, /10:00–11:00/);
+  // The margin sliders are not the hour scrubber: the board keeps following the clock.
+  assert.equal(get('kOcc').textContent, occupied);
+  assert.equal(get('nowBtn').attrs['aria-pressed'], 'true');
+});
+
+test('scrubbing the demo hour moves the arrival window with it', async () => {
+  const { get } = await boot();
+  get('hourRange').handlers.input({ target: { value: '7' } });
+  assert.match(get('marginHead').textContent, /07:03–07:13/, 'manual hours start the window at :00');
+  // A wide margin across the morning fill-up is where the advice earns its place.
+  get('bufferRange').handlers.input({ target: { value: '30' } });
+  assert.match(get('marginHead').textContent, /06:38–07:38/);
+  assert.match(get('marginAdvice').textContent, /להקדים/, 'the morning fill-up is called out');
+  get('nowBtn').handlers.click();
+  assert.match(get('marginHead').textContent, /10:08–11:08/, 'back to the clock, still ±30');
 });
 
 test('the board still comes up when atidim-data.json cannot be fetched', async () => {
