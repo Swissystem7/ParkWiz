@@ -36,6 +36,7 @@ th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:right}
 th{color:var(--muted);font-weight:600}
 .status{min-height:1.3em;font-size:.86rem;font-weight:700;margin:8px 0 0}
 .hint{font-size:.78rem;color:var(--muted);margin-top:6px}
+button.danger{color:var(--occ,#dc2626);border-color:#fecaca}
 </style>
 </head>
 <body>
@@ -50,20 +51,22 @@ th{color:var(--muted);font-weight:600}
     אין זיהוי לוחיות ואין זיהוי פנים. שורת ההפרות היא מציין מקום — אין מנוע הפרות בריפו.
   </div>
 
-  <div class="toolbar no-print">
-    <button type="button" class="primary" id="btnPrint">הדפס / שמור כ־PDF</button>
-    <button type="button" id="btnCsv">ייצוא CSV</button>
-    <button type="button" id="btnJson">ייצוא JSON</button>
-    <button type="button" id="btnSample">טען occupancy לדוגמה</button>
+  <div class="toolbar no-print" role="toolbar" aria-label="פעולות דוח פיילוט">
+    <button type="button" class="primary" id="btnPrint" aria-label="הדפס או שמור דוח כ-PDF">הדפס / שמור כ־PDF</button>
+    <button type="button" id="btnCsv" aria-label="ייצוא רשומות כקובץ CSV">ייצוא CSV</button>
+    <button type="button" id="btnJson" aria-label="ייצוא חבילת פיילוט כקובץ JSON">ייצוא JSON</button>
+    <button type="button" id="btnCopySummary" aria-label="העתק סיכום נתוני דוח ללוח">העתק סיכום דוח</button>
+    <button type="button" id="btnSample" aria-label="טען נתוני תפוסה לדוגמה">טען occupancy לדוגמה</button>
     <label class="no-print" style="margin:0;max-width:none">טען occupancy.json
-      <input type="file" id="fileOcc" accept=".json,application/json">
+      <input type="file" id="fileOcc" accept=".json,application/json" aria-label="טען קובץ occupancy בפורמט JSON">
     </label>
-    <button type="button" id="btnFromKit">טען מערכת הפיילוט (localStorage)</button>
+    <button type="button" id="btnFromKit" aria-label="טען נתוני תפוסה שנשמרו בערכת הפיילוט">טען מערכת הפיילוט (localStorage)</button>
+    <button type="button" class="danger" id="btnClear" aria-label="נקה את כל נתוני הדוח">נקה נתונים</button>
   </div>
   <p class="status" id="reportStatus" role="status" aria-live="polite"></p>
 
-  <section class="panel">
-    <h2>כותרת הדוח</h2>
+  <section class="panel" role="region" aria-labelledby="secMeta">
+    <h2 id="secMeta">כותרת הדוח</h2>
     <div class="meta">
       <div><span>רחוב / אתר</span><br><b id="rStreet">—</b></div>
       <div><span>תקופה</span><br><b id="rPeriod">—</b></div>
@@ -72,8 +75,8 @@ th{color:var(--muted);font-weight:600}
     </div>
   </section>
 
-  <section class="panel">
-    <h2>מדדי תפוסה</h2>
+  <section class="panel" role="region" aria-labelledby="secKpis">
+    <h2 id="secKpis">מדדי תפוסה</h2>
     <div class="kpis">
       <div class="kpi"><div class="n" id="kLast">—</div><div class="l">תפוסה אחרונה</div></div>
       <div class="kpi"><div class="n" id="kPeak">—</div><div class="l">שיא</div></div>
@@ -82,8 +85,8 @@ th{color:var(--muted);font-weight:600}
     </div>
   </section>
 
-  <section class="panel">
-    <h2>דיוק מול ספירה ידנית (פקח)</h2>
+  <section class="panel" role="region" aria-labelledby="secAcc">
+    <h2 id="secAcc">דיוק מול ספירה ידנית (פקח)</h2>
     <p style="font-size:.86rem;color:var(--muted);margin:0 0 10px">
       זה המספר שחסר לפני פגישה. הפקח סופר כמה מקומות תפוסים באותו רגע של הרשומה האחרונה.
       הנוסחה: 100% − |תפוסה מערכת − תפוסה פקח| / סך המקומות. לא בינה מלאכותית.
@@ -97,27 +100,29 @@ th{color:var(--muted);font-weight:600}
         <label for="manualNote">שם / משמרת (רשות)</label>
         <input type="text" id="manualNote" placeholder="פקח א׳, בוקר">
       </div>
-      <button type="button" id="btnAcc">חשב דיוק</button>
+      <button type="button" id="btnAcc" aria-label="חשב דיוק מול ספירת פקח">חשב דיוק</button>
     </div>
     <p id="accOut" role="status" aria-live="polite" style="font-size:.95rem;font-weight:700;margin:12px 0 0">טרם הוזנה ספירה ידנית — אין דיוק לדווח.</p>
     <p id="pairOut" style="font-size:.86rem;margin:10px 0 0;color:var(--muted)">אין עדיין סדרת זוגות. <a href="./pilot-compare.html">השוואת דיוק</a> אוספת תצפיות ומחשבת ממוצע.</p>
   </section>
 
-  <section class="panel">
-    <h2>עקומה שעתית</h2>
+  <section class="panel" role="region" aria-labelledby="secChart">
+    <h2 id="secChart">עקומה שעתית</h2>
     <div id="chart"></div>
+    <p class="hint" id="chartEmpty" style="display:none">אין נתוני תפוסה להצגה בעקומה.</p>
   </section>
 
-  <section class="panel">
-    <h2>מפת חום לפי שעה (תכנון, לא אכיפה)</h2>
+  <section class="panel" role="region" aria-labelledby="secHeat">
+    <h2 id="secHeat">מפת חום לפי שעה (תכנון, לא אכיפה)</h2>
     <p style="font-size:.86rem;color:var(--muted);margin:0 0 10px">
       ממוצע תפוסה לפי השעה שרשומה בחותמת הזמן. שעות בלי נתון אפורות. לא המלצת קנס.
     </p>
     <div id="heat"></div>
+    <p class="hint" id="heatEmpty" style="display:none">אין נתוני תפוסה להצגת מפת חום.</p>
   </section>
 
-  <section class="panel">
-    <h2>הפרות שזוהו לשעה</h2>
+  <section class="panel" role="region" aria-labelledby="secViolations">
+    <h2 id="secViolations">הפרות שזוהו לשעה</h2>
     <div class="placeholder">
       <b>מציין מקום — אין נתון.</b>
       הפנייה לנתניה הזכירה «הפרות שזוהו לשעה». בפיילוט הנוכחי אין מנוע הפרות:
@@ -125,15 +130,15 @@ th{color:var(--muted);font-weight:600}
     </div>
   </section>
 
-  <section class="panel">
-    <h2>המלצות (תכנון, לא קנסות)</h2>
+  <section class="panel" role="region" aria-labelledby="secRecs">
+    <h2 id="secRecs">המלצות (תכנון, לא קנסות)</h2>
     <ul id="recs" style="margin:0;padding-inline-start:18px;font-size:.9rem"></ul>
   </section>
 
-  <section class="panel">
-    <h2>טבלת רשומות</h2>
+  <section class="panel" role="region" aria-labelledby="secRecords">
+    <h2 id="secRecords">טבלת רשומות</h2>
     <table>
-      <thead><tr><th>זמן</th><th>תפוסים</th><th>סך הכול</th><th>%</th><th>מקור</th></tr></thead>
+      <thead><tr><th scope="col">זמן</th><th scope="col">תפוסים</th><th scope="col">סך הכול</th><th scope="col">%</th><th scope="col">מקור</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table>
     <p class="hint" id="recordsEmpty">אין רשומות תפוסה להצגה.</p>
@@ -172,6 +177,10 @@ function render() {
   document.getElementById("rStreet").textContent = last ? last.street : "—";
   document.getElementById("rCount").textContent = String(records.length);
   document.getElementById("recordsEmpty").style.display = records.length ? "none" : "block";
+  const chartEmpty = document.getElementById("chartEmpty");
+  if (chartEmpty) chartEmpty.style.display = records.length ? "none" : "block";
+  const heatEmpty = document.getElementById("heatEmpty");
+  if (heatEmpty) heatEmpty.style.display = records.length ? "none" : "block";
   if (!last) {
     document.getElementById("rPeriod").textContent = "—";
     document.getElementById("rSource").textContent = "אין נתונים";
@@ -179,11 +188,13 @@ function render() {
     document.getElementById("kPeak").textContent = "—";
     document.getElementById("kAvg").textContent = "—";
     document.getElementById("kConf").textContent = "—";
-    document.getElementById("chart").innerHTML = "<p style='color:#6b7280'>טענו occupancy.json או דוגמה.</p>";
-    const heatEmpty = document.getElementById("heat");
-    if (heatEmpty) heatEmpty.innerHTML = "<p style='color:#6b7280'>אין סדרה למפת חום.</p>";
+    document.getElementById("chart").innerHTML = "";
+    const heatEl = document.getElementById("heat");
+    if (heatEl) heatEl.innerHTML = "";
     document.getElementById("tbody").replaceChildren();
     document.getElementById("recs").innerHTML = "<li>אין רשומות — אין המלצת תכנון.</li>";
+    restoreAccuracy();
+    renderPairedSummary();
     return;
   }
   const sum = OCC.summarize(records);
@@ -335,6 +346,75 @@ document.getElementById("btnFromKit").addEventListener("click", () => {
     setStatus("שגיאה בטעינת נתונים מערכת הפיילוט.");
   }
 });
+
+function copySummary() {
+  if (!records.length) {
+    setStatus("אין נתוני דוח להעתקה.");
+    return;
+  }
+  const sum = OCC.summarize(records);
+  const streetName = records[0].street || "לא צוין";
+  const period = fmt(sum.first.ts) + " – " + fmt(sum.last.ts);
+  const source = sum.sources.join(" · ");
+  const recs = OCC.planningNotes(sum).map((n) => "• " + n).join("\n");
+  const accText = document.getElementById("accOut") ? document.getElementById("accOut").textContent : "";
+  const lines = [
+    "דוח פיילוט ParkWiz — מדידת תפוסה אנונימית",
+    "אתר / רחוב: " + streetName,
+    "תקופה: " + period,
+    "מקור: " + source,
+    "סך רשומות: " + records.length,
+    "תפוסה ממוצעת: " + pct(sum.avg),
+    "שיא תפוסה: " + pct(rate(sum.peak)),
+    "רמת ביטחון ממוצעת (confidence): " + sum.conf.toFixed(2),
+  ];
+  if (accText && !accText.includes("טרם הוזנה")) {
+    lines.push("דיוק מול פקח: " + accText);
+  }
+  lines.push("", "המלצות תכנון:", recs);
+  const text = lines.join("\n");
+
+  const fallbackCopy = () => {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      setStatus("סיכום הדוח הועתק ללוח.");
+    } catch (e) {
+      setStatus("העתקה ללוח נכשלה בדפדפן זה.");
+    }
+    document.body.removeChild(ta);
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(
+      () => setStatus("סיכום הדוח הועתק ללוח."),
+      fallbackCopy
+    );
+  } else {
+    fallbackCopy();
+  }
+}
+
+function clearData() {
+  records = [];
+  try {
+    localStorage.removeItem(LS_OCC);
+    localStorage.removeItem(LS_ACC);
+  } catch (e) {}
+  document.getElementById("manualOcc").value = "";
+  document.getElementById("manualNote").value = "";
+  document.getElementById("accOut").textContent = "טרם הוזנה ספירה ידנית — אין דיוק לדווח.";
+  render();
+  setStatus("כל נתוני הדוח נוקו.");
+}
+
+document.getElementById("btnCopySummary").addEventListener("click", copySummary);
+document.getElementById("btnClear").addEventListener("click", clearData);
 
 (function init() {
   try {
