@@ -484,10 +484,13 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 </div>
 
 <!-- Street Card Overlay -->
-<div class="street-card-overlay" id="streetCardOverlay" onclick="closeStreetCard(event)">
-  <div class="street-card" id="streetCard">
+<div class="street-card-overlay" id="streetCardOverlay" onclick="closeStreetCard(event)" role="region" aria-label="פרטי רחוב נבחר">
+  <div class="street-card" id="streetCard" role="dialog" aria-modal="true" aria-labelledby="scName">
     <div class="sc-handle"></div>
-    <div class="sc-name" id="scName">רחוב הרצל</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div class="sc-name" id="scName" style="margin:0">רחוב הרצל</div>
+      <button type="button" class="sc-close" id="scCloseBtn" onclick="closeStreetCard(event)" aria-label="סגור פרטי רחוב" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:0 6px;line-height:1">✕</button>
+    </div>
     <div class="sc-avail">
       <div class="sc-avail-pct" id="scPct" style="color:var(--green)">45%</div>
       <div class="sc-bar-track" style="flex:1"><div class="sc-bar-fill" id="scBarFill" style="width:45%;background:var(--green)"></div></div>
@@ -503,6 +506,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
     <div class="sc-community" id="scCommunity">📍 7 חניות פנויות כרגע לפי קהילה</div>
     <div class="sc-actions">
       <button class="sc-btn" style="background:var(--green);border-color:var(--green);color:#0a0f0a;font-weight:800" onclick="startNavigation()">🧭 התחל ניווט</button>
+      <button class="sc-btn" id="scReserveBtn" onclick="openReserve(selectedStreetIdx)">🅿️ הזמן מקום (דמו)</button>
       <button class="sc-btn" onclick="shareWaze()">📤 פתח ב-Waze</button>
       <button class="sc-btn" onclick="shareWhatsApp()">💬 שתף WhatsApp</button>
       <button class="sc-btn sc-btn-nav" id="scNavBtn" onclick="navigateToStreet()">🧭 הנחה אותי לשם</button>
@@ -856,9 +860,9 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 </div>
 
 <!-- Reserve modal -->
-<div class="reserve-modal" id="reserveModal">
+<div class="reserve-modal" id="reserveModal" role="dialog" aria-modal="true" aria-labelledby="reserveTitle">
   <div class="reserve-box">
-    <h3>🅿️ הזמן מקום חניה</h3>
+    <h3 id="reserveTitle">🅿️ הזמן מקום חניה</h3>
     <div style="font-size:0.82rem;color:var(--muted)" id="reserveAddr">רחוב הרצל 42</div>
     <div class="reserve-price">₪4.50</div>
     <div class="reserve-sub">30 דקות · תשלום בסיום</div>
@@ -1773,7 +1777,7 @@ function selectStreet(idx) {
 }
 
 function closeStreetCard(e) {
-  if (e && e.target !== document.getElementById('streetCardOverlay')) return;
+  if (e && e.target && e.target !== document.getElementById('streetCardOverlay') && !e.target.closest('#scCloseBtn')) return;
   document.getElementById('streetCardOverlay').classList.remove('show');
   selectedStreetIdx = null;
   renderAll();
@@ -2204,6 +2208,12 @@ function toggleHistory() {
 }
 
 function openReserve(id) {
+  const streetIdx = id != null ? id : selectedStreetIdx;
+  if (streetIdx != null && STREETS_DEF[streetIdx]) {
+    const s = STREETS_DEF[streetIdx];
+    const el = document.getElementById('reserveAddr');
+    if (el) el.textContent = 'רחוב ' + s.name;
+  }
   document.getElementById('reserveModal').classList.add('show');
 }
 function closeReserve() {
