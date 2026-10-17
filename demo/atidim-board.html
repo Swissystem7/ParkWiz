@@ -40,6 +40,7 @@
   .ctl button{font:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:9px;border:1px solid var(--brand);background:transparent;color:var(--brand);cursor:pointer}
   .ctl button[aria-pressed=true]{background:var(--brand);color:var(--panel)}
   .ctl .note{font-size:12px;color:var(--muted);flex-basis:100%}
+  .board-status{font-size:12px;color:var(--brand);margin:-4px 0 14px;min-height:18px;font-weight:500}
   #bayCanvas{width:100%;max-width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#3f4650;display:block}
   .legend{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted)}
   .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:middle}
@@ -82,8 +83,10 @@
     <input id="hourRange" type="range" min="0" max="23" step="1" value="10" dir="ltr"
            aria-label="שעה בדמו — גרירה מציגה את התפוסה באותה שעה">
     <button id="nowBtn" type="button" aria-pressed="true">עכשיו</button>
+    <button id="btnCopyBoard" type="button">העתק תקציר לוח</button>
     <span class="note" id="followNote"></span>
   </div>
+  <p class="board-status" id="boardStatus" role="status" aria-live="polite"></p>
 
   <!-- Live region, like demo/atidim.html: dragging the hour rewrites these
        four numbers, and a screen reader has to hear the new ones. -->
@@ -126,6 +129,7 @@
       <span class="hr mv" id="bufferOut">—</span>
       <input id="bufferRange" type="range" min="0" max="30" step="1" value="5" dir="ltr"
              aria-label="שולי ביטחון בדקות סביב זמן ההגעה">
+      <button id="btnCopyMargin" type="button">העתק חלון הגעה</button>
       <span class="note">מבוסס על שעון החניון ועקומת הדמו — טווח מקומות פנויים, לא מספר בודד.</span>
     </div>
     <!-- Both sliders rewrite the window, so it is announced like the counters. -->
@@ -162,10 +166,46 @@ const OCC = window.ParkWizOccupancy;
 const MARGIN = window.ParkWizMargin;
 const $ = (id) => document.getElementById(id);
 
-let config = { ...LOT.DEFAULT };
+function announce(msg, isErr) {
+  const el = $("boardStatus");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e7490)";
+}
+
+function copyToClipboard(text, successMsg) {
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+    navigator.clipboard.writeText(text).then(function () {
+      announce(successMsg);
+    }).catch(function () {
+      announce(text);
+    });
+  } else {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      announce(successMsg);
+    } catch (e) {
+      announce(text);
+    }
+  }
+}
+
+if (!LOT || !OCC || !MARGIN) {
+  announce("מודולי החניון לא נטענו במלואם — נא לרענן את הדף.", true);
+}
+
+let config = (LOT && LOT.DEFAULT) ? { ...LOT.DEFAULT } : {};
 let hour = 10;
-let eta = MARGIN.DEFAULT_ETA_MIN;
-let buffer = MARGIN.DEFAULT_BUFFER_MIN;
+let eta = (MARGIN && MARGIN.DEFAULT_ETA_MIN) || 8;
+let buffer = (MARGIN && MARGIN.DEFAULT_BUFFER_MIN) || 5;
 // The page tracks the wall clock until the presenter grabs the slider, so the
 // demo opens on "now" but can still be walked through the whole day by hand.
 let follow = true;
@@ -334,6 +374,10 @@ function render() {
     ? "המונים עוקבים אחרי השעה בפועל (" + (config.timezone || LOT.DEFAULT.timezone) + "). גררו את המחוון כדי לעבור על היום."
     : "תצוגה ידנית של " + label(hour) + " — לחצו „עכשיו” לחזרה לשעה הנוכחית.";
   $("canvasCaption").textContent = snap.free + " פנויים מתוך " + snap.total + " · " + label(hour);
+  const canvas = $("bayCanvas");
+  if (canvas && typeof canvas.setAttribute === "function") {
+    canvas.setAttribute("aria-label", "מפת חניות: " + snap.free + " פנויים מתוך " + snap.total + " בשעה " + label(hour));
+  }
   drawLot(snap);
   $("hourlyChart").innerHTML = OCC.chartSvg(LOT.hourlySeries(config), {
     width: 520,
@@ -349,6 +393,7 @@ function nowHour() {
 }
 
 function start() {
+  if (!LOT || !OCC || !MARGIN) return;
   $("siteTitle").textContent = config.site + " — לוח מפעיל (דמו)";
   $("dataNote").textContent = config.meetingNote ? " " + config.meetingNote : "";
   hour = nowHour();
@@ -357,16 +402,47 @@ function start() {
     follow = false;
     hour = Number(e.target.value);
     render();
+    const snap = LOT.snapshotAt(hour, config);
+    announce("שעה שונתה ל-" + label(hour) + " · " + snap.free + " פנויים מתוך " + snap.total + ".");
   });
   $("nowBtn").addEventListener("click", () => {
     follow = true;
     hour = nowHour();
     render();
+    const snap = LOT.snapshotAt(hour, config);
+    announce("חזרה לשעה הנוכחית (" + label(hour) + ") · " + snap.free + " פנויים מתוך " + snap.total + ".");
   });
+  const copyBoardBtn = $("btnCopyBoard");
+  if (copyBoardBtn) {
+    copyBoardBtn.addEventListener("click", () => {
+      const snap = LOT.snapshotAt(hour, config);
+      const marginText = $("marginHead") ? $("marginHead").textContent : "";
+      const text = (config.site || "פארק עתידים") + " — לוח מפעיל: " + snap.free + "/" + snap.total + " פנויים (" + OCC.pct(snap.pct) + " תפוסה) בשעה " + label(hour) + (marginText ? " · שולי הגעה: " + marginText : "");
+      copyToClipboard(text, "תקציר לוח המפעיל הועתק ללוח.");
+    });
+  }
   // The two margin sliders move the window only — unlike the hour scrubber they
   // must not drop the counters out of clock-follow, nor redraw the canvas.
-  $("etaRange").addEventListener("input", (e) => { eta = Number(e.target.value); renderMargin(); });
-  $("bufferRange").addEventListener("input", (e) => { buffer = Number(e.target.value); renderMargin(); });
+  $("etaRange").addEventListener("input", (e) => {
+    eta = Number(e.target.value);
+    renderMargin();
+    announce("זמן נסיעה עודכן: " + eta + " דק׳ · שוליים: ±" + buffer + " דק׳.");
+  });
+  $("bufferRange").addEventListener("input", (e) => {
+    buffer = Number(e.target.value);
+    renderMargin();
+    announce("שולי ביטחון עודכנו: ±" + buffer + " דק׳ · זמן נסיעה: " + eta + " דק׳.");
+  });
+  const copyMarginBtn = $("btnCopyMargin");
+  if (copyMarginBtn) {
+    copyMarginBtn.addEventListener("click", () => {
+      const head = $("marginHead") ? $("marginHead").textContent : "";
+      const advice = $("marginAdvice") ? $("marginAdvice").textContent : "";
+      const tone = $("marginTone") ? $("marginTone").textContent : "";
+      const text = "שולי הגעה לחניון (" + (config.site || "פארק עתידים") + "): " + head + " · " + advice + (tone ? " (" + tone + ")" : "");
+      copyToClipboard(text, "פרטי חלון ההגעה הועתקו ללוח.");
+    });
+  }
   window.addEventListener("resize", () => drawLot(LOT.snapshotAt(hour, config)));
   setInterval(() => {
     renderMargin();
