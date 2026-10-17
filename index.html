@@ -421,9 +421,12 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 </div>
 
 <!-- ParkWiz Pricing Modal -->
-<div class="park-pricing-overlay" id="parkPricingOverlay">
-  <div class="park-pricing-box">
-    <div style="font-size:1.2rem;font-weight:900;text-align:center;margin-bottom:4px">🅿️ ParkWiz Premium</div>
+<div class="park-pricing-overlay" id="parkPricingOverlay" onclick="closeParkPricing(event)" role="region" aria-label="תוכניות ומחירים">
+  <div class="park-pricing-box" role="dialog" aria-modal="true" aria-labelledby="parkPricingTitle">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div id="parkPricingTitle" style="font-size:1.2rem;font-weight:900;margin:0">🅿️ ParkWiz Premium</div>
+      <button type="button" class="pricing-close" id="pricingCloseBtn" onclick="closeParkPricing(event)" aria-label="סגור חלון תוכניות" style="background:none;border:none;color:var(--muted);font-size:1.25rem;cursor:pointer;padding:0 6px;line-height:1">✕</button>
+    </div>
     <div style="margin:0 0 14px;padding:10px 12px;border-radius:14px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.35);color:#fde68a;text-align:center;font-size:0.82rem;font-weight:700">
       ⚠️ זוהי גרסת הדגמה בלבד — לא מתבצעת גבייה אמיתית
     </div>
@@ -462,7 +465,9 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
         <button class="btn btn-primary" style="width:100%;margin-top:10px;font-size:0.78rem;background:var(--purple);color:#fff" onclick="closeParkPricing();pwGoContact()">צור קשר</button>
       </div>
     </div>
-    <span style="display:block;text-align:center;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline" onclick="closeParkPricing()">המשך עם Free</span>
+    <div style="text-align:center;margin-top:6px">
+      <button type="button" class="btn btn-ghost" id="pricingFreeBtn" style="padding:6px 16px;font-size:0.78rem;cursor:pointer" onclick="closeParkPricing(event)">המשך עם Free</button>
+    </div>
     <div style="text-align:center;margin-top:10px;font-size:0.68rem;color:var(--muted)">
       <button type="button" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('terms')">תנאי שימוש (דמו)</button> ·
       <button type="button" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('privacy')">מדיניות פרטיות (דמו)</button>
@@ -471,10 +476,13 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 </div>
 
 <!-- Premium Lock Modal -->
-<div class="premium-lock-overlay" id="premiumLockOverlay">
-  <div class="premium-lock-box">
+<div class="premium-lock-overlay" id="premiumLockOverlay" onclick="closeLockModal(event)" role="region" aria-label="נעילת פרימיום">
+  <div class="premium-lock-box" role="dialog" aria-modal="true" aria-labelledby="premiumLockTitle">
+    <div style="display:flex;justify-content:flex-end;margin-top:-14px;margin-bottom:4px">
+      <button type="button" id="premiumLockCloseBtn" onclick="closeLockModal(event)" aria-label="סגור חלון נעילה" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:0 4px;line-height:1">✕</button>
+    </div>
     <div class="lock-icon">🔒</div>
-    <div class="lock-title">הזמנה מראש זמינה ב-Premium בלבד</div>
+    <div class="lock-title" id="premiumLockTitle">הזמנה מראש זמינה ב-Premium בלבד</div>
     <div class="lock-sub">הפעל Premium להדגמה כדי להזמין מקום מראש, לקבל התראות push ועוד.</div>
     <div style="display:flex;gap:10px">
       <button class="btn btn-primary" style="flex:1" onclick="closeLockModal();showParkPricing()">הפעל Premium להדגמה ⚡</button>
@@ -2288,22 +2296,41 @@ window.addEventListener('resize', ()=>{
 
 // ─── Premium / Pricing ───────────────────────────────────────────
 function showParkPricing() { document.getElementById('parkPricingOverlay').classList.add('show'); }
-function closeParkPricing() { document.getElementById('parkPricingOverlay').classList.remove('show'); }
+function closeParkPricing(e) {
+  if (e && e.target && e.target !== document.getElementById('parkPricingOverlay') && !e.target.closest('#pricingCloseBtn') && !e.target.closest('#pricingFreeBtn')) return;
+  document.getElementById('parkPricingOverlay').classList.remove('show');
+}
 function showPremiumLock() {
   if (isPremium) { openReserve(); return; }
   document.getElementById('premiumLockOverlay').classList.add('show');
 }
-function closeLockModal() { document.getElementById('premiumLockOverlay').classList.remove('show'); }
+function closeLockModal(e) {
+  if (e && e.target && e.target !== document.getElementById('premiumLockOverlay') && !e.target.closest('#premiumLockCloseBtn') && !e.target.closest('.btn-ghost')) return;
+  document.getElementById('premiumLockOverlay').classList.remove('show');
+}
 function activatePremium() {
   isPremium = true;
   closeParkPricing();
   const pill = document.getElementById('planPill');
   pill.textContent = 'PREMIUM';
   pill.style.cssText = 'background:linear-gradient(135deg,#a855f7,#3b82f6);color:#fff;border-color:transparent;border-radius:12px;padding:4px 10px;font-size:0.68rem;font-weight:800;letter-spacing:.4px;white-space:nowrap';
-  document.querySelector('.premium-btn').textContent = '✅ Premium פעיל';
-  document.querySelector('.premium-btn').style.background = 'rgba(168,85,247,.2)';
+  const premBtn = document.querySelector('.premium-btn');
+  if (premBtn) {
+    premBtn.textContent = '✅ Premium פעיל';
+    premBtn.style.background = 'rgba(168,85,247,.2)';
+    premBtn.setAttribute('aria-label', 'ParkWiz Premium פעיל (הדגמה)');
+  }
   showToast('🎉 פרמיום הופעל! (לא בוצע חיוב — זוהי הדגמה)');
 }
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const pricing = document.getElementById('parkPricingOverlay');
+    if (pricing && pricing.classList.contains('show')) { closeParkPricing(); return; }
+    const lock = document.getElementById('premiumLockOverlay');
+    if (lock && lock.classList.contains('show')) { closeLockModal(); return; }
+  }
+});
 
 // ─── "3 רחובות מומלצים" ──────────────────────────────────────────
 function walkMinutes(target, s) {
