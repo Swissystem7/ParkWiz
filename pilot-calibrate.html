@@ -40,6 +40,7 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
 .badge.free{background:#dcfce7;color:#166534}
 .badge.occ{background:#fee2e2;color:#991b1b}
 .badge.unk{background:#f3f4f6;color:#374151}
+.empty-msg{font-size:.84rem;color:var(--muted);padding:8px 0;margin:4px 0}
 .navrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
 </style>
@@ -62,72 +63,75 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
       <div class="hint" id="timerNote">השעון מתחיל בלחיצה על «התחל כיול». היעד הוא 3 דקות, לא SLA.</div>
     </div>
     <div class="row" style="margin:0">
-      <button type="button" class="primary" id="btnStart">התחל כיול</button>
-      <button type="button" id="btnDemo">מלא מדוגמת הריפו</button>
+      <button type="button" class="primary" id="btnStart" aria-label="התחל כיול 3 דקות">התחל כיול</button>
+      <button type="button" id="btnDemo" aria-label="מלא את כל שלבי הכיול מדוגמת הריפו">מלא מדוגמת הריפו</button>
     </div>
   </div>
 
-  <ol class="steps" id="stepList"></ol>
+  <ol class="steps" id="stepList" role="list" aria-label="שלבי כיול"></ol>
 
-  <section class="panel" id="panel-image">
-    <h2>1. תמונת snapshot</h2>
+  <section class="panel" id="panel-image" role="region" aria-labelledby="hImage">
+    <h2 id="hImage">1. תמונת snapshot</h2>
     <p class="hint">העלו צילום מהזווית הקבועה, או טענו את דוגמת הרצל שכלולה בריפו.</p>
     <div class="row">
       <label class="hint" for="streetName">רחוב / אתר</label>
-      <input type="text" id="streetName" value="הרצל, נתניה" autocomplete="street-address">
+      <input type="text" id="streetName" value="הרצל, נתניה" autocomplete="street-address" aria-label="שם הרחוב או האתר לכיול">
     </div>
     <div class="row">
-      <button type="button" id="btnSampleSnap">טען דוגמת יום</button>
-      <label class="hint">צילום נוכחי <input type="file" id="fileSnap" accept="image/*"></label>
+      <button type="button" id="btnSampleSnap" aria-label="טען צילום דוגמת יום של מגרש החניה">טען דוגמת יום</button>
+      <label class="hint">צילום נוכחי <input type="file" id="fileSnap" accept="image/*" aria-label="העלאת צילום נוכחי"></label>
     </div>
-    <div class="stage" id="stage">
+    <div class="stage" id="stage" role="region" aria-label="אזור תמונת מגרש החניה">
       <img id="snapImg" alt="צילום מגרש חניה לכיול">
-      <canvas id="calCanvas" aria-label="סימון מלבני חניה על התמונה"></canvas>
+      <canvas id="calCanvas" role="img" aria-label="סימון מלבני חניה על התמונה"></canvas>
     </div>
     <p class="hint">בשלב 2 גררו על התמונה כדי לסמן מלבן. המלבנים נשמרים כשברים (0–1).</p>
   </section>
 
-  <section class="panel hidden" id="panel-spots">
-    <h2>2. סימון מלבנים</h2>
+  <section class="panel hidden" id="panel-spots" role="region" aria-labelledby="hSpots">
+    <h2 id="hSpots">2. סימון מלבנים</h2>
     <p class="hint">מלבן אחד לכל מקום שנמדוד. אפשר לטעון את 12 מקומות הדוגמה.</p>
     <div class="row">
-      <button type="button" id="btnSampleSpots">טען מלבני דוגמה</button>
-      <button type="button" id="btnUndo">בטל אחרון</button>
-      <button type="button" class="danger" id="btnClear">נקה</button>
+      <button type="button" id="btnSampleSpots" aria-label="טען 12 מלבני חניה לדוגמה">טען מלבני דוגמה</button>
+      <button type="button" id="btnUndo" aria-label="בטל מלבן אחרון שסומן">בטל אחרון</button>
+      <button type="button" class="danger" id="btnClear" aria-label="נקה את כל מלבני החניה המסומנים">נקה</button>
     </div>
-    <div class="spot-list" id="spotList"></div>
+    <div class="spot-list" id="spotList" role="region" aria-label="רשימת מקומות החניה המסומנים"></div>
+    <p class="hint empty-msg" id="spotListEmpty" style="display:none">טרם סומנו מלבני חניה. לחצו על «טען מלבני דוגמה» או גררו על התמונה.</p>
   </section>
 
-  <section class="panel hidden" id="panel-empty">
-    <h2>3. פריים ייחוס ריק</h2>
+  <section class="panel hidden" id="panel-empty" role="region" aria-labelledby="hEmpty">
+    <h2 id="hEmpty">3. פריים ייחוס ריק</h2>
     <p class="hint">אותה זווית בלי רכבים. ייחוס לילה הוא רשות — משפר לילה, לא חובה לסיום.</p>
     <div class="row">
-      <button type="button" id="btnSampleEmpty">טען ייחוס יום</button>
-      <button type="button" id="btnSampleNight">טען ייחוס לילה (רשות)</button>
-      <label class="hint">פריים ריק <input type="file" id="fileEmpty" accept="image/*"></label>
-      <label class="hint">פריים לילה ריק <input type="file" id="fileNight" accept="image/*"></label>
+      <button type="button" id="btnSampleEmpty" aria-label="טען פריים ייחוס יום ריק לדוגמה">טען ייחוס יום</button>
+      <button type="button" id="btnSampleNight" aria-label="טען פריים ייחוס לילה ריק לדוגמה">טען ייחוס לילה (רשות)</button>
+      <label class="hint">פריים ריק <input type="file" id="fileEmpty" accept="image/*" aria-label="העלאת פריים ריק ליום"></label>
+      <label class="hint">פריים לילה ריק <input type="file" id="fileNight" accept="image/*" aria-label="העלאת פריים ריק ללילה"></label>
     </div>
-    <p class="hint" id="emptyNote">עדיין אין ייחוס ריק.</p>
+    <p class="hint" id="emptyNote" role="status" aria-live="polite">עדיין אין ייחוס ריק.</p>
   </section>
 
-  <section class="panel hidden" id="panel-check">
-    <h2>4. בדיקה ושמירה</h2>
+  <section class="panel hidden" id="panel-check" role="region" aria-labelledby="hCheck">
+    <h2 id="hCheck">4. בדיקה ושמירה</h2>
     <div class="row">
-      <button type="button" class="primary" id="btnEstimate">חשב תפוסה (היוריסטיקה)</button>
-      <button type="button" id="btnSave">שמור כיול בדפדפן + JSON</button>
+      <button type="button" class="primary" id="btnEstimate" aria-label="חשב תפוסת מקומות לפי היוריסטיקה">חשב תפוסה (היוריסטיקה)</button>
+      <button type="button" id="btnCopySummary" aria-label="העתק סיכום כיול ללוח">העתק סיכום כיול</button>
+      <button type="button" id="btnSave" aria-label="שמור כיול מקומי בדפדפן והורד קובץ JSON">שמור כיול בדפדפן + JSON</button>
+      <button type="button" id="btnReset" aria-label="אפס את כל נתוני הכיול">איפוס כיול</button>
     </div>
-    <div class="kpis">
+    <div class="kpis" role="region" aria-label="מדדי תפוסת כיול">
       <div class="kpi"><div class="n" id="kTotal">0</div><div class="l">מקומות</div></div>
       <div class="kpi"><div class="n" id="kOcc" style="color:var(--occ)">0</div><div class="l">תפוסים (הערכה)</div></div>
       <div class="kpi"><div class="n" id="kFree" style="color:var(--free)">0</div><div class="l">פנויים (הערכה)</div></div>
       <div class="kpi"><div class="n" id="kLight">—</div><div class="l">תאורה מסווגת</div></div>
     </div>
-    <p class="hint" id="estNote">עדיין לא חושב. אחרי הייחוס הריק — «חשב תפוסה».</p>
+    <p class="hint" id="estNote" role="status" aria-live="polite">עדיין לא חושב. אחרי הייחוס הריק — «חשב תפוסה».</p>
   </section>
 
   <div class="navrow">
-    <button type="button" id="btnPrev">חזרה</button>
-    <button type="button" class="primary" id="btnNext">המשך</button>
+    <button type="button" id="btnPrev" aria-label="מעבר לשלב הקודם באשף">חזרה</button>
+    <button type="button" class="primary" id="btnNext" aria-label="מעבר לשלב הבא באשף">המשך</button>
     <a href="./pilot-method.html">מתודולוגיה</a>
     <a href="./pilot-eval.html">דיוק דמו</a>
     <a href="./pilot-kit.html">ערכת הפיילוט המלאה</a>
@@ -324,20 +328,26 @@ canvas.addEventListener("pointerup", () => {
 
 function renderSpotList() {
   const el = document.getElementById("spotList");
+  const emptyEl = document.getElementById("spotListEmpty");
   if (!state.spots.length) {
     el.innerHTML = '<p class="hint">אין מלבנים עדיין.</p>';
+    if (emptyEl) emptyEl.style.display = "block";
     return;
   }
+  if (emptyEl) emptyEl.style.display = "none";
   el.replaceChildren();
   state.spots.forEach((s, i) => {
     const est = state.estimates[i];
     const row = document.createElement("div");
     row.className = "spot-item";
+    row.setAttribute("role", "listitem");
+    const statusText = est ? (est.occupied ? "תפוס · היוריסטיקה" : "פנוי · היוריסטיקה") : "לא חושב";
+    row.setAttribute("aria-label", "מקום " + (i + 1) + ": " + statusText);
     const name = document.createElement("span");
     name.textContent = "מקום " + (i + 1);
     const badge = document.createElement("span");
     badge.className = "badge " + (est ? (est.occupied ? "occ" : "free") : "unk");
-    badge.textContent = est ? (est.occupied ? "תפוס · היוריסטיקה" : "פנוי · היוריסטיקה") : "לא חושב";
+    badge.textContent = statusText;
     row.appendChild(name);
     row.appendChild(badge);
     el.appendChild(row);
@@ -382,7 +392,7 @@ function currentPack() {
 
 function computeEstimate() {
   if (!state.snap || !state.spots.length) {
-    document.getElementById("estNote").textContent = "חסרים תמונה או מלבנים.";
+    document.getElementById("estNote").textContent = "חסרים תמונה או מלבנים לחישוב תפוסה.";
     return;
   }
   const items = state.spots.map((spot) => {
@@ -432,6 +442,10 @@ function computeEstimate() {
 }
 
 function savePack() {
+  if (!state.spots.length) {
+    document.getElementById("estNote").textContent = "אין מלבנים שמורים לשמירת כיול.";
+    return;
+  }
   const pack = currentPack();
   try {
     localStorage.setItem(OCC.LS.calibration, JSON.stringify(pack));
@@ -454,6 +468,68 @@ function savePack() {
   note.textContent =
     (CAL.underTarget(elapsed) ? "כיול נשמר תוך " : "כיול נשמר אחרי ") +
     clock + ". הקובץ מסומן heuristic-occupancy.";
+}
+
+async function copySummary() {
+  const note = document.getElementById("estNote");
+  if (!state.spots.length) {
+    note.textContent = "אין נתוני כיול להעתקה.";
+    return;
+  }
+  const elapsed = state.startedAt ? Date.now() - state.startedAt : 0;
+  const clock = elapsed ? CAL.formatClock(elapsed) : "—";
+  const occCount = state.estimates.filter((e) => e && e.occupied).length;
+  const freeCount = state.estimates.filter((e) => e && e.occupied === false).length;
+  const lightHe = state.lastLot ? (state.lastLot.lighting === "night" ? "לילה" : state.lastLot.lighting === "dusk" ? "דמדומים" : "יום") : "לא סווג";
+  const lines = [
+    "ParkWiz — סיכום כיול מגרש",
+    "אתר: " + street(),
+    "זמן כיול: " + clock,
+    "מקומות מסומנים: " + state.spots.length,
+    state.estimates.length ? "תפוסים (הערכה): " + occCount : "",
+    state.estimates.length ? "פנויים (הערכה): " + freeCount : "",
+    state.estimates.length ? "תאורה: " + lightHe : "",
+    state.lastLot ? "רמת ביטחון: " + state.lastLot.confidence.toFixed(2) : "",
+    "הערה: הערכה היוריסטית מקומית ללא מצלמה חיה",
+  ].filter(Boolean).join("\n");
+
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(lines);
+    }
+    note.textContent = "סיכום הכיול הועתק ללוח.";
+  } catch (e) {
+    note.textContent = "לא ניתן להעתיק ללוח בדפדפן זה.";
+  }
+}
+
+function resetCalibrate() {
+  if (state.tick) {
+    clearInterval(state.tick);
+    state.tick = null;
+  }
+  state.startedAt = null;
+  state.snap = null;
+  state.empty = null;
+  state.night = null;
+  state.hasEmpty = false;
+  state.hasNight = false;
+  state.spots = [];
+  state.estimates = [];
+  state.lastLot = null;
+  state.step = 0;
+  snapImg.src = "";
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById("timer").textContent = "03:00";
+  document.getElementById("timerNote").textContent = "השעון מתחיל בלחיצה על «התחל כיול». היעד הוא 3 דקות, לא SLA.";
+  document.getElementById("kTotal").textContent = "0";
+  document.getElementById("kOcc").textContent = "0";
+  document.getElementById("kFree").textContent = "0";
+  document.getElementById("kLight").textContent = "—";
+  showEmptyNote();
+  renderSteps();
+  renderSpotList();
+  document.getElementById("estNote").textContent = "הכיול אופס בהצלחה.";
 }
 
 async function loadUrl(path) {
@@ -529,10 +605,26 @@ document.getElementById("btnSampleSpots").addEventListener("click", async () => 
   drawOverlay();
 });
 document.getElementById("btnUndo").addEventListener("click", () => {
-  state.spots.pop(); state.estimates = []; renderSpotList(); drawOverlay();
+  if (!state.spots.length) {
+    document.getElementById("estNote").textContent = "אין מלבנים לביטול.";
+    return;
+  }
+  state.spots.pop();
+  state.estimates = [];
+  renderSpotList();
+  drawOverlay();
+  document.getElementById("estNote").textContent = state.spots.length ? "מלבן אחרון בוטל. נותרו " + state.spots.length + " מלבנים." : "כל המלבנים בוטלו.";
 });
 document.getElementById("btnClear").addEventListener("click", () => {
-  state.spots = []; state.estimates = []; renderSpotList(); drawOverlay();
+  if (!state.spots.length) {
+    document.getElementById("estNote").textContent = "אין מלבנים לניקוי.";
+    return;
+  }
+  state.spots = [];
+  state.estimates = [];
+  renderSpotList();
+  drawOverlay();
+  document.getElementById("estNote").textContent = "כל המלבנים נוקו.";
 });
 document.getElementById("btnSampleEmpty").addEventListener("click", async () => {
   state.empty = await loadImage(await loadUrl("pilot/sample-empty.svg"));
@@ -559,7 +651,9 @@ document.getElementById("fileNight").addEventListener("change", async (e) => {
   showEmptyNote();
 });
 document.getElementById("btnEstimate").addEventListener("click", computeEstimate);
+document.getElementById("btnCopySummary").addEventListener("click", copySummary);
 document.getElementById("btnSave").addEventListener("click", savePack);
+document.getElementById("btnReset").addEventListener("click", resetCalibrate);
 document.getElementById("btnPrev").addEventListener("click", () => {
   if (state.step > 0) { state.step -= 1; renderSteps(); }
 });
