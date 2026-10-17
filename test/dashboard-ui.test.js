@@ -28,4 +28,23 @@ test('pilot dashboard page has empty states, accessible status regions, and a11y
 
   // render handles empty records state
   assert.match(html, /if\s*\(!RECORDS\.length\)\s*\{[\s\S]*?if\(tilesEmpty\)\s*tilesEmpty\.style\.display\s*=\s*"block";[\s\S]*?if\(chartEmpty\)\s*chartEmpty\.style\.display\s*=\s*"block";/);
+
+  // Toolbar action buttons (sample, clear, copy report)
+  assert.match(html, /<button type="button" id="btnSample">טען דוגמה מובנית<\/button>/);
+  assert.match(html, /<button type="button" id="btnClear">נקה נתונים<\/button>/);
+  assert.match(html, /<button type="button" id="btnCopyReport">העתק תובנות דוח<\/button>/);
+
+  // Copy helper and report clipboard logic
+  assert.match(html, /function copyToClipboard\(text,\s*successMsg\)/);
+  assert.match(html, /function copyReport\(\)\s*\{[\s\S]*?if\s*\(!RECORDS\.length\s*\|\|\s*panel\.classList\.contains\("hidden"\)\)\s*\{[\s\S]*?setStatus\("אין דוח פעיל להעתקה — הפיקו דוח תחילה\.",\s*true\);/);
+  assert.match(html, /copyToClipboard\(text,\s*"תובנות הדוח הועתקו ללוח\."\);/);
+
+  // Load sample and clear data actions
+  assert.match(html, /function loadSample\(\)\s*\{[\s\S]*?fetch\("pilot\/sample-occupancy\.json"\)/);
+  assert.match(html, /function clearData\(\)\s*\{[\s\S]*?RECORDS\s*=\s*\[\];[\s\S]*?render\(\);[\s\S]*?setStatus\("הנתונים נוקו\."\);/);
+
+  // Event listener wiring
+  assert.match(html, /document\.getElementById\("btnCopyReport"\)\.addEventListener\("click",\s*copyReport\);/);
+  assert.match(html, /document\.getElementById\("btnSample"\)\.addEventListener\("click",\s*loadSample\);/);
+  assert.match(html, /document\.getElementById\("btnClear"\)\.addEventListener\("click",\s*clearData\);/);
 });
