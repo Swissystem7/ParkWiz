@@ -115,6 +115,8 @@
 
   <div class="toolbar">
     <button class="primary" id="btnReport">הפק דוח עירוני</button>
+    <button type="button" id="btnSample">טען דוגמה מובנית</button>
+    <button type="button" id="btnClear">נקה נתונים</button>
     <span class="pill" id="recCount">— רשומות</span>
   </div>
   <p class="status" id="dashStatus" role="status" aria-live="polite"></p>
@@ -147,6 +149,9 @@
       <h2 id="repTitle">דוח עירוני — תובנות</h2>
       <p class="headline" id="repHeadline"></p>
       <div id="repRows"></div>
+      <div style="margin-top:14px">
+        <button type="button" id="btnCopyReport">העתק תובנות דוח</button>
+      </div>
     </section>
 
     <section class="panel">
@@ -279,6 +284,68 @@ function makeReport(){
   setStatus("דוח עירוני הופק בהצלחה.");
 }
 
+function copyToClipboard(text, successMsg){
+  if(navigator.clipboard && typeof navigator.clipboard.writeText === "function"){
+    navigator.clipboard.writeText(text).then(()=>{
+      setStatus(successMsg);
+    }).catch(()=>{
+      setStatus(text);
+    });
+  }else{
+    try{
+      const taCopy = document.createElement("textarea");
+      taCopy.value = text;
+      taCopy.style.position = "fixed";
+      taCopy.style.opacity = "0";
+      document.body.appendChild(taCopy);
+      taCopy.focus();
+      taCopy.select();
+      document.execCommand("copy");
+      document.body.removeChild(taCopy);
+      setStatus(successMsg);
+    }catch(e){
+      setStatus(text);
+    }
+  }
+}
+
+function copyReport(){
+  const panel = document.getElementById("reportPanel");
+  if(!RECORDS.length || panel.classList.contains("hidden")){
+    setStatus("אין דוח פעיל להעתקה — הפיקו דוח תחילה.", true);
+    return;
+  }
+  const headline = document.getElementById("repHeadline").textContent || "";
+  const rows = Array.from(document.querySelectorAll("#repRows .row")).map(r => {
+    const spans = r.querySelectorAll("span");
+    return spans.length >= 2 ? `${spans[0].textContent}: ${spans[1].textContent}` : r.textContent;
+  }).join("\n");
+  const text = `ParkWiz דוח עירוני:\n${headline}\n\nנתונים עיקריים:\n${rows}`;
+  copyToClipboard(text, "תובנות הדוח הועתקו ללוח.");
+}
+
+function loadSample(){
+  setStatus("טוען נתוני דוגמה...");
+  fetch("pilot/sample-occupancy.json")
+    .then(r => { if(!r.ok) throw 0; return r.text(); })
+    .then(t => {
+      if(!loadFrom(t, "pilot/sample-occupancy.json (דוגמה)")) throw 0;
+      setStatus("נטענו נתוני דוגמה בהצלחה.");
+    })
+    .catch(() => {
+      setStatus("לא ניתן לטעון את קובץ הדוגמה.", true);
+    });
+}
+
+function clearData(){
+  RECORDS = [];
+  document.getElementById("srcLabel").textContent = "אין קובץ — טענו occupancy.json";
+  const taEl = document.getElementById("ta");
+  if(taEl) taEl.value = "";
+  render();
+  setStatus("הנתונים נוקו.");
+}
+
 // ---- data loading ----
 function loadFrom(text,label){
   const parsed=parseData(text);
@@ -293,6 +360,9 @@ function loadFrom(text,label){
 }
 
 document.getElementById("btnReport").addEventListener("click",makeReport);
+document.getElementById("btnCopyReport").addEventListener("click",copyReport);
+document.getElementById("btnSample").addEventListener("click",loadSample);
+document.getElementById("btnClear").addEventListener("click",clearData);
 document.getElementById("btnLoad").addEventListener("click",()=>{
   const val = (document.getElementById("ta").value || "").trim();
   if(!val){
