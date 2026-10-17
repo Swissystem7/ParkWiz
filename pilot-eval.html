@@ -32,6 +32,7 @@ th{color:var(--muted);font-weight:600}
 .scenes figcaption{font-size:.72rem;padding:6px 8px;color:var(--muted)}
 .foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
 pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overflow:auto;font-size:.75rem}
+.status{min-height:1.2em;font-size:.85rem;color:var(--brand);font-weight:700;margin:6px 0 12px}
 </style>
 </head>
 <body>
@@ -52,9 +53,10 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
     <a href="./pilot-method.html">מתודולוגיה</a>
     <button type="button" id="btnPrint">הדפס</button>
   </div>
+  <p class="status" id="evalStatus" role="status" aria-live="polite"></p>
 
-  <section class="panel">
-    <h2>v2 מול v1 על אותו סט</h2>
+  <section class="panel" role="region" aria-labelledby="kpiTitle">
+    <h2 id="kpiTitle">v2 מול v1 על אותו סט</h2>
     <div class="kpis">
       <div class="kpi"><div class="n" id="kV2">—</div><div class="l">v2 הסכמה (היוריסטיקה)</div></div>
       <div class="kpi"><div class="n" id="kV1">—</div><div class="l">v1 בהירות (היוריסטיקה)</div></div>
@@ -64,25 +66,27 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
     <p class="hint" id="wilsonNote"></p>
   </section>
 
-  <section class="panel">
-    <h2>לפי תאורה</h2>
-    <table>
+  <section class="panel" role="region" aria-labelledby="lightTitle">
+    <h2 id="lightTitle">לפי תאורה</h2>
+    <table aria-label="הסכמה לפי תנאי תאורה">
       <thead><tr><th>תאורה</th><th>v2 הסכמה</th><th>מקומות</th></tr></thead>
       <tbody id="lightBody"></tbody>
     </table>
+    <p class="hint" id="lightEmpty" style="display:none">אין נתוני תאורה זמינים במערך.</p>
   </section>
 
-  <section class="panel">
-    <h2>לפי סצנה — איפה זה נשבר</h2>
-    <table>
+  <section class="panel" role="region" aria-labelledby="sceneTitle">
+    <h2 id="sceneTitle">לפי סצנה — איפה זה נשבר</h2>
+    <table aria-label="הסכמה וכשלים לפי סצנה">
       <thead><tr><th>סצנה</th><th>v2</th><th>v1</th><th>הערה</th></tr></thead>
       <tbody id="sceneBody"></tbody>
     </table>
+    <p class="hint" id="sceneEmpty" style="display:none">אין סצנות זמינות במערך.</p>
     <p class="hint">צל על מקום ריק ורכבים בצבע אספלט הם כשלי אמת של השיטה. הם מופיעים בטבלה במקום להיות מוסתרים.</p>
   </section>
 
-  <section class="panel">
-    <h2>סצנות ויזואליות שכלולות בריפו</h2>
+  <section class="panel" role="region" aria-labelledby="scenesTitle">
+    <h2 id="scenesTitle">סצנות ויזואליות שכלולות בריפו</h2>
     <p class="hint">SVG מסונתז, אותה פריסת 12 מקומות כמו <code>sample-spots.json</code>.</p>
     <div class="scenes">
       <figure><img src="pilot/sample-lot.svg" alt="מגרש יום עם רכבים כהים"><figcaption>יום מעורב</figcaption></figure>
@@ -95,8 +99,11 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
     </div>
   </section>
 
-  <section class="panel">
-    <h2>JSON גולמי מההרצה הזו</h2>
+  <section class="panel" role="region" aria-labelledby="rawTitle">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h2 id="rawTitle" style="margin:0">JSON גולמי מההרצה הזו</h2>
+      <button type="button" id="btnCopyJson" class="no-print" style="font-size:.78rem;padding:4px 10px">העתק JSON</button>
+    </div>
     <pre id="rawOut" aria-label="דוח הערכה גולמי"></pre>
   </section>
 
@@ -133,7 +140,12 @@ function deltaPts(improved) {
   return (improved >= 0 ? "+" : "") + (improved * 100).toFixed(1);
 }
 
-function run() {
+function setStatus(msg) {
+  const el = document.getElementById("evalStatus");
+  if (el) el.textContent = msg;
+}
+
+function run(isManual) {
   const cmp = DS.compareMethods();
   document.getElementById("kV2").textContent = pct(cmp.v2.rate);
   document.getElementById("kV1").textContent = pct(cmp.legacy.rate);
@@ -147,7 +159,10 @@ function run() {
 
   const lb = document.getElementById("lightBody");
   lb.replaceChildren();
-  Object.keys(cmp.v2.byLighting).forEach((key) => {
+  const lightKeys = Object.keys(cmp.v2.byLighting || {});
+  const lightEmpty = document.getElementById("lightEmpty");
+  if (lightEmpty && lightEmpty.style) lightEmpty.style.display = lightKeys.length ? "none" : "block";
+  lightKeys.forEach((key) => {
     const b = cmp.v2.byLighting[key];
     const tr = document.createElement("tr");
     tr.innerHTML = "<td>" + lightHe(key) + "</td><td>" + b.agree + "/" + b.n + " (" + pct(b.rate) + ")</td><td>" + b.n + "</td>";
@@ -156,7 +171,10 @@ function run() {
 
   const sb = document.getElementById("sceneBody");
   sb.replaceChildren();
-  cmp.v2.scenes.forEach((s, i) => {
+  const scenes = cmp.v2.scenes || [];
+  const sceneEmpty = document.getElementById("sceneEmpty");
+  if (sceneEmpty && sceneEmpty.style) sceneEmpty.style.display = scenes.length ? "none" : "block";
+  scenes.forEach((s, i) => {
     const v1 = cmp.legacy.scenes[i];
     const tr = document.createElement("tr");
     const fail = s.rate < 1;
@@ -177,11 +195,31 @@ function run() {
     legacy: { rate: cmp.legacy.rate, agree: cmp.legacy.agree, n: cmp.legacy.n },
     improved: cmp.improved,
   }, null, 2);
+
+  if (isManual) {
+    setStatus("ההערכה חושבה מחדש על מערך הנתונים המסונתז.");
+  }
 }
 
-document.getElementById("btnRun").addEventListener("click", run);
+document.getElementById("btnRun").addEventListener("click", () => run(true));
 document.getElementById("btnPrint").addEventListener("click", () => window.print());
-run();
+document.getElementById("btnCopyJson").addEventListener("click", () => {
+  const text = document.getElementById("rawOut").textContent;
+  if (!text) {
+    setStatus("אין נתוני JSON להעתקה.");
+    return;
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      setStatus("דוח הערכה בפורמט JSON הועתק ללוח.");
+    }).catch(() => {
+      setStatus("העתקה ללוח נכשלה בדפדפן זה.");
+    });
+  } else {
+    setStatus("העתקה אוטומטית אינה נתמכת בסביבה זו.");
+  }
+});
+run(false);
 </script>
 </body>
 </html>
