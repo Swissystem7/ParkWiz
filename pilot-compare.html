@@ -64,7 +64,7 @@ td input{max-width:88px;padding:5px 6px}
     <button type="button" id="pwInstallBtn">הוסף למסך הבית</button>
   </div>
 
-  <section class="panel hero">
+  <section class="panel hero" role="region" aria-label="המדד שהעירייה תקבל — דיוק מול ספירת פקח">
     <h2>המדד שהעירייה תקבל</h2>
     <div class="kpis">
       <div class="kpi"><div class="n" id="kMean">—</div><div class="l">דיוק ממוצע</div></div>
@@ -74,14 +74,17 @@ td input{max-width:88px;padding:5px 6px}
       <div class="kpi"><div class="n" id="kCi">—</div><div class="l">רווח סמך 95% (Wilson)</div></div>
       <div class="kpi"><div class="n" id="kBias">—</div><div class="l">הטיה (מערכת − פקח)</div></div>
     </div>
+    <div style="margin-top:10px" class="no-print">
+      <button type="button" id="btnCopyStats">העתק תמצית מדדים</button>
+    </div>
     <p class="hint" id="sumNote">אין עדיין זוגות. טענו דוגמה, או הזינו ספירת פקח מול הערכה.</p>
-    <div id="verdictBox" class="banner" style="margin-top:12px;margin-bottom:0" hidden>
+    <div id="verdictBox" class="banner" style="margin-top:12px;margin-bottom:0" role="status" aria-live="polite" hidden>
       <b id="verdictLabel"></b>
       <span id="verdictExtra"></span>
     </div>
   </section>
 
-  <section class="panel">
+  <section class="panel" role="region" aria-label="הוספת תצפית שדה">
     <h2>הוספת תצפית שדה</h2>
     <p class="hint">לפקח ברחוב: כמה מקומות סומנו, כמה המערכת אמרה תפוס, וכמה ספרתם ביד.</p>
     <div class="row">
@@ -91,15 +94,15 @@ td input{max-width:88px;padding:5px 6px}
       </div>
       <div>
         <label for="fTotal">סך מקומות מסומנים</label>
-        <input type="number" id="fTotal" min="1" step="1" value="12">
+        <input type="number" id="fTotal" min="1" step="1" value="12" aria-required="true">
       </div>
       <div>
         <label for="fSys">תפוסים — הערכת מערכת</label>
-        <input type="number" id="fSys" min="0" step="1">
+        <input type="number" id="fSys" min="0" step="1" aria-required="true">
       </div>
       <div>
         <label for="fMan">תפוסים — ספירת פקח</label>
-        <input type="number" id="fMan" min="0" step="1">
+        <input type="number" id="fMan" min="0" step="1" aria-required="true">
       </div>
       <div>
         <label for="fNote">משמרת / הערה (רשות)</label>
@@ -110,17 +113,17 @@ td input{max-width:88px;padding:5px 6px}
     <p class="status" id="addStatus" role="status" aria-live="polite"></p>
   </section>
 
-  <section class="panel">
+  <section class="panel" role="region" aria-label="הערכות ממתינות לספירה">
     <h2>הערכות ממתינות לספירה</h2>
     <p class="hint">רשומות occupancy בלי ספירת פקח עדיין. מלאו את העמודה «פקח» ושמרו. «פריים #» הוא מספר התמונה בסדר העיבוד (1..N) ולא משתנה כששומרים שורה — הקלידו את הספירה מאותה שורה בדף הספירה.</p>
-    <table>
+    <table role="table" aria-label="הערכות תפוסה ממתינות לספירת פקח">
       <thead><tr><th>פריים #</th><th>זמן</th><th>רחוב</th><th>מערכת</th><th>סך הכול</th><th>פקח</th><th></th></tr></thead>
       <tbody id="pendingBody"></tbody>
     </table>
     <p class="hint" id="pendingEmpty">אין הערכות ממתינות.</p>
   </section>
 
-  <section class="panel">
+  <section class="panel" role="region" aria-label="זוגות שנשמרו">
     <h2>זוגות שנשמרו</h2>
     <div class="toolbar no-print">
       <button type="button" id="btnCsv">ייצוא CSV</button>
@@ -130,7 +133,7 @@ td input{max-width:88px;padding:5px 6px}
       <button type="button" id="btnClear">מחק זוגות בדפדפן זה</button>
     </div>
     <p class="status" id="exportStatus" role="status" aria-live="polite"></p>
-    <table>
+    <table role="table" aria-label="זוגות תצפיות שנשמרו">
       <thead><tr><th>זמן</th><th>רחוב</th><th>מערכת</th><th>פקח</th><th>סך הכול</th><th>דיוק</th><th>מקור</th><th>הערה</th></tr></thead>
       <tbody id="pairBody"></tbody>
     </table>
@@ -225,6 +228,7 @@ function render() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.textContent = "שמור זוג";
+    btn.setAttribute("aria-label", "שמור זוג עבור פריים " + (rec.frame != null ? rec.frame : idx + 1));
     btn.addEventListener("click", () => {
       // Pass the raw field value: a blank field must be rejected by the
       // library, not coerced to 0 here and saved as an inspector count.
@@ -235,6 +239,7 @@ function render() {
       pairs.sort(CMP.byTs);
       pending = pending.filter((r) => !(r.ts === rec.ts && r.street === rec.street));
       persist();
+      setStatus("addStatus", "נשמר זוג לפריים " + (rec.frame != null ? rec.frame : idx + 1) + ": דיוק " + pct(pair.accuracy) + " ברחוב " + pair.street + ".");
       render();
     });
     tdBtn.appendChild(btn);
@@ -276,6 +281,21 @@ function loadPendingFromOccupancy(list) {
   if (st) document.getElementById("fStreet").value = st;
   render();
 }
+
+document.getElementById("btnCopyStats").addEventListener("click", async () => {
+  if (!pairs.length) {
+    setStatus("addStatus", "אין זוגות להעתקת תמצית מדדים.");
+    return;
+  }
+  const sum = CMP.summarizePairs(pairs);
+  const text = "ParkWiz פיילוט — דיוק ממוצע: " + pct(sum.meanAccuracy) + " על " + sum.count + " תצפיות מזווגות (" + sum.perfect + " התאמות מלאות) ברחוב " + streetName() + ".";
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus("addStatus", "תמצית המדדים הועתקה ללוח.");
+  } catch (e) {
+    setStatus("addStatus", text);
+  }
+});
 
 document.getElementById("btnAdd").addEventListener("click", () => {
   const pair = CMP.pairObservation({
@@ -323,13 +343,23 @@ document.getElementById("btnFromKit").addEventListener("click", () => {
     return;
   }
   loadPendingFromOccupancy(recs);
-  setStatus("addStatus", recs.length + " הערכות ממתינות לספירת פקח.");
+  setStatus("addStatus", "נטענו " + recs.length + " הערכות ממתינות מערכת הפיילוט.");
 });
 
 document.getElementById("fileOcc").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
-  loadPendingFromOccupancy(OCC.parse(await f.text()));
+  try {
+    const list = OCC.parse(await f.text());
+    if (!list.length) {
+      setStatus("addStatus", "לא נמצאו רשומות occupancy תקינות בקובץ.");
+      return;
+    }
+    loadPendingFromOccupancy(list);
+    setStatus("addStatus", "נטענו " + list.length + " הערכות ממתינות מ־occupancy.json.");
+  } catch (err) {
+    setStatus("addStatus", "שגיאה בטעינת קובץ occupancy.");
+  }
 });
 
 document.getElementById("filePairs").addEventListener("change", async (e) => {
@@ -386,6 +416,7 @@ document.getElementById("btnClear").addEventListener("click", () => {
   pairs = [];
   pending = [];
   persist();
+  setStatus("addStatus", "הזוגות וההערכות הממתינות אופסו מדפדפן זה.");
   setStatus("exportStatus", "הזוגות נמחקו מדפדפן זה.");
   render();
 });
