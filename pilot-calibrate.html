@@ -78,11 +78,11 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
     </div>
     <div class="row">
       <button type="button" id="btnSampleSnap">טען דוגמת יום</button>
-      <label class="hint">צילום נוכחי <input type="file" id="fileSnap" accept="image/*"></label>
+      <label class="hint" for="fileSnap">צילום נוכחי <input type="file" id="fileSnap" accept="image/*" aria-label="צילום נוכחי להעלאה"></label>
     </div>
     <div class="stage" id="stage">
       <img id="snapImg" alt="צילום מגרש חניה לכיול">
-      <canvas id="calCanvas" aria-label="סימון מלבני חניה על התמונה"></canvas>
+      <canvas id="calCanvas" aria-label="סימון מלבני חניה על התמונה" role="region" tabindex="0"></canvas>
     </div>
     <p class="hint">בשלב 2 גררו על התמונה כדי לסמן מלבן. המלבנים נשמרים כשברים (0–1).</p>
   </section>
@@ -95,7 +95,8 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
       <button type="button" id="btnUndo">בטל אחרון</button>
       <button type="button" class="danger" id="btnClear">נקה</button>
     </div>
-    <div class="spot-list" id="spotList"></div>
+    <p class="hint empty-msg" id="spotsEmpty" style="display: block">אין מלבנים עדיין. גררו על התמונה או לחצו «טען מלבני דוגמה».</p>
+    <div class="spot-list" id="spotList" role="region" aria-label="רשימת מלבני חניה מסומנים"></div>
   </section>
 
   <section class="panel hidden" id="panel-empty">
@@ -104,8 +105,8 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
     <div class="row">
       <button type="button" id="btnSampleEmpty">טען ייחוס יום</button>
       <button type="button" id="btnSampleNight">טען ייחוס לילה (רשות)</button>
-      <label class="hint">פריים ריק <input type="file" id="fileEmpty" accept="image/*"></label>
-      <label class="hint">פריים לילה ריק <input type="file" id="fileNight" accept="image/*"></label>
+      <label class="hint" for="fileEmpty">פריים ריק <input type="file" id="fileEmpty" accept="image/*" aria-label="פריים ייחוס יום ריק"></label>
+      <label class="hint" for="fileNight">פריים לילה ריק <input type="file" id="fileNight" accept="image/*" aria-label="פריים ייחוס לילה ריק (רשות)"></label>
     </div>
     <p class="hint" id="emptyNote">עדיין אין ייחוס ריק.</p>
   </section>
@@ -116,13 +117,14 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
       <button type="button" class="primary" id="btnEstimate">חשב תפוסה (היוריסטיקה)</button>
       <button type="button" id="btnSave">שמור כיול בדפדפן + JSON</button>
     </div>
-    <div class="kpis">
+    <div class="kpis" role="region" aria-label="מדדי תפוסה והערכה">
       <div class="kpi"><div class="n" id="kTotal">0</div><div class="l">מקומות</div></div>
       <div class="kpi"><div class="n" id="kOcc" style="color:var(--occ)">0</div><div class="l">תפוסים (הערכה)</div></div>
       <div class="kpi"><div class="n" id="kFree" style="color:var(--free)">0</div><div class="l">פנויים (הערכה)</div></div>
       <div class="kpi"><div class="n" id="kLight">—</div><div class="l">תאורה מסווגת</div></div>
     </div>
     <p class="hint" id="estNote">עדיין לא חושב. אחרי הייחוס הריק — «חשב תפוסה».</p>
+    <div id="calStatus" role="status" aria-live="polite" class="hint" style="margin-top:8px"></div>
   </section>
 
   <div class="navrow">
@@ -167,6 +169,13 @@ const ctx = canvas.getContext("2d");
 
 function street() {
   return document.getElementById("streetName").value.trim() || "רחוב לא צוין";
+}
+
+function setStatus(msg, isError = false) {
+  const el = document.getElementById("calStatus");
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = isError ? "var(--occ)" : "var(--brand)";
 }
 
 function download(name, text) {
@@ -317,6 +326,7 @@ canvas.addEventListener("pointerup", () => {
   if (w > 0.02 && h > 0.02) {
     state.spots.push({ id: "s" + Date.now(), x, y, w, h });
     state.estimates = [];
+    setStatus("נוסף מקום " + state.spots.length + ".");
   }
   drawOverlay();
   renderSpotList();
@@ -324,15 +334,24 @@ canvas.addEventListener("pointerup", () => {
 
 function renderSpotList() {
   const el = document.getElementById("spotList");
+  const emptyEl = document.getElementById("spotsEmpty");
+  const btnUndo = document.getElementById("btnUndo");
+  const btnClear = document.getElementById("btnClear");
+  if (btnUndo) btnUndo.disabled = state.spots.length === 0;
+  if (btnClear) btnClear.disabled = state.spots.length === 0;
+
   if (!state.spots.length) {
-    el.innerHTML = '<p class="hint">אין מלבנים עדיין.</p>';
+    if (emptyEl) emptyEl.style.display = "block";
+    el.replaceChildren();
     return;
   }
+  if (emptyEl) emptyEl.style.display = "none";
   el.replaceChildren();
   state.spots.forEach((s, i) => {
     const est = state.estimates[i];
     const row = document.createElement("div");
     row.className = "spot-item";
+    row.setAttribute("role", "listitem");
     const name = document.createElement("span");
     name.textContent = "מקום " + (i + 1);
     const badge = document.createElement("span");
@@ -382,7 +401,9 @@ function currentPack() {
 
 function computeEstimate() {
   if (!state.snap || !state.spots.length) {
-    document.getElementById("estNote").textContent = "חסרים תמונה או מלבנים.";
+    const msg = "חסרים תמונה או מלבנים לחישוב תפוסה.";
+    document.getElementById("estNote").textContent = msg;
+    setStatus(msg, true);
     return;
   }
   const items = state.spots.map((spot) => {
@@ -412,6 +433,7 @@ function computeEstimate() {
     "הערכה היוריסטית בשיטת «" + method + "», תאורה " + lightHe +
     ", confidence=" + lot.confidence.toFixed(2) +
     ". זה לא דיוק מדוד מול פקח.";
+  setStatus("חושבה הערכת תפוסה: " + lot.occupied + " תפוסים מתוך " + lot.total + " מקומות.");
   const rec = {
     ts: new Date().toISOString(),
     street: street(),
@@ -432,6 +454,10 @@ function computeEstimate() {
 }
 
 function savePack() {
+  if (!state.spots.length) {
+    setStatus("אין מלבנים לשמירה. סמנו לפחות מקום חניה אחד או טענו דוגמה.", true);
+    return;
+  }
   const pack = currentPack();
   try {
     localStorage.setItem(OCC.LS.calibration, JSON.stringify(pack));
@@ -447,6 +473,7 @@ function savePack() {
   const note = document.getElementById("estNote");
   if (!state.startedAt) {
     note.textContent = "כיול נשמר (השעון לא הופעל — אין זמן למדוד). הקובץ מסומן heuristic-occupancy.";
+    setStatus(note.textContent);
     return;
   }
   const elapsed = Date.now() - state.startedAt;
@@ -454,6 +481,7 @@ function savePack() {
   note.textContent =
     (CAL.underTarget(elapsed) ? "כיול נשמר תוך " : "כיול נשמר אחרי ") +
     clock + ". הקובץ מסומן heuristic-occupancy.";
+  setStatus(note.textContent);
 }
 
 async function loadUrl(path) {
@@ -512,12 +540,14 @@ document.getElementById("btnDemo").addEventListener("click", () => fillDemo().ca
 document.getElementById("btnSampleSnap").addEventListener("click", async () => {
   startClock();
   await setSnap(await loadUrl("pilot/sample-lot.svg"));
+  setStatus("דוגמת יום נטענה בהצלחה.");
 });
 document.getElementById("fileSnap").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
   startClock();
   await setSnap(await fileToDataUrl(f));
+  setStatus("צילום נוכחי נטען בהצלחה.");
 });
 document.getElementById("btnSampleSpots").addEventListener("click", async () => {
   const raw = await (await fetch("pilot/sample-spots.json")).json();
@@ -527,22 +557,35 @@ document.getElementById("btnSampleSpots").addEventListener("click", async () => 
   state.estimates = [];
   renderSpotList();
   drawOverlay();
+  setStatus("נטענו " + state.spots.length + " מלבני דוגמה.");
 });
 document.getElementById("btnUndo").addEventListener("click", () => {
-  state.spots.pop(); state.estimates = []; renderSpotList(); drawOverlay();
+  if (!state.spots.length) return;
+  state.spots.pop();
+  state.estimates = [];
+  renderSpotList();
+  drawOverlay();
+  setStatus(state.spots.length ? "מלבן אחרון בוטל. נותרו " + state.spots.length + " מלבנים." : "כל המלבנים בוטלו.");
 });
 document.getElementById("btnClear").addEventListener("click", () => {
-  state.spots = []; state.estimates = []; renderSpotList(); drawOverlay();
+  if (!state.spots.length) return;
+  state.spots = [];
+  state.estimates = [];
+  renderSpotList();
+  drawOverlay();
+  setStatus("כל המלבנים נוקו.");
 });
 document.getElementById("btnSampleEmpty").addEventListener("click", async () => {
   state.empty = await loadImage(await loadUrl("pilot/sample-empty.svg"));
   state.hasEmpty = true;
   showEmptyNote();
+  setStatus("ייחוס יום ריק נטען.");
 });
 document.getElementById("btnSampleNight").addEventListener("click", async () => {
   state.night = await loadImage(await loadUrl("pilot/sample-empty-night.svg"));
   state.hasNight = true;
   showEmptyNote();
+  setStatus("ייחוס לילה ריק נטען.");
 });
 document.getElementById("fileEmpty").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
@@ -550,6 +593,7 @@ document.getElementById("fileEmpty").addEventListener("change", async (e) => {
   state.empty = await loadImage(await fileToDataUrl(f));
   state.hasEmpty = true;
   showEmptyNote();
+  setStatus("פריים יום ריק נטען.");
 });
 document.getElementById("fileNight").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
@@ -557,6 +601,7 @@ document.getElementById("fileNight").addEventListener("change", async (e) => {
   state.night = await loadImage(await fileToDataUrl(f));
   state.hasNight = true;
   showEmptyNote();
+  setStatus("פריים לילה ריק נטען.");
 });
 document.getElementById("btnEstimate").addEventListener("click", computeEstimate);
 document.getElementById("btnSave").addEventListener("click", savePack);
