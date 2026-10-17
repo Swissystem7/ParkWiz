@@ -28,6 +28,7 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
 .no{color:#991b1b;font-weight:700}
 .yes{color:#166534;font-weight:700}
 .foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+.status{min-height:1.3em;font-size:.86rem;font-weight:700;margin:8px 0 0}
 </style>
 </head>
 <body>
@@ -44,15 +45,17 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
 
   <div class="toolbar no-print">
     <button type="button" class="primary" id="btnPrint">הדפס / שמור כ־PDF</button>
+    <button type="button" id="btnCopyMethod">העתק תקציר מתודולוגיה</button>
     <a href="./src/lib/heuristic.js">הקוד עצמו</a>
     <a href="./pilot-eval.html">הרצת הדיוק</a>
     <a href="./pilot-calibrate.html">אשף כיול</a>
   </div>
+  <p class="status no-print" id="methodStatus" role="status" aria-live="polite"></p>
 
   <section class="panel">
     <h2>1. מה מחושב</h2>
     <p>לכל מלבן חניה שסומן מראש מחזירים <b>תפוס</b> או <b>פנוי</b>, ועוד שדות שקיפות:</p>
-    <ul>
+    <ul role="list" aria-label="שדות שקיפות המוחזרים מההערכה">
       <li><code>occupied</code> — כן/לא</li>
       <li><code>method</code> — איזו שיטה ניצחה</li>
       <li><code>confidence</code> — מספר קבוע לפי שיטה, לא הסתברות מכוילת</li>
@@ -64,7 +67,7 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
 
   <section class="panel">
     <h2>2. צינור הפיקסלים</h2>
-    <ol>
+    <ol role="list" aria-label="שלבי צינור הפיקסלים">
       <li>חותכים את מלבן המקום מתמונת ה־snapshot (ומפריים הייחוס הריק, אם יש).</li>
       <li>קוראים RGBA. דוגמים כל פיקסל רביעי — צעד <code id="cStride">16</code> בבתים (4 ערוצים × 4 פיקסלים).</li>
       <li>ממירים ללומה Rec. 709: <span class="formula">Y = 0.2126 R + 0.7152 G + 0.0722 B</span></li>
@@ -92,7 +95,7 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
 
   <section class="panel">
     <h2>4. מה confidence אומר — ומה לא</h2>
-    <table>
+    <table role="table" aria-label="רמות ביטחון לפי שיטה">
       <thead><tr><th>שיטה</th><th>confidence</th><th>משמעות</th></tr></thead>
       <tbody>
         <tr><td>bg-subtract-normalized</td><td id="c1">0.58</td><td>יש ייחוס מיושר. עדיין היוריסטיקה.</td></tr>
@@ -106,7 +109,7 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
 
   <section class="panel">
     <h2>5. איך עירייה מבקרת</h2>
-    <ol>
+    <ol role="list" aria-label="שלבי ביקורת עירייה">
       <li>קוראים את <a href="./src/lib/heuristic.js">src/lib/heuristic.js</a> — אין תלות חיצונית.</li>
       <li>מריצים <code>npm test</code>. אין רשת, אין מפתחות.</li>
       <li>פותחים את <a href="./pilot-eval.html">דף הדיוק</a> ומריצים את מערך הדמו.</li>
@@ -117,7 +120,7 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
 
   <section class="panel">
     <h2>6. כשלים ידועים — לא מוסתרים</h2>
-    <table>
+    <table role="table" aria-label="כשלים ידועים והתמודדות">
       <thead><tr><th>מצב</th><th>מה קורה</th><th>מה עושים</th></tr></thead>
       <tbody>
         <tr><td>צל על מקום ריק</td><td>חיסור רקע רואה שינוי → false positive</td><td>מתועד בסט הדמו (<code>shadow-false</code>). לא «תוקן» בהסתרה.</td></tr>
@@ -131,7 +134,7 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
 
   <section class="panel">
     <h2>7. מה לא מחושב</h2>
-    <table>
+    <table role="table" aria-label="מה נכלל באלגוריתם ומה לא">
       <thead><tr><th>דבר</th><th>באלגוריתם?</th></tr></thead>
       <tbody>
         <tr><td>זיהוי לוחית / LPR</td><td class="no">לא</td></tr>
@@ -147,7 +150,10 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
   <section class="panel">
     <h2>8. הקבועים החיים מהמודול</h2>
     <p class="hint">אם הטבלה והקוד חלוקים — הקוד מנצח, והבלוק הזה חושף את זה.</p>
-    <pre id="constDump" aria-label="קבועי ההיוריסטיקה"></pre>
+    <pre id="constDump" aria-label="קבועי ההיוריסטיקה" role="region" tabindex="0"></pre>
+    <div style="margin-top:8px" class="no-print">
+      <button type="button" id="btnCopyConsts">העתק קבועים (JSON)</button>
+    </div>
   </section>
 
   <div class="foot">ParkWiz · מתודולוגיה להדפסה · בלי CDN</div>
@@ -157,45 +163,141 @@ pre{background:#0f1420;color:#e8f0ff;padding:10px 12px;border-radius:10px;overfl
 <script src="src/lib/pwa.js"></script>
 <script>
 "use strict";
-const H = window.ParkWizHeuristic;
-function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = String(v); }
-set("cStride", H.SAMPLE_STRIDE);
-set("cDusk", H.DUSK_LUMA_MIN);
-set("cDay", H.DAY_LUMA_MIN);
-set("cDelta", H.BG_PIXEL_DELTA);
-set("cDeltaN", H.BG_PIXEL_DELTA_NIGHT);
-set("cTau", H.BG_FRACTION_DAY);
-set("cTauN", H.BG_FRACTION_NIGHT);
-set("cBg", H.CONF_BG_SUBTRACT);
-set("cNorm", H.NORM_SCORE_CUTOFF);
-set("cNormN", H.NIGHT_NORM_SCORE_CUTOFF);
-set("cAbsM", H.ABS_MEAN_CUTOFF);
-set("cAbsV", H.ABS_VAR_CUTOFF);
-set("c1", H.CONF_BG_SUBTRACT);
-set("c2", H.CONF_VS_EMPTY_NORM);
-set("c3", H.CONF_VS_EMPTY);
-set("c4", H.CONF_ABSOLUTE);
-document.getElementById("constDump").textContent = JSON.stringify({
-  SAMPLE_STRIDE: H.SAMPLE_STRIDE,
-  DAY_LUMA_MIN: H.DAY_LUMA_MIN,
-  DUSK_LUMA_MIN: H.DUSK_LUMA_MIN,
-  NORM_SCORE_CUTOFF: H.NORM_SCORE_CUTOFF,
-  NIGHT_NORM_SCORE_CUTOFF: H.NIGHT_NORM_SCORE_CUTOFF,
-  BG_PIXEL_DELTA: H.BG_PIXEL_DELTA,
-  BG_PIXEL_DELTA_NIGHT: H.BG_PIXEL_DELTA_NIGHT,
-  BG_FRACTION_DAY: H.BG_FRACTION_DAY,
-  BG_FRACTION_NIGHT: H.BG_FRACTION_NIGHT,
-  ABS_MEAN_CUTOFF: H.ABS_MEAN_CUTOFF,
-  ABS_VAR_CUTOFF: H.ABS_VAR_CUTOFF,
-  NIGHT_ABS_VAR_CUTOFF: H.NIGHT_ABS_VAR_CUTOFF,
-  NIGHT_ABS_MAD_CUTOFF: H.NIGHT_ABS_MAD_CUTOFF,
-  CONF_BG_SUBTRACT: H.CONF_BG_SUBTRACT,
-  CONF_VS_EMPTY_NORM: H.CONF_VS_EMPTY_NORM,
-  CONF_VS_EMPTY: H.CONF_VS_EMPTY,
-  CONF_ABSOLUTE: H.CONF_ABSOLUTE,
-  CONF_ABSOLUTE_NIGHT: H.CONF_ABSOLUTE_NIGHT,
-}, null, 2);
-document.getElementById("btnPrint").addEventListener("click", () => window.print());
+
+function setStatus(text, isErr) {
+  const el = document.getElementById("methodStatus");
+  if (!el) return;
+  el.textContent = text || "";
+  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e7490)";
+}
+
+async function copyToClipboard(text, successMsg, failMsg) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setStatus(successMsg);
+  } catch (e) {
+    setStatus(failMsg || "לא ניתן להעתיק אוטומטית — העתיקו ישירות מהעמוד.", true);
+  }
+}
+
+function getMethodologySummaryText() {
+  return [
+    "ParkWiz — מתודולוגיית תפוסה (לבדיקת עירייה)",
+    "",
+    "• עיקרון מרכזי: כל הערכה היא היוריסטיקה — אין רשת נוירונים, אין LPR, אין זיהוי פנים, אין צינור וידאו חי בריפו.",
+    "• מה מחושב: תפוס / פנוי לכל מלבן חניה מסומן מראש, יחד עם שיטה (method), רמת ביטחון (confidence) וסיווג תאורה (lighting).",
+    "• שלוש שיטות: 1) חיסור רקע מנורמל־תאורה (עדיפות ראשונה כשיש פריים ריק מיושר); 2) השוואה סטטיסטית לפריים ריק מנורמל; 3) סף מוחלט לפי תאורה ומבנה.",
+    "• סיווג תאורה: חציון לומה מגרש — לילה (< 35), דמדומים (35–70), יום (>= 70).",
+    "• שקיפות מלאה: כשלים ידועים (צללים, צבע אספלט, גשם) מתועדים בגלוי ולא מוסתרים.",
+    "• ביקורת: קוד טהור ב-src/lib/heuristic.js ללא תלויות, נבדק אוטומטית ב-npm test."
+  ].join("\n");
+}
+
+let dumpText = "";
+
+function initMethodPage() {
+  const H = window.ParkWizHeuristic;
+  function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = String(v); }
+
+  if (!H) {
+    const dumpEl = document.getElementById("constDump");
+    if (dumpEl) {
+      dumpEl.textContent = "// מודול ParkWizHeuristic אינו זמין כעת (לא נטען)";
+    }
+    setStatus("שימו לב: מודול ההיוריסטיקה אינו זמין כעת. מוצגים ערכי ברירת מחדל.", true);
+    return;
+  }
+
+  set("cStride", H.SAMPLE_STRIDE);
+  set("cDusk", H.DUSK_LUMA_MIN);
+  set("cDay", H.DAY_LUMA_MIN);
+  set("cDelta", H.BG_PIXEL_DELTA);
+  set("cDeltaN", H.BG_PIXEL_DELTA_NIGHT);
+  set("cTau", H.BG_FRACTION_DAY);
+  set("cTauN", H.BG_FRACTION_NIGHT);
+  set("cBg", H.CONF_BG_SUBTRACT);
+  set("cNorm", H.NORM_SCORE_CUTOFF);
+  set("cNormN", H.NIGHT_NORM_SCORE_CUTOFF);
+  set("cAbsM", H.ABS_MEAN_CUTOFF);
+  set("cAbsV", H.ABS_VAR_CUTOFF);
+  set("c1", H.CONF_BG_SUBTRACT);
+  set("c2", H.CONF_VS_EMPTY_NORM);
+  set("c3", H.CONF_VS_EMPTY);
+  set("c4", H.CONF_ABSOLUTE);
+
+  const consts = {
+    SAMPLE_STRIDE: H.SAMPLE_STRIDE,
+    DAY_LUMA_MIN: H.DAY_LUMA_MIN,
+    DUSK_LUMA_MIN: H.DUSK_LUMA_MIN,
+    NORM_SCORE_CUTOFF: H.NORM_SCORE_CUTOFF,
+    NIGHT_NORM_SCORE_CUTOFF: H.NIGHT_NORM_SCORE_CUTOFF,
+    BG_PIXEL_DELTA: H.BG_PIXEL_DELTA,
+    BG_PIXEL_DELTA_NIGHT: H.BG_PIXEL_DELTA_NIGHT,
+    BG_FRACTION_DAY: H.BG_FRACTION_DAY,
+    BG_FRACTION_NIGHT: H.BG_FRACTION_NIGHT,
+    ABS_MEAN_CUTOFF: H.ABS_MEAN_CUTOFF,
+    ABS_VAR_CUTOFF: H.ABS_VAR_CUTOFF,
+    NIGHT_ABS_VAR_CUTOFF: H.NIGHT_ABS_VAR_CUTOFF,
+    NIGHT_ABS_MAD_CUTOFF: H.NIGHT_ABS_MAD_CUTOFF,
+    CONF_BG_SUBTRACT: H.CONF_BG_SUBTRACT,
+    CONF_VS_EMPTY_NORM: H.CONF_VS_EMPTY_NORM,
+    CONF_VS_EMPTY: H.CONF_VS_EMPTY,
+    CONF_ABSOLUTE: H.CONF_ABSOLUTE,
+    CONF_ABSOLUTE_NIGHT: H.CONF_ABSOLUTE_NIGHT,
+  };
+  dumpText = JSON.stringify(consts, null, 2);
+  const dumpEl = document.getElementById("constDump");
+  if (dumpEl) dumpEl.textContent = dumpText;
+}
+
+initMethodPage();
+
+const printBtn = document.getElementById("btnPrint");
+if (printBtn) {
+  printBtn.addEventListener("click", () => {
+    setStatus("פותח חלון הדפסה...");
+    window.print();
+  });
+}
+
+const copyMethodBtn = document.getElementById("btnCopyMethod");
+if (copyMethodBtn) {
+  copyMethodBtn.addEventListener("click", () => {
+    copyToClipboard(
+      getMethodologySummaryText(),
+      "תקציר המתודולוגיה הועתק ללוח בהצלחה.",
+      "לא ניתן להעתיק אוטומטית — העתיקו ישירות מהעמוד."
+    );
+  });
+}
+
+const copyConstsBtn = document.getElementById("btnCopyConsts");
+if (copyConstsBtn) {
+  copyConstsBtn.addEventListener("click", () => {
+    const text = dumpText || (document.getElementById("constDump") ? document.getElementById("constDump").textContent : "");
+    if (!text || text.startsWith("//")) {
+      setStatus("אין קבועים זמינים להעתקה.", true);
+      return;
+    }
+    copyToClipboard(
+      text,
+      "קבועי ההיוריסטיקה הועתקו כ-JSON ללוח.",
+      "לא ניתן להעתיק אוטומטית — העתיקו ישירות מהעמוד."
+    );
+  });
+}
 </script>
 </body>
 </html>
