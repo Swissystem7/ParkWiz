@@ -30,6 +30,7 @@ ol.steps li{margin:6px 0}
 .kpi .n{font-size:1.05rem;font-weight:800;color:var(--brand)}
 .kpi .l{font-size:.72rem;color:var(--muted)}
 .foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+.status{min-height:1.3em;font-size:.86rem;font-weight:700;margin:8px 0 0}
 a{color:var(--brand)}
 </style>
 </head>
@@ -48,10 +49,12 @@ a{color:var(--brand)}
 
   <div class="toolbar no-print">
     <button type="button" class="primary" id="btnPrint">הדפס / שמור כ־PDF</button>
+    <button type="button" id="btnCopyBrief">העתק תקציר למסמך</button>
     <a href="./pilot-log.html">יומן 30 יום</a>
     <a href="./pilot-kit.html">ערכת הפיילוט</a>
     <a href="./pilot-privacy.html">בקשת גישה / פרטיות</a>
   </div>
+  <p class="status no-print" id="briefStatus" role="status" aria-live="polite"></p>
 
   <section class="panel">
     <h2>הבקשה במשפט אחד</h2>
@@ -63,7 +66,7 @@ a{color:var(--brand)}
 
   <section class="panel">
     <h2>מה בפנים / מה בחוץ</h2>
-    <table>
+    <table role="table" aria-label="מה נכלל בפיילוט ומה לא">
       <thead><tr><th>נושא</th><th>בפיילוט</th><th>למה</th></tr></thead>
       <tbody>
         <tr><td>תפוס / פנוי על מלבנים שמסומנים מראש</td><td class="yes">כן</td><td>אפשר למדוד מול פקח בלי לזהות רכב</td></tr>
@@ -78,7 +81,7 @@ a{color:var(--brand)}
 
   <section class="panel">
     <h2>איך 30 הימים רצים</h2>
-    <ol class="steps">
+    <ol class="steps" role="list" aria-label="שלבי הרצת 30 הימים">
       <li>מסמנים מלבני חניה על snapshot (<a href="./pilot-calibrate.html">אשף 3 דק׳</a> או ערכת הפיילוט). ההערכה היא חיסור רקע מנורמל־תאורה — לא בינה מלאכותית.</li>
       <li>פקח סופר תפוסים באותם מקומות. זוג אחד = תצפית. המדד: 100% − |מערכת − פקח| / סך המקומות.</li>
       <li>רושמים תאורה (יום / דמדומים / לילה / גשם). היוריסטיקה נחלשת בלילה ועל אספלט רטוב — זה מתועד, לא מוסתר.</li>
@@ -89,7 +92,7 @@ a{color:var(--brand)}
 
   <section class="panel">
     <h2>כלל העצירה (לא סיסמה)</h2>
-    <div class="kpis">
+    <div class="kpis" role="region" aria-label="מדדי כלל העצירה">
       <div class="kpi"><div class="n">&lt; 96% בלי כיול</div><div class="l">PARK מול הצהרת Camlytics (יצרן, לא רף מדעי)</div></div>
       <div class="kpi"><div class="n">30 יום בלי snapshot</div><div class="l">PARK אם אין גישה ואין בקשת דמו מאינטגרטור</div></div>
       <div class="kpi"><div class="n">סדרת sample</div><div class="l">לא פסק דין שטח — מסומן במפורש</div></div>
@@ -136,7 +139,51 @@ a{color:var(--brand)}
 <script src="src/lib/surface-nav.js"></script>
 <script src="src/lib/pwa.js"></script>
 <script>
+"use strict";
+
+function setStatus(text, isErr) {
+  const el = document.getElementById("briefStatus");
+  if (!el) return;
+  el.textContent = text || "";
+  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e7490)";
+}
+
+function getBriefSummaryText() {
+  return [
+    "ParkWiz — תקציר לפיילוט 30 יום (יחידת חדשנות / אגף תנועה, נתניה)",
+    "",
+    "• הבקשה במשפט אחד: למדוד תפוסה אנונימית (תפוס / פנוי) על מצלמה עירונית שכבר קיימת, בלי חומרה חדשה, בלי LPR, בלי קנסות.",
+    "• מה בפנים: תפוס / פנוי על מלבנים שמסומנים מראש, דוח תכנון (שיא / שפל / שעה עמוסה).",
+    "• מה בחוץ: ללא זיהוי לוחיות או פנים, ללא שמירת וידאו, ללא המלצות קנס או אכיפה, ללא מכרז תשלום.",
+    "• שיטת המדידה: חיסור רקע מנורמל־תאורה על snapshot, מדידת הסכמה מול ספירת פקח (100% − |מערכת − פקח| / סך המקומות).",
+    "• כלל העצירה: פחות מ־96% הסכמה בלי כיול או 30 יום בלי snapshot מובילים לפסק דין PARK כנה.",
+    "• מחיר ועלות: הפיילוט חינמי לחלוטין ל־30 יום, ללא התחייבות וללא ערבות."
+  ].join("\n");
+}
+
 document.getElementById("btnPrint").addEventListener("click", () => window.print());
+
+document.getElementById("btnCopyBrief").addEventListener("click", async () => {
+  const text = getBriefSummaryText();
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setStatus("תקציר הפיילוט הועתק ללוח בהצלחה.");
+  } catch (e) {
+    setStatus("לא ניתן להעתיק אוטומטית — העתיקו ישירות מהעמוד.", true);
+  }
+});
 </script>
 </body>
 </html>
