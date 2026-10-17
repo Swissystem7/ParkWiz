@@ -661,7 +661,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
       <select id="vehicleSel" onchange="setVehicle(this.value)"
               style="width:100%;background:#101d10;color:#e5e7eb;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px;font-size:0.75rem"></select>
     </div>
-    <div class="spots-list" id="spotsList"></div>
+    <div class="spots-list" id="spotsList" role="region" aria-label="רשימת רחובות קרובים"></div>
   </div>
 
   <!-- Gamification panel -->
@@ -728,13 +728,13 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 </div>
 
 <!-- Bottom navigation -->
-<div class="bottom-nav">
-  <button class="nav-tab active" id="navMap" onclick="switchNav('map')"><span class="icon">🗺️</span>מפה</button>
+<nav class="bottom-nav" role="navigation" aria-label="ניווט ראשי">
+  <button class="nav-tab active" id="navMap" onclick="switchNav('map')" aria-current="page"><span class="icon">🗺️</span>מפה</button>
   <button class="nav-tab" id="navSearch" onclick="switchNav('search')"><span class="icon">🔍</span>חיפוש</button>
   <button class="nav-tab" id="navReport" onclick="startLeaving()"><span class="icon">🚗</span>אני עוזב!</button>
   <button class="nav-tab" id="navHistory" onclick="toggleHistory()"><span class="icon">📋</span>היסטוריה</button>
   <button class="nav-tab" id="navProfile" onclick="switchNav('profile')"><span class="icon">👤</span>פרופיל</button>
-</div>
+</nav>
 
 <!-- Leaving multi-step overlay -->
 <div class="leaving-overlay" id="leavingOverlay">
@@ -779,9 +779,12 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 </div>
 
 <!-- History bottom sheet -->
-<div class="history-sheet" id="historySheet">
+<div class="history-sheet" id="historySheet" role="region" aria-label="היסטוריית חניות" aria-hidden="true">
   <div class="sheet-handle"></div>
-  <div class="sheet-title">📋 היסטוריית חניות</div>
+  <div class="sheet-title" style="display:flex;justify-content:space-between;align-items:center">
+    <span>📋 היסטוריית חניות</span>
+    <button type="button" class="sheet-close" id="historyCloseBtn" onclick="toggleHistory()" aria-label="סגור היסטוריית חניות" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:0 8px;line-height:1">✕</button>
+  </div>
   <div class="history-list" id="historyList"></div>
   <div style="text-align:center;padding:8px 0 0;font-size:0.68rem;color:var(--muted);flex-shrink:0">
     <span style="cursor:pointer;text-decoration:underline" onclick="pwOpenLegal('terms')">תנאי שימוש</span> ·
@@ -867,7 +870,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- Tested logic modules. Same files run under `node --test`; here they attach
      to the global scope so the classic script below can use them unchanged. -->
@@ -1660,9 +1663,12 @@ function renderSidePanel() {
   if (typeof updateDepartureHelper === 'function') updateDepartureHelper();
 
   const list = document.getElementById('spotsList');
+  if (!list) return;
   const sorted = [...visible].sort((a,b)=>b.predictedPct-a.predictedPct);
-
-  list.innerHTML = sorted.map(s => {
+  if (!sorted.length) {
+    list.innerHTML = '<div class="empty-msg" id="spotsEmpty" style="padding:16px;text-align:center;color:var(--muted);font-size:0.8rem">לא נמצאו רחובות התואמים לסינון הנבחר.</div>';
+    return;
+  }
     const color = availColor(s.predictedPct);
     const label = s.predictedPct>=70?'פנוי בקלות':s.predictedPct>=30?'בינוני':'עמוס';
     const typeLabel = parkingTypeLabel(s.type);
@@ -1807,7 +1813,13 @@ function renderLeaderboard() {
 }
 
 function renderHistory() {
-  document.getElementById('historyList').innerHTML = HISTORY.map(h=>`
+  const el = document.getElementById('historyList');
+  if (!el) return;
+  if (!HISTORY || !HISTORY.length) {
+    el.innerHTML = '<div class="empty-msg" id="historyEmpty" style="text-align:center;padding:16px;color:var(--muted);font-size:0.8rem">אין היסטוריית חניות עדיין.</div>';
+    return;
+  }
+  el.innerHTML = HISTORY.map(h=>`
     <div class="history-item">
       <div>
         <div class="hist-addr">📍 ${h.addr}</div>
@@ -2184,7 +2196,11 @@ function updateFeed() {
 
 function toggleHistory() {
   historyOpen = !historyOpen;
-  document.getElementById('historySheet').classList.toggle('open', historyOpen);
+  const sheet = document.getElementById('historySheet');
+  if (sheet) {
+    sheet.classList.toggle('open', historyOpen);
+    sheet.setAttribute('aria-hidden', historyOpen ? 'false' : 'true');
+  }
 }
 
 function openReserve(id) {
@@ -2226,8 +2242,15 @@ function showToast(msg) {
 }
 
 function switchNav(tab) {
-  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
-  document.getElementById('nav'+tab[0].toUpperCase()+tab.slice(1)).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(b => {
+    b.classList.remove('active');
+    b.removeAttribute('aria-current');
+  });
+  const activeBtn = document.getElementById('nav'+tab[0].toUpperCase()+tab.slice(1));
+  if (activeBtn) {
+    activeBtn.classList.add('active');
+    activeBtn.setAttribute('aria-current', 'page');
+  }
   if (tab==='search') document.getElementById('searchInput').focus();
   if (tab==='profile') { openProfile(); return; }
 }
