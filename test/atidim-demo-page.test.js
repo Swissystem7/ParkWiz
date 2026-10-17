@@ -82,6 +82,14 @@ test('the live counters and the canvas are exposed to assistive tech', () => {
   assert.match(html, /<canvas id="lotCanvas"[^>]*tabindex="0"/);
   assert.match(html, /canvas\.addEventListener\('keydown'/);
   assert.match(html, /id="bayStatus"[^>]*role="status"/);
+  assert.match(html, /class="cam-sel active"[^>]*data-cam="cam-01"[^>]*aria-pressed="true"[^>]*aria-label="מצלמה 01/);
+  assert.match(html, /class="cam-sel"[^>]*data-cam="cam-02"[^>]*aria-pressed="false"[^>]*aria-label="מצלמה 02/);
+  assert.match(html, /class="cam-sel"[^>]*data-cam="cam-03"[^>]*aria-pressed="false"[^>]*aria-label="מצלמה 03/);
+  assert.match(html, /id="btnCopySummary">העתק תקציר מצב<\/button>/);
+  assert.match(html, /כל התאים בפריים כבר תפוסים/);
+  assert.match(html, /כל התאים בפריים כבר פנויים/);
+  assert.match(html, /תקציר מצב החניון הועתק ללוח/);
+  assert.match(html, /מודל החניון לא נטען — נא לרענן את הדף/);
 });
 
 test('the peak caption is derived from the model, not typed into the markup', () => {

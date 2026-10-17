@@ -108,10 +108,11 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
       <button type="button" id="btnLeave">- הדמה יציאת רכב</button>
       <button type="button" id="btnAuto" aria-pressed="false">הפעל זרימה אוטומטית</button>
       <button type="button" id="btnReset">אפס למצב השעה הנוכחית</button>
+      <button type="button" id="btnCopySummary">העתק תקציר מצב</button>
       <span style="flex:1"></span>
-      <button type="button" class="cam-sel active" data-cam="cam-01">מצלמה 01</button>
-      <button type="button" class="cam-sel" data-cam="cam-02">מצלמה 02 (מפלס -1)</button>
-      <button type="button" class="cam-sel" data-cam="cam-03">מצלמה 03 (מתחם 7)</button>
+      <button type="button" class="cam-sel active" data-cam="cam-01" aria-pressed="true" aria-label="מצלמה 01 — כניסה מזרחית">מצלמה 01</button>
+      <button type="button" class="cam-sel" data-cam="cam-02" aria-pressed="false" aria-label="מצלמה 02 — מפלס -1">מצלמה 02 (מפלס -1)</button>
+      <button type="button" class="cam-sel" data-cam="cam-03" aria-pressed="false" aria-label="מצלמה 03 — מתחם 7">מצלמה 03 (מתחם 7)</button>
     </div>
     <p class="hint">לחצו על תא בפריים (או נווטו בחצים ולחצו רווח) כדי לשנות תפוסה ידנית — כך בודקים את המונה מול ספירה בעין.</p>
     <p class="bay-status" id="bayStatus" role="status" aria-live="polite"></p>
@@ -162,6 +163,11 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
 <script>
 (function(){
   const model = window.ParkWizAtidimLot;
+  if (!model) {
+    const st = document.getElementById('bayStatus');
+    if (st) st.textContent = 'מודל החניון לא נטען — נא לרענן את הדף.';
+    return;
+  }
   const CAPACITY = model.ATIDIM_LOT.totalCapacity;
   let currentCam = 'cam-01';
   // The frame is seeded from the park's own hourly curve, so the counters and
@@ -287,28 +293,61 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
     this.setAttribute('aria-pressed', String(showOverlay));
     this.textContent = showOverlay ? 'הסתר שכבת זיהוי תאים' : 'הצג שכבת זיהוי תאים';
     drawScene();
+    announce(showOverlay ? 'שכבת זיהוי תאים מוצגת.' : 'שכבת זיהוי תאים מוסתרת.');
   });
-  document.getElementById('btnArrive').addEventListener('click', function(){ spots = model.transitionSpot(spots, 'arrive'); refresh(); });
-  document.getElementById('btnLeave').addEventListener('click', function(){ spots = model.transitionSpot(spots, 'leave'); refresh(); });
+  document.getElementById('btnArrive').addEventListener('click', function(){
+    const freeCount = spots.filter(function(s){ return !s.occupied; }).length;
+    if (freeCount === 0) { announce('כל התאים בפריים כבר תפוסים.'); return; }
+    spots = model.transitionSpot(spots, 'arrive'); refresh();
+    const occ = model.calculateOccupancy(spots, CAPACITY);
+    announce('נכנס רכב · פנויים בפריים: ' + occ.availableInView + ' מתוך ' + occ.totalInView + '.');
+  });
+  document.getElementById('btnLeave').addEventListener('click', function(){
+    const occCount = spots.filter(function(s){ return s.occupied; }).length;
+    if (occCount === 0) { announce('כל התאים בפריים כבר פנויים.'); return; }
+    spots = model.transitionSpot(spots, 'leave'); refresh();
+    const occ = model.calculateOccupancy(spots, CAPACITY);
+    announce('יצא רכב · פנויים בפריים: ' + occ.availableInView + ' מתוך ' + occ.totalInView + '.');
+  });
   document.getElementById('btnReset').addEventListener('click', function(){
     seededHour = model.lotHour();
     spots = model.createCameraSpots(currentCam, seededHour);
     selected = -1; refresh(); renderChart();
     announce('הפריים אופס למצב האופייני לשעה ' + model.hourlyPoint(seededHour).label + '.');
   });
+  document.getElementById('btnCopySummary').addEventListener('click', function(){
+    const occ = model.calculateOccupancy(spots, CAPACITY);
+    const view = model.cameraView(currentCam);
+    const text = 'ParkWiz פארק עתידים (' + view.label + '): ' + occ.available + '/' + CAPACITY + ' פנויים בחניון (' + occ.percentage + '% תפוסה, ' + occ.statusHe + ') · בפריים: ' + occ.availableInView + '/' + occ.totalInView + ' פנויים.';
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(text).then(function(){
+        announce('תקציר מצב החניון הועתק ללוח.');
+      }).catch(function(){
+        announce('תקציר מצב: ' + text);
+      });
+    } else {
+      announce('תקציר מצב: ' + text);
+    }
+  });
   document.getElementById('btnAuto').addEventListener('click', function(){
     if (autoTimer) {
       clearInterval(autoTimer); autoTimer = null; this.classList.remove('active');
       this.setAttribute('aria-pressed', 'false'); this.textContent = 'הפעל זרימה אוטומטית';
+      announce('זרימה אוטומטית נעצרה.');
     } else {
       autoTimer = setInterval(function(){ spots = model.transitionSpot(spots, Math.random() > 0.5 ? 'arrive' : 'leave'); refresh(); }, 1600);
       this.classList.add('active'); this.setAttribute('aria-pressed', 'true'); this.textContent = 'עצור זרימה אוטומטית';
+      announce('זרימה אוטומטית הופעלה.');
     }
   });
   document.querySelectorAll('.cam-sel').forEach(function(btn){
     btn.addEventListener('click', function(){
-      document.querySelectorAll('.cam-sel').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.cam-sel').forEach(function(b){
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       this.classList.add('active');
+      this.setAttribute('aria-pressed', 'true');
       currentCam = this.getAttribute('data-cam');
       const view = model.cameraView(currentCam);
       document.getElementById('camDesc').textContent = view.label;
