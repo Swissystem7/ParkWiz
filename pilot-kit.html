@@ -71,63 +71,68 @@ svg.chart{display:block;width:100%;height:auto}
 
   <div class="grid">
     <div>
-      <section class="panel">
-        <h2>1. תמונת snapshot</h2>
+      <section class="panel" role="region" aria-labelledby="secSnap">
+        <h2 id="secSnap">1. תמונת snapshot</h2>
         <div class="row">
-          <button type="button" class="primary" id="btnSample">טען דוגמה כלולה</button>
-          <label class="file">צילום נוכחי <input type="file" id="fileSnap" accept="image/*"></label>
-          <label class="file">פריים ייחוס ריק <input type="file" id="fileEmpty" accept="image/*"></label>
-          <label class="file">ייחוס לילה ריק (רשות) <input type="file" id="fileNight" accept="image/*"></label>
+          <button type="button" class="primary" id="btnSample" aria-label="טען דוגמה כלולה">טען דוגמה כלולה</button>
+          <label class="file">צילום נוכחי <input type="file" id="fileSnap" accept="image/*" aria-label="העלאת צילום נוכחי"></label>
+          <label class="file">פריים ייחוס ריק <input type="file" id="fileEmpty" accept="image/*" aria-label="העלאת פריים ייחוס ריק"></label>
+          <label class="file">ייחוס לילה ריק (רשות) <input type="file" id="fileNight" accept="image/*" aria-label="העלאת פריים ייחוס לילה"></label>
         </div>
         <label class="file" for="streetName">רחוב / אתר</label>
-        <input type="text" id="streetName" value="הרצל, נתניה">
-        <div class="stage" id="stage">
+        <input type="text" id="streetName" value="הרצל, נתניה" aria-label="שם הרחוב או האתר">
+        <div class="stage" id="stage" role="region" aria-label="אזור תצוגה וסימון מלבני חניה">
           <img id="snapImg" alt="צילום מגרש חניה">
-          <canvas id="calCanvas"></canvas>
+          <canvas id="calCanvas" role="img" aria-label="סימון מלבני חניה על הצילום"></canvas>
         </div>
         <p class="hint">לחצו וגררו על התמונה כדי לסמן מלבן חניה. המלבנים נשמרים כשברים (0–1) כדי לעבוד בכל גודל תמונה.</p>
       </section>
 
-      <section class="panel" style="margin-top:16px">
-        <h2>2. מפת תפוסה (היוריסטיקה)</h2>
+      <section class="panel" style="margin-top:16px" role="region" aria-labelledby="secEst">
+        <h2 id="secEst">2. מפת תפוסה (היוריסטיקה)</h2>
         <div class="row">
-          <button type="button" class="primary" id="btnEstimate">חשב תפוסה</button>
-          <button type="button" id="btnExportOcc">ייצוא occupancy.json</button>
-          <button type="button" id="btnExportCsv">ייצוא occupancy.csv</button>
+          <button type="button" class="primary" id="btnEstimate" aria-label="חשב תפוסה">חשב תפוסה</button>
+          <button type="button" id="btnCopySummary" aria-label="העתק סיכום תפוסה">העתק סיכום תפוסה</button>
+          <button type="button" id="btnExportOcc" aria-label="ייצוא occupancy.json">ייצוא occupancy.json</button>
+          <button type="button" id="btnExportCsv" aria-label="ייצוא occupancy.csv">ייצוא occupancy.csv</button>
           <a href="./pilot-compare.html" style="font-size:.82rem;font-weight:700">השווה מול ספירת פקח</a>
         </div>
-        <div class="kpis">
+        <div class="kpis" role="region" aria-label="מדדי תפוסה">
           <div class="kpi"><div class="n" id="kTotal">0</div><div class="l">מקומות מסומנים</div></div>
           <div class="kpi"><div class="n" id="kOcc" style="color:var(--occ)">0</div><div class="l">תפוסים (הערכה)</div></div>
           <div class="kpi"><div class="n" id="kFree" style="color:var(--free)">0</div><div class="l">פנויים (הערכה)</div></div>
         </div>
-        <p class="hint" id="estNote">עדיין לא חושב. אחרי כיול — לחצו «חשב תפוסה».</p>
+        <p class="hint" id="estNote" role="status" aria-live="polite">עדיין לא חושב. אחרי כיול — לחצו «חשב תפוסה».</p>
       </section>
 
-      <section class="panel" style="margin-top:16px">
-        <h2>3. עקומה שעתית מ־occupancy.json</h2>
+      <section class="panel" style="margin-top:16px" role="region" aria-labelledby="secChart">
+        <h2 id="secChart">3. עקומה שעתית מ־occupancy.json</h2>
         <div class="row">
-          <button type="button" id="btnLoadSampleOcc">טען סדרת דוגמה</button>
-          <label class="file">טען occupancy.json <input type="file" id="fileOcc" accept=".json,application/json"></label>
+          <button type="button" id="btnLoadSampleOcc" aria-label="טען סדרת דוגמה">טען סדרת דוגמה</button>
+          <label class="file">טען occupancy.json <input type="file" id="fileOcc" accept=".json,application/json" aria-label="טעינת קובץ occupancy.json"></label>
         </div>
-        <div id="chart"></div>
+        <div id="chart" role="region" aria-label="עקומה שעתית מ-occupancy">
+          <p class="hint empty-msg" id="chartEmpty">אין סדרת occupancy עדיין.</p>
+        </div>
         <p class="hint">סכמה: <code>{ts, street, total, occupied, source, confidence}</code>. סדרת הדוגמה מסומנת <code>source: sample</code> — לא מדידה חיה.</p>
       </section>
     </div>
 
     <aside>
-      <section class="panel">
-        <h2>מלבנים / spots.json</h2>
+      <section class="panel" role="region" aria-labelledby="secSpots">
+        <h2 id="secSpots">מלבנים / spots.json</h2>
         <div class="row">
-          <button type="button" id="btnUndo">בטל אחרון</button>
-          <button type="button" class="danger" id="btnClear">נקה הכול</button>
+          <button type="button" id="btnUndo" aria-label="בטל אחרון">בטל אחרון</button>
+          <button type="button" class="danger" id="btnClear" aria-label="נקה הכול">נקה הכול</button>
         </div>
         <div class="row">
-          <button type="button" id="btnSaveLs">שמור בדפדפן</button>
-          <button type="button" id="btnExportSpots">ייצוא spots.json</button>
+          <button type="button" id="btnSaveLs" aria-label="שמור בדפדפן">שמור בדפדפן</button>
+          <button type="button" id="btnExportSpots" aria-label="ייצוא spots.json">ייצוא spots.json</button>
         </div>
-        <label class="file">ייבוא spots.json <input type="file" id="fileSpots" accept=".json,application/json"></label>
-        <div class="spot-list" id="spotList"></div>
+        <label class="file">ייבוא spots.json <input type="file" id="fileSpots" accept=".json,application/json" aria-label="ייבוא קובץ spots.json"></label>
+        <div class="spot-list" id="spotList" role="region" aria-label="רשימת מקומות חניה מסומנים">
+          <p class="hint empty-msg" id="spotListEmpty">אין מלבנים. גררו על התמונה או טענו דוגמה.</p>
+        </div>
       </section>
       <section class="panel" style="margin-top:16px">
         <h2>מה העירייה רואה כאן</h2>
@@ -377,7 +382,7 @@ canvas.addEventListener("pointerup", () => {
 function renderSpotList() {
   const el = document.getElementById("spotList");
   if (!state.spots.length) {
-    el.innerHTML = '<p class="hint">אין מלבנים. גררו על התמונה או טענו דוגמה.</p>';
+    el.innerHTML = '<p class="hint empty-msg" id="spotListEmpty">אין מלבנים. גררו על התמונה או טענו דוגמה.</p>';
     return;
   }
   el.replaceChildren();
@@ -385,11 +390,14 @@ function renderSpotList() {
     const est = state.estimates[i];
     const row = document.createElement("div");
     row.className = "spot-item";
+    row.setAttribute("role", "listitem");
     const name = document.createElement("span");
     name.textContent = "מקום " + (i + 1);
     const badge = document.createElement("span");
     badge.className = "badge " + (est ? (est.occupied ? "occ" : "free") : "unk");
-    badge.textContent = est ? (est.occupied ? "תפוס · היוריסטיקה" : "פנוי · היוריסטיקה") : "לא חושב";
+    const statusText = est ? (est.occupied ? "תפוס · היוריסטיקה" : "פנוי · היוריסטיקה") : "לא חושב";
+    badge.textContent = statusText;
+    row.setAttribute("aria-label", "מקום " + (i + 1) + ": " + statusText);
     row.appendChild(name);
     row.appendChild(badge);
     el.appendChild(row);
@@ -507,12 +515,59 @@ function applyOccupancy(list) {
 function drawChart(recs) {
   const host = document.getElementById("chart");
   if (!recs.length) {
-    host.innerHTML = '<p class="hint">אין סדרת occupancy עדיין.</p>';
+    host.innerHTML = '<p class="hint empty-msg" id="chartEmpty">אין סדרת occupancy עדיין.</p>';
     return;
   }
   host.innerHTML = OCC.chartSvg(recs, { width: 720, height: 220 });
 }
 
+function copySummary() {
+  if (!state.spots.length && !state.occupancy.length) {
+    document.getElementById("estNote").textContent = "אין נתוני תפוסה להעתקה.";
+    return;
+  }
+  const streetName = street();
+  const total = state.spots.length;
+  const occupied = state.estimates.filter((e) => e && e.occupied).length;
+  const free = total - occupied;
+  const est = state.estimates[0];
+  const method = est ? HEU.methodLabelHe(est.method) : "טרם חושב";
+  const lines = [
+    "ערכת פיילוט ParkWiz — הערכת תפוסה היוריסטית",
+    "אתר / רחוב: " + streetName,
+    "מקומות מסומנים: " + total,
+    "תפוסים (הערכה): " + occupied,
+    "פנויים (הערכה): " + free,
+    "שיטת חישוב: " + method,
+    "הערה: הערכה היוריסטית על snapshot, לא בינה מלאכותית ולא מצלמה חיה.",
+  ];
+  const text = lines.join("\n");
+  const fallbackCopy = () => {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      document.getElementById("estNote").textContent = "סיכום התפוסה הועתק ללוח.";
+    } catch (e) {
+      document.getElementById("estNote").textContent = "העתקה ללוח נכשלה בדפדפן זה.";
+    }
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(
+      () => { document.getElementById("estNote").textContent = "סיכום התפוסה הועתק ללוח."; },
+      fallbackCopy
+    );
+  } else {
+    fallbackCopy();
+  }
+}
+
+document.getElementById("btnCopySummary").addEventListener("click", copySummary);
 document.getElementById("btnSample").addEventListener("click", () => loadSample());
 document.getElementById("fileSnap").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
@@ -539,17 +594,43 @@ document.getElementById("fileNight").addEventListener("change", async (e) => {
   state.hasNight = true;
 });
 document.getElementById("btnUndo").addEventListener("click", () => {
-  state.spots.pop(); state.estimates = []; saveLocal(); drawOverlay(); renderSpotList();
+  if (!state.spots.length) {
+    document.getElementById("estNote").textContent = "אין מלבנים לביטול.";
+    return;
+  }
+  state.spots.pop();
+  state.estimates = [];
+  saveLocal();
+  drawOverlay();
+  renderSpotList();
+  document.getElementById("estNote").textContent = "המלבן האחרון בוטל.";
 });
 document.getElementById("btnClear").addEventListener("click", () => {
-  state.spots = []; state.estimates = []; saveLocal(); drawOverlay(); renderSpotList();
+  if (!state.spots.length) {
+    document.getElementById("estNote").textContent = "אין מלבנים לניקוי.";
+    return;
+  }
+  state.spots = [];
+  state.estimates = [];
+  document.getElementById("kTotal").textContent = "0";
+  document.getElementById("kOcc").textContent = "0";
+  document.getElementById("kFree").textContent = "0";
+  saveLocal();
+  drawOverlay();
+  renderSpotList();
+  document.getElementById("estNote").textContent = "כל המלבנים נוקו.";
 });
 document.getElementById("btnSaveLs").addEventListener("click", () => {
   saveLocal();
   document.getElementById("estNote").textContent = "נשמר ב־localStorage בדפדפן זה.";
 });
 document.getElementById("btnExportSpots").addEventListener("click", () => {
+  if (!state.spots.length) {
+    document.getElementById("estNote").textContent = "אין מלבנים לייצוא.";
+    return;
+  }
   download("spots.json", JSON.stringify(spotsDoc(), null, 2));
+  document.getElementById("estNote").textContent = "קובץ spots.json יוצא בהצלחה.";
 });
 document.getElementById("fileSpots").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
@@ -559,14 +640,24 @@ document.getElementById("fileSpots").addEventListener("change", async (e) => {
 });
 document.getElementById("btnEstimate").addEventListener("click", computeEstimate);
 document.getElementById("btnExportOcc").addEventListener("click", () => {
+  if (!state.occupancy.length) {
+    document.getElementById("estNote").textContent = "אין נתוני תפוסה לייצוא.";
+    return;
+  }
   download("occupancy.json", JSON.stringify(state.occupancy, null, 2));
+  document.getElementById("estNote").textContent = "קובץ occupancy.json יוצא בהצלחה.";
 });
 document.getElementById("btnExportCsv").addEventListener("click", () => {
+  if (!state.occupancy.length) {
+    document.getElementById("estNote").textContent = "אין נתוני תפוסה לייצוא.";
+    return;
+  }
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([window.ParkWizExport.occupancyToCsv(state.occupancy)], { type: "text/csv" }));
   a.download = "occupancy.csv";
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 800);
+  document.getElementById("estNote").textContent = "קובץ occupancy.csv יוצא בהצלחה.";
 });
 document.getElementById("btnLoadSampleOcc").addEventListener("click", async () => {
   try {
