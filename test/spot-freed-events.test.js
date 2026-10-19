@@ -165,7 +165,12 @@ function runPage(options) {
 
   const sandbox = {
     window: {
-      ParkWizAtidimLot: lotModel,
+      // The model lives in this realm, so its lotHour() would read the real
+      // clock: run at night and the frame seeds near-empty, and a second
+      // "car leaves" click has no car left to free.
+      ParkWizAtidimLot: Object.assign({}, lotModel, {
+        lotHour: (date) => lotModel.lotHour(date === undefined ? new Date(clock.t) : date),
+      }),
       ParkWizSpotEvents: opts.noEventsLib ? undefined : SE,
       CustomEvent: function (type, init) { this.type = type; this.detail = init && init.detail; },
       dispatchEvent(e) { dispatched.push(e); return true; },
