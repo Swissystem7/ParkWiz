@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'">
+<title>ParkWiz — פיילוט פארק עתידים · זרימה אחת (נהג · מנהל · שלט · הגדרות)</title>
+<link rel="icon" href="../icon.svg">
+<style>
+  :root{
+    --bg:#f4f6f8; --panel:#fff; --ink:#0f172a; --muted:#5b6880; --line:#e2e8f0;
+    --brand:#0e7490; --free:#15803d; --occ:#b91c1c; --warn:#b45309;
+    --shadow:0 1px 2px rgba(15,23,42,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0b0f14;--panel:#111820;--ink:#e2e8f0;--muted:#94a3b8;--line:#1e293b;
+          --brand:#22d3ee;--free:#4ade80;--occ:#f87171;--warn:#fbbf24;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Hebrew",sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.5}
+  .wrap{max-width:1000px;margin:0 auto;padding:18px 16px 48px}
+  .skip-link{position:absolute;inset-inline-start:-9999px}
+  .skip-link:focus{position:static;display:inline-block;padding:6px 10px;background:var(--brand);color:#fff}
+  a{color:var(--brand)}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px}
+  .banner{background:#fffbeb;border:1px solid #f59e0b;color:#92400e;border-radius:12px;
+          padding:10px 14px;font-size:.86rem;margin:14px 0}
+  @media (prefers-color-scheme:dark){.banner{background:#231a06;color:#fcd34d}}
+  /* The one nav: four surfaces, no page loads between them. */
+  .flow-nav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .flow-nav a{font-size:14px;font-weight:600;text-decoration:none;padding:8px 16px;border-radius:999px;
+              border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+  .flow-nav a[aria-current=page]{background:var(--brand);border-color:var(--brand);color:#fff}
+  .flow-nav a:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;
+         box-shadow:var(--shadow);margin-bottom:14px}
+  .panel h2{font-size:14px;margin:0 0 12px;color:var(--muted);font-weight:600}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+  button{font:inherit;font-size:13px;font-weight:600;padding:8px 15px;border-radius:9px;
+         border:1px solid var(--brand);background:transparent;color:var(--brand);cursor:pointer}
+  button[aria-pressed=true]{background:var(--brand);color:var(--panel)}
+  button[disabled]{opacity:.5;cursor:default}
+  .note{font-size:12px;color:var(--muted)}
+  .status{font-size:12.5px;color:var(--brand);min-height:18px;font-weight:500;margin:0 0 12px}
+  .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(min-width:720px){.kpis{grid-template-columns:repeat(4,1fr)}}
+  .kpi{border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+  .kpi .n{font-size:27px;font-weight:700;font-variant-numeric:tabular-nums}
+  .kpi .l{font-size:12px;color:var(--muted)}
+  .kpi.free .n{color:var(--free)} .kpi.occ .n{color:var(--occ)}
+  /* Driver alert: the one card the whole pipeline exists to produce. */
+  .alert{border:2px solid var(--free);border-radius:14px;padding:16px;background:rgba(21,128,61,.07)}
+  .alert h3{margin:0 0 6px;font-size:1.15rem}
+  .alert .hold{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;margin:8px 0 4px}
+  .alert.expired{border-color:var(--warn);background:rgba(180,83,9,.08)}
+  .nav-btn{display:inline-block;background:var(--brand);color:#fff;font-weight:700;padding:9px 18px;
+           border-radius:9px;text-decoration:none;margin-top:6px}
+  .empty{color:var(--muted);font-size:14px;border:1px dashed var(--line);border-radius:12px;padding:16px}
+  ul.events{list-style:none;margin:0;padding:0;font-size:13px}
+  ul.events li{border-bottom:1px solid var(--line);padding:6px 0;font-variant-numeric:tabular-nums}
+  /* Entrance sign: read from a car, so one number and one word. */
+  .sign{background:#06131b;border-radius:16px;padding:26px 16px;text-align:center;color:#d1fae5}
+  .sign .num{font-size:19vw;line-height:1;font-weight:800;font-variant-numeric:tabular-nums}
+  @media(min-width:720px){.sign .num{font-size:120px}}
+  .sign .word{font-size:1.3rem;font-weight:700;margin-top:6px}
+  .sign.full{color:#fecaca} .sign.busy{color:#fde68a}
+  .sign .meta{font-size:12px;color:#94a3b8;margin-top:10px}
+  label.src{display:block;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+  label.src b{display:inline-block;margin-inline-start:6px}
+  label.src span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+  .field{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;font-size:13px}
+  .field label{font-weight:600;color:var(--muted)}
+  .field input[type=text],.field input[type=number]{font:inherit;padding:7px 10px;border-radius:9px;
+      border:1px solid var(--line);background:var(--bg);color:var(--ink);min-width:150px}
+  .foot{margin-top:18px;text-align:center;font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#flowNav">דלג לניווט הפיילוט</a>
+<div class="wrap">
+  <header>
+    <h1>פיילוט פארק עתידים — זרימה אחת מהמצלמה עד הנהג</h1>
+    <div class="sub">מצלמה → מנוע תפוסה → התפנה תא → התראה לנהג, ניווט והחזקה → לוח מנהל, שלט כניסה</div>
+  </header>
+
+  <p class="banner" role="note">
+    <b>הדגמה.</b> המצלמה כאן היא <b>קליפ דוגמה מפוענח</b> (תפוס/פנוי לכל תא) ולא שידור חי מחניון עתידים.
+    אין לוחיות רישוי, אין זיהוי פנים ואין וידאו שנשמר — גם בפיילוט עצמו.
+    מצלמת הדפדפן וגשר Frigate נבחרים ב<a href="#settings">הגדרות</a>.
+    <a href="./atidim.html">דמו המצלמה (פריים + שכבת זיהוי)</a> ·
+    <a href="./atidim-board.html">לוח המפעיל המלא</a>
+  </p>
+
+  <nav class="flow-nav" id="flowNav" aria-label="ניווט זרימת הפיילוט"></nav>
+  <p class="status" id="flowStatus" role="status" aria-live="polite"></p>
+
+  <div class="panel">
+    <h2>מקור המצלמה</h2>
+    <div class="bar">
+      <button type="button" id="btnPlay" aria-pressed="false">הפעל את הקליפ</button>
+      <button type="button" id="btnStep">פריים הבא</button>
+      <span class="note" id="clipPos">—</span>
+    </div>
+    <p class="note" id="clipNote"></p>
+  </div>
+
+  <main id="flowPanes">
+    <section class="panel" id="paneDriver" aria-labelledby="driverTitle">
+      <h2 id="driverTitle">נהג — התראה, ניווט והחזקה</h2>
+      <div id="driverEmpty" class="empty">אין תא שהתפנה כרגע. ברגע שהמצלמה תזהה יציאה, ההתראה תופיע כאן.</div>
+      <div class="alert" id="driverAlert" hidden>
+        <h3 id="driverHead">—</h3>
+        <p class="note" id="driverBody">—</p>
+        <p class="hold" id="driverHold">—</p>
+        <a class="nav-btn" id="driverNav" href="#" target="_blank" rel="noopener">נווט אל החניון</a>
+        <button type="button" id="btnRelease">שחרר את ההחזקה</button>
+      </div>
+      <p class="note" id="driverFree">—</p>
+    </section>
+
+    <section class="panel" id="paneManager" aria-labelledby="managerTitle" hidden>
+      <h2 id="managerTitle">מנהל חניון — מדדים ויומן אירועים</h2>
+      <div class="kpis" aria-live="polite">
+        <div class="kpi free"><div class="n" id="mFree">—</div><div class="l">מקומות פנויים</div></div>
+        <div class="kpi occ"><div class="n" id="mOcc">—</div><div class="l">מקומות תפוסים</div></div>
+        <div class="kpi"><div class="n" id="mPct">—</div><div class="l">אחוז תפוסה</div></div>
+        <div class="kpi free"><div class="n" id="mEv">—</div><div class="l">עמדות טעינה פנויות</div></div>
+      </div>
+      <div class="bar" style="margin-top:12px"><button type="button" id="btnCopyKpi">העתק תקציר מדדים</button></div>
+      <h2>תאים שהתפנו (האירועים מהבאס המשותף)</h2>
+      <ul class="events" id="eventLog"><li class="note" id="eventEmpty">עוד לא נרשמו אירועי התפנות.</li></ul>
+    </section>
+
+    <section class="panel" id="paneSign" aria-labelledby="signTitle" hidden>
+      <h2 id="signTitle">שלט כניסה — תצוגה לרכב שמתקרב לשער</h2>
+      <div class="sign" id="signBox" role="img" aria-label="שלט כניסה">
+        <div class="num" id="signNum">—</div>
+        <div class="word" id="signWord">ממתין לנתוני מצלמה</div>
+        <div class="meta" id="signMeta">פארק עתידים · עדכון מהמצלמה בשער</div>
+      </div>
+      <p class="note">אותו מספר שמנהל החניון רואה — שלט הכניסה לא מחשב תפוסה בעצמו.</p>
+    </section>
+
+    <section class="panel" id="paneSettings" aria-labelledby="settingsTitle" hidden>
+      <h2 id="settingsTitle">הגדרות — מקור מצלמה אחד לכל הזרימה</h2>
+      <div id="sourceList"></div>
+      <div class="field" id="frigateRow">
+        <label for="frigateUrl">כתובת גשר Frigate / NVR</label>
+        <input type="text" id="frigateUrl" dir="ltr" placeholder="http://192.168.1.40:5000" inputmode="url">
+      </div>
+      <div class="field">
+        <label for="holdSeconds">משך החזקת תא לנהג (שניות)</label>
+        <input type="number" id="holdSeconds" min="30" max="600" step="10" dir="ltr">
+      </div>
+      <div class="field">
+        <label for="evOnly">התראות על עמדות טעינה בלבד (רכב חשמלי מחובר)</label>
+        <input type="checkbox" id="evOnly">
+      </div>
+      <div class="bar">
+        <button type="button" id="btnSave">שמור הגדרות</button>
+        <button type="button" id="btnRestore">חזור לברירת המחדל</button>
+      </div>
+      <p class="note" id="settingsNote"></p>
+    </section>
+  </main>
+
+  <div class="foot">ParkWiz · Refs #268 · זרימה אחת: #263 #264 #265 #266 · offline / GitHub Pages</div>
+</div>
+
+<script src="../src/lib/atidim-lot.js"></script>
+<script src="../src/lib/pilot-flow.js"></script>
+<script>
+"use strict";
+(function () {
+  const FLOW = window.ParkWizPilotFlow;
+  const LOT = window.ParkWizAtidimLot;
+  const $ = function (id) { return document.getElementById(id); };
+
+  function announce(msg, isErr) {
+    const el = $("flowStatus");
+    if (!el) return;
+    el.textContent = msg || "";
+    el.style.color = isErr ? "var(--occ)" : "var(--brand)";
+  }
+
+  if (!FLOW || !LOT) {
+    announce("מודולי הפיילוט לא נטענו במלואם — נא לרענן את הדף.", true);
+    return;
+  }
+
+  let settings = FLOW.loadSettings();
+  const flow = FLOW.createFlow({ settings: settings, lot: LOT });
+  let frames = [];
+  let cursor = -1;
+  let playTimer = null;
+
+  // ---- the one nav: four surfaces on one page, hash-routed ----
+  const navLinks = FLOW.SURFACES.map(function (surface) {
+    const link = document.createElement("a");
+    link.href = surface.hash;
+    link.textContent = surface.labelHe;
+    link.addEventListener("click", function (e) {
+      if (e && typeof e.preventDefault === "function") e.preventDefault();
+      show(surface.id);
+    });
+    $("flowNav").appendChild(link);
+    return { surface: surface, link: link };
+  });
+
+  // syncHash is off on boot: writing the hash there would push a history entry
+  // before the presenter has clicked anything.
+  function show(id, syncHash) {
+    const active = FLOW.surfaceFromHash(id);
+    navLinks.forEach(function (entry) {
+      const on = entry.surface.id === active.id;
+      if (on) entry.link.setAttribute("aria-current", "page");
+      else entry.link.removeAttribute("aria-current");
+      const pane = $(entry.surface.paneId);
+      if (pane) pane.hidden = !on;
+    });
+    if (syncHash === false) return;
+    try { if (window.location.hash !== active.hash) window.location.hash = active.hash; } catch (e) { /* file:// */ }
+  }
+
+  // ---- settings surface ----
+  const sourceInputs = FLOW.SOURCES.map(function (src) {
+    const label = document.createElement("label");
+    label.className = "src";
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "pwSource";
+    input.id = "src-" + src.id;
+    input.value = src.id;
+    const title = document.createElement("b");
+    title.textContent = src.labelHe;
+    const note = document.createElement("span");
+    note.textContent = src.noteHe;
+    label.appendChild(input);
+    label.appendChild(title);
+    label.appendChild(note);
+    $("sourceList").appendChild(label);
+    return { src: src, input: input };
+  });
+
+  function fillSettingsForm() {
+    sourceInputs.forEach(function (entry) { entry.input.checked = entry.src.id === settings.sourceId; });
+    $("frigateUrl").value = settings.frigateUrl;
+    $("holdSeconds").value = String(settings.holdSeconds);
+    $("evOnly").checked = settings.evOnly;
+    const src = FLOW.source(settings.sourceId);
+    $("frigateRow").hidden = src.needs !== "url";
+    $("settingsNote").textContent = "מקור פעיל: " + src.labelHe + " · " + src.noteHe
+      + (settings.evOnly ? " · מסונן לעמדות טעינה בלבד." : "");
+  }
+
+  function applySettings(next) {
+    settings = FLOW.saveSettings(next);
+    flow.setSettings(settings);
+    // A different source is a different camera: diffing its first frame against
+    // the previous source's last frame would invent departures.
+    flow.reset();
+    renderAlert(null);
+    fillSettingsForm();
+  }
+
+  function readForm() {
+    const picked = sourceInputs.filter(function (entry) { return entry.input.checked; })[0];
+    return {
+      sourceId: picked ? picked.src.id : settings.sourceId,
+      frigateUrl: $("frigateUrl").value,
+      holdSeconds: $("holdSeconds").value,
+      evOnly: Boolean($("evOnly").checked),
+    };
+  }
+
+  // ---- surfaces that react to the bus ----
+  function renderOccupancy(summary) {
+    $("mFree").textContent = String(summary.available);
+    $("mOcc").textContent = String(summary.estimatedLotOccupied);
+    $("mPct").textContent = summary.percentage + "%";
+    $("mEv").textContent = summary.evFree + " / " + summary.evTotal;
+    $("driverFree").textContent = "בחניון כרגע: " + summary.available + " מתוך " + summary.capacity
+      + " פנויים (" + summary.statusHe + ") · בפריים המצלמה: " + summary.availableInView + " / " + summary.totalInView + ".";
+    const sign = FLOW.signPanel(summary);
+    $("signNum").textContent = sign.number;
+    $("signWord").textContent = sign.wordHe;
+    $("signBox").className = "sign " + sign.tone;
+    $("signBox").setAttribute("aria-label", "שלט כניסה: " + sign.number + " " + sign.wordHe);
+  }
+
+  function renderAlert(alert) {
+    const card = $("driverAlert");
+    if (!alert) {
+      card.hidden = true;
+      $("driverEmpty").hidden = false;
+      return;
+    }
+    $("driverEmpty").hidden = true;
+    card.hidden = false;
+    card.className = "alert";
+    $("driverHead").textContent = alert.headlineHe;
+    $("driverBody").textContent = alert.bodyHe + " מקור: " + FLOW.source(alert.sourceId).labelHe + ".";
+    $("driverNav").href = alert.navUrl;
+    $("btnRelease").disabled = false;
+    tickHold();
+  }
+
+  function tickHold() {
+    const alert = flow.getAlert();
+    if (!alert) return;
+    const hold = FLOW.holdState(alert);
+    $("driverHold").textContent = hold.labelHe;
+    if (!hold.live) {
+      $("driverAlert").className = "alert expired";
+      $("btnRelease").disabled = true;
+    }
+  }
+
+  function logFreed(event) {
+    const list = $("eventLog");
+    const empty = $("eventEmpty");
+    if (empty) empty.hidden = true;
+    const li = document.createElement("li");
+    li.textContent = "תא " + event.spotId + (event.ev ? " (עמדת טעינה)" : "")
+      + " התפנה · שנייה " + event.atSec + " בקליפ · מקור: " + FLOW.source(event.sourceId).labelHe;
+    list.appendChild(li);
+  }
+
+  flow.bus.on(FLOW.EVENTS.OCCUPANCY, function (payload) { renderOccupancy(payload.summary); });
+  flow.bus.on(FLOW.EVENTS.SPOT_FREED, logFreed);
+  flow.bus.on(FLOW.EVENTS.ALERT, renderAlert);
+
+  // ---- the sample clip: the camera source CI and the meeting both use ----
+  function step() {
+    if (frames.length === 0) return;
+    cursor = (cursor + 1) % frames.length;
+    // Looping back to frame 1 restarts the camera; without the reset the wrap
+    // would read as a dozen cars leaving the lot at once.
+    if (cursor === 0) flow.reset();
+    flow.ingest(frames[cursor]);
+    $("clipPos").textContent = "פריים " + (cursor + 1) + " מתוך " + frames.length;
+  }
+
+  function loadClip() {
+    if (typeof fetch !== "function") {
+      announce("הדפדפן הזה לא יכול לטעון את קליפ הדוגמה.", true);
+      return;
+    }
+    fetch("../pilot/sample-clip.json").then(function (res) {
+      return res.json();
+    }).then(function (clip) {
+      frames = FLOW.expandClip(clip);
+      $("clipNote").textContent = clip.noteHe || "";
+      cursor = -1;
+      step();
+      announce("קליפ הדוגמה נטען — " + frames.length + " פריימים. לחצו הפעל כדי להריץ את הזרימה.");
+    }).catch(function () {
+      announce("קליפ הדוגמה לא נטען (נדרש שרת או ביקור ראשון מקוון). אפשר לעבור למקור אחר בהגדרות.", true);
+    });
+  }
+
+  $("btnStep").addEventListener("click", step);
+  $("btnPlay").addEventListener("click", function () {
+    if (playTimer) {
+      clearInterval(playTimer);
+      playTimer = null;
+      this.setAttribute("aria-pressed", "false");
+      this.textContent = "הפעל את הקליפ";
+      announce("הקליפ נעצר.");
+    } else {
+      playTimer = setInterval(step, 1800);
+      this.setAttribute("aria-pressed", "true");
+      this.textContent = "עצור את הקליפ";
+      announce("הקליפ רץ — כל פריים עובר במנוע התפוסה ומשם לכל המסכים.");
+    }
+  });
+  $("btnRelease").addEventListener("click", function () {
+    flow.releaseHold();
+    renderAlert(null);
+    announce("ההחזקה שוחררה — התא חזר למאגר הפנוי.");
+  });
+  $("btnSave").addEventListener("click", function () {
+    applySettings(readForm());
+    announce("ההגדרות נשמרו במכשיר הזה.");
+  });
+  $("btnRestore").addEventListener("click", function () {
+    applySettings(FLOW.DEFAULT_SETTINGS);
+    announce("ההגדרות חזרו לברירת המחדל.");
+  });
+  sourceInputs.forEach(function (entry) {
+    entry.input.addEventListener("change", function () {
+      applySettings(Object.assign(readForm(), { sourceId: entry.src.id }));
+      announce("מקור המצלמה: " + entry.src.labelHe);
+    });
+  });
+  $("btnCopyKpi").addEventListener("click", function () {
+    const last = flow.getLast();
+    if (!last) { announce("אין עוד מדדים להעתקה — הריצו את הקליפ.", true); return; }
+    const s = last.summary;
+    const text = "ParkWiz פארק עתידים: " + s.available + "/" + s.capacity + " פנויים ("
+      + s.percentage + "% תפוסה, " + s.statusHe + ") · עמדות טעינה פנויות: " + s.evFree + "/" + s.evTotal + ".";
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      navigator.clipboard.writeText(text).then(function () {
+        announce("תקציר המדדים הועתק ללוח.");
+      }).catch(function () { announce(text); });
+    } else {
+      announce(text);
+    }
+  });
+  window.addEventListener("hashchange", function () { show(window.location.hash); });
+
+  fillSettingsForm();
+  renderAlert(null);
+  show(window.location && window.location.hash, false);
+  setInterval(tickHold, 1000);
+  loadClip();
+
+  if (window.navigator && "serviceWorker" in window.navigator
+      && String(window.location.protocol || "").indexOf("http") === 0) {
+    window.navigator.serviceWorker.register("../sw.js", { scope: "../" }).catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
