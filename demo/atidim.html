@@ -59,6 +59,17 @@ svg.chart{width:100%;height:190px;display:block}
 .cta p{margin:0 0 12px;color:var(--muted);font-size:.85rem}
 .btn-primary{display:inline-block;background:var(--brand);color:#000;font-weight:700;padding:9px 18px;border-radius:8px;font-size:.9rem}
 footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
+/* Spot-freed surfaces (#263): toast over the page, feed inside its own card. */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:30;background:var(--free);color:#05240f;font-weight:800;padding:10px 18px;border-radius:99px;box-shadow:var(--shadow);font-size:.9rem;max-width:92vw;text-align:center}
+.toast[hidden]{display:none}
+.feed{list-style:none;margin:0;padding:0;max-height:230px;overflow-y:auto}
+.feed li{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:7px 2px;font-size:.82rem}
+.feed li:last-child{border-bottom:0}
+.feed .sid{color:var(--free);font-weight:700;font-family:monospace}
+.feed .meta{color:var(--muted);font-size:.74rem;font-family:monospace}
+.feed-empty{color:var(--muted);font-size:.82rem}
+@media(prefers-reduced-motion:no-preference){.toast{animation:toast-in .22s ease-out}}
+@keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @media(max-width:540px){.kpis{grid-template-columns:1fr 1fr} h1{font-size:1.1rem}}
 </style>
 </head>
@@ -118,6 +129,24 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
     <p class="bay-status" id="bayStatus" role="status" aria-live="polite"></p>
   </section>
 
+  <!-- Issue #263 step 1: the lot speaks the moment a stall frees. Everything
+       here happens in the browser — a CustomEvent for this page, a
+       BroadcastChannel for other tabs, a Notification for a phone in a pocket.
+       No server, no webhook; a fleet relay is a later issue. -->
+  <section class="card" aria-label="פיד התפנויות בזמן אמת">
+    <div class="card-hdr">
+      <div>
+        <h2>פיד התפנויות — 20 האחרונות</h2>
+        <div class="sub">כל מעבר של תא מ<b>תפוס</b> ל<b>פנוי</b> משדר <code>parkwiz:spot-freed</code> לדף, ללשוניות אחרות באותו דפדפן (BroadcastChannel) ולהתראת דפדפן · <b>נתוני הדגמה בלבד</b></div>
+      </div>
+      <button type="button" id="btnNotify">הפעל התראות בדפדפן</button>
+    </div>
+    <p class="hint" id="notifyState" role="status" aria-live="polite">התראות דפדפן כבויות.</p>
+    <ol class="feed" id="freedFeed" role="log" aria-label="אירועי התפנות אחרונים">
+      <li class="feed-empty">עדיין לא התפנה תא בפריים. לחצו "הדמה יציאת רכב" או על תא תפוס כדי לראות אירוע לדוגמה.</li>
+    </ol>
+  </section>
+
   <div class="grid-2">
     <section class="card" aria-label="גרף תפוסה שעתית">
       <div class="card-hdr"><div><h2>התפלגות תפוסה יומית בחניון עתידים</h2><div class="sub">ממוצע שעות שיא ושפל (220 מקומות)</div></div></div>
@@ -158,8 +187,10 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
   </div>
   <footer>ParkWiz · טכנולוגיית חישת תפוסת חניה מבוססת וידאו חכם · פותח עבור CityZone ועיריית תל אביב-יפו</footer>
 </div>
+<div class="toast" id="freedToast" role="alert" hidden></div>
 
 <script src="../src/lib/atidim-lot.js"></script>
+<script src="../src/lib/spot-events.js"></script>
 <script>
 (function(){
   const model = window.ParkWizAtidimLot;
@@ -177,6 +208,19 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
   let showOverlay = true; let autoTimer = null; let selected = -1;
   const canvas = document.getElementById('lotCanvas');
   const ctx = canvas.getContext('2d');
+
+  // --- Spot-freed events (#263) ---------------------------------------------
+  // Optional on purpose: if the events library did not load, the operator demo
+  // above must still run, just without the feed.
+  const events = window.ParkWizSpotEvents || null;
+  const LOT_ID = model.ATIDIM_LOT.id;
+  const FLASH_MS = 6000;
+  const feed = events ? events.createFeed(events.FEED_LIMIT) : null;
+  const channel = events ? events.openChannel(window) : null;
+  // stall id -> epoch ms of the freeing, so drawScene can ring it for a few
+  // seconds. A plain object, not a Map: a frame holds at most ~30 stalls.
+  let flashes = {};
+  let toastUntil = 0;
 
   function updateMetrics() {
     const occ = model.calculateOccupancy(spots, CAPACITY);
@@ -236,6 +280,15 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
         ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 3; ctx.setLineDash([6, 4]);
         ctx.strokeRect(sx - 3, sy - 3, sw + 6, sh + 6); ctx.setLineDash([]);
       }
+      // A stall that just freed is ringed on the map for FLASH_MS, so a driver
+      // looking at the frame sees where the toast is pointing.
+      if (flashes[s.id]) {
+        ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 4;
+        ctx.strokeRect(sx - 5, sy - 5, sw + 10, sh + 10);
+        ctx.fillStyle = '#22c55e'; ctx.fillRect(sx, sy + sh + 1, Math.max(42, sw), 13);
+        ctx.fillStyle = '#05240f'; ctx.font = 'bold 9px monospace';
+        ctx.fillText('התפנה', sx + 3, sy + sh + 11);
+      }
     });
 
     ctx.fillStyle = 'rgba(255,255,255,.015)';
@@ -280,12 +333,60 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
 
   function announce(text) { document.getElementById('bayStatus').textContent = text; }
 
+  // The lot runs on Israel time, and so should the timestamp on every event.
+  function lotTimeLabel(iso) { return model.formatLotClock(new Date(iso)).slice(11); }
+
+  function renderFeed() {
+    if (!feed) return;
+    const items = feed.list();
+    const el = document.getElementById('freedFeed');
+    if (items.length === 0) {
+      el.innerHTML = '<li class="feed-empty">עדיין לא התפנה תא בפריים. לחצו "הדמה יציאת רכב" או על תא תפוס כדי לראות אירוע לדוגמה.</li>';
+      return;
+    }
+    el.innerHTML = items.map(function(ev){
+      return '<li><span><span class="sid">' + ev.spotId + '</span> התפנה · ' +
+        ev.freeCount + ' פנויים בפריים</span>' +
+        '<span class="meta">' + lotTimeLabel(ev.freedAt) + ' · ' + ev.lot + ' · הדמיה</span></li>';
+    }).join('');
+  }
+
+  function showToast(ev) {
+    const el = document.getElementById('freedToast');
+    el.textContent = events.TITLE_HE + ' תא ' + ev.spotId + ' · ' + ev.freeCount + ' פנויים בפריים (הדגמה)';
+    el.hidden = false;
+    toastUntil = Date.now() + FLASH_MS;
+  }
+
+  // Every surface for one event: feed, toast, map ring, page CustomEvent,
+  // cross-tab channel and a phone notification.
+  function surfaceEvent(ev, local) {
+    feed.push(ev);
+    flashes[ev.spotId] = Date.now();
+    if (local) {
+      events.publish(ev, { scope: window, channel: channel });
+      events.notify(ev, { scope: window, timeLabel: lotTimeLabel(ev.freedAt) });
+    }
+  }
+
+  // Every change to the frame funnels through here, so a stall freed by the
+  // leave button, a click, the keyboard or the auto flow all raise the same
+  // event — one path, and no surface can quietly fall behind.
+  function applySpots(next) {
+    const freed = events ? events.detectFreed(spots, next, { lot: LOT_ID }) : [];
+    spots = next;
+    freed.forEach(function(ev){ surfaceEvent(ev, true); });
+    if (freed.length > 0) { showToast(freed[freed.length - 1]); renderFeed(); }
+    refresh();
+  }
+
   function toggleSpot(index) {
     const spot = spots[index];
     if (!spot) return;
-    spot.occupied = !spot.occupied;
-    refresh();
-    announce('תא ' + spot.id + ' סומן כ' + (spot.occupied ? 'תפוס' : 'פנוי') + '.');
+    const next = spots.map(function(s){ return Object.assign({}, s); });
+    next[index].occupied = !spot.occupied;
+    applySpots(next);
+    announce('תא ' + spot.id + ' סומן כ' + (next[index].occupied ? 'תפוס' : 'פנוי') + '.');
   }
 
   document.getElementById('btnToggleOverlay').addEventListener('click', function(){
@@ -298,20 +399,23 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
   document.getElementById('btnArrive').addEventListener('click', function(){
     const freeCount = spots.filter(function(s){ return !s.occupied; }).length;
     if (freeCount === 0) { announce('כל התאים בפריים כבר תפוסים.'); return; }
-    spots = model.transitionSpot(spots, 'arrive'); refresh();
+    applySpots(model.transitionSpot(spots, 'arrive'));
     const occ = model.calculateOccupancy(spots, CAPACITY);
     announce('נכנס רכב · פנויים בפריים: ' + occ.availableInView + ' מתוך ' + occ.totalInView + '.');
   });
   document.getElementById('btnLeave').addEventListener('click', function(){
     const occCount = spots.filter(function(s){ return s.occupied; }).length;
     if (occCount === 0) { announce('כל התאים בפריים כבר פנויים.'); return; }
-    spots = model.transitionSpot(spots, 'leave'); refresh();
+    applySpots(model.transitionSpot(spots, 'leave'));
     const occ = model.calculateOccupancy(spots, CAPACITY);
     announce('יצא רכב · פנויים בפריים: ' + occ.availableInView + ' מתוך ' + occ.totalInView + '.');
   });
   document.getElementById('btnReset').addEventListener('click', function(){
     seededHour = model.lotHour();
+    // Reseeding the whole frame is not a car leaving, so it raises no events —
+    // only the map rings are cleared.
     spots = model.createCameraSpots(currentCam, seededHour);
+    flashes = {};
     selected = -1; refresh(); renderChart();
     announce('הפריים אופס למצב האופייני לשעה ' + model.hourlyPoint(seededHour).label + '.');
   });
@@ -335,7 +439,7 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
       this.setAttribute('aria-pressed', 'false'); this.textContent = 'הפעל זרימה אוטומטית';
       announce('זרימה אוטומטית נעצרה.');
     } else {
-      autoTimer = setInterval(function(){ spots = model.transitionSpot(spots, Math.random() > 0.5 ? 'arrive' : 'leave'); refresh(); }, 1600);
+      autoTimer = setInterval(function(){ applySpots(model.transitionSpot(spots, Math.random() > 0.5 ? 'arrive' : 'leave')); }, 1600);
       this.classList.add('active'); this.setAttribute('aria-pressed', 'true'); this.textContent = 'עצור זרימה אוטומטית';
       announce('זרימה אוטומטית הופעלה.');
     }
@@ -353,6 +457,7 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
       document.getElementById('camDesc').textContent = view.label;
       document.getElementById('hudCam').textContent = view.hud;
       spots = model.createCameraSpots(currentCam, seededHour);
+      flashes = {};
       selected = -1; refresh();
       announce(view.label + ' · ' + spots.length + ' תאים מנוטרים בפריים.');
     });
@@ -386,13 +491,64 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
       toggleSpot(selected);
     }
   });
+
+  // The notification is the only surface that reaches a driver whose phone is
+  // in a pocket, so it is worth asking for — but only on a deliberate click.
+  function notifyState(text) { document.getElementById('notifyState').textContent = text; }
+  function syncNotifyState() {
+    if (typeof window.Notification !== 'function') {
+      notifyState('הדפדפן הזה לא תומך בהתראות — הטוסט והפיד ממשיכים לעבוד כרגיל.');
+      return;
+    }
+    const perm = window.Notification.permission;
+    if (perm === 'granted') notifyState('התראות דפדפן פעילות — כל התפנות תגיע גם כשהלשונית ברקע.');
+    else if (perm === 'denied') notifyState('ההתראות חסומות לאתר הזה בהגדרות הדפדפן.');
+    else notifyState('התראות דפדפן כבויות — נשלחות רק אחרי אישור מפורש שלכם.');
+  }
+  document.getElementById('btnNotify').addEventListener('click', function(){
+    if (typeof window.Notification !== 'function' || window.Notification.permission !== 'default') {
+      syncNotifyState();
+      return;
+    }
+    const asked = window.Notification.requestPermission();
+    if (asked && typeof asked.then === 'function') asked.then(syncNotifyState).catch(syncNotifyState);
+    else syncNotifyState();
+  });
+
+  // A stall freed in another tab — or on another device signed into the same
+  // browser profile — lands in this feed too. That is what the channel is for.
+  if (channel) {
+    channel.onmessage = function(msg){
+      const ev = events.fromMessage(msg && msg.data);
+      if (!ev) return;
+      surfaceEvent(ev, false);
+      showToast(ev); renderFeed(); drawScene();
+    };
+  }
+
+  // The map ring and the toast expire on the clock tick the page already runs,
+  // so a burst of events never schedules a timer per event.
+  function expireFlashes() {
+    const now = Date.now();
+    let changed = false;
+    Object.keys(flashes).forEach(function(id){
+      if (now - flashes[id] > FLASH_MS) { delete flashes[id]; changed = true; }
+    });
+    if (toastUntil && now > toastUntil) {
+      toastUntil = 0;
+      document.getElementById('freedToast').hidden = true;
+    }
+    if (changed) drawScene();
+  }
+
   setInterval(function(){
     document.getElementById('frameClock').textContent = model.formatLotClock(new Date());
+    expireFlashes();
     // Crossing an hour boundary during a long demo must move the "now" marker.
     if (model.lotHour() !== seededHour) { seededHour = model.lotHour(); renderChart(); }
   }, 1000);
   document.getElementById('frameClock').textContent = model.formatLotClock(new Date());
-  refresh(); renderChart();
+  refresh(); renderChart(); renderFeed(); syncNotifyState();
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(function(){});
   }
