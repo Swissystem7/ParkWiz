@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — תוכנית פיילוט לפארק עתידים</title>
+<meta name="description" content="עמוד אחד לרוני, מנהל חניוני פארק עתידים: הבעיה בשעת שיא, מה המערכת נותנת, פרטיות, פיילוט חינם ל-4 שבועות ומה צריך מעתידים.">
+<meta name="theme-color" content="#0e7490">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="pilot/shell.css">
+<link rel="stylesheet" href="pilot/print.css">
+<style>
+.wrap{max-width:820px;margin:0 auto;padding:20px 16px 72px}
+h1{font-size:1.4rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.panel h2{font-size:1rem;margin:0 0 10px}
+.panel h2 .n{color:var(--brand);font-weight:800}
+ul.list,ol.list{margin:0;padding-inline-start:20px;font-size:.9rem}
+ul.list li,ol.list li{margin:6px 0}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th,td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:right;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+td.wk{white-space:nowrap;font-weight:800;color:var(--brand)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+@media(max-width:560px){.kpis{grid-template-columns:1fr}}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.kpi .n{font-size:1.05rem;font-weight:800;color:var(--brand)}
+.kpi .l{font-size:.72rem;color:var(--muted)}
+.free{color:var(--free);font-weight:800}
+.foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+a{color:var(--brand)}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">דלג לתוכן</a>
+<div id="pwSurfaceNav" data-active="atidim-pilot"></div>
+<div class="wrap" id="main">
+  <h1>תוכנית פיילוט — חניוני פארק עתידים</h1>
+  <p class="sub">
+    עמוד אחד להדפסה · לרוני, מנהל חניוני פארק עתידים · בחסות CityZone ·
+    גרסת Markdown: <a href="./docs/pilot-atidim.md">docs/pilot-atidim.md</a>
+  </p>
+
+  <!-- Same honesty line the demo page carries: the frame there is drawn in the
+       browser, so the pilot is what turns the simulation into a measurement. -->
+  <div class="banner">
+    <b>הבהרה:</b> ה<a href="./demo/atidim.html">דמו</a> הוא הדמיה מצוירת בדפדפן, לא שידור ממצלמה שלכם,
+    והדיוק טרם נמדד בשטח בפארק עתידים. הפיילוט המתואר כאן הוא בדיוק מה שהופך את ההדמיה למדידה.
+  </div>
+
+  <section class="panel" aria-labelledby="h-problem">
+    <h2 id="h-problem"><span class="n">1.</span> הבעיה בפארק עסקי</h2>
+    <ul class="list">
+      <li><b>סבבים בשעת שיא.</b> העובדים מגיעים בחלון צר בבוקר ומסתובבים בין המפלסים עד שנמצא תא. חלון העומס של הפארק הוא <b>09:00–14:00</b>, שם התפוסה חוצה 85%.</li>
+      <li><b>אין נתון חי לאיזה חניון יש מקום.</b> הנהג מגלה שהמפלס מלא רק אחרי שירד אליו, ואין על מה לבסס הפניה לחניון חלופי.</li>
+      <li><b>אין תמונת עומס היסטורית.</b> ההחלטה לפתוח את מפלס ‎-1 מתקבלת מהתחושה של השומר בשער, לא מנתון של אתמול באותה שעה.</li>
+      <li><b>העלות היא זמן של עובדים.</b> 220 מקומות, עשרות חברות, וכל סבב מיותר הוא דקות שמתגלגלות לכניסות חסומות.</li>
+    </ul>
+  </section>
+
+  <section class="panel" aria-labelledby="h-gives">
+    <h2 id="h-gives"><span class="n">2.</span> מה ParkWiz נותן</h2>
+    <table>
+      <caption class="sub" style="text-align:right;margin:0 0 6px">הכל מעל <b>מצלמות האבטחה הקיימות</b> — ללא חיישן בכל תא וללא חציבה באספלט.</caption>
+      <tbody>
+        <tr><th>מספר מקומות פנויים חי לכל חניון</th><td>זיהוי תפוס/פנוי לכל תא מתוך פריים של מצלמה קיימת. מצלמה אחת מכסה 24–30 תאים.</td></tr>
+        <tr><th>תמונת עומס שעתית ויומית</th><td>איזו שעה חוצה 85%, ממתי מתפנה, ואיך נראה יום שני לעומת חמישי.</td></tr>
+        <tr><th>דוח שעת בוקר למנהל</th><td>עמוד אחד: מתי התחיל העומס, מה היה המינימום הפנוי, באיזה אזור, וכמה זמן נמשך החלון האדום.</td></tr>
+        <tr><th>שלט או מסך בכניסה <span class="sub">(אופציונלי)</span></th><td>מסך פשוט בשער שמראה לאיזה חניון יש מקום — „קרקע: מלא · ‎-1: 18 פנויים”. לא חלק מהפיילוט הבסיסי; נוסיף אם תרצו.</td></tr>
+      </tbody>
+    </table>
+    <div class="kpis">
+      <div class="kpi"><div class="n">אזור A · 80</div><div class="l">קרקע — מצלמה 01, כניסה מזרחית</div></div>
+      <div class="kpi"><div class="n">אזור B · 90</div><div class="l">מפלס ‎-1 — מצלמה 02</div></div>
+      <div class="kpi"><div class="n">אזור C · 50</div><div class="l">מתחם עתידים 7 — מצלמה 03</div></div>
+    </div>
+    <p class="sub" style="margin:10px 0 0">סה״כ 220 מקומות בשלושה אזורים — שלוש מצלמות קיימות. לראות את זה עובד: <a href="./demo/atidim.html">דמו המפעיל</a> · <a href="./demo/atidim-board.html">לוח החניון המלא</a>.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-privacy">
+    <h2 id="h-privacy"><span class="n">3.</span> פרטיות</h2>
+    <ul class="list">
+      <li><b>אין זיהוי לוחיות רישוי (No LPR)</b> ואין זיהוי פנים. המערכת לא יודעת איזה רכב חונה, רק אם התא תפוס.</li>
+      <li><b>וידאו לא נשמר ולא נשלח.</b> הפריים מעובד ונזרק; מה שיוצא מהחניון הוא <b>מספר</b> — כמה פנוי, באיזה אזור, באיזו שעה.</li>
+      <li><b>העיבוד רץ בדפדפן</b> על מחשב שלכם בחניון. אין העלאה לענן, אין חשבון, ואין שרת חדש להתקין.</li>
+      <li><b>אין אכיפה.</b> אין דוחות, אין רשימת חונים, ואין נתון ברמת העובד.</li>
+      <li>הרחבה: <a href="./pilot-privacy.html">בקשת גישה / פרטיות</a>.</li>
+    </ul>
+  </section>
+
+  <section class="panel" aria-labelledby="h-plan">
+    <h2 id="h-plan"><span class="n">4.</span> פיילוט <span class="free">חינם</span> — 4 שבועות</h2>
+    <table>
+      <thead><tr><th>שבוע</th><th>מה עושים</th><th>תוצר</th></tr></thead>
+      <tbody>
+        <tr><td class="wk">1</td><td><b>סימון תאים על מצלמה אחת</b> קיימת (אזור אחד, 24–30 תאים). עבודה חד־פעמית, כ־30 דקות מול המסך.</td><td>תצורת מצלמה מסומנת + תמונת מצב ראשונה</td></tr>
+        <tr><td class="wk">2–3</td><td><b>מדידה</b> רציפה בשעות הפעילות, ובמקביל ספירה ידנית בעין מול המערכת בכמה נקודות בשעת שיא.</td><td>סדרת תפוסה שעתית + זוגות מערכת / ספירה ידנית</td></tr>
+        <tr><td class="wk">4</td><td><b>דוח והחלטה</b>: דיוק, עקומת עומס, דוח שעת בוקר — ופגישה האם מרחיבים לשאר המצלמות.</td><td>דוח פיילוט + החלטה משותפת</td></tr>
+      </tbody>
+    </table>
+    <p class="sub" style="margin:10px 0 0"><b>עלות: 0 ₪.</b> אין חומרה חדשה, אין התקנה באספלט, ואין התחייבות בסוף.
+      שבועיים הם המינימום הטכני להוכחת חיבור (כפי שמופיע ב<a href="./offer.html">הצעה</a>); 4 שבועות נותנים גם עקומת עומס שאפשר להסתמך עליה.</p>
+    <h3 style="font-size:.9rem;margin:14px 0 6px">מדדי הצלחה — נקבעים מראש, נמדדים בשבוע 4</h3>
+    <ol class="list">
+      <li><b>דיוק ספירה מול בדיקה ידנית.</b> מספר הפנויים של המערכת מול ספירה בעין באותו רגע. יעד: פער של עד תא אחד ברוב התצפיות בשעות היום. הכלי: <a href="./pilot-compare.html">השוואת דיוק</a>.</li>
+      <li><b>דקות שנחסכות בשעת שיא.</b> זמן החיפוש של נהג לפני ואחרי שיש נתון לאיזה חניון יש מקום, על מדגם הגעות בבוקר.</li>
+    </ol>
+    <p class="sub" style="margin:8px 0 0">שני המדדים האלה, ולא „המערכת עובדת”, הם מה שקובע אם ממשיכים. המתודולוגיה: <a href="./pilot-method.html">מתודולוגיית המדידה</a>.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-need">
+    <h2 id="h-need"><span class="n">5.</span> מה אנחנו צריכים מעתידים</h2>
+    <ol class="list">
+      <li><b>גישה לתצוגה של מצלמה אחת קיימת</b> — כתובת RTSP/ONVIF או גישה ל‑NVR, לאזור אחד שמכסה 24–30 תאים (הכניסה המזרחית מתאימה). אין צורך להתקין מצלמה חדשה.</li>
+      <li><b>איש קשר אחד</b> — מי שאפשר לתאם איתו את הסימון בשבוע 1 ואת ספירות הבקרה (אחזקה או מוקד).</li>
+    </ol>
+    <p class="sub" style="margin:10px 0 0">זה הכל. אין עבודות, אין שינוי בשילוט, ואין גישה למערכות אחרות שלכם.</p>
+  </section>
+
+  <div id="pwContact" data-source="pilot-atidim.html"></div>
+  <div class="toolbar no-print">
+    <button type="button" class="primary" id="btnPrint">הדפס / שמור כ־PDF</button>
+    <a href="./demo/atidim.html" style="font-size:.85rem">לדמו המפעיל ←</a>
+    <a href="./offer.html" style="font-size:.85rem">להצעה ותיאום ←</a>
+  </div>
+  <div class="foot">ParkWiz · תוכנית פיילוט פארק עתידים · ללא לוחיות, ללא שמירת וידאו, עיבוד בדפדפן</div>
+</div>
+<script src="src/lib/contact.js"></script>
+<script src="src/lib/surface-nav.js"></script>
+<script src="src/lib/pwa.js"></script>
+<script>
+"use strict";
+document.getElementById("btnPrint").addEventListener("click", function () { window.print(); });
+</script>
+</body>
+</html>

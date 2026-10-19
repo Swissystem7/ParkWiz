@@ -5,6 +5,7 @@
     { id: 'brief', href: './pilot-brief.html', label: 'תקציר לעירייה' },
     { id: 'offer', href: './offer.html', label: 'הצעה / הזמן פיילוט' },
     { id: 'kit', href: './pilot-kit.html', label: 'ערכת פיילוט' },
+    { id: 'atidim-pilot', href: './pilot-atidim.html', label: 'פיילוט פארק עתידים' },
     { id: 'calibrate', href: './pilot-calibrate.html', label: 'כיול 3 דק׳' },
     { id: 'eval', href: './pilot-eval.html', label: 'דיוק דמו' },
     { id: 'method', href: './pilot-method.html', label: 'מתודולוגיה' },

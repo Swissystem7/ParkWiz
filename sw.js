@@ -15,6 +15,7 @@ const ASSETS = [
   './pilot-dashboard.html',
   './pilot-log.html',
   './pilot-brief.html',
+  './pilot-atidim.html',
   './marketplace.html',
   './manifest.json',
   './icon.svg',
