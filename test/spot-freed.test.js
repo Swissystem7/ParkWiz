@@ -157,6 +157,37 @@ test('grid labels and demo types are stable across surfaces', () => {
   assert.deepEqual(sf.demoSpotTypes(ids), types, 'the same bay is always the same type');
 });
 
+test('the Hebrew alert names the bay, its type, the floor and how fresh it is', () => {
+  const event = { kind: 'freed', lot: 'atidim', spotId: 'B-03', spotType: 'ev', at: 1000 };
+  const text = sf.alertTextHe(event, {
+    nowMs: 1000,
+    lotName: 'חניון פארק עתידים',
+    floors: { B: 'מפלס -1' },
+  });
+  assert.match(text, /^התפנה מקום B-03 \(טעינה חשמלית\)/);
+  assert.match(text, /חניון פארק עתידים · מפלס -1 · מקום B-03/);
+  assert.match(text, /ממש עכשיו$/);
+  assert.equal(sf.alertTextHe({ kind: 'taken' }, {}), '');
+});
+
+test('freshness reads as Hebrew, not as a raw duration', () => {
+  assert.equal(sf.agoHe(0), 'ממש עכשיו');
+  assert.equal(sf.agoHe(25000), 'לפני 25 שניות');
+  assert.equal(sf.agoHe(60000), 'לפני דקה');
+  assert.equal(sf.agoHe(5 * 60000), 'לפני 5 דקות');
+  assert.equal(sf.agoHe(3600000), 'לפני שעה');
+  assert.equal(sf.agoHe(3 * 3600000), 'לפני 3 שעות');
+  assert.equal(sf.agoHe(-5), 'ממש עכשיו', 'a clock skew must not print a negative');
+});
+
+test('navigation links point both apps at the lot entrance', () => {
+  const links = sf.navigationLinks();
+  assert.equal(links.label, sf.ATIDIM_ENTRANCE.name);
+  assert.match(links.waze, /^https:\/\/waze\.com\/ul\?ll=32\.1136%2C34\.8395&navigate=yes$/);
+  assert.match(links.google, /^https:\/\/www\.google\.com\/maps\/dir\/\?api=1&destination=32\.1136%2C34\.8395$/);
+  assert.equal(sf.navigationLinks({ lat: 'x', lon: 5 }), null);
+});
+
 test('spots without an id are skipped instead of colliding under "undefined"', () => {
   const t = sf.createFreedTracker({ confirmFrames: 1 });
   const { states } = t.observe([{ occupied: true }, null, { id: 'A-01', occupied: true }], 0);

@@ -13,10 +13,8 @@
 //                                  confirmFrames before it fires an alert.
 //   * row 9  (reserved spots)    — every spot carries a type, and an event is
 //                                  only `eligible` for drivers allowed to use it.
-//
-// This is the model only (slice 1 of PR #282's split): it produces events and
-// paints states. The Hebrew alert text and the navigate-to-spot links (row 10)
-// are a separate slice that layers on these exports.
+//   * row 10 (navigate to spot)  — destinationHe() + navigationLinks() turn an
+//                                  event into "where do I drive".
 //
 // Pure functions and one factory, zero dependencies, UMD like the rest of
 // src/lib. The UI surfaces (operator board, camera demo, kiosk sign, relay)
@@ -40,6 +38,15 @@
   const FREE = 'free';
   const OCCUPIED = 'occupied';
   const UNCERTAIN = 'uncertain';
+
+  // Park Atidim, Tel Aviv — the gate a driver is sent to, not the bay itself:
+  // consumer navigation apps route to a street address, and the last 40 metres
+  // are the lot's own signage plus the floor/bay in the alert text.
+  const ATIDIM_ENTRANCE = Object.freeze({
+    lat: 32.1136,
+    lon: 34.8395,
+    name: 'פארק עתידים — שער ראשי',
+  });
 
   function clamp01(n) {
     const v = Number(n);
@@ -208,9 +215,56 @@
       .filter((e) => e && e.kind === 'freed' && (!onlyEligible || e.eligible));
   }
 
+  function agoHe(ms) {
+    const delta = Math.max(0, Math.round(Number(ms) || 0));
+    if (delta < 10000) return 'ממש עכשיו';
+    const seconds = Math.round(delta / 1000);
+    if (seconds < 60) return 'לפני ' + seconds + ' שניות';
+    const minutes = Math.round(seconds / 60);
+    if (minutes === 1) return 'לפני דקה';
+    if (minutes < 60) return 'לפני ' + minutes + ' דקות';
+    const hours = Math.round(minutes / 60);
+    return hours === 1 ? 'לפני שעה' : 'לפני ' + hours + ' שעות';
+  }
+
+  // Row 10, half one: which bay, on which floor, in which lot. The floor map is
+  // per-lot config, so a second lot does not need a code change.
+  function destinationHe(event, opts) {
+    if (!event) return '';
+    const o = opts || {};
+    const floors = o.floors && typeof o.floors === 'object' ? o.floors : {};
+    const id = String(event.spotId || '');
+    const floor = floors[id.split('-')[0]];
+    return [o.lotName || 'חניון פארק עתידים', floor, 'מקום ' + id].filter(Boolean).join(' · ');
+  }
+
+  function alertTextHe(event, opts) {
+    if (!event || event.kind !== 'freed') return '';
+    const o = opts || {};
+    const now = Number.isFinite(Number(o.nowMs)) ? Number(o.nowMs) : Number(event.at);
+    return 'התפנה מקום ' + String(event.spotId) + ' (' + typeHe(event.spotType) + ') · '
+      + destinationHe(event, o) + ' · ' + agoHe(now - Number(event.at));
+  }
+
+  // Row 10, half two: the deep links. Both apps accept a lat,lon destination,
+  // which is why the lot config carries coordinates and not a typed address.
+  function navigationLinks(entrance) {
+    const e = entrance || ATIDIM_ENTRANCE;
+    const lat = Number(e.lat);
+    const lon = Number(e.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    const ll = lat + ',' + lon;
+    return {
+      label: String(e.name || ATIDIM_ENTRANCE.name),
+      waze: 'https://waze.com/ul?ll=' + encodeURIComponent(ll) + '&navigate=yes',
+      google: 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(ll),
+    };
+  }
+
   return {
     SPOT_TYPES,
     DEFAULT_ALLOWED,
+    ATIDIM_ENTRANCE,
     FREE,
     OCCUPIED,
     UNCERTAIN,
@@ -222,5 +276,9 @@
     createFreedTracker,
     relayPayload,
     freedEvents,
+    agoHe,
+    destinationHe,
+    alertTextHe,
+    navigationLinks,
   };
 });
