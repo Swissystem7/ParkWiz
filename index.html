@@ -1263,31 +1263,38 @@ function openRent(i) {
   if (p.booked) return;
   const body = document.getElementById('rentBody');
   body.innerHTML = `
-    <div style="font-weight:800;font-size:1rem;color:#c084fc;margin-bottom:4px">🏠 השכרת חניה — ${p.owner}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div id="rentTitle" style="font-weight:800;font-size:1rem;color:#c084fc">🏠 השכרת חניה — ${p.owner}</div>
+      <button type="button" class="rent-close" id="rentCloseBtn" onclick="closeRent(event)" aria-label="סגור חלון השכרת חניה" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:0 4px;line-height:1">✕</button>
+    </div>
     <div style="font-size:.8rem;margin-bottom:10px">${p.addr} · אורך ${p.len} מ'</div>
-    <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">⏱ לכמה שעות? (התחייבות!)</div>
-    <select id="rentHours" onchange="rentPrice(${i})" style="width:100%;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px;font-size:.8rem;margin-bottom:8px">
+    <label for="rentHours" style="display:block;font-size:.75rem;color:var(--muted);margin-bottom:4px">⏱ לכמה שעות? (התחייבות!)</label>
+    <select id="rentHours" aria-label="משך השכרת החניה בשעות" onchange="rentPrice(${i})" style="width:100%;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px;font-size:.8rem;margin-bottom:8px">
       ${[1,2,3,4,6,8].map(h=>`<option value="${h}">${h} שעות — עד ${rentUntil(h)}</option>`).join('')}
     </select>
-    <div id="rentCalc" style="font-size:.75rem;background:rgba(168,85,247,.08);border-radius:8px;padding:8px;margin-bottom:10px"></div>
+    <div id="rentCalc" role="status" aria-live="polite" style="font-size:.75rem;background:rgba(168,85,247,.08);border-radius:8px;padding:8px;margin-bottom:10px"></div>
     <div style="font-size:.72rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:8px;margin-bottom:8px">
       <label style="display:flex;gap:7px;cursor:pointer;align-items:flex-start">
-        <input type="checkbox" id="rentTerms" onchange="rentPrice(${i})" style="margin-top:2px">
+        <input type="checkbox" id="rentTerms" aria-label="אישור תנאי התחייבות וגרירה" onchange="rentPrice(${i})" style="margin-top:2px">
         <span><b>אני מתחייב/ת:</b> לפנות את החניה עד שעת הסיום. איחור = קנס ₪100 + <b>גרירה על חשבוני</b>. בתמורה: החניה מובטחת לי; אם תפוסה — החזר מלא + ₪50 פיצוי.</span>
       </label>
     </div>
     <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">💳 פרטי אשראי <b style="color:#eab308">(הדמיה — אל תזינו כרטיס אמיתי)</b></div>
     <div style="display:flex;gap:6px;margin-bottom:6px">
-      <input placeholder="מספר כרטיס" maxlength="19" style="flex:2;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px;font-size:.75rem;direction:ltr">
-      <input placeholder="MM/YY" maxlength="5" style="flex:1;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px;font-size:.75rem;direction:ltr">
-      <input placeholder="CVV" maxlength="3" style="width:52px;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px;font-size:.75rem;direction:ltr">
+      <input id="rentCardNum" aria-label="מספר כרטיס אשראי (הדמיה)" placeholder="מספר כרטיס" maxlength="19" style="flex:2;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px;font-size:.75rem;direction:ltr">
+      <input id="rentCardExp" aria-label="תוקף כרטיס MM/YY (הדמיה)" placeholder="MM/YY" maxlength="5" style="flex:1;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px;font-size:.75rem;direction:ltr">
+      <input id="rentCardCvv" aria-label="קוד אבטחה CVV (הדמיה)" placeholder="CVV" maxlength="3" style="width:52px;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px;font-size:.75rem;direction:ltr">
     </div>
     <button id="rentPayBtn" onclick="payRent(${i})" disabled
       style="width:100%;background:#4b5563;color:#fff;border:none;border-radius:10px;padding:10px;font-size:.85rem;font-weight:700;cursor:pointer"></button>
-    <div style="text-align:center;margin-top:8px"><b style="font-size:.72rem;color:var(--muted);cursor:pointer" onclick="document.getElementById('rentOverlay').classList.remove('show')">ביטול</b></div>
+    <div style="text-align:center;margin-top:8px"><button type="button" id="rentCancelBtn" onclick="closeRent(event)" style="background:none;border:none;font-size:.75rem;color:var(--muted);cursor:pointer;font-weight:700;text-decoration:underline">ביטול</button></div>
     <div style="font-size:.6rem;color:var(--muted);margin-top:6px;text-align:center">🔒 בגרסה המסחרית: סליקה דרך Stripe/Tranzila · המשכיר מקבל 85% · ביטוח צד ג' כלול</div>`;
   document.getElementById('rentOverlay').classList.add('show');
   rentPrice(i);
+}
+function closeRent(e) {
+  if (e && e.target && e.target !== document.getElementById('rentOverlay') && !e.target.closest('#rentCloseBtn') && !e.target.closest('#rentCancelBtn')) return;
+  document.getElementById('rentOverlay').classList.remove('show');
 }
 function rentUntil(h) {
   const d = new Date(Date.now() + h*3600e3);
@@ -1314,7 +1321,7 @@ function payRent(i) {
     p.booked = true;
     p.until = rentUntil(h);
     if (privMarkers[i]) { privMarkers[i].setStyle({ fillColor:'#6b7280' }); privMarkers[i].setPopupContent(privPopupHtml(i)); }
-    document.getElementById('rentOverlay').classList.remove('show');
+    closeRent();
     showToast(`🧪 סימולציה: ״שולם״ — החניה של ${p.owner} עד ${p.until} (הדגמה, אין חיוב וקבלה אמיתיים)`);
     renderPrivateList();
   }, 1400);
@@ -2371,6 +2378,8 @@ function activatePremium() {
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    const rent = document.getElementById('rentOverlay');
+    if (rent && rent.classList.contains('show')) { closeRent(); return; }
     const pricing = document.getElementById('parkPricingOverlay');
     if (pricing && pricing.classList.contains('show')) { closeParkPricing(); return; }
     const lock = document.getElementById('premiumLockOverlay');
@@ -2774,12 +2783,13 @@ init();
 .wa-close{color:var(--muted);cursor:pointer;padding:0 4px;font-size:0.85rem;background:none;border:none;font-family:inherit}
 </style>
 
-<!-- Auth Modal -->
-<div class="pw-overlay" id="rentOverlay">
-  <div style="background:#101d10;border:1px solid rgba(168,85,247,.45);border-radius:16px;padding:18px;max-width:350px;width:92%;direction:rtl;max-height:88vh;overflow-y:auto">
+<!-- Rent Modal -->
+<div class="pw-overlay" id="rentOverlay" onclick="closeRent(event)" role="region" aria-label="השכרת חניה פרטית">
+  <div class="rent-box" role="dialog" aria-modal="true" aria-labelledby="rentTitle" style="background:#101d10;border:1px solid rgba(168,85,247,.45);border-radius:16px;padding:18px;max-width:350px;width:92%;direction:rtl;max-height:88vh;overflow-y:auto">
     <div id="rentBody"></div>
   </div>
 </div>
+<!-- Auth Modal -->
 <div class="pw-overlay" id="pwAuthOverlay">
   <div class="pw-modal">
     <h2 id="pwAuthTitle">התחברות ל-ParkWiz</h2>
