@@ -165,7 +165,12 @@ function runPage(options) {
 
   const sandbox = {
     window: {
-      ParkWizAtidimLot: lotModel,
+      // The lib reads the real Date, not the sandbox's FakeDate, so without this
+      // the frame is seeded from the wall clock: at night it holds at most one
+      // parked car and a second "leave" frees nothing.
+      ParkWizAtidimLot: Object.assign({}, lotModel, {
+        lotHour: (date) => lotModel.lotHour(date === undefined ? new Date(clock.t) : date),
+      }),
       ParkWizSpotEvents: opts.noEventsLib ? undefined : SE,
       CustomEvent: function (type, init) { this.type = type; this.detail = init && init.detail; },
       dispatchEvent(e) { dispatched.push(e); return true; },

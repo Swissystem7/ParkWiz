@@ -25,6 +25,12 @@ on `master` on its own, so #282 conflicted with it (both added
 rebuilt the rest on top of `master`: slices 0, 2 and 3 below, with slice 1
 taken as it is on `master`.
 
+All four slices are now on `master` — slice 1 in #302, slices 0, 2 and 3 in
+#303. Diffed against `master`, #282's branch adds nothing: its only remaining
+lines are older copies of `sw.js`, `README.md` and the research doc's status
+table that `master` has since moved past. #282 is superseded and can be closed
+without a rebase (#307).
+
 ### Slice 0 — the documents
 
 `docs/atidim-research.md` + this file + the `README.md` line. The epic names
