@@ -420,6 +420,32 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
   <div id="pwContact" data-source="index.html"></div>
 </div>
 
+<!-- Lot-operator demo preset (?site=atidim, issue #261). Hidden unless the query
+     string names a known site, so the default page is untouched. The body is 100dvh
+     with overflow:hidden for the map, so the panel scrolls as its own overlay,
+     stacked above the z-index:9999 surface nav. -->
+<style>
+.site-preset{position:fixed;inset:0;z-index:10000;overflow-y:auto;background:var(--bg);padding:14px 12px 28px;direction:rtl;text-align:right;-webkit-overflow-scrolling:touch}
+.site-preset[hidden]{display:none}
+.site-preset .sp-wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.site-preset h1{font-size:1.1rem;font-weight:900;line-height:1.4}
+.site-preset .sp-card h2{font-size:0.9rem;font-weight:800;margin-bottom:8px}
+.site-preset .sp-sub{color:var(--muted);font-size:0.78rem}
+.site-preset .sp-note{background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.45);color:var(--yellow);border-radius:10px;padding:7px 10px;font-size:0.76rem;font-weight:700}
+.site-preset .sp-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.site-preset .sp-kpi,.site-preset .sp-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
+.site-preset .sp-num{font-size:2.4rem;font-weight:900;line-height:1.1;color:var(--text)}
+.site-preset .sp-kpi.free .sp-num{color:var(--green);font-size:3.1rem}
+.site-preset .sp-lbl{color:var(--muted);font-size:0.74rem;margin-top:4px;line-height:1.5}
+.site-preset svg{display:block;width:100%;height:auto}
+.site-preset .sp-foot{border-top:1px solid var(--border);padding-top:10px;color:var(--muted);font-size:0.8rem;font-weight:700;line-height:1.6}
+.site-preset .sp-actions{display:flex;flex-wrap:wrap;gap:8px}
+.site-preset .sp-btn{flex:1 1 160px;text-align:center;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text);font:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;text-decoration:none}
+.site-preset .sp-btn.primary{background:var(--green);border-color:var(--green);color:#0a0f0a}
+@media (max-width:420px){.site-preset .sp-kpi.free .sp-num{font-size:2.6rem}}
+</style>
+<section class="site-preset" id="sitePreset" hidden role="region" aria-label="דמו מפעיל חניון"></section>
+
 <!-- ParkWiz Pricing Modal -->
 <div class="park-pricing-overlay" id="parkPricingOverlay" onclick="closeParkPricing(event)" role="region" aria-label="תוכניות ומחירים">
   <div class="park-pricing-box" role="dialog" aria-modal="true" aria-labelledby="parkPricingTitle">
@@ -892,7 +918,27 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 <script src="src/lib/contact.js"></script>
 <script src="src/lib/surface-nav.js"></script>
 <script src="src/lib/pwa.js"></script>
+<script src="src/lib/atidim-lot.js"></script>
+<script src="src/lib/site-preset.js"></script>
 <script src="availability-model.js"></script>
+
+<script>
+// ─── ?site= demo preset (issue #261) ──────────────────────────────
+// A lot operator sent the Pages link lands on the lot's numbers instead of the
+// Netanya street map. No ?site= (or an unknown one) → presetFrom returns null,
+// nothing below runs, and the page is the map it always was.
+(function () {
+  const SP = window.ParkWizSitePreset, LOT = window.ParkWizAtidimLot;
+  if (!SP || !LOT) return;
+  const preset = SP.presetFrom(window.location.search);
+  const panel = preset && document.getElementById('sitePreset');
+  if (!panel) return;
+  panel.innerHTML = SP.panelHtml(preset, LOT);
+  panel.hidden = false;
+  // Closing hands the operator back to the map underneath.
+  document.getElementById('spClose').addEventListener('click', function () { panel.hidden = true; });
+})();
+</script>
 
 <script>
 // ─── Street Data ──────────────────────────────────────────────────
