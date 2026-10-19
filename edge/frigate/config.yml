@@ -1,0 +1,94 @@
+# Frigate config template — one camera, one zone per parking bay (#266).
+#
+# Copy, then edit three things: the camera's resolution, the zone polygons, and
+# the zone -> bay names (which must match edge/bridge/config.example.json).
+# Credentials come from edge/.env via {FRIGATE_RTSP_*}; none are written here.
+mqtt:
+  enabled: true
+  host: mosquitto
+  port: 1883
+  topic_prefix: frigate
+  # The bridge only needs zone counts and stats, so Frigate does not have to
+  # publish anything heavier.
+  stats_interval: 5
+
+detectors:
+  # CPU detection is enough for parking: bays change over minutes, not frames,
+  # so 5 fps per camera is generous. Swap for a Coral TPU (`type: edgetpu`)
+  # once the pilot goes past ~4 cameras on the same mini PC.
+  cpu1:
+    type: cpu
+    num_threads: 3
+
+# Images are the thing that must not accumulate on site. Both off globally, so
+# a camera added later cannot quietly start recording the park.
+snapshots:
+  enabled: false
+record:
+  enabled: false
+
+objects:
+  track:
+    - car
+    - truck
+    - bus
+    - motorcycle
+  filters:
+    car:
+      min_score: 0.5
+      threshold: 0.6
+
+cameras:
+  lot_cam:
+    enabled: true
+    ffmpeg:
+      # Frigate reads the go2rtc restream, not the camera: one connection to
+      # the NVR/camera total, no matter how many viewers or restarts.
+      inputs:
+        - path: rtsp://127.0.0.1:8554/lot_cam
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+    detect:
+      width: 1280
+      height: 720
+      fps: 5
+      # A parked car is stationary by definition; keep it tracked.
+      stationary:
+        interval: 50
+        threshold: 50
+    motion:
+      # Published to frigate/lot_cam/motion, which is how the bridge tells a
+      # frozen stream (frames arriving, nothing ever moving) from a dead one.
+      mqtt_off_delay: 30
+    zones:
+      # One zone per bay. Coordinates are normalized (x,y pairs, 0..1) clockwise
+      # from the top-left of the bay as the camera sees it — draw them in the
+      # Frigate UI ("Debug" -> "Zones"), then paste the generated line here.
+      # The zone NAME is the join key with the bridge config; keep the
+      # lot-prefixed form so two lots on one box cannot collide.
+      atidim_a01:
+        coordinates: 0.075,0.520,0.205,0.520,0.215,0.790,0.065,0.790
+        objects: [car, truck, bus, motorcycle]
+        inertia: 3
+      atidim_a02:
+        coordinates: 0.215,0.520,0.345,0.520,0.360,0.790,0.220,0.790
+        objects: [car, truck, bus, motorcycle]
+        inertia: 3
+      atidim_a03:
+        coordinates: 0.360,0.520,0.490,0.520,0.510,0.790,0.365,0.790
+        objects: [car, truck, bus, motorcycle]
+        inertia: 3
+
+# RTSP URL examples for the two brands in Israeli parks, for reference when
+# filling edge/go2rtc/go2rtc.yaml. Always with a read-only user:
+#
+#   Hikvision   rtsp://<user>:<pass>@<ip>:554/Streaming/Channels/101   (main)
+#               rtsp://<user>:<pass>@<ip>:554/Streaming/Channels/102   (sub)
+#               NVR channel 3, sub-stream:  /Streaming/Channels/302
+#   Dahua       rtsp://<user>:<pass>@<ip>:554/cam/realmonitor?channel=1&subtype=0
+#               subtype=1 is the sub-stream; channel=N for an NVR channel
+#
+# The sub-stream (around 704x576) is usually enough for bay occupancy and costs
+# a fraction of the CPU. Start there and only move to the main stream if bays at
+# the far end of the lot are being missed.

@@ -1,0 +1,75 @@
+# ParkWiz edge box (#266) — the three services that turn a park's existing
+# cameras into live occupancy, all of them on site.
+#
+#   go2rtc    pulls each RTSP stream once and re-serves it (WebRTC/MJPEG for
+#             the browser view, RTSP for Frigate) so a camera with two client
+#             slots does not get hammered by every viewer.
+#   frigate   vehicle detection; one zone per bay; publishes zone counts to MQTT.
+#   mosquitto the local broker. Loopback only — it is a bus between containers,
+#             not a service.
+#
+# Deliberately absent: any port published to the internet, any cloud account,
+# any recording. Video never leaves the site; what leaves this box is
+# {lot, spotId, occupied, ts} over the LAN. See docs/edge-setup-he.md.
+#
+#   cp .env.example .env   # fill in the read-only RTSP user, never commit it
+#   docker compose up -d
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.20
+    container_name: parkwiz-mosquitto
+    restart: unless-stopped
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-data:/mosquitto/data
+    # No ports: — only the containers on this network speak to the broker.
+
+  go2rtc:
+    image: alexxit/go2rtc:1.9.9
+    container_name: parkwiz-go2rtc
+    restart: unless-stopped
+    env_file: .env
+    network_mode: host # WebRTC needs the host's own UDP ports to be usable
+    volumes:
+      - ./go2rtc/go2rtc.yaml:/config/go2rtc.yaml:ro
+      # Only for the looped-sample acceptance run; empty in production.
+      - ./samples:/media:ro
+    # Published on the LAN, not the internet: 1984 = API + WebRTC view,
+    # 8554 = RTSP restream that Frigate consumes.
+
+  frigate:
+    image: ghcr.io/blakeblackshear/frigate:0.14.1
+    container_name: parkwiz-frigate
+    restart: unless-stopped
+    depends_on: [mosquitto]
+    env_file: .env
+    shm_size: "128mb" # raise by ~40MB per extra 1080p camera
+    volumes:
+      - ./frigate/config.yml:/config/config.yml:ro
+      - /etc/localtime:/etc/localtime:ro
+      - frigate-media:/media/frigate
+    ports:
+      # Bound to the box itself: the operator reaches Frigate's own UI over the
+      # LAN only via a reverse proxy or an SSH tunnel, never from outside.
+      - "127.0.0.1:5000:5000"
+
+  # The ParkWiz bridge (edge/bridge, next PR in the #266 split): subscribes to
+  # the zone topics above and serves {lot, spotId, occupied, ts} + spot-freed
+  # over SSE/WebSocket on 8787. No image ever crosses it — the whitelist in
+  # src/lib/edge-bridge.js is what makes that structural.
+  # bridge:
+  #   build: ./bridge
+  #   container_name: parkwiz-bridge
+  #   restart: unless-stopped
+  #   depends_on: [mosquitto]
+  #   environment:
+  #     - MQTT_URL=mqtt://mosquitto:1883
+  #     - BRIDGE_CONFIG=/config/config.json
+  #   volumes:
+  #     - ./bridge/config.json:/config/config.json:ro
+  #   ports:
+  #     - "8787:8787" # LAN only. Do not forward this port on the router.
+
+volumes:
+  mosquitto-data:
+  frigate-media:

@@ -1,0 +1,18 @@
+{
+  "_comment": "ParkWiz bridge config (#266). Copy to edge/bridge/config.json. The zone names here MUST match the zone names in edge/frigate/config.yml — that pairing is the whole map from a camera zone to a ParkWiz bay, and test/edge-config.test.js checks the two files still agree. No credentials belong in this file.",
+  "lot": "atidim",
+  "holdMs": 700,
+  "offlineAfterMs": 15000,
+  "frozenAfterMs": 120000,
+  "objects": ["car", "truck", "bus", "motorcycle"],
+  "cameras": [
+    {
+      "name": "lot_cam",
+      "zones": {
+        "atidim_a01": "A-01",
+        "atidim_a02": "A-02",
+        "atidim_a03": "A-03"
+      }
+    }
+  ]
+}

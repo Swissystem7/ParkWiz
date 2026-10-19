@@ -43,6 +43,7 @@
 - ערכת הפיילוט, הדוח והדשבורד קוראים מאותו מודול: [`src/lib/occupancy.js`](./src/lib/occupancy.js) (סכמה אחת + גרף SVG) ומסגנון הדפסה משותף ב-[`pilot/print.css`](./pilot/print.css).
 - [ערכת הפיילוט](./pilot-kit.html) היא דמו מקומי: תמונה סטטית, כיול מלבנים, וחיסור רקע מנורמל־תאורה — לא צינור מצלמה חי. אפשר לייצא `occupancy.json` / CSV.
 - מנוע זיהוי התפוסה ממצלמה: [`src/lib/vision-occupancy.js`](./src/lib/vision-occupancy.js) — קופסאות רכב ממזהה שרץ בדפדפן → תפוס/פנוי לכל תא, עם השהיית כמה פריימים לפני דיווח שינוי. אין בו DOM, אין בו מודל ואין בו פיקסלים (ולכן גם אין לוחיות). הדף החי שמפעיל אותו עוד לא נוסף — ראו [docs/dev/PR-264-SPLIT.md](./docs/dev/PR-264-SPLIT.md).
+- מצלמות חיות באתר: [`edge/`](./edge) היא קופסת קצה (Frigate + go2rtc + MQTT מקומי) ו-[`src/lib/edge-bridge.js`](./src/lib/edge-bridge.js) הוא הגשר ממנה ל-ParkWiz — ספירת רכבים ל-zone הופכת ל-`{lot, spotId, occupied, ts}` ול-`spot-freed`, עם אזהרת מצלמה מנותקת/קפואה. אין תמונה, אין לוחית, אין סיסמה בהודעה. מדריך התקנה: [docs/edge-setup-he.md](./docs/edge-setup-he.md). תהליך הגשר עצמו וההגדרה «מקור חי» בדף עוד לא נוספו — ראו [docs/dev/PR-266-SPLIT.md](./docs/dev/PR-266-SPLIT.md).
 - [אשף כיול](./pilot-calibrate.html) מוליך עובד עירייה בארבעה צעדים, יעד 3 דקות, ושומר `calibration.json`.
 - [דיוק דמו](./pilot-eval.html) מריץ מערך מסונתז (`pilot/dataset/`) ומציג הסכמה לפי תאורה — כולל כשלים. זה לא דיוק שדה.
 - [מתודולוגיה](./pilot-method.html) מתעדת את הנוסחאות והקבועים כפי שהם בקוד, להדפסה לביקורת.
