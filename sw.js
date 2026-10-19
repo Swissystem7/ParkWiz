@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v22';
+const CACHE = 'parkwiz-field-v23';
 const ASSETS = [
   './',
   './index.html',
@@ -55,6 +55,9 @@ const ASSETS = [
   './src/lib/atidim-lot.js',
   // <script src>'d by index.html for the ?site= demo preset (#261).
   './src/lib/site-preset.js',
+  // The detector-independent half of demo/camera.html: the page is useless
+  // offline without it, and the model itself is off-origin (see below).
+  './src/lib/vision-occupancy.js',
   // <script src>'d by demo/atidim-board.html; without it the margin panel is
   // blank on the first offline visit.
   './src/lib/margin.js',
@@ -65,6 +68,10 @@ const ASSETS = [
   './src/lib/spot-freed.js',
   './demo/atidim.html',
   './demo/atidim-board.html',
+  // Real camera occupancy (#264). The TensorFlow.js model it loads is
+  // off-origin, so the fetch handler ignores it: the page says in its banner
+  // that the first visit needs network, and only the model does.
+  './demo/camera.html',
   // Operator-editable labels for the Atidim demo.
   './demo/atidim-data.json',
 ];
