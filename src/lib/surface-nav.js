@@ -22,7 +22,10 @@
     s.id = 'pw-surface-nav-css';
     s.textContent = '.pw-surface-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:7px 12px;background:#0f1420;border-bottom:1px solid rgba(255,255,255,.08);font:600 0.78rem system-ui,sans-serif}'
       + '.pw-surface-nav a,.pw-surface-nav span.here{color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none}'
-      + '.pw-surface-nav span.here{color:#fff;background:rgba(14,116,144,.45);border-color:rgba(103,232,249,.45)}';
+      + '.pw-surface-nav span.here{color:#fff;background:rgba(14,116,144,.45);border-color:rgba(103,232,249,.45)}'
+      // Phones: one swipeable row instead of five wrapped rows above the content.
+      + '@media(max-width:600px){.pw-surface-nav{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}'
+      + '.pw-surface-nav::-webkit-scrollbar{display:none}.pw-surface-nav>*{flex-shrink:0;white-space:nowrap}}';
     document.head.appendChild(s);
   }
 
