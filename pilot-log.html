@@ -71,25 +71,27 @@ textarea{min-height:64px;resize:vertical}
   </div>
 
   <div class="toolbar no-print">
-    <button type="button" class="primary" id="btnSample">טען יומן דוגמה</button>
-    <button type="button" id="btnFromPairs">יבא מהשוואת דיוק</button>
+    <button type="button" class="primary" id="btnSample" aria-label="טען יומן דוגמה מסונתז">טען יומן דוגמה</button>
+    <button type="button" id="btnFromPairs" aria-label="יבא נתוני שדה מהשוואת דיוק">יבא מהשוואת דיוק</button>
     <label class="no-print" style="margin:0;max-width:none">טען יומן JSON
-      <input type="file" id="fileLog" accept=".json,application/json">
+      <input type="file" id="fileLog" accept=".json,application/json" aria-label="טען יומן מקובץ JSON">
     </label>
-    <button type="button" id="btnCsv">ייצוא CSV</button>
-    <button type="button" id="btnJson">ייצוא JSON</button>
+    <button type="button" id="btnCopySummary" aria-label="העתק סיכום יומן שדה ללוח">העתק סיכום</button>
+    <button type="button" id="btnCsv" aria-label="ייצוא CSV של היומן">ייצוא CSV</button>
+    <button type="button" id="btnJson" aria-label="ייצוא JSON של היומן כולל פסק דין">ייצוא JSON</button>
     <button type="button" id="pwInstallBtn">הוסף למסך הבית</button>
-    <button type="button" id="btnClear">מחק יומן בדפדפן זה</button>
+    <button type="button" id="btnResetFlags" aria-label="אפס תנאי פיילוט ויומן לברירת מחדל">אפס תנאי פיילוט</button>
+    <button type="button" id="btnClear" aria-label="מחק יומן בדפדפן זה">מחק יומן בדפדפן זה</button>
   </div>
   <p class="status" id="status" role="status" aria-live="polite"></p>
 
-  <section class="panel">
-    <h2>פסק הדין לפי כלל העצירה</h2>
+  <section class="panel" role="region" aria-labelledby="hVerdict">
+    <h2 id="hVerdict">פסק הדין לפי כלל העצירה</h2>
     <p class="hint" style="margin-top:0">
       מ־<a href="./RESEARCH.md">RESEARCH.md</a>: מתחת להצהרת יצרן (~96% Camlytics) בלי תוכנית כיול — PARK.
       30 יום מהפנייה בלי גישת snapshot ובלי בקשת דמו — PARK. סדרת דוגמה לא מחליטה.
     </p>
-    <div class="kpis">
+    <div class="kpis" role="region" aria-label="מדדי ביצוע של יומן השדה">
       <div class="kpi"><div class="n" id="kDays">0</div><div class="l">ימים עם ספירה</div></div>
       <div class="kpi"><div class="n" id="kRate">—</div><div class="l">הסכם מול פקח</div></div>
       <div class="kpi"><div class="n" id="kCi">—</div><div class="l">רווח סמך 95% (Wilson)</div></div>
@@ -101,16 +103,16 @@ textarea{min-height:64px;resize:vertical}
     </div>
   </section>
 
-  <section class="panel">
-    <h2>תנאי הפיילוט (ידניים, כנים)</h2>
+  <section class="panel" role="region" aria-labelledby="hFlags">
+    <h2 id="hFlags">תנאי הפיילוט (ידניים, כנים)</h2>
     <div class="flags">
       <div>
         <label for="streetName">רחוב / אתר</label>
-        <input type="text" id="streetName" value="הרצל, נתניה">
+        <input type="text" id="streetName" value="הרצל, נתניה" aria-label="רחוב או אתר הפיילוט">
         <label for="startDate">יום 1 ביומן</label>
-        <input type="date" id="startDate" value="2026-08-01">
+        <input type="date" id="startDate" value="2026-08-01" aria-label="תאריך התחלה - יום 1 ביומן">
         <label for="outreach">תאריך שליחת הפנייה (אם נשלחה)</label>
-        <input type="date" id="outreach">
+        <input type="date" id="outreach" aria-label="תאריך שליחת הפנייה לעירייה">
       </div>
       <div>
         <label class="check"><input type="checkbox" id="calPlan"> יש תוכנית כיול פר־מצלמה כתובה (לא סיסמה)</label>
@@ -121,53 +123,54 @@ textarea{min-height:64px;resize:vertical}
     </div>
   </section>
 
-  <section class="panel">
-    <h2>30 הימים</h2>
+  <section class="panel" role="region" aria-labelledby="hDays">
+    <h2 id="hDays">30 הימים</h2>
     <p class="hint">לחצו על יום כדי למלא ספירה. ירוק = יש זוג. כתום = אין ספירה. חום = דוגמה.</p>
+    <p class="hint" id="daysEmpty" style="display:none;color:#92400e;font-weight:700">אין עדיין ימים עם ספירה ביומן זה. לחצו על יום כדי להזין ספירה או טענו יומן דוגמה.</p>
     <div class="days" id="dayGrid" role="region" aria-label="30 ימי פיילוט"></div>
-    <p class="hint" id="daysEmpty" style="display:none">אין עדיין ימים עם ספירה ביומן זה. לחצו על יום כדי להזין ספירה או טענו יומן דוגמה.</p>
   </section>
 
-  <section class="panel" id="editorPanel">
+  <section class="panel" id="editorPanel" role="region" aria-labelledby="editorTitle">
     <h2 id="editorTitle">עריכת יום</h2>
     <div class="editor">
       <div>
         <label for="eDate">תאריך</label>
-        <input type="date" id="eDate">
+        <input type="date" id="eDate" aria-label="תאריך ספירת היום">
       </div>
       <div>
         <label for="eLight">תאורה / מזג אוויר</label>
-        <select id="eLight">
+        <select id="eLight" aria-label="תנאי תאורה ומזג אוויר">
           <option value="">לא צוין</option>
         </select>
       </div>
       <div>
         <label for="eTotal">סך מקומות מסומנים</label>
-        <input type="number" id="eTotal" min="1" step="1">
+        <input type="number" id="eTotal" min="1" step="1" aria-label="סך מקומות חניה מסומנים">
       </div>
       <div>
         <label for="eSys">תפוסים — הערכת מערכת</label>
-        <input type="number" id="eSys" min="0" step="1">
+        <input type="number" id="eSys" min="0" step="1" aria-label="מספר מקומות תפוסים - הערכת מערכת">
       </div>
       <div>
         <label for="eMan">תפוסים — ספירת פקח</label>
-        <input type="number" id="eMan" min="0" step="1">
+        <input type="number" id="eMan" min="0" step="1" aria-label="מספר מקומות תפוסים - ספירת פקח">
       </div>
       <div>
         <label for="eNote">הערה</label>
-        <input type="text" id="eNote" placeholder="משמרת, זווית מצלמה…">
+        <input type="text" id="eNote" placeholder="משמרת, זווית מצלמה…" aria-label="הערה לספירת היום">
       </div>
     </div>
     <div class="toolbar" style="margin-top:12px;margin-bottom:0">
-      <button type="button" class="primary" id="btnSaveDay">שמור יום</button>
-      <button type="button" id="btnClearDay">נקה יום זה</button>
+      <button type="button" class="primary" id="btnSaveDay" aria-label="שמור ספירת יום ביומן">שמור יום</button>
+      <button type="button" id="btnClearDay" aria-label="נקה ספירת יום זה">נקה יום זה</button>
     </div>
   </section>
 
-  <section class="panel">
-    <h2>מפת חום שעתית (מתפוסה שמורה)</h2>
+  <section class="panel" role="region" aria-labelledby="hHeat">
+    <h2 id="hHeat">מפת חום שעתית (מתפוסה שמורה)</h2>
     <p class="hint">אם יש occupancy בערכת הפיילוט — מתי הרחוב מלא, בלי המלצת אכיפה.</p>
-    <div id="heat"></div>
+    <p class="hint" id="heatEmpty" style="display:none">אין occupancy שמור בערכת הפיילוט בדפדפן זה.</p>
+    <div id="heat" role="region" aria-label="מפת חום שעתית"></div>
   </section>
 
   <div class="foot">ParkWiz · יומן שדה מקומי · כלל עצירה מהמחקר · בלי מצלמה חיה</div>
@@ -321,10 +324,13 @@ function renderVerdict() {
 function renderHeat() {
   const recs = OCC.loadStoredOccupancy();
   const host = document.getElementById("heat");
+  const emptyEl = document.getElementById("heatEmpty");
   if (!recs.length) {
-    host.innerHTML = '<p class="hint">אין occupancy שמור בערכת הפיילוט בדפדפן זה.</p>';
+    if (emptyEl) emptyEl.style.display = "block";
+    host.replaceChildren();
     return;
   }
+  if (emptyEl) emptyEl.style.display = "none";
   host.innerHTML = OCC.hourHeatmapSvg(recs);
 }
 
@@ -368,6 +374,11 @@ document.getElementById("btnSaveDay").addEventListener("click", () => {
 
 document.getElementById("btnClearDay").addEventListener("click", () => {
   const prev = currentDay();
+  const filled = prev.total != null && prev.systemOccupied != null && prev.manualOccupied != null;
+  if (!filled && !prev.note && !prev.lighting) {
+    setStatus("יום " + prev.day + " כבר ריק.");
+    return;
+  }
   state.days = PRO.mergeLog(state.days, [PRO.emptyDay(prev.day, prev.date)]);
   persist();
   setStatus("יום " + prev.day + " רוקן.");
@@ -426,6 +437,69 @@ document.getElementById("fileLog").addEventListener("change", async (e) => {
   setStatus("נטען יומן מהקובץ.");
 });
 
+async function copySummary() {
+  const filled = PRO.filledDays(state.days);
+  if (!filled.length) {
+    setStatus("אין ימים עם ספירה להעתקת סיכום.");
+    return;
+  }
+  readFlags();
+  const pairs = PRO.logToPairs(state.days, state.meta.street);
+  const v = PRO.decidePilot({
+    pairs,
+    hasCalibrationPlan: state.meta.hasCalibrationPlan,
+    cameraAccess: state.meta.cameraAccess,
+    integratorAsk: state.meta.integratorAsk,
+    outreachSentAt: state.meta.outreachSentAt,
+    now: new Date(),
+  });
+
+  const rateStr = v.pooled.rate == null ? "—" : OCC.pct(v.pooled.rate);
+  const ciStr = v.pooled.wilson ? (OCC.pct(v.pooled.wilson.lo) + "–" + OCC.pct(v.pooled.wilson.hi)) : "—";
+  const bias = v.pooled.meanSignedError;
+  const biasStr = bias == null ? "—" : ((bias > 0 ? "+" : "") + bias.toFixed(2));
+
+  const lines = [
+    "ParkWiz — סיכום יומן שדה 30 יום",
+    "אתר: " + state.meta.street,
+    "תאריך התחלה: " + state.meta.startDate,
+    "ימים עם ספירה: " + filled.length + " מתוך " + state.days.length,
+    "הסכם מול פקח: " + rateStr,
+    "רווח סמך 95% (Wilson): " + ciStr,
+    "הטיה (מערכת − פקח): " + biasStr,
+    "פסק דין: " + v.label + " (" + v.code + ")",
+    v.reasons && v.reasons.length ? ("סיבות: " + v.reasons.join("; ")) : "",
+    "הערה: יומן שדה מקומי. אין מצלמת עירייה ואין לוחיות.",
+  ].filter(Boolean).join("\n");
+
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(lines);
+    }
+    setStatus("סיכום יומן השדה הועתק ללוח.");
+  } catch (e) {
+    setStatus("לא ניתן להעתיק ללוח בדפדפן זה.");
+  }
+}
+document.getElementById("btnCopySummary").addEventListener("click", copySummary);
+
+function resetFlags() {
+  state.meta = {
+    street: "הרצל, נתניה",
+    startDate: "2026-08-01",
+    outreachSentAt: "",
+    hasCalibrationPlan: false,
+    cameraAccess: false,
+    integratorAsk: false,
+  };
+  state.days = PRO.buildCalendar("2026-08-01", 30);
+  persist();
+  writeFlags();
+  setStatus("תנאי הפיילוט והיומן אופסו לברירת המחדל.");
+  render();
+}
+document.getElementById("btnResetFlags").addEventListener("click", resetFlags);
+
 document.getElementById("btnCsv").addEventListener("click", () => {
   if (!PRO.filledDays(state.days).length) {
     setStatus("אין ימים עם ספירה לייצוא.");
@@ -466,6 +540,10 @@ document.getElementById("btnJson").addEventListener("click", () => {
 });
 
 document.getElementById("btnClear").addEventListener("click", () => {
+  if (!PRO.filledDays(state.days).length) {
+    setStatus("היומן כבר ריק.");
+    return;
+  }
   state.days = PRO.buildCalendar(state.meta.startDate || "2026-08-01", 30);
   persist();
   setStatus("היומן רוקן בדפדפן זה.");
