@@ -2,6 +2,9 @@
 (function (root) {
   const LINKS = [
     { id: 'map', href: './', label: 'מפת חניה עירונית' },
+    // The unified Atidim pilot flow (#268). It carries its own four-surface nav
+    // (נהג / מנהל חניון / שלט כניסה / הגדרות), so it appears here once.
+    { id: 'pilot', href: './demo/pilot.html', label: 'זרימת פיילוט עתידים' },
     { id: 'brief', href: './pilot-brief.html', label: 'תקציר לעירייה' },
     { id: 'offer', href: './offer.html', label: 'הצעה / הזמן פיילוט' },
     { id: 'kit', href: './pilot-kit.html', label: 'ערכת פיילוט' },

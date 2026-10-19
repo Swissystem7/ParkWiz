@@ -44,6 +44,11 @@ test('activatePremium updates premium button text and aria-label', () => {
   assert.match(html, /premBtn\.setAttribute\('aria-label',\s*'ParkWiz Premium פעיל \(הדגמה\)'\)/);
 });
 
-test('service worker cache bumped to v18 for pricing a11y updates', () => {
-  assert.match(sw, /const CACHE = 'parkwiz-field-v18';/);
+// Pinned to v18 exactly when the pricing a11y pass landed, which made the next
+// shell change (the unified pilot flow, #268) fail a test about pricing. What
+// this test actually cares about is that the bump happened at all, so it is a
+// floor: every later shell change keeps it honest without editing this file.
+test('service worker cache is at or past the v18 pricing a11y bump', () => {
+  const version = Number(sw.match(/const CACHE = 'parkwiz-field-v(\d+)';/)[1]);
+  assert.ok(version >= 18, 'cache version must not regress below the pricing a11y bump');
 });

@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v18';
+const CACHE = 'parkwiz-field-v19';
 const ASSETS = [
   './',
   './index.html',
@@ -52,13 +52,19 @@ const ASSETS = [
   './src/lib/availability.js',
   './src/lib/predict.js',
   './src/lib/atidim-lot.js',
+  // The one pilot flow (#268): bus, sources, settings, alert + hold.
+  './src/lib/pilot-flow.js',
   // <script src>'d by demo/atidim-board.html; without it the margin panel is
   // blank on the first offline visit.
   './src/lib/margin.js',
+  './demo/pilot.html',
   './demo/atidim.html',
   './demo/atidim-board.html',
   // Operator-editable labels for the Atidim demo.
   './demo/atidim-data.json',
+  // The decoded sample clip demo/pilot.html runs its flow on; without it the
+  // driver alert never fires on an offline visit.
+  './pilot/sample-clip.json',
 ];
 
 self.addEventListener('install', (event) => {
