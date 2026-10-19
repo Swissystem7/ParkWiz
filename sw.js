@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v18';
+const CACHE = 'parkwiz-field-v19';
 const ASSETS = [
   './',
   './index.html',
@@ -34,11 +34,15 @@ const ASSETS = [
   './pilot/sample-lot-night.svg',
   './pilot/sample-empty-night.svg',
   './pilot/sample-lot-wet.svg',
+  // The frame with faces and plates planted in it. Without it in the shell the
+  // privacy demo is the one thing that breaks on the first offline visit.
+  './pilot/sample-lot-privacy.svg',
   './pilot/sample-lot-white.svg',
   './pilot/dataset/manifest.json',
   './pilot/dataset/labels.json',
   './src/lib/occupancy.js',
   './src/lib/heuristic.js',
+  './src/lib/redact.js',
   './src/lib/dataset.js',
   './src/lib/calibrate.js',
   './src/lib/compare.js',
