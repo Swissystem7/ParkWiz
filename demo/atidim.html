@@ -43,6 +43,14 @@ button:hover{border-color:var(--brand);color:#fff}
 button.active{background:var(--brand);color:#000;border-color:var(--brand)}
 .hint{font-size:11.5px;color:var(--muted);margin-top:10px}
 .bay-status{font-size:12px;color:var(--brand);min-height:1.4em;margin-top:6px}
+.agent-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.agent-sum{font-size:12.5px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin:0 0 8px}
+.agent-sum b{color:var(--brand);font-weight:700}
+.agent-sum.off{color:var(--muted)}
+.agent-log{margin:6px 0 0;padding-inline-start:20px;font-size:12px;color:var(--muted);max-height:168px;overflow-y:auto}
+.agent-log li{margin-bottom:5px}
+.agent-log .ag-who{color:var(--brand);font-weight:700}
+.agent-log a{text-decoration:underline}
 .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
 .chart-box{width:100%;overflow-x:auto}
 svg.chart{width:100%;height:190px;display:block}
@@ -140,6 +148,25 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
     </section>
   </div>
 
+  <!-- #269: the built-in agents. They run on the same event bus the frame
+       publishes to, entirely in this tab — no server, no paid LLM API. Each one
+       can be switched off mid-demo, and every action it took stays in the log. -->
+  <section class="card" aria-label="סוכנים מובנים">
+    <div class="card-hdr">
+      <div>
+        <h2>סוכנים מובנים (Agents)</h2>
+        <div class="sub">מבוססי חוקים, רצים בדפדפן בלבד — ללא שרת, ללא ענן וללא מודל שפה בתשלום</div>
+      </div>
+      <button type="button" id="btnDriverWaiting" aria-pressed="false">הדמה נהג ממתין (רכב חשמלי, 15%)</button>
+    </div>
+    <div class="agent-row" id="agentToggles" role="group" aria-label="הפעלה וכיבוי של סוכנים"></div>
+    <p class="agent-sum" id="agentDriverSummary" role="status" aria-live="polite"></p>
+    <p class="agent-sum" id="agentManagerSummary" role="status" aria-live="polite"></p>
+    <h3 style="font-size:.9rem;margin:12px 0 0">פעולות אחרונות של הסוכנים</h3>
+    <ol class="agent-log" id="agentLog" aria-label="יומן פעולות הסוכנים"></ol>
+    <p class="hint" id="agentLogEmpty">אין עדיין פעולות. סמנו «נהג ממתין», ואז «הדמה יציאת רכב» או לחצו על תא תפוס בפריים — סוכן הנהג ישלח התראה עם קישור Waze וישמור את התא.</p>
+  </section>
+
   <section class="card" aria-label="מדיניות פרטיות">
     <div class="card-hdr"><div><h2>פרטיות מובטחת כברירת מחדל (Privacy by Design)</h2><div class="sub">עמידה מלאה בהנחיות הרשות להגנת הפרטיות ו-GDPR</div></div></div>
     <div class="privacy-list">
@@ -160,6 +187,10 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
 </div>
 
 <script src="../src/lib/atidim-lot.js"></script>
+<script src="../src/agents/bus.js"></script>
+<script src="../src/agents/runtime.js"></script>
+<script src="../src/agents/driver.js"></script>
+<script src="../src/agents/manager.js"></script>
 <script>
 (function(){
   const model = window.ParkWizAtidimLot;
@@ -276,16 +307,156 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
       model.computeArrivalMargin((nowHour + 1) % 24, CAPACITY).textHe;
   }
 
-  function refresh() { updateMetrics(); drawScene(); }
+  // ---- Built-in agents (#269) ------------------------------------------------
+  // The page is the only thing that observes the lot: it publishes what it sees
+  // onto the bus and renders what the agents answer. No decision logic lives
+  // here — that is all in src/agents, which is why it is unit-tested.
+  const agentBus = window.ParkWizAgentBus ? window.ParkWizAgentBus.createBus() : null;
+  const runtime = agentBus && window.ParkWizAgentRuntime
+    ? window.ParkWizAgentRuntime.createRuntime({ bus: agentBus })
+    : null;
+  const agentLabels = {};
+  if (runtime && window.ParkWizDriverAgent) runtime.register(window.ParkWizDriverAgent.createDriverAgent());
+  if (runtime && window.ParkWizManagerAgent) {
+    runtime.register(window.ParkWizManagerAgent.createManagerAgent({ lotName: model.ATIDIM_LOT.name }));
+  }
+
+  // A demo-only walking estimate: the gate sits at the bottom-centre of the
+  // frame and the frame spans roughly FRAME_SPAN_M of asphalt. In a pilot this
+  // number comes from the calibrated geometry, not from an overlay rectangle.
+  const FRAME_SPAN_M = 60;
+  // Every sixth monitored stall is a charger bay — an Atidim demo assumption,
+  // stated here on the page side rather than hidden inside the agent.
+  const EV_EVERY = 6;
+
+  function spotFacts(spot, index) {
+    const dx = (spot.x + spot.w / 2) - 0.5;
+    const dy = 0.98 - (spot.y + spot.h / 2);
+    return {
+      spotId: spot.id,
+      distanceM: Math.round(Math.sqrt(dx * dx + dy * dy) * FRAME_SPAN_M),
+      evCharger: index % EV_EVERY === 0,
+      spotType: 'standard',
+      cameraId: currentCam,
+      lotName: model.ATIDIM_LOT.name,
+    };
+  }
+
+  // Replacing the whole frame (reset, camera switch) changes the stall set;
+  // firing 24 "freed" events for that would be a lie about the lot, so only a
+  // same-frame occupancy flip becomes an event.
+  function applySpots(next) {
+    const before = spots;
+    spots = next;
+    if (!agentBus || before.length !== next.length) return;
+    for (let i = 0; i < next.length; i++) {
+      if (!before[i] || before[i].id !== next[i].id) return;
+    }
+    const now = Date.now();
+    for (let i = 0; i < next.length; i++) {
+      if (before[i].occupied === next[i].occupied) continue;
+      agentBus.emit(next[i].occupied ? 'spot-taken' : 'spot-freed', spotFacts(next[i], i), now);
+    }
+  }
+
+  function publish(type, payload) {
+    if (!agentBus) return;
+    agentBus.emit(type, payload, Date.now());
+    renderAgents();
+  }
+
+  function sampleOccupancy() {
+    if (!agentBus) return;
+    const occ = model.calculateOccupancy(spots, CAPACITY);
+    agentBus.emit('occupancy-sample', {
+      hour: model.lotHour(), rate: occ.rate, available: occ.available, capacity: CAPACITY,
+    }, Date.now());
+  }
+
+  function buildAgentToggles() {
+    const host = document.getElementById('agentToggles');
+    if (!runtime || !host) return;
+    runtime.list().forEach(function(entry){
+      agentLabels[entry.name] = entry.labelHe;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'active';
+      btn.setAttribute('aria-pressed', 'true');
+      btn.setAttribute('data-agent', entry.name);
+      btn.textContent = entry.labelHe + ' — פעיל';
+      btn.addEventListener('click', function(){
+        const on = !runtime.isEnabled(entry.name);
+        runtime.setEnabled(entry.name, on);
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-pressed', String(on));
+        btn.textContent = entry.labelHe + ' — ' + (on ? 'פעיל' : 'כבוי');
+        renderAgents();
+        announce(entry.labelHe + (on ? ' הופעל.' : ' כובה — הוא לא יקבל עוד אירועים.'));
+      });
+      host.appendChild(btn);
+    });
+  }
+
+  // Agent text is written with textContent, never innerHTML: the only markup
+  // the panel builds itself is the Waze anchor.
+  function renderSummary(el, entry) {
+    if (!el) return;
+    el.textContent = '';
+    el.classList.toggle('off', !entry.enabled);
+    const name = document.createElement('b');
+    name.textContent = entry.labelHe + ': ';
+    el.appendChild(name);
+    if (!entry.enabled) { el.appendChild(document.createTextNode('כבוי — לא מקבל אירועים.')); return; }
+    el.appendChild(document.createTextNode(entry.report ? entry.report.textHe : '—'));
+    if (entry.report && entry.report.wazeUrl) {
+      el.appendChild(document.createTextNode(' · '));
+      const link = document.createElement('a');
+      link.href = entry.report.wazeUrl;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = 'ניווט ב-Waze ←';
+      el.appendChild(link);
+    }
+  }
+
+  function renderAgents() {
+    if (!runtime) return;
+    runtime.reports().forEach(function(entry){
+      renderSummary(document.getElementById(
+        entry.name === 'driver' ? 'agentDriverSummary' : 'agentManagerSummary'), entry);
+    });
+    const list = document.getElementById('agentLog');
+    const empty = document.getElementById('agentLogEmpty');
+    const log = runtime.log();
+    if (!list || !empty) return;
+    empty.hidden = log.length > 0;
+    list.textContent = '';
+    // Newest first: an operator reads the top of the list, not the bottom.
+    log.slice().reverse().forEach(function(entry){
+      const li = document.createElement('li');
+      const who = document.createElement('span');
+      who.className = 'ag-who';
+      who.textContent = (agentLabels[entry.agent] || entry.agent) +
+        ' · ' + model.formatLotClock(new Date(entry.at)).slice(11);
+      li.appendChild(who);
+      li.appendChild(document.createTextNode(' — ' + entry.textHe));
+      list.appendChild(li);
+    });
+  }
+
+  function refresh() { updateMetrics(); drawScene(); sampleOccupancy(); renderAgents(); }
 
   function announce(text) { document.getElementById('bayStatus').textContent = text; }
 
   function toggleSpot(index) {
     const spot = spots[index];
     if (!spot) return;
-    spot.occupied = !spot.occupied;
+    const next = spots.map(function(s, i){
+      return i === index ? Object.assign({}, s, { occupied: !s.occupied }) : s;
+    });
+    applySpots(next);
     refresh();
-    announce('תא ' + spot.id + ' סומן כ' + (spot.occupied ? 'תפוס' : 'פנוי') + '.');
+    announce('תא ' + spot.id + ' סומן כ' + (spots[index].occupied ? 'תפוס' : 'פנוי') + '.');
   }
 
   document.getElementById('btnToggleOverlay').addEventListener('click', function(){
@@ -298,14 +469,14 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
   document.getElementById('btnArrive').addEventListener('click', function(){
     const freeCount = spots.filter(function(s){ return !s.occupied; }).length;
     if (freeCount === 0) { announce('כל התאים בפריים כבר תפוסים.'); return; }
-    spots = model.transitionSpot(spots, 'arrive'); refresh();
+    applySpots(model.transitionSpot(spots, 'arrive')); refresh();
     const occ = model.calculateOccupancy(spots, CAPACITY);
     announce('נכנס רכב · פנויים בפריים: ' + occ.availableInView + ' מתוך ' + occ.totalInView + '.');
   });
   document.getElementById('btnLeave').addEventListener('click', function(){
     const occCount = spots.filter(function(s){ return s.occupied; }).length;
     if (occCount === 0) { announce('כל התאים בפריים כבר פנויים.'); return; }
-    spots = model.transitionSpot(spots, 'leave'); refresh();
+    applySpots(model.transitionSpot(spots, 'leave')); refresh();
     const occ = model.calculateOccupancy(spots, CAPACITY);
     announce('יצא רכב · פנויים בפריים: ' + occ.availableInView + ' מתוך ' + occ.totalInView + '.');
   });
@@ -329,13 +500,30 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
       announce('תקציר מצב: ' + text);
     }
   });
+  // A waiting driver is what gives the driver agent someone to alert. The
+  // battery is deliberately below the EV threshold of #267, so the agent
+  // prefers a charger bay over a closer plain one — visible in the alert text.
+  document.getElementById('btnDriverWaiting').addEventListener('click', function(){
+    const waiting = this.getAttribute('aria-pressed') === 'true';
+    this.setAttribute('aria-pressed', String(!waiting));
+    this.classList.toggle('active', !waiting);
+    if (waiting) {
+      this.textContent = 'הדמה נהג ממתין (רכב חשמלי, 15%)';
+      publish('driver-done', { driverId: 'demo-driver' });
+      announce('הנהג המדומה סיים את החיפוש — השמירה על התא שוחררה.');
+    } else {
+      this.textContent = 'הנהג המדומה ממתין — לחצו לסיום';
+      publish('driver-waiting', { driverId: 'demo-driver', batteryPct: 15, maxWalkM: 400 });
+      announce('נהג ממתין נרשם. שחררו תא בפריים כדי לראות את התראת סוכן הנהג.');
+    }
+  });
   document.getElementById('btnAuto').addEventListener('click', function(){
     if (autoTimer) {
       clearInterval(autoTimer); autoTimer = null; this.classList.remove('active');
       this.setAttribute('aria-pressed', 'false'); this.textContent = 'הפעל זרימה אוטומטית';
       announce('זרימה אוטומטית נעצרה.');
     } else {
-      autoTimer = setInterval(function(){ spots = model.transitionSpot(spots, Math.random() > 0.5 ? 'arrive' : 'leave'); refresh(); }, 1600);
+      autoTimer = setInterval(function(){ applySpots(model.transitionSpot(spots, Math.random() > 0.5 ? 'arrive' : 'leave')); refresh(); }, 1600);
       this.classList.add('active'); this.setAttribute('aria-pressed', 'true'); this.textContent = 'עצור זרימה אוטומטית';
       announce('זרימה אוטומטית הופעלה.');
     }
@@ -390,8 +578,11 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
     document.getElementById('frameClock').textContent = model.formatLotClock(new Date());
     // Crossing an hour boundary during a long demo must move the "now" marker.
     if (model.lotHour() !== seededHour) { seededHour = model.lotHour(); renderChart(); }
+    // The agents' only clock. This is what expires the driver agent's hold.
+    if (runtime) { runtime.tick(Date.now()); renderAgents(); }
   }, 1000);
   document.getElementById('frameClock').textContent = model.formatLotClock(new Date());
+  buildAgentToggles();
   refresh(); renderChart();
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(function(){});
