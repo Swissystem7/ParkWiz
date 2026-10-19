@@ -95,6 +95,7 @@ svg.chart{display:block;width:100%;height:auto}
         <h2>2. מפת תפוסה (היוריסטיקה)</h2>
         <div class="row">
           <button type="button" class="primary" id="btnEstimate">חשב תפוסה</button>
+          <button type="button" id="btnCopySummary">העתק תקציר</button>
           <button type="button" id="btnExportOcc">ייצוא occupancy.json</button>
           <button type="button" id="btnExportCsv">ייצוא occupancy.csv</button>
           <a href="./pilot-compare.html" style="font-size:.82rem;font-weight:700">השווה מול ספירת פקח</a>
@@ -104,7 +105,7 @@ svg.chart{display:block;width:100%;height:auto}
           <div class="kpi"><div class="n" id="kOcc" style="color:var(--occ)">0</div><div class="l">תפוסים (הערכה)</div></div>
           <div class="kpi"><div class="n" id="kFree" style="color:var(--free)">0</div><div class="l">פנויים (הערכה)</div></div>
         </div>
-        <p class="hint" id="estNote">עדיין לא חושב. אחרי כיול — לחצו «חשב תפוסה».</p>
+        <p class="hint" id="estNote" role="status" aria-live="polite">עדיין לא חושב. אחרי כיול — לחצו «חשב תפוסה».</p>
       </section>
 
       <section class="panel" style="margin-top:16px">
@@ -529,7 +530,7 @@ function applyOccupancy(list) {
 function drawChart(recs) {
   const host = document.getElementById("chart");
   const emptyEl = document.getElementById("chartEmpty");
-  if (!recs.length) {
+  if (!recs || !recs.length) {
     host.replaceChildren();
     if (emptyEl) emptyEl.style.display = "block";
     return;
@@ -606,11 +607,44 @@ document.getElementById("btnExportSpots").addEventListener("click", () => {
 document.getElementById("fileSpots").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
-  applySpotsDoc(JSON.parse(await f.text()));
-  saveLocal(); drawOverlay(); renderSpotList();
-  setStatus("קובץ spots.json נטען בהצלחה.");
+  try {
+    applySpotsDoc(JSON.parse(await f.text()));
+    saveLocal(); drawOverlay(); renderSpotList();
+    setStatus("נטענו " + state.spots.length + " מלבנים מקובץ spots.json.");
+  } catch (err) {
+    setStatus("שגיאה בקריאת spots.json.", true);
+  }
 });
 document.getElementById("btnEstimate").addEventListener("click", computeEstimate);
+document.getElementById("btnCopySummary").addEventListener("click", () => {
+  if (!state.spots.length) {
+    setStatus("אין מלבנים להעתקה.", true);
+    return;
+  }
+  const total = state.spots.length;
+  const computed = state.estimates.length;
+  const occ = computed ? state.estimates.filter((e) => e.occupied).length : 0;
+  const method = state.estimates[0] ? HEU.methodLabelHe(state.estimates[0].method) : "טרם חושב";
+  const summaryText = [
+    "ערכת פיילוט ParkWiz — תפוסה",
+    "רחוב/אתר: " + street(),
+    "מקומות מסומנים: " + total,
+    "תפוסים (הערכה): " + (computed ? occ : "טרם חושב"),
+    "פנויים (הערכה): " + (computed ? total - occ : "טרם חושב"),
+    "שיטה: " + method,
+    "זמן: " + new Date().toISOString(),
+  ].join("\n");
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(summaryText).then(() => {
+      setStatus("תקציר התפוסה הועתק ללוח.");
+    }).catch(() => {
+      setStatus("העתקה ללוח לא הצליחה.", true);
+    });
+  } else {
+    setStatus("העתקה ללוח אינה נתמכת בדפדפן זה.", true);
+  }
+});
 document.getElementById("btnExportOcc").addEventListener("click", () => {
   if (!state.occupancy.length) {
     setStatus("אין נתוני תפוסה לייצוא.", true);
@@ -644,8 +678,12 @@ document.getElementById("btnLoadSampleOcc").addEventListener("click", async () =
 document.getElementById("fileOcc").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
-  applyOccupancy(JSON.parse(await f.text()));
-  setStatus("קובץ occupancy.json נטען בהצלחה.");
+  try {
+    applyOccupancy(JSON.parse(await f.text()));
+    setStatus("נטענו " + state.occupancy.length + " רשומות occupancy.");
+  } catch (err) {
+    setStatus("שגיאה בטעינת occupancy.json.", true);
+  }
 });
 document.getElementById("streetName").addEventListener("change", saveLocal);
 window.addEventListener("resize", drawOverlay);
@@ -660,6 +698,7 @@ window.addEventListener("resize", drawOverlay);
     if (o) applyOccupancy(JSON.parse(o));
   } catch (e) {}
   renderSpotList();
+  drawChart(state.occupancy);
   loadSample();
 })();
 </script>
