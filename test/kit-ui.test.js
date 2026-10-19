@@ -50,7 +50,7 @@ test('pilot kit page has a copy summary action, announced estimate note, and gua
   assert.match(html, /id="fileOcc"[^>]*aria-label="[^"]+"/);
 
   // Copy summary button exists, is wired, and uses the clipboard
-  assert.match(html, /<button type="button" id="btnCopySummary">/);
+  assert.match(html, /<button type="button" id="btnCopySummary"[^>]*>/);
   assert.match(html, /document\.getElementById\("btnCopySummary"\)\.addEventListener\("click",/);
   assert.match(html, /navigator\.clipboard\.writeText/);
 
@@ -69,4 +69,40 @@ test('pilot kit page has a copy summary action, announced estimate note, and gua
 
   // Restored occupancy is charted on boot, not only after a fresh estimate
   assert.match(html, /renderSpotList\(\);\s*drawChart\(state\.occupancy\);\s*loadSample\(\);/);
+});
+
+test('pilot kit panels are labelled landmarks and every action button names itself', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'pilot-kit.html'), 'utf8');
+
+  // Each workflow panel is a region labelled by its own heading
+  for (const id of ['secSnap', 'secEst', 'secChart', 'secSpots']) {
+    assert.match(html, new RegExp(`<section class="panel"[^>]*role="region"[^>]*aria-labelledby="${id}"`));
+    assert.match(html, new RegExp(`<h2 id="${id}">`));
+  }
+
+  // Terse button texts get a fuller accessible name, and WCAG 2.5.3 holds:
+  // the visible text stays inside the accessible name, so voice control can
+  // still say what it reads on screen.
+  for (const id of [
+    'btnSample', 'btnEstimate', 'btnCopySummary', 'btnExportOcc', 'btnExportCsv',
+    'btnLoadSampleOcc', 'btnUndo', 'btnClear', 'btnSaveLs', 'btnExportSpots',
+  ]) {
+    const btn = html.match(new RegExp(`<button[^>]*id="${id}"[^>]*>([^<]*)</button>`));
+    assert.ok(btn, `${id} must be a button with visible text`);
+    const label = (btn[0].match(/aria-label="([^"]+)"/) || [])[1];
+    assert.ok(label, `${id} needs an aria-label`);
+    assert.ok(
+      label.includes(btn[1].trim()),
+      `${id} aria-label "${label}" must contain its visible text "${btn[1].trim()}" (WCAG 2.5.3)`
+    );
+  }
+
+  // Clearing the spots resets the KPI counters instead of leaving stale numbers
+  assert.match(
+    html,
+    /getElementById\("btnClear"\)\.addEventListener\("click",[\s\S]*?getElementById\("kTotal"\)\.textContent\s*=\s*"0";\s*document\.getElementById\("kOcc"\)\.textContent\s*=\s*"0";\s*document\.getElementById\("kFree"\)\.textContent\s*=\s*"0";/
+  );
+
+  // The copied summary says the numbers are heuristic, not AI or a live camera
+  assert.match(html, /"הערה: הערכה היוריסטית על snapshot — לא בינה מלאכותית ולא מצלמה חיה\."/);
 });
