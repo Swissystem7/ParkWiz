@@ -44,6 +44,10 @@ test('activatePremium updates premium button text and aria-label', () => {
   assert.match(html, /premBtn\.setAttribute\('aria-label',\s*'ParkWiz Premium פעיל \(הדגמה\)'\)/);
 });
 
-test('service worker cache bumped to v18 for pricing a11y updates', () => {
-  assert.match(sw, /const CACHE = 'parkwiz-field-v18';/);
+// The pricing a11y work shipped at v18. Pinning the exact version made every
+// later shell change fail this test instead of its own, so what is guarded here
+// is the floor: the bump happened, and no later change may undo it.
+test('service worker cache is at or past the v18 pricing a11y bump', () => {
+  const version = Number(sw.match(/const CACHE = 'parkwiz-field-v(\d+)';/)[1]);
+  assert.ok(version >= 18, 'cache version went backwards past the pricing a11y bump: v' + version);
 });
