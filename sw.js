@@ -53,6 +53,8 @@ const ASSETS = [
   './src/lib/availability.js',
   './src/lib/predict.js',
   './src/lib/atidim-lot.js',
+  // <script src>'d by index.html for the ?site= demo preset (#261).
+  './src/lib/site-preset.js',
   // <script src>'d by demo/atidim-board.html; without it the margin panel is
   // blank on the first offline visit.
   './src/lib/margin.js',
