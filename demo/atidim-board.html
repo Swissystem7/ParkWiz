@@ -54,6 +54,15 @@
   .mtone{font-size:12px;color:var(--muted);margin:10px 0 0;font-weight:600}
   .chartwrap{overflow-x:auto}
   svg.chart{display:block;width:100%;height:auto}
+  /* "A bay freed" feed (#265 row 2): the alert the driver's phone will show,
+     mirrored on the operator board so the room sees both sides of one event. */
+  .alerts ol{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  .alerts li{background:var(--bg);border:1px solid var(--line);border-inline-start:4px solid var(--free);border-radius:10px;padding:9px 12px}
+  .alerts .who{font-size:13px;font-weight:700}
+  .alerts .go{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px}
+  .alerts .go a{font-size:12px;font-weight:600;color:var(--brand);text-decoration:none;border:1px solid var(--brand);border-radius:8px;padding:2px 10px}
+  .alerts .empty,.alerts .note{font-size:12px;color:var(--muted);margin:0}
+  .alerts .note{margin-top:10px}
   .privacy{font-size:13px;color:var(--muted)}
   .privacy ul{margin:8px 0 0;padding-inline-start:18px}
   .foot{margin-top:20px;text-align:center;font-size:11px;color:var(--muted)}
@@ -95,6 +104,19 @@
     <div class="kpi occ"><div class="n" id="kOcc">—</div><div class="l">מקומות תפוסים (Y)</div></div>
     <div class="kpi"><div class="n" id="kOccPct">—</div><div class="l">אחוז תפוסה</div></div>
     <div class="kpi"><div class="n" id="kTotal">—</div><div class="l">סה״כ מקומות בחניון</div></div>
+  </section>
+
+  <!-- EPIC #265 row 2, the core value: the moment a bay frees, the driver is
+       told which bay it is and how to drive to it. The same event is what the
+       optional relay (row 3) forwards to phones that are not in the room, and
+       what the car API (row 16) will subscribe to. -->
+  <section class="panel alerts" style="margin-bottom:14px" aria-labelledby="alertsTitle">
+    <h2 id="alertsTitle">התפנה מקום — ההתראה שהנהג מקבל</h2>
+    <div aria-live="polite">
+      <p class="empty" id="alertsEmpty">גררו את מחוון השעה קדימה — כל מקום שמתפנה מופיע כאן כהתראה לנהג.</p>
+      <ol id="alertsList" aria-label="מקומות שהתפנו"></ol>
+    </div>
+    <p class="note" id="alertsNote"></p>
   </section>
 
   <div class="grid cols2">
@@ -156,6 +178,7 @@
 <script src="../src/lib/atidim-lot.js"></script>
 <script src="../src/lib/occupancy.js"></script>
 <script src="../src/lib/margin.js"></script>
+<script src="../src/lib/spot-freed.js"></script>
 <script>
 "use strict";
 if ("serviceWorker" in navigator) {
@@ -164,6 +187,7 @@ if ("serviceWorker" in navigator) {
 const LOT = window.ParkWizAtidimLot;
 const OCC = window.ParkWizOccupancy;
 const MARGIN = window.ParkWizMargin;
+const FREED = window.ParkWizSpotFreed;
 const $ = (id) => document.getElementById(id);
 
 function announce(msg, isErr) {
@@ -210,6 +234,19 @@ let buffer = (MARGIN && MARGIN.DEFAULT_BUFFER_MIN) || 5;
 // demo opens on "now" but can still be walked through the whole day by hand.
 let follow = true;
 let dpr = 0;
+
+// EPIC #265 rows 2/9/10. The board already knows which bay is taken at every
+// hour, so the difference between two hours is a real stream of departures —
+// no fake timer. src/lib/spot-freed.js turns that stream into the alert, and
+// decides which of them this driver is even allowed to hear about.
+// confirmFrames is 1 here because the board's curve is deterministic; the live
+// camera page raises it, which is the whole point of the setting living in the
+// library rather than in a page.
+const FLOORS = { A: "קומת קרקע", B: "מפלס -1", C: "מפלס -2" };
+const MAX_ALERTS = 4;
+let bayIds = [];
+let tracker = null;
+let alerts = [];
 
 // Fixed drawing size; the backing store is scaled to the device so the lot
 // stays sharp on a meeting-room projector.
@@ -321,7 +358,9 @@ function drawLot(snapshot) {
     if (occupied) drawCar(ctx, x, y, bayW, bayH);
     ctx.fillStyle = "#fff";
     ctx.font = "bold 12px system-ui,sans-serif";
-    ctx.fillText(String(i + 1), x + bayW / 2, y + bayH - 11);
+    // The bay is labelled with the same id the alert quotes — a driver told
+    // "התפנה מקום B-03" has to be able to find B-03 on the operator's screen.
+    ctx.fillText(bayIds[i] || String(i + 1), x + bayW / 2, y + bayH - 11);
   });
 }
 
@@ -361,6 +400,59 @@ function renderMargin() {
   $("marginBand").style.width = Math.max(2, (m.high - m.low) * scale) + "%";
 }
 
+function alertOpts() {
+  return { lotName: config.site || "חניון פארק עתידים", floors: FLOORS, nowMs: Date.now() };
+}
+
+function renderAlerts() {
+  const list = $("alertsList");
+  if (!list || !FREED || !tracker) return;
+  const empty = $("alertsEmpty");
+  if (empty) empty.hidden = alerts.length > 0;
+  const nav = FREED.navigationLinks(config.entrance);
+  const opts = alertOpts();
+  list.replaceChildren();
+  alerts.forEach((ev) => {
+    const li = document.createElement("li");
+    const who = document.createElement("div");
+    who.className = "who";
+    who.textContent = FREED.alertTextHe(ev, opts);
+    li.appendChild(who);
+    if (nav) {
+      const go = document.createElement("div");
+      go.className = "go";
+      [["נווט ב-Waze", nav.waze], ["נווט ב-Google Maps", nav.google]].forEach((pair) => {
+        const a = document.createElement("a");
+        a.href = pair[1];
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = pair[0];
+        a.setAttribute("aria-label", pair[0] + " אל " + nav.label + " · " + FREED.destinationHe(ev, opts));
+        go.appendChild(a);
+      });
+      li.appendChild(go);
+    }
+    list.appendChild(li);
+  });
+  // Say out loud what does and does not leave the browser — this panel is the
+  // one the IT and privacy questions get asked about (#265 rows 3, 5, 9).
+  const note = $("alertsNote");
+  if (note) {
+    note.textContent = "התראות נשלחות רק על מקומות " + tracker.allowedTypes.map(FREED.typeHe).join(" / ")
+      + " · הזיהוי רץ בדפדפן; החוצה עובר רק {חניון, מקום, זמן} — ללא תמונה, ללא לוחית רישוי.";
+  }
+}
+
+function syncAlerts(snap) {
+  if (!tracker) return;
+  const readings = (snap.bays || []).map((occupied, i) => ({ id: bayIds[i], occupied, confidence: 1 }));
+  const fresh = FREED.freedEvents(tracker.observe(readings, Date.now()).events);
+  // Newest first, and only the last few: a scrub across the evening frees a
+  // dozen bays at once, and a driver is sent to one spot, not to a list.
+  if (fresh.length) alerts = fresh.reverse().concat(alerts).slice(0, MAX_ALERTS);
+  renderAlerts();
+}
+
 function render() {
   const snap = LOT.snapshotAt(hour, config);
   $("kFree").textContent = String(snap.free);
@@ -379,6 +471,7 @@ function render() {
     canvas.setAttribute("aria-label", "מפת חניות: " + snap.free + " פנויים מתוך " + snap.total + " בשעה " + label(hour));
   }
   drawLot(snap);
+  syncAlerts(snap);
   $("hourlyChart").innerHTML = OCC.chartSvg(LOT.hourlySeries(config), {
     width: 520,
     height: 220,
@@ -396,6 +489,17 @@ function start() {
   if (!LOT || !OCC || !MARGIN) return;
   $("siteTitle").textContent = config.site + " — לוח מפעיל (דמו)";
   $("dataNote").textContent = config.meetingNote ? " " + config.meetingNote : "";
+  // Bay ids before the first render: the canvas labels them and the tracker's
+  // very first observe() is the baseline the alerts are measured against.
+  if (FREED) {
+    bayIds = FREED.labelGrid(config.cols, config.rows);
+    tracker = FREED.createFreedTracker({
+      lot: config.lotId || "atidim",
+      confirmFrames: 1,
+      spotTypes: config.spotTypes || FREED.demoSpotTypes(bayIds),
+      allowedTypes: config.driverTypes,
+    });
+  }
   hour = nowHour();
   render();
   $("hourRange").addEventListener("input", (e) => {
@@ -446,6 +550,9 @@ function start() {
   window.addEventListener("resize", () => drawLot(LOT.snapshotAt(hour, config)));
   setInterval(() => {
     renderMargin();
+    // An alert that still reads "ממש עכשיו" ten minutes later is a lie the
+    // driver can check against their own clock.
+    renderAlerts();
     if (!follow) return;
     const h = nowHour();
     if (h === hour) return;
