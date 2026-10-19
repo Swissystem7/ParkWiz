@@ -44,6 +44,10 @@ test('activatePremium updates premium button text and aria-label', () => {
   assert.match(html, /premBtn\.setAttribute\('aria-label',\s*'ParkWiz Premium פעיל \(הדגמה\)'\)/);
 });
 
-test('service worker cache bumped to v18 for pricing a11y updates', () => {
-  assert.match(sw, /const CACHE = 'parkwiz-field-v18';/);
+// A floor, not an exact pin: the pricing a11y shell shipped at v18, and every
+// later shell change has to bump the cache again (#267 took it to v19). An
+// equality check here would have made the next bump look like a regression.
+test('service worker cache is at least v18, the pricing a11y shell', () => {
+  assert.match(sw, /const CACHE = 'parkwiz-field-v\d+';/);
+  assert.ok(Number(sw.match(/parkwiz-field-v(\d+)/)[1]) >= 18);
 });

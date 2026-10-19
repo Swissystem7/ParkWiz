@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v18';
+const CACHE = 'parkwiz-field-v19';
 const ASSETS = [
   './',
   './index.html',
@@ -55,8 +55,12 @@ const ASSETS = [
   // <script src>'d by demo/atidim-board.html; without it the margin panel is
   // blank on the first offline visit.
   './src/lib/margin.js',
+  // <script src>'d by demo/car-demo.html; the connected-car simulator is dead
+  // markup without it on the first offline visit.
+  './src/lib/car-api.js',
   './demo/atidim.html',
   './demo/atidim-board.html',
+  './demo/car-demo.html',
   // Operator-editable labels for the Atidim demo.
   './demo/atidim-data.json',
 ];
