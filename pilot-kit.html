@@ -52,6 +52,13 @@ button.danger{color:var(--occ);border-color:#fecaca}
 .badge.unk{background:#f3f4f6;color:#374151}
 svg.chart{display:block;width:100%;height:auto}
 .status{min-height:1.3em;font-size:.86rem;font-weight:700;margin:8px 0 12px}
+.panel.priv{border-color:#99f6e4;background:#f0fdfa;margin-bottom:14px}
+.priv-toggle{background:var(--brand);border-color:var(--brand);color:#fff}
+.priv-toggle[disabled]{cursor:not-allowed;opacity:1}
+.priv-toggle[aria-pressed=false]{background:#fff;border-color:#f59e0b;color:#92400e}
+.priv-badge{font-size:.72rem;font-weight:800;padding:2px 9px;border-radius:99px;background:#ccfbf1;color:#115e59}
+.priv-badge.off{background:#fef3c7;color:#92400e}
+.priv-lock{font-size:.72rem;font-weight:700;color:var(--muted)}
 .empty-msg{color:var(--muted);font-size:.82rem;padding:8px 0}
 .foot{margin-top:22px;text-align:center;color:var(--muted);font-size:.72rem}
 </style>
@@ -66,11 +73,30 @@ svg.chart{display:block;width:100%;height:auto}
     <b>היוריסטיקה, לא בינה מלאכותית.</b>
     ההערכה היא חיסור רקע מנורמל־תאורה מול פריים ייחוס ריק לכל מקום (או סף לפי תאורה בלי ייחוס).
     אין זיהוי לוחיות, אין זיהוי פנים, ואין הזנה ממצלמת עירייה בריפו. כל תוצאה מסומנת heuristic.
+    פנים ולוחיות מטושטשים במכשיר לפני כל תצוגה או שמירה — ראו «פרטיות» למטה.
     <a href="./pilot-method.html">מתודולוגיה</a> ·
     <a href="./pilot-calibrate.html">כיול 3 דק׳</a> ·
     <a href="./pilot-eval.html">דיוק דמו</a>
   </div>
   <p class="status" id="kitStatus" role="status" aria-live="polite"></p>
+
+  <section class="panel priv" aria-labelledby="privHead">
+    <h2 id="privHead">פרטיות — טשטוש פנים ולוחיות במכשיר</h2>
+    <div class="row">
+      <button type="button" id="btnPrivacy" class="priv-toggle" aria-pressed="true" aria-describedby="privNote">
+        מצב פרטיות פועל
+      </button>
+      <span class="priv-badge" id="privBadge">פועל</span>
+      <span class="priv-lock" id="privLock" hidden>נעול בבילד ייצור</span>
+    </div>
+    <p class="hint" id="privNote">
+      כל פריים עובר טשטוש בדפדפן <b>לפני</b> שהוא מוצג, נשמר או מיוצא. אין זיהוי —
+      לא OCR, לא LPR ולא ביומטריה; המודול מאתר אזורי פנים ולוחיות רק כדי למחוק אותם,
+      ואף פריים גולמי לא יוצא מהמכשיר. עובד גם לא מקוון.
+      <a href="./docs/privacy-redaction.md">מסמך הפרטיות</a>
+    </p>
+    <p class="hint" id="privCount" role="status" aria-live="polite">עדיין לא נטען פריים.</p>
+  </section>
 
   <div class="grid">
     <div>
@@ -78,6 +104,7 @@ svg.chart{display:block;width:100%;height:auto}
         <h2>1. תמונת snapshot</h2>
         <div class="row">
           <button type="button" class="primary" id="btnSample">טען דוגמה כלולה</button>
+          <button type="button" id="btnSamplePrivacy">טען דוגמת פרטיות (פנים + לוחיות)</button>
           <label class="file" for="fileSnap">צילום נוכחי <input type="file" id="fileSnap" accept="image/*" aria-label="בחירת צילום נוכחי"></label>
           <label class="file" for="fileEmpty">פריים ייחוס ריק <input type="file" id="fileEmpty" accept="image/*" aria-label="בחירת פריים ייחוס ריק"></label>
           <label class="file" for="fileNight">ייחוס לילה ריק (רשות) <input type="file" id="fileNight" accept="image/*" aria-label="בחירת ייחוס לילה ריק"></label>
@@ -147,6 +174,7 @@ svg.chart{display:block;width:100%;height:auto}
 </div>
 <script src="src/lib/occupancy.js"></script>
 <script src="src/lib/heuristic.js"></script>
+<script src="src/lib/redact.js"></script>
 <script src="src/lib/compare.js"></script>
 <script src="src/lib/export.js"></script>
 <script src="src/lib/surface-nav.js"></script>
@@ -156,6 +184,7 @@ svg.chart{display:block;width:100%;height:auto}
 
 const OCC = window.ParkWizOccupancy;
 const HEU = window.ParkWizHeuristic;
+const RED = window.ParkWizRedact;
 const LS_SPOTS = OCC.LS.spots;
 const LS_OCC = OCC.LS.occupancy;
 const LS_STREET = OCC.LS.street;
@@ -171,7 +200,13 @@ const state = {
   night: null,
   hasEmpty: false,
   hasNight: false,
+  redacted: { frames: 0, faces: 0, plates: 0 },
 };
+
+const privacy = RED.createPrivacyMode(window.location);
+// One offscreen canvas does every redaction. It is never added to the document,
+// so there is no moment at which an un-redacted frame is on screen.
+const redactStage = document.createElement("canvas");
 
 const snapImg = document.getElementById("snapImg");
 const canvas = document.getElementById("calCanvas");
@@ -212,6 +247,64 @@ function loadImage(src) {
     img.onerror = () => reject(new Error("image load failed"));
     img.src = src;
   });
+}
+
+// THE INGEST GATE. Every frame this page touches — the bundled samples, an
+// uploaded snapshot, a phone photo straight from the camera — enters here and
+// nothing downstream ever sees the raw bytes. The raw object URL is revoked the
+// moment the redacted copy exists, so even the blob is gone.
+//
+// Returns a redacted Image. Callers assign that to snapImg.src and to
+// state.snap/empty/night, which means the display, the occupancy read and any
+// export all work off redacted pixels only.
+async function ingestFrame(rawUrl) {
+  const raw = await loadImage(rawUrl);
+  const revoke = () => {
+    if (String(rawUrl).startsWith("blob:")) URL.revokeObjectURL(rawUrl);
+  };
+  if (!privacy.enabled) {
+    // Only reachable on a dev host; in production the toggle cannot get here.
+    return { image: raw, report: null };
+  }
+  let report;
+  let redactedUrl;
+  try {
+    // Both steps read the bitmap back, so both throw on a tainted canvas —
+    // getImageData first. Fail closed: drop the frame rather than fall back to
+    // showing the raw one.
+    report = RED.redactSource(raw, redactStage);
+    redactedUrl = redactStage.toDataURL("image/png");
+  } catch (err) {
+    revoke();
+    throw new Error("redaction-unavailable");
+  }
+  revoke();
+  const image = await loadImage(redactedUrl);
+  state.redacted.frames++;
+  state.redacted.faces += report.faces;
+  state.redacted.plates += report.plates;
+  renderPrivacy();
+  return { image, report };
+}
+
+function renderPrivacy() {
+  const btn = document.getElementById("btnPrivacy");
+  const badge = document.getElementById("privBadge");
+  const lock = document.getElementById("privLock");
+  const count = document.getElementById("privCount");
+  btn.textContent = privacy.labelHe();
+  btn.setAttribute("aria-pressed", privacy.enabled ? "true" : "false");
+  // In a production build the guarantee is not a switch: the control stays
+  // visible so the park can see the state, but it cannot be flipped.
+  btn.disabled = privacy.locked;
+  badge.textContent = privacy.enabled ? "פועל" : "כבוי";
+  badge.classList.toggle("off", !privacy.enabled);
+  lock.hidden = !privacy.locked;
+  const r = state.redacted;
+  count.textContent = r.frames === 0
+    ? "עדיין לא נטען פריים."
+    : "טושטשו " + r.faces + " אזורי פנים ו-" + r.plates +
+      " לוחיות ב-" + r.frames + " פריימים — הכול במכשיר, בלי שליחה לשרת.";
 }
 
 function layoutSpots() {
@@ -262,11 +355,14 @@ async function fetchText(path) {
   return res.text();
 }
 
-async function loadSample() {
+// variant "privacy" loads the frame that has faces and plates planted in it, so
+// the operator can see the redaction working rather than take it on trust.
+async function loadSample(variant) {
+  const lotFile = variant === "privacy" ? "pilot/sample-lot-privacy.svg" : "pilot/sample-lot.svg";
   let snapUrl = makeSyntheticLot(false);
   let emptyUrl = makeSyntheticLot(true);
   try {
-    const lot = await fetch("pilot/sample-lot.svg");
+    const lot = await fetch(lotFile);
     if (lot.ok) {
       const blob = await lot.blob();
       snapUrl = URL.createObjectURL(blob);
@@ -277,17 +373,26 @@ async function loadSample() {
       emptyUrl = URL.createObjectURL(blob);
     }
   } catch (e) { /* file:// fallback already set */ }
-  state.snap = await loadImage(snapUrl);
-  state.empty = await loadImage(emptyUrl);
+  let snapReport = null;
+  try {
+    const snap = await ingestFrame(snapUrl);
+    state.snap = snap.image;
+    snapReport = snap.report;
+    state.empty = (await ingestFrame(emptyUrl)).image;
+  } catch (err) {
+    setStatus("הפריים לא הוצג: לא ניתן להפיק עותק מטושטש בדפדפן הזה.", true);
+    return;
+  }
   state.hasEmpty = true;
   try {
     const night = await fetch("pilot/sample-empty-night.svg");
     if (night.ok) {
-      state.night = await loadImage(URL.createObjectURL(await night.blob()));
+      const nightIn = await ingestFrame(URL.createObjectURL(await night.blob()));
+      state.night = nightIn.image;
       state.hasNight = true;
     }
   } catch (e) { state.hasNight = false; }
-  snapImg.src = snapUrl;
+  snapImg.src = state.snap.src;
   try {
     const raw = await fetchText("pilot/sample-spots.json");
     applySpotsDoc(JSON.parse(raw));
@@ -300,7 +405,10 @@ async function loadSample() {
   drawOverlay();
   renderSpotList();
   saveLocal();
-  setStatus("נטענה דוגמת מגרש מסונתזת עם 12 מקומות.");
+  setStatus(variant === "privacy" && snapReport
+    ? "נטענה דוגמת פרטיות — טושטשו " + snapReport.faces + " אזורי פנים ו-" +
+      snapReport.plates + " לוחיות לפני התצוגה."
+    : "נטענה דוגמת מגרש מסונתזת עם 12 מקומות.");
 }
 
 function waitImg() {
@@ -538,33 +646,66 @@ function drawChart(recs) {
   host.innerHTML = OCC.chartSvg(recs, { width: 720, height: 220 });
 }
 
+// A redaction report turned into the sentence the operator reads.
+function redactedNote(report) {
+  if (!report) return "";
+  if (!report.regions) return " לא זוהו פנים או לוחיות בפריים.";
+  return " טושטשו " + report.faces + " אזורי פנים ו-" + report.plates + " לוחיות.";
+}
+
 document.getElementById("btnSample").addEventListener("click", () => loadSample());
+document.getElementById("btnSamplePrivacy").addEventListener("click", () => loadSample("privacy"));
 document.getElementById("fileSnap").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
-  const url = await fileToDataUrl(f);
-  state.snap = await loadImage(url);
-  snapImg.src = url;
+  let snap;
+  try {
+    snap = await ingestFrame(await fileToDataUrl(f));
+  } catch (err) {
+    setStatus("הפריים לא הוצג: לא ניתן להפיק עותק מטושטש בדפדפן הזה.", true);
+    return;
+  }
+  state.snap = snap.image;
+  snapImg.src = snap.image.src;
   state.estimates = [];
   await waitImg();
   drawOverlay();
-  setStatus("תמונת snapshot נטענה בהצלחה.");
+  setStatus("תמונת snapshot נטענה בהצלחה." + redactedNote(snap.report));
 });
 document.getElementById("fileEmpty").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
-  const url = await fileToDataUrl(f);
-  state.empty = await loadImage(url);
+  let frame;
+  try {
+    frame = await ingestFrame(await fileToDataUrl(f));
+  } catch (err) {
+    setStatus("הפריים לא נטען: לא ניתן להפיק עותק מטושטש בדפדפן הזה.", true);
+    return;
+  }
+  state.empty = frame.image;
   state.hasEmpty = true;
-  setStatus("פריים ייחוס ריק נטען בהצלחה.");
+  setStatus("פריים ייחוס ריק נטען בהצלחה." + redactedNote(frame.report));
 });
 document.getElementById("fileNight").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
-  const url = await fileToDataUrl(f);
-  state.night = await loadImage(url);
+  let frame;
+  try {
+    frame = await ingestFrame(await fileToDataUrl(f));
+  } catch (err) {
+    setStatus("הפריים לא נטען: לא ניתן להפיק עותק מטושטש בדפדפן הזה.", true);
+    return;
+  }
+  state.night = frame.image;
   state.hasNight = true;
-  setStatus("פריים ייחוס לילה נטען בהצלחה.");
+  setStatus("פריים ייחוס לילה נטען בהצלחה." + redactedNote(frame.report));
+});
+document.getElementById("btnPrivacy").addEventListener("click", () => {
+  privacy.toggle();
+  renderPrivacy();
+  setStatus(privacy.enabled
+    ? "מצב פרטיות הופעל. פריימים חדשים יטושטשו."
+    : "מצב פרטיות כבוי — פיתוח בלבד. אל תטענו פריים אמיתי.", !privacy.enabled);
 });
 document.getElementById("btnUndo").addEventListener("click", () => {
   if (!state.spots.length) {
@@ -659,6 +800,10 @@ window.addEventListener("resize", drawOverlay);
     const o = localStorage.getItem(LS_OCC);
     if (o) applyOccupancy(JSON.parse(o));
   } catch (e) {}
+  // The toggle shows its locked state before the first frame is fetched, so
+  // there is no instant where the page displays a frame without stating that
+  // privacy mode was on while it was read.
+  renderPrivacy();
   renderSpotList();
   loadSample();
 })();
