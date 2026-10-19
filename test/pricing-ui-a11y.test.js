@@ -44,6 +44,13 @@ test('activatePremium updates premium button text and aria-label', () => {
   assert.match(html, /premBtn\.setAttribute\('aria-label',\s*'ParkWiz Premium פעיל \(הדגמה\)'\)/);
 });
 
-test('service worker cache bumped to v18 for pricing a11y updates', () => {
-  assert.match(sw, /const CACHE = 'parkwiz-field-v18';/);
+// Pinned to exactly v18 when the pricing a11y pass landed, which made this
+// file the one thing standing between the shell and its next bump: every other
+// cache assertion in the suite is already a floor (test/contact.test.js,
+// test/feedback-form.test.js, test/atidim-demo-page.test.js). What this test
+// cares about is that the pricing bump happened at all, so make it a floor too
+// and let later shell changes bump sw.js without editing a pricing test.
+test('changed cached pages: the service worker cache is at v18 or later', () => {
+  const v = Number((sw.match(/const CACHE = 'parkwiz-field-v(\d+)';/) || [])[1]);
+  assert.ok(v >= 18, 'cache version ' + v + ' regressed below the pricing a11y bump');
 });
