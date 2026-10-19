@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — זיהוי תפוסה אמיתי ממצלמה, בתוך הדפדפן</title>
+<link rel="icon" href="../icon.svg">
+<link rel="stylesheet" href="../pilot/shell.css">
+<style>
+/* Shared chrome is pilot/shell.css; only frame, KPI row and toast are local. */
+.wrap { max-width: 1040px; margin: 0 auto; padding: 14px 14px 48px; }
+h1 { font-size: 1.16rem; margin: 0 0 3px; } h2 { font-size: .96rem; margin: 0 0 10px; }
+.sub { color: var(--muted); font-size: .82rem; margin: 0 0 14px; }
+.hint { font-size: .78rem; color: var(--muted); margin: 8px 0 0; }
+#stage { background: #0b0f19; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+/* No aspect-ratio override: height:auto keeps the canvas's own 960x540 until a
+   frame arrives, then the real frame's shape — a 4:3 camera must not stretch. */
+#frame { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; }
+.kpis, .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 12px 0 4px; }
+.grid2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 11px; text-align: center; }
+.kpi .num { font-size: 1.9rem; font-weight: 800; line-height: 1.1; color: var(--brand); }
+.kpi.free .num { color: var(--free); } .kpi.occ .num { color: var(--occ); }
+.kpi .lbl { font-size: .75rem; color: var(--muted); }
+input[type="url"], input[type="file"] { font: inherit; font-size: .82rem; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
+#toast { position: fixed; inset-block-end: 16px; inset-inline-start: 16px; z-index: 50; display: none; background: var(--free); color: #fff; font-weight: 700; font-size: .86rem; padding: 10px 16px; border-radius: 10px; box-shadow: var(--shadow); }
+#toast.show { display: block; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">דלג לתוכן הראשי</a>
+<div class="wrap">
+  <h1>זיהוי תפוסה אמיתי מווידאו מצלמה — בתוך הדפדפן</h1>
+  <p class="sub">ParkWiz · פארק עתידים / CityZone</p>
+
+  <!-- Every other ParkWiz surface banners "this frame is a simulation". Here it
+       says the opposite, so it must be as precise about the one non-local part. -->
+  <p class="banner" role="note">
+    <b>זה לא דמו מדומה.</b> כל פריים עובר זיהוי רכבים אמיתי (COCO-SSD / TensorFlow.js) שרץ בדפדפן שלכם,
+    והמונים למטה מחושבים מהזיהויים האלה בלבד. <b>טעינת המודל בפעם הראשונה דורשת אינטרנט</b> (כ‑6MB מ‑CDN);
+    אחריה הניתוח עובד גם בלי רשת. <b>הפריימים לא יוצאים מהמכשיר</b> — אין העלאה לשרת ואין קריאת לוחיות רישוי.
+  </p>
+
+  <main id="main">
+    <section class="panel">
+      <h2>1. מקור הווידאו</h2>
+      <div class="toolbar">
+        <label for="fileIn">קובץ וידאו או תמונה:</label>
+        <input type="file" id="fileIn" accept="video/*,image/*">
+        <button type="button" id="btnCam" class="primary">מצלמת המכשיר</button>
+        <input type="url" id="urlIn" aria-label="כתובת סטרים מצלמה" placeholder="כתובת סטרים (MJPEG / HLS / MP4) — בכפוף ל‑CORS">
+        <button type="button" id="btnUrl">טען כתובת</button>
+        <button type="button" id="btnStop">עצור</button>
+      </div>
+      <p class="hint" id="srcStatus" role="status">בחרו מקור כדי להתחיל — קובץ מקומי, מצלמת המכשיר או כתובת סטרים.</p>
+    </section>
+
+    <section class="panel">
+      <h2>2. סימון תאי חניה וזיהוי חי</h2>
+      <div id="stage">
+        <canvas id="frame" width="960" height="540" role="img" aria-label="פריים המצלמה עם שכבת תאי החניה והזיהויים"></canvas>
+      </div>
+      <div class="toolbar" style="margin-top:10px">
+        <button type="button" id="btnUndo">בטל תא אחרון</button>
+        <button type="button" id="btnClear">נקה תאים</button>
+        <span class="hint" id="spotStatus" role="status">גררו על הפריים כדי לסמן תא חניה.</span>
+      </div>
+      <p class="hint">תא נחשב תפוס כשרכב מכסה מעל 30% משטחו, ורק אחרי 3 פריימים רצופים — כדי שעובר אורח או הבהוב של הגלאי לא יצבעו תא באדום.</p>
+    </section>
+
+    <section class="kpis" aria-live="polite">
+      <div class="kpi free"><div class="num" id="kpiFree">—</div><div class="lbl">תאים פנויים</div></div>
+      <div class="kpi occ"><div class="num" id="kpiOcc">—</div><div class="lbl">תאים תפוסים</div></div>
+      <div class="kpi"><div class="num" id="kpiRate">—</div><div class="lbl">אחוז תפוסה</div></div>
+      <div class="kpi"><div class="num" id="kpiCars">—</div><div class="lbl">רכבים בפריים</div></div>
+    </section>
+
+    <div class="grid2">
+      <section class="panel"><h2>עקומת התפוסה של ההרצה</h2>
+        <div id="sessionChart"><p class="hint">נבנה מהזיהויים האמיתיים של ההרצה הזו, לא מנתוני דמה.</p></div></section>
+      <section class="panel"><h2>תפוסה לפי שעה</h2>
+        <div id="hourChart"><p class="hint">מפת חום שעתית — מתמלאת ככל שההרצה נמשכת.</p></div></section>
+    </div>
+
+    <section class="panel"><h2>פרטיות</h2>
+      <p class="hint">הווידאו נשאר במכשיר: הגלאי רץ מקומית, אין <code>fetch</code> של פריימים ואין שמירה. הפלט הוא
+        ספירה בלבד — תא תפוס או פנוי. <b>אין זיהוי לוחיות רישוי ואין זיהוי אנשים</b> (המחלקות הנספרות: רכב,
+        משאית, אוטובוס, אופנוע). <a href="../pilot-privacy.html">נוהל הפרטיות המלא</a>.</p></section>
+  </main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<video id="srcVideo" playsinline muted loop crossorigin="anonymous" style="display:none"></video>
+<img id="srcImage" alt="" crossorigin="anonymous" style="display:none">
+
+<script src="../src/lib/occupancy.js"></script>
+<script src="../src/lib/vision-occupancy.js"></script>
+<script>
+(function () {
+  'use strict';
+  var VO = window.ParkWizVisionOccupancy, OCC = window.ParkWizOccupancy;
+  var TFJS = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js';
+  var COCO = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js';
+  var TICK_MS = 700;      // ~1.4 fps — enough for parking, cheap on a phone
+  var SAMPLE_MS = 20000;  // one chart record per 20s, plus every real transition
+  var canvas = document.getElementById('frame'), ctx = canvas.getContext('2d');
+  // The detector reads a second canvas, so it never sees our own overlay.
+  var work = document.createElement('canvas'), wctx = work.getContext('2d');
+  var video = document.getElementById('srcVideo'), image = document.getElementById('srcImage');
+  var srcStatus = document.getElementById('srcStatus'), spotStatus = document.getElementById('spotStatus');
+  var spots = [], boxes = [], records = [], tracker = VO.createTracker(spots), state = tracker.snapshot();
+  var source = null, model = null, loading = null, timer = null, stream = null;
+  var lastSample = 0, drag = null, seq = 0;
+  // occupancy.hourFromTs reads the literal "T<hh>", so a UTC stamp would file a
+  // 15:00 meeting under 13:00. Record the wall clock of the room instead.
+  function stamp() {
+    var d = new Date(), p = function (n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+      + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+  function toast(text) {
+    var el = document.getElementById('toast');
+    el.textContent = text;
+    el.classList.add('show');
+    clearTimeout(toast.t);
+    toast.t = setTimeout(function () { el.classList.remove('show'); }, 3500);
+  }
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = function () { reject(new Error(src)); };
+      document.head.appendChild(s);
+    });
+  }
+  // Injected on first use, not at page load: opening the page to mark spots
+  // must not cost 6MB, and an offline laptop should still reach the whole UI.
+  function ensureModel() {
+    if (model) return Promise.resolve(model);
+    if (loading) return loading;
+    srcStatus.textContent = 'טוען מודל זיהוי (פעם אחת, דורש אינטרנט)…';
+    loading = loadScript(TFJS)
+      .then(function () { return loadScript(COCO); })
+      .then(function () { return window.cocoSsd.load({ base: 'lite_mobilenet_v2' }); })
+      .then(function (m) { model = m; srcStatus.textContent = 'המודל נטען — הזיהוי רץ.'; return m; })
+      .catch(function (err) {
+        loading = null;
+        srcStatus.textContent = 'טעינת המודל נכשלה (אין אינטרנט או ה‑CDN חסום). הדף נשאר שמיש לסימון תאים; נסו שוב כשתהיה רשת.';
+        throw err;
+      });
+    return loading;
+  }
+  function stopSource() {
+    if (timer) { clearInterval(timer); timer = null; }
+    if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+    video.pause();
+    source = null;
+  }
+  // Callers stop the previous source *before* acquiring the next one: tearing
+  // down from in here would stop the tracks of the camera just opened and
+  // pause the video the caller just started.
+  function start(el, label) {
+    source = el;
+    srcStatus.textContent = label;
+    if (el === video) video.play().catch(function () { /* autoplay refusal must not stop detection */ });
+    ensureModel().then(function () { if (!timer) timer = setInterval(tick, TICK_MS); },
+      function () { /* the Hebrew failure message is already on screen */ });
+  }
+  function useVideoUrl(url, label) {
+    stopSource();
+    video.srcObject = null;
+    video.src = url;
+    start(video, label);
+  }
+  function useImage(url, label) { stopSource(); image.src = url; start(image, label); }
+  document.getElementById('fileIn').addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var url = URL.createObjectURL(file);
+    if (/^image\//.test(file.type)) useImage(url, 'תמונה: ' + file.name);
+    else useVideoUrl(url, 'וידאו: ' + file.name);
+  });
+  document.getElementById('btnCam').addEventListener('click', function () {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      srcStatus.textContent = 'הדפדפן הזה לא חושף מצלמה (נדרש HTTPS).';
+      return;
+    }
+    stopSource();
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+      .then(function (s) { stream = s; video.removeAttribute('src'); video.srcObject = s; start(video, 'מצלמת המכשיר פעילה.'); })
+      .catch(function () { srcStatus.textContent = 'הגישה למצלמה נדחתה.'; });
+  });
+  document.getElementById('btnUrl').addEventListener('click', function () {
+    var url = document.getElementById('urlIn').value.trim();
+    if (!url) return;
+    // An MJPEG endpoint is an endless image, not a <video> source.
+    if (/mjpe?g|\.(jpe?g|png)(\?|$)/i.test(url)) useImage(url, 'סטרים תמונה: ' + url);
+    else useVideoUrl(url, 'סטרים וידאו: ' + url);
+  });
+  document.getElementById('btnStop').addEventListener('click', function () {
+    stopSource();
+    srcStatus.textContent = 'הזיהוי הופסק.';
+  });
+  function tick() {
+    if (!source || !model) return;
+    var w = (source === video ? video.videoWidth : source.naturalWidth) || 0;
+    var h = (source === video ? video.videoHeight : source.naturalHeight) || 0;
+    if (!w || !h) return;
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = work.width = w; canvas.height = work.height = h; }
+    try { wctx.drawImage(source, 0, 0, w, h); } catch (e) { return; }  // tainted / not yet decoded
+    model.detect(work).then(function (preds) {
+      boxes = VO.normalizeDetections(preds, { frameWidth: w, frameHeight: h });
+      var ts = stamp();
+      state = tracker.update(boxes, ts);
+      state.freed.forEach(announceFreed);
+      record();
+      render();
+    }).catch(function () { /* one dropped frame must not kill the loop */ });
+  }
+  // #263: occupied -> free is the transition the rest of the product listens
+  // on. The tracker debounces it, so this fires once per real freeing.
+  function announceFreed(spotId) {
+    window.dispatchEvent(new CustomEvent('parkwiz:spot-freed', {
+      detail: { spotId: spotId, source: 'camera', ts: state.ts, free: state.free },
+    }));
+    toast('התפנה תא ' + spotId + ' · ' + state.free + ' פנויים');
+  }
+  function record() {
+    if (!state.total) return;
+    var now = Date.now();
+    if (!state.freed.length && !state.taken.length && now - lastSample < SAMPLE_MS) return;
+    lastSample = now;
+    var conf = boxes.length ? boxes.reduce(function (a, b) { return a + b.score; }, 0) / boxes.length : 0;
+    records.push(VO.toRecord(state, { street: 'מצלמה — פארק עתידים', confidence: conf }));
+    if (records.length > 400) records.shift();
+    document.getElementById('sessionChart').innerHTML = OCC.chartSvg(records, { markIndex: records.length - 1 });
+    document.getElementById('hourChart').innerHTML = OCC.hourHeatmapSvg(records);
+  }
+  function render() {
+    var W = canvas.width, H = canvas.height;
+    // Spots can be drawn before any source exists, and a detection can resolve
+    // just after "עצור" cleared it — neither may throw in front of an operator.
+    if (source) { try { ctx.drawImage(source, 0, 0, W, H); } catch (e) { ctx.clearRect(0, 0, W, H); } }
+    else ctx.clearRect(0, 0, W, H);
+    ctx.lineWidth = Math.max(2, Math.round(W / 420));
+    ctx.font = (ctx.lineWidth * 7) + 'px system-ui, sans-serif';
+    ctx.strokeStyle = '#67e8f9';
+    boxes.forEach(function (b) { ctx.strokeRect(b.x * W, b.y * H, b.w * W, b.h * H); });
+    state.spots.forEach(function (s) {
+      ctx.strokeStyle = s.occupied ? '#dc2626' : '#16a34a';
+      ctx.fillStyle = s.occupied ? 'rgba(220,38,38,.3)' : 'rgba(22,163,74,.3)';
+      ctx.fillRect(s.x * W, s.y * H, s.w * W, s.h * H);
+      ctx.strokeRect(s.x * W, s.y * H, s.w * W, s.h * H);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(s.id, s.x * W + 6, s.y * H + ctx.lineWidth * 8);
+    });
+    if (drag) {
+      ctx.strokeStyle = '#0e7490';
+      ctx.setLineDash([6, 4]);
+      ctx.strokeRect(drag.a.x * W, drag.a.y * H, (drag.b.x - drag.a.x) * W, (drag.b.y - drag.a.y) * H);
+      ctx.setLineDash([]);
+    }
+    document.getElementById('kpiFree').textContent = state.free;
+    document.getElementById('kpiOcc').textContent = state.occupied;
+    document.getElementById('kpiRate').textContent = state.total ? OCC.pct(state.rate) : '—';
+    document.getElementById('kpiCars').textContent = boxes.length;
+  }
+  // Spots are kept normalized, so a bay marked on a laptop still lines up after
+  // the phone rotates or the stream changes resolution mid-session.
+  function at(ev) {
+    var r = canvas.getBoundingClientRect();
+    return { x: (ev.clientX - r.left) / (r.width || 1), y: (ev.clientY - r.top) / (r.height || 1) };
+  }
+  function syncSpots(message) {
+    tracker.setSpots(spots);
+    state = tracker.snapshot();
+    spotStatus.textContent = message || (spots.length + ' תאים מסומנים.');
+    render();
+  }
+  canvas.addEventListener('pointerdown', function (ev) { canvas.setPointerCapture(ev.pointerId); drag = { a: at(ev), b: at(ev) }; });
+  canvas.addEventListener('pointermove', function (ev) { if (drag) { drag.b = at(ev); render(); } });
+  canvas.addEventListener('pointerup', function (ev) {
+    if (!drag) return;
+    var spot = VO.spotFromDrag(drag.a, at(ev), 'ת' + (seq + 1));
+    drag = null;
+    if (!spot) { syncSpots('הגרירה קצרה מדי לתא — נסו שוב.'); return; }
+    seq++;
+    spots.push(spot);
+    syncSpots();
+  });
+  document.getElementById('btnUndo').addEventListener('click', function () { spots.pop(); syncSpots(); });
+  document.getElementById('btnClear').addEventListener('click', function () { spots = []; syncSpots('כל התאים נמחקו.'); });
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(function () {});
+})();
+</script>
+</body>
+</html>

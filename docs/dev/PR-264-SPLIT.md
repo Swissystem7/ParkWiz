@@ -4,7 +4,7 @@ Issue #264 is one feature but ~700 lines of code: a detection engine, a camera
 page, and the offline/demo packaging. `auto_merger` rejects a PR over ~400
 lines, so it ships in three slices, engine first — the other two depend on it.
 
-## Slice 1 — the engine (this PR, ~350 lines)
+## Slice 1 — the engine (landed, #279)
 
 `src/lib/vision-occupancy.js` + `test/vision-occupancy.test.js`. No DOM, no
 model, no pixels: vehicle boxes in, per-spot occupied/free state out.
@@ -21,7 +21,7 @@ model, no pixels: vehicle boxes in, per-spot occupied/free state out.
 - `toRecord(state, opts)` — a reading as one `src/lib/occupancy.js` record, so
   the chart and the CSV/JSON export reuse the existing schema.
 
-## Slice 2 — `demo/camera.html` (~330 lines)
+## Slice 2 — `demo/camera.html` (this PR, ~390 lines)
 
 The live page: browser-side wiring only, every occupancy decision in slice 1.
 
@@ -37,8 +37,10 @@ The live page: browser-side wiring only, every occupancy decision in slice 1.
   base; `model.detect(canvas)` on a ~700ms interval (~1.4 fps).
 - Spots: pointerdown/move/up drag → `spotFromDrag`, plus undo and clear.
   Overlay: cyan detection boxes, green/red spot fills with ids.
-- KPIs `#kpiFree` / `#kpiRate` / `#kpiCars`, plus `OCC.chartSvg(records)` and
-  a per-hour line from `OCC.byHour(records)` — real detections, never seeded.
+- KPIs `#kpiFree` / `#kpiOcc` / `#kpiRate` / `#kpiCars`, plus `OCC.chartSvg` and
+  `OCC.hourHeatmapSvg` (which buckets via `OCC.byHour`) — real detections, never
+  seeded, stamped with the local wall clock: `hourFromTs` reads the literal
+  `T<hh>`, so `toISOString` would file a 15:00 meeting under 13:00.
 - On `state.freed`: `window.dispatchEvent(new CustomEvent('parkwiz:spot-freed',
   {detail:{spotId, source:'camera', ts}}))` + the toast, per #263.
 - `test/camera-page-ui.test.js`: inline scripts parse under `vm`; every
@@ -48,9 +50,24 @@ The live page: browser-side wiring only, every occupancy decision in slice 1.
   `CACHE`. The CDN model is off-origin, so the service worker ignores it — the
   page must say the first load needs network.
 
-## Slice 3 — demo packaging (~120 lines)
+## Slice 3 — demo packaging (next, ~120 lines)
 
-`demo/samples/CREDITS.md` with 1–2 CC0/CC-BY parking-lot clips and their
-sources (no video blob in the repo, on purpose), entry points from
-`index.html` / `demo/atidim.html` / `offer.html`, and the README section
-**«איך מריצים את הדמו»** — open the page, mark spots, what the demo shows.
+What makes the page findable and rehearsable; the detection loop needs none of
+it, which is why slice 2 ships without any link into it (so the link test can
+require every `href` to resolve).
+
+- `test/camera-smoke.test.js`, the sibling of `atidim-demo-smoke.test.js`: the
+  inline script under `vm` against a stub DOM, a stub 2D context and a fake
+  `cocoSsd`, driving a car into a dragged bay and out again. Run as a scratch
+  harness while building slice 2 — it is what proved the counters move (free 0
+  / occ 1 / 100% with the car, 1 / 0 / 0% without), that exactly one
+  `parkwiz:spot-freed` fires on the way out, that both charts render real
+  `<svg>` and that `getUserMedia`'s tracks survive `start()`. ~100 lines, so it
+  lands here rather than blowing the slice-2 budget.
+- `demo/samples/CREDITS.md` — 1–2 free parking-lot clips (Pexels License) and
+  their sources, plus "download one before a meeting with no wifi". No video
+  blob in the repo: tens of MB do not belong in `git` or on GitHub Pages.
+- Entry points from `index.html`, `demo/atidim.html` and `offer.html`; today
+  `demo/camera.html` is reachable only by typing the URL.
+- README section **«איך מריצים את הדמו»** — pick a source, drag the bays, what
+  the counter and the two charts show, and the one-time model download.
