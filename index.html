@@ -35,6 +35,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);he
 /* Buyer view by default: the driver demo (Premium, XP, sign-up, rentals) is opt-in */
 body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 .eval-banner #pwConsumerToggle{background:none;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:1px 8px;font:inherit;font-size:.72rem;cursor:pointer;margin-inline-end:6px}
+@media(max-width:600px){.eval-banner{padding:6px 10px;font-size:.7rem;line-height:1.35}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
@@ -103,6 +104,8 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 .legend{position:absolute;top:12px;left:12px;background:rgba(10,15,10,.9);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:0.72rem;z-index:10}
 .legend-item{display:flex;align-items:center;gap:7px;margin-bottom:5px}
 .legend-item:last-child{margin:0}
+.legend summary{cursor:pointer;font-weight:700;color:var(--muted)}
+.legend[open] summary{margin-bottom:6px}
 .dot-lg{width:9px;height:9px;border-radius:50%}
 .seg-lg{width:18px;height:5px;border-radius:3px;flex-shrink:0}
 
@@ -598,7 +601,9 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
       <span class="demo-pulse">הדגמה</span><br>
       <span id="updateTime" style="color:var(--muted);font-size:0.68rem">נתוני הדגמה מקומיים</span>
     </div>
-    <div class="legend">
+    <!-- Collapsed on phones so the legend does not cover the map; opened on wider screens. -->
+    <details class="legend" id="mapLegend">
+      <summary>מקרא</summary>
       <div class="legend-item"><div class="seg-lg" style="background:var(--green)"></div>קל (70%+)</div>
       <div class="legend-item"><div class="seg-lg" style="background:var(--yellow)"></div>בינוני (30-70%)</div>
       <div class="legend-item"><div class="seg-lg" style="background:var(--red)"></div>קשה (0-30%)</div>
@@ -608,7 +613,8 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
       <div class="legend-item"><div class="seg-lg" style="background:#ef4444"></div>אדום-לבן</div>
       <div class="legend-item"><div class="dot-lg" style="background:#a855f7"></div>פרטית להשכרה</div>
       <div class="legend-item"><div class="seg-lg" style="background:#ec4899"></div>שמורה (נכים/תושב)</div>
-    </div>
+    </details>
+    <script>if (window.matchMedia && matchMedia('(min-width:601px)').matches) document.getElementById('mapLegend').open = true;</script>
   </div>
 
   <!-- Side panel — spots list -->
@@ -1734,6 +1740,7 @@ function renderSidePanel() {
     list.innerHTML = '<div class="empty-msg" id="spotsEmpty" style="padding:16px;text-align:center;color:var(--muted);font-size:0.8rem">לא נמצאו רחובות התואמים לסינון הנבחר.</div>';
     return;
   }
+  list.innerHTML = sorted.map(s => {
     const color = availColor(s.predictedPct);
     const label = s.predictedPct>=70?'פנוי בקלות':s.predictedPct>=30?'בינוני':'עמוס';
     const typeLabel = parkingTypeLabel(s.type);
