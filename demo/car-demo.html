@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — דמו רכב מחובר: spot-freed לרכב חשמלי</title>
+<meta name="description" content="סימולטור של חוזה האירועים בין ParkWiz לרכב מחובר — spot-freed / spot-claim / spot-release, מטעני OCPP בקריאה בלבד, ו־Smartcar במצב סימולציה בלבד.">
+<link rel="icon" href="../icon.svg">
+<style>
+:root{
+  --bg:#0b0f19; --panel:#111827; --panel2:#1f2937; --ink:#f3f4f6; --muted:#9ca3af;
+  --line:#374151; --brand:#06b6d4; --free:#22c55e; --occ:#ef4444; --warn:#f59e0b;
+  --shadow:0 4px 12px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+a{color:var(--brand)}
+.wrap{max-width:1080px;margin:0 auto;padding:16px 14px 60px}
+header.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;border-bottom:1px solid var(--line);padding-bottom:14px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-badge{background:var(--brand);color:#000;font-weight:800;padding:4px 8px;border-radius:6px;font-size:12px}
+h1{font-size:1.2rem;margin:0;font-weight:700}
+.sub{color:var(--muted);font-size:.82rem}
+.sim-note{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.45);border-radius:10px;padding:10px 12px;margin-bottom:16px;font-size:.82rem;color:#fcd34d}
+.sim-note b{color:var(--warn)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px;box-shadow:var(--shadow)}
+.kpi .num{font-size:1.7rem;font-weight:800;line-height:1.15;color:var(--brand)}
+.kpi.free .num{color:var(--free)}
+.kpi .lbl{font-size:.78rem;color:var(--muted);margin-top:4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card h2{font-size:1.02rem;margin:0 0 4px;font-weight:700}
+.card .hint{font-size:.78rem;color:var(--muted);margin:0 0 10px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
+button:hover:enabled{border-color:var(--brand);color:#fff}
+button[aria-pressed="true"]{background:var(--brand);color:#000;border-color:var(--brand)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:4px}
+input[type=range]{width:100%;accent-color:var(--brand)}
+.battery{font-size:1.5rem;font-weight:800;color:var(--free)}
+.battery.low{color:var(--warn)}
+.status{min-height:3.2em;font-size:.86rem;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
+.status.hit{border-color:var(--free);color:#bbf7d0}
+.status.miss{border-color:var(--occ);color:#fecaca}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+td.free{color:var(--free)}
+td.busy{color:var(--warn)}
+pre{background:#05070c;border:1px solid var(--line);border-radius:10px;padding:10px;overflow-x:auto;font-size:11.5px;color:#a7f3d0;max-height:260px;margin:0}
+.empty{color:var(--muted);font-size:.82rem;padding:8px 0}
+.priv{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:8px}
+.priv-item{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:10px 12px;font-size:.8rem}
+.priv-item b{color:var(--free)}
+footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:22px}
+.skip-link{position:absolute;right:-9999px}
+.skip-link:focus{right:8px;top:8px;background:var(--brand);color:#000;padding:6px 10px;border-radius:6px;z-index:9}
+@media(max-width:540px){.kpis{grid-template-columns:1fr 1fr}h1{font-size:1.05rem}}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#evCar">דלג לרכב החשמלי</a>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="brand-badge">ParkWiz</span>
+      <div>
+        <h1>רכב מחובר מדבר עם ParkWiz — סימולטור</h1>
+        <div class="sub">spot-freed · spot-claim · spot-release · OCPP בקריאה בלבד · Smartcar במצב סימולציה</div>
+      </div>
+    </div>
+    <div class="sub"><a href="../docs/car-api-he.md">חוזה האירועים (עברית)</a> · <a href="../docs/car-api.md">English</a></div>
+  </header>
+
+  <!-- Honesty first: there is no car, no Smartcar account and no charger here.
+       Everything below runs in this browser tab against src/lib/car-api.js. -->
+  <p class="sim-note" role="note">
+    <b>הבהרה:</b> אין כאן רכב אמיתי, אין חיבור ל־Smartcar ואין מטען מחובר. כל האירועים נוצרים ונמסרים
+    <b>בדפדפן הזה בלבד</b> דרך <code>src/lib/car-api.js</code>. ל־Smartcar יש כאן <b>מצב סימולציה</b> בלבד
+    (אין מנוי בתשלום), וממשק OCPP הוא <b>קריאה בלבד</b> — ParkWiz לא יכול להתחיל, לעצור או לשחרר טעינה.
+    <br>
+    ההשהיה המדומה של העלאת האירוע מהרכב לממסר היא <b id="radioDelayLbl">—</b>, והיעד הוא מסירה מתחת ל־2 שניות.
+  </p>
+
+  <section class="kpis" aria-label="מדדי הממסר" aria-live="polite">
+    <div class="kpi free"><div class="num" id="kpiLatency">—</div><div class="lbl">זמן מהיציאה עד קבלת ההודעה ברכב החשמלי</div></div>
+    <div class="kpi"><div class="num" id="kpiPublished">0</div><div class="lbl">אירועים שפורסמו לממסר</div></div>
+    <div class="kpi"><div class="num" id="kpiDelivered">0</div><div class="lbl">מסירות לרכבים מנויים בטווח</div></div>
+    <div class="kpi"><div class="num" id="kpiRejected">0</div><div class="lbl">אירועים שנדחו (חוזה / פרטיות / TTL)</div></div>
+  </section>
+
+  <div class="grid-2">
+    <section class="card" aria-labelledby="leavingTitle">
+      <h2 id="leavingTitle">1. רכב שמתפנה מהמקום</h2>
+      <p class="hint">בחרו מקום ופרסמו <code>spot-freed</code> לממסר. הרכב המפרסם לא מקבל את ההודעה של עצמו.</p>
+      <div class="toolbar" id="leavingBtns"></div>
+      <p class="status" id="leavingStatus" role="status" aria-live="polite">טרם פורסם אירוע.</p>
+    </section>
+
+    <section class="card" id="evCar" aria-labelledby="evTitle">
+      <h2 id="evTitle">2. הרכב החשמלי המחובר (מנוי)</h2>
+      <p class="hint">מצב הסוללה נקרא דרך <code>fromSmartcar()</code> ממטען סימולציה. מתחת לרף טעינה — נשלח מקום עם מטען גם אם הוא רחוק יותר.</p>
+      <label for="batterySlider">מצב סוללה (%)</label>
+      <input type="range" id="batterySlider" min="5" max="100" step="5" value="18"
+        aria-describedby="batteryVal">
+      <div class="battery low" id="batteryVal">18%</div>
+      <div class="toolbar">
+        <button type="button" id="btnSubscribe" aria-pressed="false">הרשם לאירועים בטווח 800 מ׳</button>
+        <button type="button" id="btnClaim" disabled>שלח spot-claim</button>
+        <button type="button" id="btnRelease" disabled>שלח spot-release</button>
+      </div>
+      <p class="status" id="evStatus" role="status" aria-live="polite">הרכב לא מנוי — אירוע שיפורסם עכשיו לא יימסר.</p>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="ocppTitle">
+    <h2 id="ocppTitle">3. מטעני OCPP — מתאם קריאה בלבד</h2>
+    <p class="hint">
+      הסימולטור מריץ כל מטען במעגל <code>Available → Preparing → Charging → Finishing</code>. רק מעבר ל־<code>Available</code>
+      מייצר <code>spot-freed</code>; <code>Faulted</code> או מצב לא מוכר נשאר <code>unknown</code> ולא מפורסם כמקום פנוי.
+    </p>
+    <table>
+      <caption class="sub" style="text-align:right;padding-bottom:6px">מצב מטענים לפי StatusNotification (OCPP 1.6J)</caption>
+      <thead><tr><th scope="col">מטען</th><th scope="col">מחבר</th><th scope="col">סטטוס</th><th scope="col">תא חניה</th><th scope="col">מצב לממסר</th></tr></thead>
+      <tbody id="ocppRows"></tbody>
+    </table>
+    <div class="toolbar" id="ocppBtns"></div>
+    <p class="status" id="ocppStatus" role="status" aria-live="polite">טרם התקבלה הודעת OCPP.</p>
+  </section>
+
+  <section class="card" aria-labelledby="logTitle">
+    <h2 id="logTitle">4. יומן האירועים כפי שהם על החוט (JSON)</h2>
+    <p class="hint">בדיוק המבנה שמתועד ב־docs/car-api.md. שדות מזהים (לוחית, VIN, טלפון) מוסרים לפני הפרסום ונרשמים ב־<code>droppedFields</code>.</p>
+    <pre id="eventLog" tabindex="0" aria-label="יומן אירועי הממסר"></pre>
+    <p class="empty" id="eventLogEmpty">אין עדיין אירועים ביומן.</p>
+    <div class="toolbar">
+      <button type="button" id="btnCopyLog">העתק את היומן</button>
+      <button type="button" id="btnPlateProbe">נסה לפרסם אירוע עם לוחית רישוי</button>
+      <button type="button" id="btnReset">אפס את הסימולטור</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="privTitle">
+    <h2 id="privTitle">5. פרטיות — מה לא עובר בחוט</h2>
+    <div class="priv">
+      <div class="priv-item"><b>הצטרפות מרצון בלבד:</b> אירוע בלי <code>source.consent = "opt-in"</code> נדחה על ידי הממסר.</div>
+      <div class="priv-item"><b>לא יזוהו לוחיות רישוי</b> ולא VIN, טלפון או שם נהג — השדות האלה נמחקים אוטומטית.</div>
+      <div class="priv-item"><b>מזהה רכב חולף:</b> <code>source.carId</code> הוא מזהה אפליקציה, לא מזהה רכב של היצרן.</div>
+      <div class="priv-item"><b>בלי מסלול נסיעה:</b> נשמר מקום החניה שהתפנה, לא היסטוריית המיקום של הרכב.</div>
+      <div class="priv-item"><b>OCPP בקריאה בלבד:</b> אין פקודת שליטה למטען, אין נתוני חיוב ואין זיהוי מי טוען.</div>
+      <div class="priv-item"><b>סודות בסביבה:</b> מפתחות Smartcar נקראים מ־env (<code>SMARTCAR_CLIENT_ID</code> ועוד) ולא נשמרים בריפו.</div>
+    </div>
+  </section>
+
+  <footer>
+    ParkWiz · <a href="../index.html">מפת חניה עירונית</a> · <a href="./atidim.html">דמו מפעיל חניון</a> ·
+    <a href="../docs/car-android-auto.md">Android Auto / Automotive — מסמך תכנון</a>
+  </footer>
+</div>
+
+<script src="../src/lib/car-api.js"></script>
+<script>
+(function () {
+  const car = window.ParkWizCarApi;
+  const evStatus = document.getElementById('evStatus');
+  if (!car) {
+    evStatus.textContent = 'ספריית החוזה (car-api.js) לא נטענה — נא לרענן את הדף';
+    evStatus.className = 'status miss';
+    return;
+  }
+
+  // The simulated uplink from the departing car to the relay. Issue #267 asks
+  // for delivery "within ~2s", so this stays well under that and the page
+  // shows the measured number rather than claiming one.
+  const RADIO_DELAY_MS = 650;
+  const LATENCY_TARGET_MS = 2000;
+
+  // Netanya city-centre coordinates, same demo geography as the map page.
+  const SPOTS = [
+    { id: 'netanya-herzl-14', kind: 'street', lat: 32.3215, lon: 34.8532, label: 'הרצל 14 (רחוב)' },
+    { id: 'netanya-dizengoff-3', kind: 'street', lat: 32.3240, lon: 34.8575, label: 'דיזנגוף 3 (רחוב)' },
+    { id: 'netanya-ev-cp01-1', kind: 'charger', lat: 32.3268, lon: 34.8560, label: 'תא טעינה CP-01 (22 kW)',
+      charger: { ocppId: 'CP-01', connectorId: 1, kw: 22 } },
+    { id: 'netanya-ev-cp02-1', kind: 'charger', lat: 32.3190, lon: 34.8500, label: 'תא טעינה CP-02 (50 kW)',
+      charger: { ocppId: 'CP-02', connectorId: 1, kw: 50 } },
+  ];
+  const OCPP_MAP = {};
+  SPOTS.filter((s) => s.kind === 'charger').forEach((s) => {
+    OCPP_MAP[s.charger.ocppId + ':' + s.charger.connectorId] = s;
+  });
+
+  // The connected EV, as Smartcar would report it in simulated mode.
+  const EV_CAR_ID = 'ev-sim-1';
+  function smartcarPayload(pct) {
+    return {
+      id: EV_CAR_ID,
+      mode: 'simulated',
+      location: { latitude: 32.3230, longitude: 34.8545 },
+      // Smartcar reports the charge as a 0..1 fraction; fromSmartcar() is what
+      // turns it back into whole percent, so the page never does that itself.
+      battery: { percentRemaining: pct / 100, range: Math.round(pct * 3.4) },
+    };
+  }
+
+  let relay = car.createRelay();
+  let ocpp = car.createOcppSimulator({ chargers: [{ ocppId: 'CP-01' }, { ocppId: 'CP-02' }] });
+  let unsubscribe = null;
+  let log = [];
+  // Spots this car currently believes are free, from the events it received.
+  // Keeping the set (and pruning it by TTL) is what lets the car rank a kerb
+  // bay against a charger bay instead of taking whichever arrived last.
+  let knownFree = [];
+  let lastOffered = null;
+  let publishedAtMs = 0;
+  let seq = 0;
+
+  const el = (id) => document.getElementById(id);
+  const batteryPct = () => Number(el('batterySlider').value);
+
+  function renderLog() {
+    el('eventLog').textContent = log.map((e) => JSON.stringify(e, null, 2)).join('\n\n');
+    el('eventLog').style.display = log.length ? 'block' : 'none';
+    el('eventLogEmpty').style.display = log.length ? 'none' : 'block';
+  }
+
+  function pushLog(entry) {
+    log.unshift(entry);
+    if (log.length > 8) log.length = 8;
+    renderLog();
+  }
+
+  function renderStats() {
+    const s = relay.stats();
+    el('kpiPublished').textContent = s.published;
+    el('kpiDelivered').textContent = s.delivered;
+    el('kpiRejected').textContent = s.rejected + s.duplicates + s.expired;
+  }
+
+  function spotLabel(id) {
+    const hit = SPOTS.find((s) => s.id === id);
+    return hit ? hit.label : id;
+  }
+
+  // What the car is told to drive to: nearest free bay, or a charger bay when
+  // the battery is under the threshold — the reason is shown, never implied.
+  function offerSpot(event, meta) {
+    const nowMs = Date.now();
+    const elapsed = Math.max(0, nowMs - publishedAtMs);
+    knownFree = knownFree
+      .filter((e) => e.spot.id !== event.spot.id && !car.isExpired(e, nowMs))
+      .concat([event]);
+    const ranked = car.rankSpots({
+      car: { at: car.fromSmartcar(smartcarPayload(batteryPct())).at, batteryPct: batteryPct() },
+      spots: knownFree.map((e) => e.spot),
+    });
+    const best = ranked.best;
+    lastOffered = knownFree.find((e) => best && e.spot.id === best.spot.id) || event;
+    el('kpiLatency').textContent = elapsed + ' ms';
+    const why = best && best.reasonKey === 'charger-low-battery'
+      ? 'תא טעינה, כי הסוללה על ' + batteryPct() + '% — מתחת לרף ' + car.LOW_BATTERY_PCT + '%'
+      : 'המקום הפנוי הקרוב ביותר';
+    evStatus.className = 'status hit';
+    evStatus.textContent = 'התקבל ' + event.type + ' על ' + spotLabel(event.spot.id)
+      + ' (מרחק ' + Math.round(meta.distanceM) + ' מ׳) · הניווט מוצע ל' + spotLabel(best.spot.id)
+      + ' — ' + why + ' · ' + elapsed + ' ms מרגע היציאה, '
+      + (elapsed <= LATENCY_TARGET_MS ? 'בתוך היעד של 2 שניות ✅' : 'מעל היעד של 2 שניות ⚠');
+    el('btnClaim').disabled = false;
+    el('btnRelease').disabled = true;
+    pushLog({
+      received: event,
+      distanceM: Math.round(meta.distanceM),
+      latencyMs: elapsed,
+      offered: { spotId: best.spot.id, reasonKey: best.reasonKey, detourM: best.distanceM },
+    });
+    renderStats();
+  }
+
+  function publish(raw, onDone) {
+    publishedAtMs = Date.now();
+    // The uplink is asynchronous on purpose: a real departure report travels
+    // through the car's telematics cloud before the relay ever sees it.
+    window.setTimeout(function () {
+      const res = relay.publish(raw);
+      pushLog({ published: res.event || raw, accepted: res.ok, errors: res.errors, delivered: res.delivered });
+      renderStats();
+      if (onDone) onDone(res);
+    }, RADIO_DELAY_MS);
+  }
+
+  function freedEvent(spot, source) {
+    seq += 1;
+    return {
+      type: 'spot-freed',
+      id: 'evt-' + seq + '-' + spot.id,
+      ts: new Date().toISOString(),
+      ttlS: car.DEFAULT_TTL_S,
+      spot: spot,
+      confidence: 0.8,
+      source: source || { kind: 'car', carId: 'car-leaving-sim', consent: 'opt-in' },
+    };
+  }
+
+  function buildLeavingButtons() {
+    const host = el('leavingBtns');
+    host.replaceChildren();
+    SPOTS.forEach(function (spot) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'leaving-spot';
+      b.dataset.spot = spot.id;
+      b.textContent = 'התפנה: ' + spot.label;
+      b.addEventListener('click', function () {
+        el('leavingStatus').className = 'status';
+        el('leavingStatus').textContent = 'מעלה spot-freed על ' + spot.label + ' לממסר…';
+        publish(freedEvent(spot), function (res) {
+          el('leavingStatus').className = res.ok && res.delivered ? 'status hit' : 'status';
+          el('leavingStatus').textContent = res.ok
+            ? 'פורסם spot-freed על ' + spot.label + ' · נמסר ל־' + res.delivered + ' רכבים מנויים בטווח'
+            : 'האירוע נדחה (' + res.errors.join(', ') + ') — ' + spot.label;
+          if (res.ok && !res.delivered) {
+            el('leavingStatus').textContent += ' · אין רכב מנוי בטווח, אז אף אחד לא שמע';
+          }
+        });
+      });
+      host.appendChild(b);
+    });
+  }
+
+  function renderOcpp() {
+    const body = el('ocppRows');
+    body.replaceChildren();
+    ocpp.chargers().forEach(function (ch) {
+      const read = car.fromOcppStatusNotification(
+        { chargePointId: ch.ocppId, payload: { connectorId: ch.connectorId, status: ch.status } },
+        OCPP_MAP
+      );
+      const tr = document.createElement('tr');
+      [ch.ocppId, String(ch.connectorId), ch.status,
+        read.spot ? spotLabel(read.spot.id) : '—',
+        read.state === 'free' ? 'פנוי' : (read.state === 'occupied' ? 'תפוס' : 'לא ידוע')].forEach(function (text, i) {
+        const td = document.createElement('td');
+        td.textContent = text;
+        if (i === 4) td.className = read.state === 'free' ? 'free' : 'busy';
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  function buildOcppButtons() {
+    const host = el('ocppBtns');
+    host.replaceChildren();
+    ocpp.chargers().forEach(function (ch) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ocpp-tick';
+      b.textContent = 'קדם את ' + ch.ocppId + ' לסטטוס הבא';
+      b.addEventListener('click', function () {
+        const msg = ocpp.tick(ch.ocppId, Date.now());
+        renderOcpp();
+        const read = car.fromOcppStatusNotification(msg, OCPP_MAP);
+        const event = car.ocppFreedEvent(msg, OCPP_MAP, { now: Date.now() });
+        el('ocppStatus').className = 'status';
+        el('ocppStatus').textContent = ch.ocppId + ' דיווח ' + read.status + ' → '
+          + (event ? 'מפרסם spot-freed על ' + spotLabel(read.spot.id) : 'אין מה לפרסם (לא Available)');
+        pushLog({ ocpp: msg.payload, chargePointId: msg.chargePointId, read: { state: read.state, readOnly: read.readOnly } });
+        if (event) publish(event);
+        else renderStats();
+      });
+      host.appendChild(b);
+    });
+  }
+
+  function setSubscribed(on) {
+    el('btnSubscribe').setAttribute('aria-pressed', on ? 'true' : 'false');
+    el('btnSubscribe').textContent = on ? 'בטל את ההרשמה' : 'הרשם לאירועים בטווח 800 מ׳';
+    if (on) {
+      const at = car.fromSmartcar(smartcarPayload(batteryPct())).at;
+      unsubscribe = relay.subscribe({
+        carId: EV_CAR_ID,
+        at: at,
+        radiusM: car.DEFAULT_RADIUS_M,
+        types: ['spot-freed'],
+        onEvent: offerSpot,
+      });
+      evStatus.className = 'status';
+      evStatus.textContent = 'הרכב מנוי ומחכה ל־spot-freed בטווח ' + car.DEFAULT_RADIUS_M + ' מ׳.';
+    } else {
+      if (unsubscribe) unsubscribe();
+      unsubscribe = null;
+      el('btnClaim').disabled = true;
+      el('btnRelease').disabled = true;
+      evStatus.className = 'status';
+      evStatus.textContent = 'הרכב לא מנוי — אירוע שיפורסם עכשיו לא יימסר.';
+    }
+  }
+
+  function carEvent(type, extra) {
+    seq += 1;
+    return Object.assign({
+      type: type,
+      id: 'evt-' + seq + '-' + type,
+      ts: new Date().toISOString(),
+      spot: { id: lastOffered.spot.id, kind: lastOffered.spot.kind, lat: lastOffered.spot.lat, lon: lastOffered.spot.lon },
+      source: { kind: 'car', carId: EV_CAR_ID, consent: 'opt-in' },
+    }, extra || {});
+  }
+
+  el('batterySlider').addEventListener('input', function () {
+    const pct = batteryPct();
+    el('batteryVal').textContent = pct + '%';
+    el('batteryVal').className = pct <= car.LOW_BATTERY_PCT ? 'battery low' : 'battery';
+  });
+
+  el('btnSubscribe').addEventListener('click', function () {
+    setSubscribed(el('btnSubscribe').getAttribute('aria-pressed') !== 'true');
+  });
+
+  el('btnClaim').addEventListener('click', function () {
+    if (!lastOffered) return;
+    const res = relay.publish(carEvent('spot-claim', { etaS: 90 }));
+    pushLog({ published: res.event, accepted: res.ok, errors: res.errors });
+    evStatus.className = 'status hit';
+    evStatus.textContent = 'הרכב שלח spot-claim על ' + spotLabel(lastOffered.spot.id) + ' (הגעה מוערכת 90 שנ׳).';
+    el('btnClaim').disabled = true;
+    el('btnRelease').disabled = false;
+    renderStats();
+  });
+
+  el('btnRelease').addEventListener('click', function () {
+    if (!lastOffered) return;
+    const res = relay.publish(carEvent('spot-release', { reason: 'gave-up' }));
+    pushLog({ published: res.event, accepted: res.ok, errors: res.errors });
+    evStatus.className = 'status';
+    evStatus.textContent = 'הרכב שלח spot-release — המקום חוזר להיות מוצע לאחרים.';
+    el('btnRelease').disabled = true;
+    renderStats();
+  });
+
+  // Shows the privacy guard firing instead of asking anyone to trust it.
+  el('btnPlateProbe').addEventListener('click', function () {
+    const raw = freedEvent(SPOTS[0]);
+    raw.id = 'evt-plate-probe-' + Date.now();
+    raw.plate = '12-345-67';
+    raw.source = { kind: 'car', carId: 'car-leaving-sim', consent: 'opt-in', vin: 'WVWZZZ1KZAW000000', phone: '050-0000000' };
+    const check = car.validateEvent(raw);
+    el('leavingStatus').className = 'status hit';
+    el('leavingStatus').textContent = 'השדות ' + check.event.droppedFields.join(', ')
+      + ' הוסרו מהאירוע לפני שהוא יצא לממסר'
+      + (check.ok ? ' — שאר האירוע תקין ונשלח.' : ' — ונותרו שגיאות: ' + check.errors.join(', '));
+    publish(check.event);
+  });
+
+  el('btnCopyLog').addEventListener('click', function () {
+    const text = el('eventLog').textContent;
+    const done = function (ok) {
+      el('ocppStatus').className = 'status';
+      el('ocppStatus').textContent = ok ? 'יומן האירועים הועתק ללוח' : 'ההעתקה נכשלה — ניתן לסמן את היומן ולהעתיק ידנית';
+    };
+    if (!text) { done(false); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+    } else done(false);
+  });
+
+  el('btnReset').addEventListener('click', function () {
+    if (unsubscribe) unsubscribe();
+    unsubscribe = null;
+    relay = car.createRelay();
+    ocpp = car.createOcppSimulator({ chargers: [{ ocppId: 'CP-01' }, { ocppId: 'CP-02' }] });
+    log = [];
+    knownFree = [];
+    lastOffered = null;
+    seq = 0;
+    renderLog();
+    el('kpiLatency').textContent = '—';
+    buildOcppButtons();
+    renderOcpp();
+    setSubscribed(false);
+    el('leavingStatus').className = 'status';
+    el('leavingStatus').textContent = 'הסימולטור אופס. טרם פורסם אירוע.';
+    renderStats();
+  });
+
+  el('radioDelayLbl').textContent = RADIO_DELAY_MS + ' ms';
+  buildLeavingButtons();
+  buildOcppButtons();
+  renderOcpp();
+  pushLog({ ready: true, protocolVersion: car.PROTOCOL_VERSION, events: car.EVENTS, relayRadiusM: car.DEFAULT_RADIUS_M });
+  renderStats();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('../sw.js').catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
