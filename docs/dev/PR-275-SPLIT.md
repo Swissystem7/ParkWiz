@@ -70,6 +70,20 @@ a page in the offline shell, 7 makes it work, 8 proves the ~2 s claim.
 
 Landing order: **5 → 1 → 2 → 3 → 4 → 6 → 7 → 8**.
 
+### Status (2026-10-20, #308)
+
+- **5** landed with this plan.
+- **1 + 2** ship together in the #308 PR (529 lines, under the 800 the
+  factory allows per PR): `src/lib/car-api.js` lines 1–318 of `3cf5f96` minus
+  the ranker constants `LOW_BATTERY_PCT` / `CHARGER_BONUS_M` (they return
+  with slice 3), with an export block for the 20 names defined so far, and
+  `test/car-api.test.js` lines 1–174, 244–263 and the 6-line `distanceM` test
+  from 306–311. Its unused `fs` / `path` / `CHARGER` fixtures return with
+  slices 3, 4 and 6.
+- **3, 4, 6, 7, 8** are still open. Slice 3 now also re-adds the two ranker
+  constants and appends its names to the existing export block instead of
+  writing one.
+
 ### Slice 1 — the event contract and the privacy guard (325)
 
 `src/lib/car-api.js` lines **1–107** and **151–245** (202), plus a `return {}`
