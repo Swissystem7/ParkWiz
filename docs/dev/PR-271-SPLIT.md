@@ -48,6 +48,10 @@ early fails that test rather than slice 6's own.
 
 Landing order: **1 → 3 → 4 → 8 → 2 → 5 → 6 → 7**.
 
+**Status (2026-10-20, #310):** slice 1 landed via #284, slice 3 via #334.
+Slices 4 and 5 ship together on the #310 branch (353 + 34 = 387, under the
+limit; `npm test` 641 passing). Still to open: 8, 2, then 6 and 7.
+
 ### Slice 1 — the event bus (this PR, 192)
 
 `src/agents/bus.js` (+82) and `test/agents-bus.test.js` (+110), unchanged from
