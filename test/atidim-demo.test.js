@@ -83,6 +83,20 @@ test('chart marker calls out one hour and is opt-in', () => {
   }
 });
 
+// demo/atidim-board.html spreads this file over LOT.DEFAULT, but only when the
+// fetch succeeds — on file:// the board falls back to DEFAULT alone. If the two
+// drift, the same screen shows a different lot depending on how it was opened.
+// (Carried over from #158 after its other pieces landed on master.)
+test('operator-editable labels describe the same lot as the model', () => {
+  const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  assert.equal(data.site, lot.DEFAULT.site);
+  assert.equal(data.cols, lot.DEFAULT.cols);
+  assert.equal(data.rows, lot.DEFAULT.rows);
+  assert.equal(data.timezone, lot.LOT_TIME_ZONE);
+  assert.match(data.meetingNote, /סינתטי/);
+  assert.match(data.meetingNote, /לא מצלמה חיה/);
+});
+
 test('service worker precaches the Atidim demo shell', () => {
   const block = sw.slice(sw.indexOf('const ASSETS'), sw.indexOf('];') + 2);
   const assets = [...block.matchAll(/'(\.\/[^']*)'/g)].map((m) => m[1]);
