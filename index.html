@@ -6,6 +6,8 @@
 <title>ParkWiz — הדגמת חניית רחוב בנתניה</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="src/ui/tokens.css">
+<script src="src/lib/theme.js"></script>
 <meta name="description" content="ParkWiz — דמו דפדפן להערכת סיכוי חניה בנתניה. נתוני בסיס מקומיים + דיווח «אני עוזב» בדפדפן. חיזוי הסתברותי, לא הבטחה, לא הזנה עירונית חיה.">
 <meta property="og:title" content="ParkWiz — הדגמת חניית רחוב בנתניה">
 <meta property="og:description" content="מפת סיכויי חניה להדגמה: בסיס מקומי לפי רחוב, דיווחי «אני עוזב» בדפדפן, וערכת פיילוט תפוסה לעירייה. אין סליקה ואין הזנה עירונית חיה.">
@@ -19,14 +21,15 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
 <style>
+/* Legacy names kept for the inline markup; values come from src/ui/tokens.css. */
 :root{
-  --bg:#0a0f0a; --bg2:#0f1a0f; --card:#111a11;
-  --border:rgba(255,255,255,0.07); --text:#e0f0e0; --muted:#93b493;
-  --green:#22c55e; --yellow:#eab308; --red:#ef4444; --blue:#3b82f6;
-  --purple:#a855f7;
+  --bg:var(--pw-bg); --bg2:var(--pw-surface); --card:var(--pw-surface-2);
+  --border:var(--pw-line); --text:var(--pw-ink); --muted:var(--pw-muted);
+  --green:var(--pw-brand); --yellow:var(--pw-warn); --red:var(--pw-danger); --blue:var(--pw-info);
+  --purple:var(--pw-accent);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+body{font-family:var(--pw-font);background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 :focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .skip-link{position:absolute;top:-40px;right:8px;z-index:400;background:var(--green);color:#0a0f0a;padding:8px 12px;border-radius:8px;font-weight:700}
 .skip-link:focus{top:8px}
@@ -376,6 +379,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 .nav-prompt-text{font-size:0.84rem;font-weight:700}
 .nav-park-btn{padding:8px 16px;border-radius:14px;border:none;background:var(--green);color:#0a0f0a;font-size:0.8rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
 </style>
+<link rel="stylesheet" href="src/ui/driver.css">
 </head>
 <body>
 <script>
@@ -564,6 +568,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
   </div>
   <button class="btn btn-ghost" data-consumer-demo onclick="liveParkingEvent()" aria-label="הוסף אירוע הדגמה למפה">DEMO</button>
   <button class="heatmap-btn" id="heatmapBtn" onclick="toggleHeatmap()" aria-pressed="false" aria-label="הצג או הסתר שכבת חום">🌡️ חום</button>
+  <button type="button" class="pw-theme-toggle" data-theme-toggle aria-label="מעבר לערכת צבעים בהירה">☀️</button>
   <button class="premium-btn" data-consumer-demo onclick="showParkPricing()" aria-label="פתיחת מחירי פרמיום — הדגמה">ParkWiz Premium ⚡</button>
   <div class="pw-auth-area" data-consumer-demo id="pwAuthArea">
     <button class="btn btn-ghost" style="color:var(--green);border-color:rgba(34,197,94,.4)" onclick="pwOpenAuth('login')">התחבר</button>
@@ -1737,7 +1742,7 @@ function renderSidePanel() {
   if (!list) return;
   const sorted = [...visible].sort((a,b)=>b.predictedPct-a.predictedPct);
   if (!sorted.length) {
-    list.innerHTML = '<div class="empty-msg" id="spotsEmpty" style="padding:16px;text-align:center;color:var(--muted);font-size:0.8rem">לא נמצאו רחובות התואמים לסינון הנבחר.</div>';
+    list.innerHTML = '<div class="empty-msg pw-empty" id="spotsEmpty" role="status"><span class="pw-empty-icon" aria-hidden="true">🔍</span><span class="pw-empty-title">אין תוצאות</span>לא נמצאו רחובות התואמים לסינון הנבחר.<br>נסו להפעיל סוג חניה נוסף בסרגל הסינון.</div>';
     return;
   }
   list.innerHTML = sorted.map(s => {
@@ -1766,12 +1771,12 @@ function renderSidePanel() {
       </div>
       <div class="spot-tariff">${tariffLabel}</div>
       <div style="margin-top:4px;font-size:0.66rem;font-weight:700;color:${fit.color}">${fit.txt} <span style="color:var(--muted);font-weight:400">(מרווח משוער ${fit.gap} מ')</span></div>
-      <div style="height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:6px;overflow:hidden">
-        <div style="height:100%;width:${s.predictedPct}%;background:${color};border-radius:2px;transition:width.5s"></div>
+      <div class="spot-track" role="presentation">
+        <div class="spot-track-fill" style="width:${s.predictedPct}%;background:${color}"></div>
       </div>
-      <div style="display:flex;gap:6px;margin-top:7px">
-        <button onclick="navWaze(${s.idx},event)" style="flex:1;background:#33ccff22;color:#33ccff;border:1px solid #33ccff44;border-radius:8px;padding:4px 6px;font-size:0.68rem;cursor:pointer;font-weight:700">🚘 נווט ב-Waze</button>
-        <button onclick="navGmaps(${s.idx},event)" style="flex:1;background:#34a85322;color:#5dd57f;border:1px solid #34a85344;border-radius:8px;padding:4px 6px;font-size:0.68rem;cursor:pointer;font-weight:700">🗺️ Google Maps</button>
+      <div class="spot-nav-row">
+        <button class="spot-nav-btn waze" onclick="navWaze(${s.idx},event)">🚘 נווט ב-Waze</button>
+        <button class="spot-nav-btn gmaps" onclick="navGmaps(${s.idx},event)">🗺️ Google Maps</button>
       </div>
     </div>`;
   }).join('');

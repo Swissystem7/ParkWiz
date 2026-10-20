@@ -5,14 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ParkWiz — דמו מפעיל חניון פארק עתידים | CityZone</title>
 <link rel="icon" href="../icon.svg">
+<link rel="stylesheet" href="../src/ui/tokens.css">
+<script src="../src/lib/theme.js"></script>
 <style>
 :root{
-  --bg:#0b0f19; --panel:#111827; --panel2:#1f2937; --ink:#f3f4f6; --muted:#9ca3af;
-  --line:#374151; --brand:#06b6d4; --free:#22c55e; --free-bg:rgba(34,197,94,.15);
-  --occ:#ef4444; --warn:#f59e0b; --shadow:0 4px 12px rgba(0,0,0,.4);
+  /* Shared tokens (src/ui/tokens.css, #339); --brand stays this page's cyan. */
+  --bg:var(--pw-bg); --panel:var(--pw-surface); --panel2:var(--pw-surface-2); --ink:var(--pw-ink); --muted:var(--pw-muted);
+  --line:var(--pw-line); --brand:#06b6d4; --free:var(--pw-brand); --free-bg:var(--pw-brand-soft);
+  --occ:var(--pw-danger); --warn:var(--pw-warn); --shadow:var(--pw-shadow-1);
 }
+[data-theme="light"]{--brand:#0e7490}
 *{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+body{margin:0;font-family:var(--pw-font);background:var(--bg);color:var(--ink);line-height:1.5}
 a{color:var(--brand);text-decoration:none}
 .wrap{max-width:1120px;margin:0 auto;padding:16px 14px 60px}
 header.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:14px}
@@ -71,6 +75,30 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
 @media(prefers-reduced-motion:no-preference){.toast{animation:toast-in .22s ease-out}}
 @keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @media(max-width:540px){.kpis{grid-template-columns:1fr 1fr} h1{font-size:1.1rem}}
+/* Design-system polish (#339): softer cards, tabular numbers, status colours that pass AA on both themes. */
+.kpi,.card{border-radius:var(--pw-radius-lg)}
+.kpi .num{font-family:var(--pw-font-num);font-variant-numeric:tabular-nums;transition:color var(--pw-dur)}
+.kpi.free{box-shadow:inset 0 3px 0 var(--free),var(--shadow)}
+.kpi.occ{box-shadow:inset 0 3px 0 var(--occ),var(--shadow)}
+button{border-radius:var(--pw-radius-pill);min-height:34px;padding:7px 14px;transition:background var(--pw-dur),border-color var(--pw-dur),transform var(--pw-dur)}
+button:hover{color:var(--ink)}
+button:active{transform:scale(.97)}
+button:focus-visible,a:focus-visible{outline:none;box-shadow:var(--pw-focus)}
+.toast{color:var(--pw-on-brand);box-shadow:var(--pw-shadow-2)}
+.feed li{animation:pwRise var(--pw-dur-slow) var(--pw-ease)}
+.feed li.feed-empty{justify-content:center;padding:18px 8px;text-align:center}
+/* The hourly chart is drawn with literal fills; CSS beats SVG presentation attributes. */
+svg.chart text[fill="#9ca3af"]{fill:var(--muted)}
+svg.chart line[stroke="#374151"]{stroke:var(--line)}
+svg.chart rect[fill="#374151"]{fill:color-mix(in srgb,var(--ink) 26%,transparent)}
+svg.chart rect[fill="#06b6d4"]{fill:var(--brand)}
+svg.chart rect[fill="#ef4444"],svg.chart text[fill="#ef4444"]{fill:var(--occ)}
+svg.chart line[stroke="#ef4444"]{stroke:var(--occ)}
+[data-theme="light"] .sim-note{color:var(--ink)}
+[data-theme="light"] .cta{background:linear-gradient(135deg,rgba(14,116,144,.1),var(--panel))}
+[data-theme="light"] button.active,[data-theme="light"] .brand-badge,[data-theme="light"] .step-num,[data-theme="light"] .btn-primary{color:#fff}
+.theme-slot{display:flex;align-items:center;gap:10px}
+@media (prefers-reduced-motion:reduce){.feed li{animation:none}}
 </style>
 </head>
 <body>
@@ -83,7 +111,10 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:24px}
         <div class="sub">דמו מפעיל חניון מבוסס מצלמות קיימות | CityZone &amp; Park Atidim</div>
       </div>
     </div>
-    <div class="badge-live"><span class="pulse"></span><span>רשת מצלמות מחוברת (RTSP / Edge)</span></div>
+    <div class="theme-slot">
+      <div class="badge-live"><span class="pulse"></span><span>רשת מצלמות מחוברת (RTSP / Edge)</span></div>
+      <button type="button" class="pw-theme-toggle" data-theme-toggle aria-label="מעבר לערכת צבעים בהירה">☀️</button>
+    </div>
   </header>
 
   <!-- The frame below is drawn in the browser, not streamed. Saying so on the

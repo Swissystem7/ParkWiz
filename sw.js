@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v24';
+const CACHE = 'parkwiz-field-v25';
 const ASSETS = [
   './',
   './index.html',
@@ -66,6 +66,10 @@ const ASSETS = [
   // The spot-freed event core (#265). <script src>'d by demo/atidim-board.html;
   // without it the "a bay freed" alert feed is empty on the first offline visit.
   './src/lib/spot-freed.js',
+  // Design system (#339): every themed page links these from <head>.
+  './src/ui/tokens.css',
+  './src/ui/driver.css',
+  './src/lib/theme.js',
   './demo/atidim.html',
   './demo/atidim-board.html',
   // Real camera occupancy (#264). The TensorFlow.js model it loads is
