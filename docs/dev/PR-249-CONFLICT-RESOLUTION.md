@@ -156,3 +156,38 @@ that is byte-identical to this one.
   "סיכום הכיול הועתק ללוח."; `resetCalibrate()` leaves `0 spots`,
   `startedAt=null`, `lastLot=null`, `step=0`, an empty `#calStatus`, the reset
   line in `#timerNote`, and no `src` attribute on `#snapImg`.
+
+## Status (2026-10-20, #314) — landed via #297, nothing left to split
+
+#314 asked to rebase #249 and split it into parts of at most 400 changed lines.
+There is nothing to split: #249 is 231 changed lines (+195 −36 across
+`pilot-calibrate.html`, `sw.js`, `test/calibrate-ui.test.js`), under the limit
+on its own, and the resolved tree above already landed on `master` in **#297**
+(`053c341`, the #258 loop). Checked against `master` at `ac88d16`:
+
+- PR #249's own `test/calibrate-ui.test.js` (from `a9fecf3`), run assertion by
+  assertion against `master`'s `pilot-calibrate.html`: 38 of 41 hold verbatim.
+  The 3 that do not are exactly the three reconciliations above (`#spotsEmpty`
+  instead of `#spotListEmpty`; the `computeEstimate()` and `savePack()` guards
+  with `master`'s extra `setStatus(…)`), and both of the PR's guard messages
+  are present in the page;
+- `#btnCopySummary` / `copySummary()`, `#btnReset` / `resetCalibrate()`, the
+  fifteen control `aria-label`s and the four `role="region"` panels are all on
+  `master`;
+- `sw.js` is at `v23`, past the `v20` this resolution needed;
+- `npm test`: 598 pass, 0 fail.
+
+Re-applying #249 today would be an empty diff, so #249 should be closed as
+superseded rather than rebased. Close comment:
+
+```md
+Closing as superseded: this PR's change (calibration copy-summary and reset
+actions, labelled wizard controls, landmark regions, live status regions, button
+guards, UI tests) already landed on master in #297, reconciled with the overlapping
+a11y pass from #225. Details in
+[`docs/dev/PR-249-CONFLICT-RESOLUTION.md`](../../blob/master/docs/dev/PR-249-CONFLICT-RESOLUTION.md).
+Nothing from this PR is missing on master; no split needed (231 lines < 400).
+```
+
+Do not delete `factory/laptop-agy-calibrate-actions-a11y` before #249 is closed;
+after that it is safe, since nothing on `master` refers to `a9fecf3`.
