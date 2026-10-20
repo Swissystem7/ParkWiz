@@ -110,3 +110,34 @@ git push origin factory/laptop-agy-rent-modal-a11y
 
 No force push and no new PR either way; PR #254 becomes mergeable once the
 branch contains this tree.
+
+## Status (2026-10-20, #312) — landed via #295, nothing left to split
+
+#312 asked to rebase #254 and split it into parts of at most 400 changed lines.
+There is nothing to split: #254 is 93 changed lines (+79 −14), under the limit
+on its own, and the resolved tree above already landed on `master` in **#295**
+(`578783e`, the #259 loop). Checked against `master` at `ac88d16`:
+
+- every hunk of `875bb35` is present in `index.html` — `#rentTitle` /
+  `#rentCloseBtn`, `<label for="rentHours">`, `role="status"` on `#rentCalc`,
+  the three card-input `aria-label`s, `#rentCancelBtn`, `closeRent()` with its
+  backdrop guard, and `#rentOverlay` / `.rent-box` with `role="dialog"
+  aria-modal="true"`;
+- `index.html` still registers exactly one `window.addEventListener('keydown')`;
+- `sw.js` is at `v23`, past the `>= 20` floor in `test/rent-ui-a11y.test.js`;
+- `npm test`: 598 pass, 0 fail (`test/rent-ui-a11y.test.js`: 10 / 10).
+
+Re-applying #254 today would be an empty diff, so #254 should be closed as
+superseded rather than rebased. Close comment:
+
+```md
+Closing as superseded: this PR's change (rent modal dialog a11y, close/cancel
+buttons, backdrop dismiss, Escape handler, UI tests) already landed on master
+in #295, with the Escape handler folded into the existing listener and the
+cache bumped past v18. Details in
+[`docs/dev/PR-254-CONFLICT-RESOLUTION.md`](../../blob/master/docs/dev/PR-254-CONFLICT-RESOLUTION.md).
+Nothing from this PR is missing on master; no split needed (93 lines < 400).
+```
+
+Do not delete `factory/laptop-agy-rent-modal-a11y` before #254 is closed; after
+that it is safe, since nothing on `master` refers to `875bb35`.
