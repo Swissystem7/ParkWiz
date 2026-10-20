@@ -119,6 +119,24 @@ npm test
 git push origin factory/laptop-agy-kit-actions-a11y   # no force push, no new PR
 ```
 
+## Status (2026-10-20, Refs #315) — superseded, close #247
+
+`auto_merger` asked (#315) to rebase #247 and split it into ≤400-line PRs. No
+split is needed: the PR is 215 changed lines, and the resolution above has
+since landed on `master` (#298), so the four unique items (panel landmarks,
+button names, KPI reset, disclaimer line) are already live. Re-checking the
+PR head `a8b7f71` against `master` line by line left **one** behaviour still
+missing: `copySummary()`'s hidden-textarea `execCommand("copy")` fallback.
+That was set aside above as "same feature", but it isn't the same in the
+field: `navigator.clipboard` only exists in a secure context, and the kit is
+often opened from `file://` or a LAN `http://` address, where `master` just
+reported "העתקה ללוח אינה נתמכת". The #315 PR carries that fallback into
+master's inline handler (also used when `writeText` rejects), pins it in
+`test/kit-ui.test.js`, and bumps `sw.js` to `parkwiz-field-v24` so cached
+kits pick it up. Everything else in #247 is a duplicate or was superseded by
+`setStatus`, so **#247 can be closed** once the #315 PR is open. No branch
+needs to be pushed to `factory/laptop-agy-kit-actions-a11y`.
+
 ## Verification
 
 `npm test` — **530 tests, 530 pass, 0 fail** (529 on `master`, plus this

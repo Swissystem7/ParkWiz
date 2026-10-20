@@ -639,14 +639,29 @@ document.getElementById("btnCopySummary").addEventListener("click", () => {
     "הערה: הערכה היוריסטית על snapshot — לא בינה מלאכותית ולא מצלמה חיה.",
   ].join("\n");
 
+  // navigator.clipboard exists only in a secure context; the kit is often opened
+  // from file:// or a LAN http:// address on a field laptop, so fall back to a
+  // hidden textarea + execCommand("copy") (carried over from PR #247).
+  const fallbackCopy = () => {
+    const ta = document.createElement("textarea");
+    ta.value = summaryText;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    if (ok) setStatus("תקציר התפוסה הועתק ללוח.");
+    else setStatus("העתקה ללוח לא הצליחה בדפדפן זה.", true);
+  };
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(summaryText).then(() => {
       setStatus("תקציר התפוסה הועתק ללוח.");
-    }).catch(() => {
-      setStatus("העתקה ללוח לא הצליחה.", true);
-    });
+    }).catch(fallbackCopy);
   } else {
-    setStatus("העתקה ללוח אינה נתמכת בדפדפן זה.", true);
+    fallbackCopy();
   }
 });
 document.getElementById("btnExportOcc").addEventListener("click", () => {

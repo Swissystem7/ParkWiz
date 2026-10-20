@@ -57,7 +57,14 @@ test('pilot kit page has a copy summary action, announced estimate note, and gua
   // Copy is guarded when nothing is marked, and reports both outcomes
   assert.match(html, /document\.getElementById\("btnCopySummary"\)\.addEventListener\("click",\s*\(\)\s*=>\s*\{\s*if\s*\(!state\.spots\.length\)\s*\{\s*setStatus\("אין מלבנים להעתקה\.",\s*true\);\s*return;\s*\}/);
   assert.match(html, /setStatus\("תקציר התפוסה הועתק ללוח\."\)/);
-  assert.match(html, /setStatus\("העתקה ללוח אינה נתמכת בדפדפן זה\.",\s*true\)/);
+  assert.match(html, /setStatus\("העתקה ללוח לא הצליחה בדפדפן זה\.",\s*true\)/);
+
+  // Outside a secure context (file://, LAN http://) there is no
+  // navigator.clipboard: the copy falls back to execCommand instead of giving
+  // up, and a rejected writeText takes the same fallback.
+  assert.doesNotMatch(html, /העתקה ללוח אינה נתמכת/);
+  assert.match(html, /const fallbackCopy = \(\) => \{[\s\S]*?document\.createElement\("textarea"\)[\s\S]*?ok = document\.execCommand\("copy"\)[\s\S]*?document\.body\.removeChild\(ta\);/);
+  assert.match(html, /navigator\.clipboard\.writeText\(summaryText\)\.then\([\s\S]*?\}\)\.catch\(fallbackCopy\);\s*\}\s*else\s*\{\s*fallbackCopy\(\);\s*\}/);
 
   // The summary names the street and the heuristic method
   assert.match(html, /"רחוב\/אתר: "\s*\+\s*street\(\)/);
