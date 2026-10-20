@@ -1,0 +1,118 @@
+/* Driver map polish (#339). Loaded after index.html's inline <style>, so these
+   rules win on equal specificity. Colours come from src/ui/tokens.css; this
+   file only restyles components and fixes the spots where the inline CSS
+   hard-codes dark-theme colours. */
+
+/* ── chrome ── */
+.topbar,.filter-bar,.bottom-nav{background:var(--pw-surface);border-color:var(--pw-line)}
+.topbar{gap:var(--pw-space-2);padding:10px 12px;box-shadow:var(--pw-shadow-1)}
+.logo{font-family:var(--pw-font-num);letter-spacing:-.01em;font-size:1.15rem}
+.search-box{background:var(--pw-chip);border-color:var(--pw-line);padding:9px 16px;transition:border-color var(--pw-dur) var(--pw-ease),box-shadow var(--pw-dur) var(--pw-ease),background var(--pw-dur)}
+.search-box::placeholder{color:var(--pw-muted)}
+.search-box:focus{background:var(--pw-surface);border-color:var(--pw-brand);box-shadow:var(--pw-focus)}
+.autocomplete{background:var(--pw-surface);border-color:var(--pw-line);border-radius:var(--pw-radius-md);box-shadow:var(--pw-shadow-2)}
+.ac-item:hover,.ac-item:focus-visible{background:var(--pw-brand-soft);color:var(--pw-brand)}
+.filter-bar{gap:8px;padding:8px 12px;scrollbar-width:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-btn,.arrival-chip{min-height:32px;border-radius:var(--pw-radius-pill);background:var(--pw-chip);border-color:var(--pw-line);color:var(--pw-muted);transition:background var(--pw-dur) var(--pw-ease),color var(--pw-dur),border-color var(--pw-dur),transform var(--pw-dur)}
+.filter-btn:active,.arrival-chip:active,.btn:active,.sc-btn:active,.nav-tab:active{transform:scale(.96)}
+.filter-btn.active,.arrival-chip.active{background:var(--pw-brand-soft);border-color:var(--pw-brand);color:var(--pw-brand)}
+.filter-btn.forbidden{color:var(--pw-danger);border-color:var(--pw-line);opacity:.75}
+.heatmap-btn{min-height:36px;background:var(--pw-chip);border-color:var(--pw-line);color:var(--pw-accent)}
+.heatmap-btn.active{background:var(--pw-accent);border-color:var(--pw-accent);color:#fff}
+.bottom-nav{padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -1px 0 var(--pw-line)}
+.nav-tab{font-size:.66rem;font-weight:600;padding:8px 4px 10px;position:relative;transition:color var(--pw-dur),transform var(--pw-dur)}
+.nav-tab.active{color:var(--pw-brand)}
+.nav-tab.active::before{content:'';position:absolute;top:0;inset-inline:28%;height:3px;border-radius:0 0 3px 3px;background:var(--pw-brand)}
+
+/* ── map overlays: floating glass cards ── */
+.live-badge,.legend,.park-tooltip,#tlvBtn{background:var(--pw-overlay)!important;color:var(--pw-ink)!important;border:1px solid var(--pw-line);border-radius:var(--pw-radius-md);box-shadow:var(--pw-shadow-1);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.hero-text{color:var(--pw-ink);background:var(--pw-overlay);padding:10px 16px;border-radius:var(--pw-radius-pill);text-shadow:none;box-shadow:var(--pw-shadow-2);font-size:.95rem}
+/* Dark theme gets a dark basemap: invert the OSM tiles only, markers keep their colours. */
+[data-theme="dark"] .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) saturate(.7)}
+.leaflet-container{background:var(--pw-bg);font-family:var(--pw-font)}
+.leaflet-bar a{background:var(--pw-surface);color:var(--pw-ink);border-color:var(--pw-line)}
+
+/* map loading skeleton: shimmer instead of blink */
+.map-loading{background:var(--pw-bg)}
+.skel-cell{background:linear-gradient(90deg,var(--pw-skel-a) 25%,var(--pw-skel-b) 50%,var(--pw-skel-a) 75%);background-size:200% 100%;border-radius:var(--pw-radius-sm);animation:pwShimmer 1.3s ease-in-out infinite reverse}
+.map-loading-label{color:var(--pw-muted);font-weight:600}
+
+/* ── streets list (side panel / mobile bottom sheet) ── */
+.side-panel{background:var(--pw-surface);border-color:var(--pw-line)}
+@media(min-width:601px){.side-panel{width:320px}}
+.panel-header{padding:14px 16px}
+.panel-header h3{font-size:.95rem}
+/* the arrival chips used to be squashed to a sliver when the panel ran short */
+.arrival-row{flex-shrink:0;padding:10px 12px 6px}
+.stats-row{gap:8px;padding:10px 12px}
+.stat-pill{background:var(--pw-chip);border-radius:var(--pw-radius-md);padding:10px 6px}
+.stat-n{font-family:var(--pw-font-num);font-size:1.35rem;font-variant-numeric:tabular-nums}
+.stat-l{font-size:.68rem}
+.spots-list{padding:8px 10px}
+.spot-item{background:var(--pw-surface-2);border-color:var(--pw-line);border-radius:var(--pw-radius-lg);padding:12px;margin-bottom:8px;box-shadow:var(--pw-shadow-1);transition:border-color var(--pw-dur) var(--pw-ease),transform var(--pw-dur) var(--pw-ease),box-shadow var(--pw-dur)}
+.spot-item:hover{transform:translateY(-1px);box-shadow:var(--pw-shadow-2)}
+/* accent bar on the inline-start (right, in RTL) edge */
+.spot-item.selected{border-color:var(--pw-brand);background:var(--pw-brand-soft);box-shadow:inset -3px 0 0 var(--pw-brand)}
+.spot-street{font-size:.92rem}
+.chance-badge{padding:4px 9px;font-size:.68rem}
+.chance-badge strong{font-family:var(--pw-font-num);font-variant-numeric:tabular-nums}
+.chance-high{color:var(--pw-brand);background:var(--pw-brand-soft);border-color:transparent}
+.chance-mid{color:var(--pw-warn);background:color-mix(in srgb,var(--pw-warn) 14%,transparent);border-color:transparent}
+.chance-low{color:var(--pw-danger);background:color-mix(in srgb,var(--pw-danger) 13%,transparent);border-color:transparent}
+.spot-track{height:6px;background:var(--pw-track);border-radius:var(--pw-radius-pill);margin-top:8px;overflow:hidden}
+.spot-track-fill{height:100%;border-radius:inherit;transition:width .6s var(--pw-ease)}
+.spot-nav-row{display:flex;gap:6px;margin-top:10px}
+.spot-nav-btn{flex:1;min-height:34px;border-radius:var(--pw-radius-sm);border:1px solid var(--pw-line);background:var(--pw-chip);color:var(--pw-ink);font:inherit;font-size:.72rem;font-weight:700;cursor:pointer;transition:background var(--pw-dur),border-color var(--pw-dur)}
+.spot-nav-btn.waze:hover{border-color:#33ccff;background:rgba(51,204,255,.12)}
+.spot-nav-btn.gmaps:hover{border-color:#34a853;background:rgba(52,168,83,.12)}
+.live-feed{background:var(--pw-brand-soft)}
+.feed-time{color:var(--pw-muted)}
+.side-sheet-handle,.sc-handle,.sheet-handle{background:var(--pw-track)}
+.xp-track,.sc-bar-track,.ch-progress{background:var(--pw-track)}
+@media(max-width:600px){
+  .side-panel{background:var(--pw-surface);border-radius:var(--pw-radius-xl) var(--pw-radius-xl) 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.25);transition:max-height var(--pw-dur-slow) var(--pw-ease)}
+  .side-sheet-toggle{color:var(--pw-ink)}
+  .logo-sub{display:none}
+}
+
+/* ── sheets & dialogs ── */
+.street-card,.history-sheet,.reserve-box,.leaving-box,.premium-lock-box,.park-pricing-box,.nav-prompt{background:var(--pw-surface);border-color:var(--pw-line);box-shadow:var(--pw-shadow-2)}
+.leaving-box{border-color:var(--pw-brand)}
+.street-card{border-radius:var(--pw-radius-xl) var(--pw-radius-xl) 0 0;animation:pwRise var(--pw-dur-slow) var(--pw-ease)}
+.street-card-overlay,.reserve-modal,.leaving-overlay{background:var(--pw-scrim);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.sc-avail-pct,.leaving-count,.reserve-price{font-family:var(--pw-font-num);font-variant-numeric:tabular-nums}
+.sc-btn{min-height:44px;border-radius:var(--pw-radius-md);background:var(--pw-chip);border-color:var(--pw-line)}
+.sc-btn:hover{background:var(--pw-brand-soft)}
+.sc-community{background:var(--pw-chip)}
+
+/* ── toast: slides up, and reads on both themes ── */
+.toast{bottom:calc(76px + env(safe-area-inset-bottom));transform:translate(-50%,14px) scale(.98);background:var(--pw-brand);color:var(--pw-on-brand);border-radius:var(--pw-radius-pill);box-shadow:var(--pw-shadow-2);padding:12px 22px;white-space:normal;text-align:center;transition:opacity var(--pw-dur) var(--pw-ease),transform var(--pw-dur-slow) var(--pw-ease)}
+.toast.show{transform:translate(-50%,0) scale(1)}
+
+/* ── focus ── */
+.btn:focus-visible,.filter-btn:focus-visible,.arrival-chip:focus-visible,.spot-item:focus-visible,.sc-btn:focus-visible,.nav-tab:focus-visible,.spot-nav-btn:focus-visible,.heatmap-btn:focus-visible{outline:none;box-shadow:var(--pw-focus)}
+
+/* ── light theme: undo the inline CSS's dark-only literals ── */
+[data-theme="light"] .btn-primary,[data-theme="light"] .btn-confirm,[data-theme="light"] .nav-park-btn,
+[data-theme="light"] .skip-link,[data-theme="light"] .pp2-top,[data-theme="light"] .site-preset .sp-btn.primary{color:var(--pw-on-brand)}
+/* Inline styles in the markup paint dark ink on the brand fill; white reads at AA on the light brand. */
+[data-theme="light"] [style*="color:#0a0f0a"]{color:var(--pw-on-brand)!important}
+[data-theme="light"] .btn-ghost,[data-theme="light"] .btn-cancel-r,[data-theme="light"] .free-pill{background:var(--pw-chip);color:var(--pw-ink)}
+[data-theme="light"] .eval-banner{background:#0e7490}
+[data-theme="light"] .pw-surface-nav{background:var(--pw-surface)!important;border-color:var(--pw-line)!important}
+[data-theme="light"] .pw-surface-nav a{color:var(--pw-ink)!important;border-color:var(--pw-line)!important}
+[data-theme="light"] .pw-surface-nav span.here{color:#fff!important;background:#0e7490!important}
+[data-theme="light"] .profile-overlay{background:var(--pw-bg)}
+/* availColor() returns map-line hexes (Leaflet needs literals); as text on a light card they fail AA. */
+[data-theme="light"] [style*="color:#22c55e"],[data-theme="light"] [style*="color: rgb(34, 197, 94)"]{color:var(--pw-brand)!important}
+[data-theme="light"] [style*="color:#eab308"],[data-theme="light"] [style*="color: rgb(234, 179, 8)"],
+[data-theme="light"] [style*="color:#fbbf24"],[data-theme="light"] [style*="color:#f59e0b"],[data-theme="light"] [style*="color: rgb(245, 158, 11)"]{color:var(--pw-warn)!important}
+[data-theme="light"] [style*="color:#ef4444"],[data-theme="light"] [style*="color: rgb(239, 68, 68)"]{color:var(--pw-danger)!important}
+[data-theme="light"] select[style*="background:#"]{background:var(--pw-surface)!important;color:var(--pw-ink)!important;border-color:var(--pw-line)!important}
+[data-theme="light"] .park-pricing-overlay,[data-theme="light"] .premium-lock-overlay{background:var(--pw-scrim)}
+
+@media (prefers-reduced-motion:reduce){
+  .skel-cell{animation:none}
+  .spot-item:hover{transform:none}
+}

@@ -1,0 +1,61 @@
+/* ParkWiz design system (#339): one set of tokens for every surface.
+   Pages map their legacy variables onto these, so a colour, radius or font
+   changes in one place. Dark is the default; src/lib/theme.js sets
+   data-theme="light" from the visitor's choice or their OS preference.
+   Fonts are local-first (Heebo / Rubik when installed, then the OS UI font):
+   the pages must work offline in a car park, so no web-font CDN. */
+:root{
+  --pw-font:'Heebo','Rubik',system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans Hebrew',Arial,sans-serif;
+  --pw-font-num:'Rubik','Heebo',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+
+  --pw-space-1:4px; --pw-space-2:8px; --pw-space-3:12px; --pw-space-4:16px; --pw-space-5:20px; --pw-space-6:28px;
+  --pw-radius-sm:8px; --pw-radius-md:12px; --pw-radius-lg:16px; --pw-radius-xl:22px; --pw-radius-pill:999px;
+  --pw-ease:cubic-bezier(.2,.8,.2,1); --pw-dur:.2s; --pw-dur-slow:.35s;
+
+  /* dark (default) — every text/background pair below is >= 4.5:1 */
+  --pw-bg:#0b1210; --pw-surface:#111b17; --pw-surface-2:#16231e; --pw-chip:rgba(255,255,255,.06);
+  --pw-overlay:rgba(11,18,16,.9); --pw-scrim:rgba(0,0,0,.6);
+  --pw-ink:#e8f3ee; --pw-muted:#9fb8ad; --pw-line:rgba(255,255,255,.09); --pw-track:rgba(255,255,255,.09);
+  --pw-brand:#22c55e; --pw-on-brand:#05240f; --pw-brand-soft:rgba(34,197,94,.14);
+  --pw-warn:#eab308; --pw-danger:#f87171; --pw-info:#60a5fa; --pw-accent:#c084fc;
+  --pw-shadow-1:0 1px 2px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.25);
+  --pw-shadow-2:0 10px 30px rgba(0,0,0,.45);
+  --pw-focus:0 0 0 3px rgba(34,197,94,.55);
+  --pw-skel-a:rgba(255,255,255,.05); --pw-skel-b:rgba(255,255,255,.12);
+  color-scheme:dark;
+}
+[data-theme="light"]{
+  --pw-bg:#f3f6f4; --pw-surface:#ffffff; --pw-surface-2:#eef3f0; --pw-chip:rgba(15,31,23,.05);
+  --pw-overlay:rgba(255,255,255,.94); --pw-scrim:rgba(15,31,23,.45);
+  --pw-ink:#10201a; --pw-muted:#4a5e55; --pw-line:rgba(15,31,23,.12); --pw-track:rgba(15,31,23,.1);
+  --pw-brand:#147a3a; --pw-on-brand:#ffffff; --pw-brand-soft:rgba(21,128,61,.1);
+  --pw-warn:#965a06; --pw-danger:#b91c1c; --pw-info:#1d4ed8; --pw-accent:#7e22ce;
+  --pw-shadow-1:0 1px 2px rgba(16,32,26,.06),0 2px 10px rgba(16,32,26,.07);
+  --pw-shadow-2:0 14px 34px rgba(16,32,26,.16);
+  --pw-focus:0 0 0 3px rgba(21,128,61,.4);
+  --pw-skel-a:rgba(15,31,23,.05); --pw-skel-b:rgba(15,31,23,.11);
+  color-scheme:light;
+}
+
+/* theme toggle (rendered by any page that has a [data-theme-toggle] button) */
+.pw-theme-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:36px;min-height:36px;padding:0 10px;border-radius:var(--pw-radius-pill);border:1px solid var(--pw-line);background:var(--pw-chip);color:var(--pw-ink);font:inherit;font-size:1rem;cursor:pointer;transition:background var(--pw-dur) var(--pw-ease),transform var(--pw-dur) var(--pw-ease)}
+.pw-theme-toggle:hover{background:var(--pw-brand-soft)}
+.pw-theme-toggle:active{transform:scale(.94)}
+.pw-theme-toggle:focus-visible{outline:none;box-shadow:var(--pw-focus)}
+
+/* loading skeleton: a soft shimmer that runs right-to-left in RTL */
+.pw-skel{background:linear-gradient(90deg,var(--pw-skel-a) 25%,var(--pw-skel-b) 50%,var(--pw-skel-a) 75%);background-size:200% 100%;border-radius:var(--pw-radius-sm);animation:pwShimmer 1.3s ease-in-out infinite}
+[dir="rtl"] .pw-skel{animation-direction:reverse}
+@keyframes pwShimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+/* empty state */
+.pw-empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:var(--pw-space-6) var(--pw-space-4);text-align:center;color:var(--pw-muted);font-size:.82rem;line-height:1.5}
+.pw-empty-icon{font-size:1.8rem;line-height:1;opacity:.85}
+.pw-empty-title{color:var(--pw-ink);font-weight:700;font-size:.88rem}
+
+/* enter animation for cards that arrive with live updates */
+@keyframes pwRise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes pwToastIn{from{opacity:0;transform:translate(-50%,12px) scale(.98)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+@media (prefers-reduced-motion:reduce){
+  .pw-skel{animation:none}
+}
