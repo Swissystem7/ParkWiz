@@ -26,3 +26,5 @@ jobs:
           else
             node --test
           fi
+      - name: Load test (20 concurrent users on the shared backend)
+        run: npm run test:load
