@@ -9,3 +9,8 @@ dist/
 build/
 *.key
 *.pem
+# Edge box (#266): the RTSP user lives only on the box, and sample clips used
+# for the looped-RTSP acceptance run are not repo content.
+edge/.env
+edge/samples/
+edge/bridge/config.json

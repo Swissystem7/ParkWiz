@@ -1,0 +1,34 @@
+# go2rtc — one connection to each camera, re-served to everyone else (#266).
+#
+# Browsers cannot play RTSP; this is what makes the live view in ParkWiz
+# possible (WebRTC, or MJPEG as a fallback on a locked-down tablet) without any
+# cloud relay. Frigate consumes the `rtsp://127.0.0.1:8554/<name>` restream.
+#
+# ${...} is read from edge/.env at startup. No password is written in this file.
+streams:
+  # Production: the park's own camera or an NVR channel. Hikvision form shown;
+  # for Dahua use
+  #   rtsp://${CAM_USER}:${CAM_PASSWORD}@${CAM_HOST}:554/cam/realmonitor?channel=1&subtype=1
+  lot_cam:
+    - rtsp://${CAM_USER}:${CAM_PASSWORD}@${CAM_HOST}:554/Streaming/Channels/102
+    # Second entry = audio/backup channel. Parking needs no audio; leave it out.
+
+  # Acceptance rig (#266): a sample clip looped as a real RTSP stream, so the
+  # whole chain can be proved on a laptop with no camera on site. Point
+  # cameras.lot_cam.ffmpeg at rtsp://127.0.0.1:8554/demo_cam to use it.
+  demo_cam:
+    - "exec:ffmpeg -hide_banner -re -stream_loop -1 -i /media/sample-lot.mp4 -c:v libx264 -preset veryfast -tune zerolatency -an -f rtsp {output}"
+
+api:
+  # LAN only. 1984 serves the WebRTC/MJPEG endpoints the ParkWiz live view uses;
+  # it must not be forwarded on the router.
+  listen: ":1984"
+
+rtsp:
+  listen: ":8554"
+
+webrtc:
+  candidates:
+    # Replace with the box's LAN address so a browser on the same network can
+    # negotiate directly. No STUN/TURN server: nothing leaves the site.
+    - 192.168.1.50:8555
