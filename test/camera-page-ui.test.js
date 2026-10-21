@@ -65,6 +65,34 @@ test('the page is Hebrew RTL and usable before the model loads', () => {
   }
 });
 
+test('a freed spot fires the #263 event and the toast, once per transition', () => {
+  assert.match(js, /state\.freed\.forEach\(announceFreed\)/);
+  assert.match(js, /new CustomEvent\('parkwiz:spot-freed'/);
+  assert.match(js, /spotId: spotId, source: 'camera'/);
+  assert.match(js, /toast\('התפנה תא /);
+  // The debounced transition list is the only trigger; re-reading occupied
+  // state every frame would re-fire the event for one real freeing.
+  assert.doesNotMatch(js, /dispatchEvent[\s\S]{0,200}state\.spots\.forEach/);
+});
+
+test('counters and both charts are built from real detections only', () => {
+  assert.match(js, /kpiFree'\)\.textContent = state\.free/);
+  assert.match(js, /kpiRate'\)\.textContent = state\.total \? OCC\.pct\(state\.rate\)/);
+  assert.match(js, /kpiCars'\)\.textContent = boxes\.length/);
+  assert.match(js, /OCC\.chartSvg\(records/);
+  assert.match(js, /OCC\.hourHeatmapSvg\(records\)/);
+  // records only ever grows inside record(), from a tracker state: no seeded,
+  // modelled or random samples can reach either chart.
+  assert.equal([...js.matchAll(/records\.push\(/g)].length, 1);
+  assert.match(js, /records\.push\(VO\.toRecord\(state/);
+  assert.doesNotMatch(js, /Math\.random/);
+  // hourFromTs reads the literal "T<hh>", so toISOString would file a 15:00
+  // meeting under 13:00 and the per-hour chart would be two hours out.
+  assert.doesNotMatch(js, /toISOString/);
+  assert.match(js, /function stamp\(\)/);
+  assert.equal(OCC.hourFromTs('2026-10-19T15:04:00'), 15);
+});
+
 test('frames never leave the browser, and the page says so', () => {
   assert.doesNotMatch(html, /fetch\(|XMLHttpRequest|FormData|sendBeacon|WebSocket|toDataURL|toBlob/);
   assert.match(html, /הפריימים לא יוצאים מהמכשיר/);
