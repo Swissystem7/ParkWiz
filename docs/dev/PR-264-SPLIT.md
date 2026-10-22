@@ -21,7 +21,7 @@ model, no pixels: vehicle boxes in, per-spot occupied/free state out.
 - `toRecord(state, opts)` — a reading as one `src/lib/occupancy.js` record, so
   the chart and the CSV/JSON export reuse the existing schema.
 
-## Slice 2 — `demo/camera.html` (this PR, ~390 lines)
+## Slice 2 — `demo/camera.html` (landed, #320)
 
 The live page: browser-side wiring only, every occupancy decision in slice 1.
 
@@ -50,7 +50,7 @@ The live page: browser-side wiring only, every occupancy decision in slice 1.
   `CACHE`. The CDN model is off-origin, so the service worker ignores it — the
   page must say the first load needs network.
 
-## Slice 3 — demo packaging (next, ~120 lines)
+## Slice 3 — demo packaging (this PR)
 
 What makes the page findable and rehearsable; the detection loop needs none of
 it, which is why slice 2 ships without any link into it (so the link test can
