@@ -1,0 +1,21 @@
+name: smoke
+# Headless 390px phone smoke tests (test/smoke/*.smoke.js): index, marketplace
+# and offer pages load in Hebrew RTL with no errors and no sideways scroll.
+on:
+  push:
+    branches: ["master", "main"]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  smoke-390:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:smoke
