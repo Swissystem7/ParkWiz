@@ -9,3 +9,7 @@ dist/
 build/
 *.key
 *.pem
+# rehearsal clips for demo/camera.html (see demo/samples/CREDITS.md)
+demo/samples/*.mp4
+demo/samples/*.mov
+demo/samples/*.webm
