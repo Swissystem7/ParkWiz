@@ -4,7 +4,9 @@
   "description": "Netanya street-parking demo and municipal occupancy pilot kit",
   "scripts": {
     "test": "node --test test/*.js",
-    "test:smoke": "node --test test/smoke/*.smoke.js"
+    "test:smoke": "node --test test/smoke/*.smoke.js",
+    "start": "node server/node.js",
+    "test:load": "node scripts/load-test.js"
   },
   "devDependencies": {
     "leaflet": "1.9.4",
