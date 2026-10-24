@@ -909,14 +909,17 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 <!-- Reserve modal -->
 <div class="reserve-modal" id="reserveModal" role="dialog" aria-modal="true" aria-labelledby="reserveTitle">
   <div class="reserve-box">
-    <h3 id="reserveTitle">🅿️ הזמן מקום חניה</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h3 id="reserveTitle">🅿️ הזמן מקום חניה</h3>
+      <button type="button" class="reserve-close" id="reserveCloseBtn" onclick="closeReserve(event)" aria-label="סגור חלון הזמנה" style="background:none;border:none;color:var(--muted);font-size:1.25rem;cursor:pointer;padding:0 6px;line-height:1">✕</button>
+    </div>
     <div style="font-size:0.82rem;color:var(--muted)" id="reserveAddr">רחוב הרצל 42</div>
     <div class="reserve-price">₪4.50</div>
     <div class="reserve-sub">30 דקות · תשלום בסיום</div>
     <div style="font-size:0.68rem;color:#eab308;background:rgba(234,179,8,.1);border-radius:8px;padding:5px 8px;margin-bottom:12px">🧪 סימולציה — אין חיוב ואין שריון מקום אמיתי בגרסת הדגמה זו</div>
     <div class="reserve-actions">
-      <button class="btn-cancel-r" onclick="closeReserve()">ביטול</button>
-      <button class="btn-confirm" onclick="confirmReserve()">✅ הזמן עכשיו</button>
+      <button type="button" class="btn-cancel-r" id="reserveCancelBtn" onclick="closeReserve(event)">ביטול</button>
+      <button type="button" class="btn-confirm" id="reserveConfirmBtn" onclick="confirmReserve()">✅ הזמן עכשיו</button>
     </div>
   </div>
 </div>
@@ -2302,8 +2305,13 @@ function openReserve(id) {
   }
   document.getElementById('reserveModal').classList.add('show');
 }
-function closeReserve() {
+function closeReserve(e) {
+  if (e && e.target && e.target !== document.getElementById('reserveModal') && !e.target.closest('#reserveCloseBtn') && !e.target.closest('#reserveCancelBtn') && !e.target.closest('.btn-cancel-r')) return;
   document.getElementById('reserveModal').classList.remove('show');
+}
+const reserveModalEl = document.getElementById('reserveModal');
+if (reserveModalEl) {
+  reserveModalEl.addEventListener('click', closeReserve);
 }
 function confirmReserve() {
   closeReserve();
@@ -2403,12 +2411,16 @@ function activatePremium() {
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    const reserve = document.getElementById('reserveModal');
+    if (reserve && reserve.classList.contains('show')) { closeReserve(); return; }
     const rent = document.getElementById('rentOverlay');
     if (rent && rent.classList.contains('show')) { closeRent(); return; }
     const pricing = document.getElementById('parkPricingOverlay');
     if (pricing && pricing.classList.contains('show')) { closeParkPricing(); return; }
     const lock = document.getElementById('premiumLockOverlay');
     if (lock && lock.classList.contains('show')) { closeLockModal(); return; }
+    const card = document.getElementById('streetCardOverlay');
+    if (card && card.classList.contains('show')) { closeStreetCard(); return; }
   }
 });
 
