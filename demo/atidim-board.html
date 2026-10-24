@@ -111,7 +111,10 @@
        optional relay (row 3) forwards to phones that are not in the room, and
        what the car API (row 16) will subscribe to. -->
   <section class="panel alerts" style="margin-bottom:14px" aria-labelledby="alertsTitle">
-    <h2 id="alertsTitle">התפנה מקום — ההתראה שהנהג מקבל</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+      <h2 id="alertsTitle">התפנה מקום — ההתראה שהנהג מקבל</h2>
+      <button id="btnClearAlerts" type="button" style="font:inherit;font-size:12px;font-weight:600;padding:5px 12px;border-radius:8px;border:1px solid var(--brand);background:transparent;color:var(--brand);cursor:pointer">נקה התראות</button>
+    </div>
     <div aria-live="polite">
       <p class="empty" id="alertsEmpty">גררו את מחוון השעה קדימה — כל מקום שמתפנה מופיע כאן כהתראה לנהג.</p>
       <ol id="alertsList" aria-label="מקומות שהתפנו"></ol>
@@ -152,6 +155,7 @@
       <input id="bufferRange" type="range" min="0" max="30" step="1" value="5" dir="ltr"
              aria-label="שולי ביטחון בדקות סביב זמן ההגעה">
       <button id="btnCopyMargin" type="button">העתק חלון הגעה</button>
+      <button id="btnResetMargin" type="button">אפס שוליים</button>
       <span class="note">מבוסס על שעון החניון ועקומת הדמו — טווח מקומות פנויים, לא מספר בודד.</span>
     </div>
     <!-- Both sliders rewrite the window, so it is announced like the counters. -->
@@ -545,6 +549,33 @@ function start() {
       const tone = $("marginTone") ? $("marginTone").textContent : "";
       const text = "שולי הגעה לחניון (" + (config.site || "פארק עתידים") + "): " + head + " · " + advice + (tone ? " (" + tone + ")" : "");
       copyToClipboard(text, "פרטי חלון ההגעה הועתקו ללוח.");
+    });
+  }
+  const clearAlertsBtn = $("btnClearAlerts");
+  if (clearAlertsBtn) {
+    clearAlertsBtn.addEventListener("click", () => {
+      if (!alerts.length) {
+        announce("אין התראות לניקוי.");
+        return;
+      }
+      alerts = [];
+      renderAlerts();
+      announce("רשימת ההתראות נוקתה.");
+    });
+  }
+  const resetMarginBtn = $("btnResetMargin");
+  if (resetMarginBtn) {
+    resetMarginBtn.addEventListener("click", () => {
+      const defEta = (MARGIN && MARGIN.DEFAULT_ETA_MIN) || 8;
+      const defBuf = (MARGIN && MARGIN.DEFAULT_BUFFER_MIN) || 5;
+      if (eta === defEta && buffer === defBuf) {
+        announce("שולי ההגעה כבר בערכי ברירת המחדל.");
+        return;
+      }
+      eta = defEta;
+      buffer = defBuf;
+      renderMargin();
+      announce("שולי ההגעה אופסו לברירת המחדל (" + defEta + " דק׳, ±" + defBuf + " דק׳).");
     });
   }
   window.addEventListener("resize", () => drawLot(LOT.snapshotAt(hour, config)));
