@@ -28,6 +28,7 @@ td.wk{white-space:nowrap;font-weight:800;color:var(--brand)}
 .kpi .n{font-size:1.05rem;font-weight:800;color:var(--brand)}
 .kpi .l{font-size:.72rem;color:var(--muted)}
 .free{color:var(--free);font-weight:800}
+.plan-status{min-height:1.2em;font-size:.85rem;font-weight:600;margin:10px 0 0;color:var(--brand)}
 .foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
 a{color:var(--brand)}
 </style>
@@ -51,7 +52,7 @@ a{color:var(--brand)}
 
   <section class="panel" aria-labelledby="h-problem">
     <h2 id="h-problem"><span class="n">1.</span> הבעיה בפארק עסקי</h2>
-    <ul class="list">
+    <ul class="list" role="list" aria-label="אתגרי העומס בפארק עתידים">
       <li><b>סבבים בשעת שיא.</b> העובדים מגיעים בחלון צר בבוקר ומסתובבים בין המפלסים עד שנמצא תא. חלון העומס של הפארק הוא <b>09:00–14:00</b>, שם התפוסה חוצה 85%.</li>
       <li><b>אין נתון חי לאיזה חניון יש מקום.</b> הנהג מגלה שהמפלס מלא רק אחרי שירד אליו, ואין על מה לבסס הפניה לחניון חלופי.</li>
       <li><b>אין תמונת עומס היסטורית.</b> ההחלטה לפתוח את מפלס ‎-1 מתקבלת מהתחושה של השומר בשער, לא מנתון של אתמול באותה שעה.</li>
@@ -61,7 +62,7 @@ a{color:var(--brand)}
 
   <section class="panel" aria-labelledby="h-gives">
     <h2 id="h-gives"><span class="n">2.</span> מה ParkWiz נותן</h2>
-    <table>
+    <table role="table" aria-label="תכולת המערכת מעל מצלמות קיימות">
       <caption class="sub" style="text-align:right;margin:0 0 6px">הכל מעל <b>מצלמות האבטחה הקיימות</b> — ללא חיישן בכל תא וללא חציבה באספלט.</caption>
       <tbody>
         <tr><th>מספר מקומות פנויים חי לכל חניון</th><td>זיהוי תפוס/פנוי לכל תא מתוך פריים של מצלמה קיימת. מצלמה אחת מכסה 24–30 תאים.</td></tr>
@@ -70,7 +71,7 @@ a{color:var(--brand)}
         <tr><th>שלט או מסך בכניסה <span class="sub">(אופציונלי)</span></th><td>מסך פשוט בשער שמראה לאיזה חניון יש מקום — „קרקע: מלא · ‎-1: 18 פנויים”. לא חלק מהפיילוט הבסיסי; נוסיף אם תרצו.</td></tr>
       </tbody>
     </table>
-    <div class="kpis">
+    <div class="kpis" role="region" aria-label="חלוקת מקומות החניה לפי אזורים ומצלמות">
       <div class="kpi"><div class="n">אזור A · 80</div><div class="l">קרקע — מצלמה 01, כניסה מזרחית</div></div>
       <div class="kpi"><div class="n">אזור B · 90</div><div class="l">מפלס ‎-1 — מצלמה 02</div></div>
       <div class="kpi"><div class="n">אזור C · 50</div><div class="l">מתחם עתידים 7 — מצלמה 03</div></div>
@@ -80,7 +81,7 @@ a{color:var(--brand)}
 
   <section class="panel" aria-labelledby="h-privacy">
     <h2 id="h-privacy"><span class="n">3.</span> פרטיות</h2>
-    <ul class="list">
+    <ul class="list" role="list" aria-label="עקרונות פרטיות ואבטחת מידע">
       <li><b>אין זיהוי לוחיות רישוי (No LPR)</b> ואין זיהוי פנים. המערכת לא יודעת איזה רכב חונה, רק אם התא תפוס.</li>
       <li><b>וידאו לא נשמר ולא נשלח.</b> הפריים מעובד ונזרק; מה שיוצא מהחניון הוא <b>מספר</b> — כמה פנוי, באיזה אזור, באיזו שעה.</li>
       <li><b>העיבוד רץ בדפדפן</b> על מחשב שלכם בחניון. אין העלאה לענן, אין חשבון, ואין שרת חדש להתקין.</li>
@@ -94,7 +95,7 @@ a{color:var(--brand)}
   <section class="panel" aria-labelledby="h-legal">
     <h2 id="h-legal"><span class="n">3א.</span> חבילת מסמכים משפטית — טיוטות</h2>
     <p class="sub" style="margin:0 0 8px"><b>טיוטה לדיון, לא ייעוץ משפטי.</b> ארבעה מסמכים להעברה ליועמ״ש של עתידים לפני החיבור:</p>
-    <ul class="list">
+    <ul class="list" role="list" aria-label="מסמכי חבילה משפטית">
       <li><a href="./docs/legal/pilot-agreement-draft-he.md">טיוטת הסכם הפיילוט</a> — 4 שבועות בחינם, גישת קריאה בלבד, מפסק חירום, הפסקה בכל רגע, וללא התחייבות רכש.</li>
       <li><a href="./docs/legal/privacy-amendment13-he.md">תיקון 13 ופרטיות</a> — חלוקת התפקידים (עתידים בעלת שליטה, ParkWiz מחזיקה), התאמת מטרה למצלמות הקיימות ותמצית סיכונים.</li>
       <li><a href="./docs/legal/dpa-security-annex-he.md">נספח עיבוד ואבטחת מידע</a> — בקרת גישה, משתמש RTSP לקריאה בלבד, ללא פורט נכנס, יומנים, הודעה על אירוע ומחיקה בסיום.</li>
@@ -104,7 +105,7 @@ a{color:var(--brand)}
 
   <section class="panel" aria-labelledby="h-plan">
     <h2 id="h-plan"><span class="n">4.</span> פיילוט <span class="free">חינם</span> — 4 שבועות</h2>
-    <table>
+    <table role="table" aria-label="תוכנית עבודה 4 שבועות לפיילוט">
       <thead><tr><th>שבוע</th><th>מה עושים</th><th>תוצר</th></tr></thead>
       <tbody>
         <tr><td class="wk">1</td><td><b>סימון תאים על מצלמה אחת</b> קיימת (אזור אחד, 24–30 תאים). עבודה חד־פעמית, כ־30 דקות מול המסך.</td><td>תצורת מצלמה מסומנת + תמונת מצב ראשונה</td></tr>
@@ -115,7 +116,7 @@ a{color:var(--brand)}
     <p class="sub" style="margin:10px 0 0"><b>עלות: 0 ₪.</b> אין חומרה חדשה, אין התקנה באספלט, ואין התחייבות בסוף.
       שבועיים הם המינימום הטכני להוכחת חיבור (כפי שמופיע ב<a href="./offer.html">הצעה</a>); 4 שבועות נותנים גם עקומת עומס שאפשר להסתמך עליה.</p>
     <h3 style="font-size:.9rem;margin:14px 0 6px">מדדי הצלחה — נקבעים מראש, נמדדים בשבוע 4</h3>
-    <ol class="list">
+    <ol class="list" role="list" aria-label="מדדי הצלחה מספריים לפיילוט">
       <li><b>דיוק ספירה מול בדיקה ידנית.</b> מספר הפנויים של המערכת מול ספירה בעין באותו רגע. יעד: פער של עד תא אחד ברוב התצפיות בשעות היום. הכלי: <a href="./pilot-compare.html">השוואת דיוק</a>.</li>
       <li><b>דקות שנחסכות בשעת שיא.</b> זמן החיפוש של נהג לפני ואחרי שיש נתון לאיזה חניון יש מקום, על מדגם הגעות בבוקר.</li>
     </ol>
@@ -124,7 +125,7 @@ a{color:var(--brand)}
 
   <section class="panel" aria-labelledby="h-need">
     <h2 id="h-need"><span class="n">5.</span> מה אנחנו צריכים מעתידים</h2>
-    <ol class="list">
+    <ol class="list" role="list" aria-label="דרישות תשתית וקשר מעתידים">
       <li><b>גישה לתצוגה של מצלמה אחת קיימת</b> — כתובת RTSP/ONVIF או גישה ל‑NVR, לאזור אחד שמכסה 24–30 תאים (הכניסה המזרחית מתאימה). אין צורך להתקין מצלמה חדשה.</li>
       <li><b>איש קשר אחד</b> — מי שאפשר לתאם איתו את הסימון בשבוע 1 ואת ספירות הבקרה (אחזקה או מוקד).</li>
     </ol>
@@ -134,9 +135,11 @@ a{color:var(--brand)}
   <div id="pwContact" data-source="pilot-atidim.html"></div>
   <div class="toolbar no-print">
     <button type="button" class="primary" id="btnPrint">הדפס / שמור כ־PDF</button>
+    <button type="button" id="btnCopyPlan">העתק תקציר תוכנית</button>
     <a href="./demo/atidim.html" style="font-size:.85rem">לדמו המפעיל ←</a>
     <a href="./offer.html" style="font-size:.85rem">להצעה ותיאום ←</a>
   </div>
+  <p class="plan-status" id="planStatus" role="status" aria-live="polite"></p>
   <div class="foot">ParkWiz · תוכנית פיילוט פארק עתידים · ללא לוחיות, ללא שמירת וידאו, עיבוד בדפדפן</div>
 </div>
 <script src="src/lib/contact.js"></script>
@@ -144,7 +147,51 @@ a{color:var(--brand)}
 <script src="src/lib/pwa.js"></script>
 <script>
 "use strict";
+
+function setStatus(text, isErr) {
+  const el = document.getElementById("planStatus");
+  if (!el) return;
+  el.textContent = text || "";
+  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e7490)";
+}
+
+function getPlanSummaryText() {
+  return [
+    "ParkWiz — תוכנית פיילוט לחניוני פארק עתידים (4 שבועות)",
+    "",
+    "• הבעיה: עומס בשעות שיא (09:00–14:00, מעל 85% תפוסה) ב-220 מקומות, סבבי חיפוש מיותרים וחוסר בנתוני אמת.",
+    "• מה המערכת נותנת: מספר מקומות פנויים חי לכל חניון, תמונת עומס שעתית, דוח שעת בוקר ושלט בכניסה (אופציונלי) — מעל מצלמות אבטחה קיימות ללא חומרה חדשה.",
+    "• פריסת תאים ומצלמות: אזור A (80 מקומות, קרקע), אזור B (90 מקומות, מפלס -1), אזור C (50 מקומות, מתחם 7).",
+    "• פרטיות מובטחת (Privacy by Design): ללא LPR, ללא זיהוי פנים, וידאו לא נשמר ולא נשלח, עיבוד מקומי בדפדפן, ללא אכיפה.",
+    "• מסלול הפיילוט (חינם, 4 שבועות): שבוע 1 — סימון תאים על מצלמה אחת (30 דק'); שבועות 2–3 — מדידה רציפה ובקרת ספירה ידנית; שבוע 4 — דוח והחלטה משותפת.",
+    "• מדדי הצלחה שנקבעו מראש: דיוק ספירה מול בדיקה ידנית (פער עד תא אחד) ודקות שנחסכות בשעת שיא.",
+    "• מה נדרש מעתידים: גישה למצלמה קיימת אחת (RTSP/ONVIF) ואיש קשר אחד לתיאום."
+  ].join("\n");
+}
+
 document.getElementById("btnPrint").addEventListener("click", function () { window.print(); });
+
+document.getElementById("btnCopyPlan").addEventListener("click", async function () {
+  const text = getPlanSummaryText();
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setStatus("תקציר תוכנית הפיילוט הועתק ללוח בהצלחה.");
+  } catch (e) {
+    setStatus("לא ניתן להעתיק אוטומטית — העתיקו ישירות מהעמוד.", true);
+  }
+});
 </script>
 </body>
 </html>
