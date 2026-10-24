@@ -55,7 +55,7 @@ test('clear alerts and reset margin buttons guard empty/default states and resto
   const marginLib = require('../src/lib/margin');
   const sf = require('../src/lib/spot-freed');
   const html = fs.readFileSync(htmlPath, 'utf8');
-  const inline = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  const inline = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
 
   function fakeEl(tag) {
     const el = {
