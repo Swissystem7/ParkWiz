@@ -113,3 +113,23 @@ test('the page and the lib it needs are in the offline shell', () => {
     assert.ok(fs.existsSync(path.join(root, 'demo', m[1])), m[1] + ' is a dead link');
   }
 });
+
+
+test('buttons with nothing to act on are disabled, and an empty URL says why', () => {
+  // Undo/Clear with no spots and Stop with no source used to accept a click and
+  // do nothing; in a meeting that reads as a broken page.
+  for (const id of ['btnUndo', 'btnClear', 'btnStop']) {
+    assert.match(html, new RegExp('<button[^>]*id="' + id + '"[^>]*\\bdisabled\\b'), id + ' must start disabled');
+  }
+  assert.match(html, /button:disabled \{[^}]*cursor: not-allowed/);
+  assert.match(js, /btnUndo\.disabled = btnClear\.disabled = spots\.length === 0/);
+  const stop = js.slice(js.indexOf('function stopSource()'), js.indexOf('function start('));
+  assert.match(stop, /btnStop\.disabled = true/);
+  const start = js.slice(js.indexOf('function start('), js.indexOf('function useVideoUrl('));
+  assert.match(start, /btnStop\.disabled = false/);
+  // Empty URL: Hebrew feedback and focus back on the field; Enter loads too.
+  assert.match(js, /if \(!url\) \{ srcStatus\.textContent = '[^']+'; urlIn\.focus\(\); return; \}/);
+  assert.match(js, /urlIn\.addEventListener\('keydown'[\s\S]{0,120}'Enter'[\s\S]{0,80}loadUrl\(\)/);
+  // A cancelled pointer must not leave a dashed half-drawn spot on the frame.
+  assert.match(js, /addEventListener\('pointercancel', function \(\) \{ if \(drag\) \{ drag = null; render\(\); \} \}\)/);
+});
