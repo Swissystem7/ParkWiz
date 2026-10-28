@@ -50,7 +50,8 @@ Landing order: **1 → 3 → 4 → 8 → 2 → 5 → 6 → 7**.
 
 **Status (2026-10-20, #310):** slice 1 landed via #284, slice 3 via #334.
 Slices 4 and 5 ship together on the #310 branch (353 + 34 = 387, under the
-limit; `npm test` 641 passing). Still to open: 8, 2, then 6 and 7.
+limit; `npm test` 641 passing). Slice 2 (the agent runtime) ships on this
+branch (#358). Still to open: 8, then 6 and 7.
 
 ### Slice 1 — the event bus (this PR, 192)
 
@@ -68,7 +69,7 @@ down or put a red console error on an operator's screen — that last one is an
 explicit acceptance item of #269. `sw.js` does **not** precache `bus.js` here;
 the precache entry belongs with the `<script src>` tag that needs it, in slice 6.
 
-### Slice 2 — the agent runtime (329)
+### Slice 2 — the agent runtime (329) — on this branch (#358)
 
 `src/agents/runtime.js` (+154) and `test/agents-runtime.test.js` (+175),
 unchanged. Needs slice 1 only so its own test can `require` the bus.
