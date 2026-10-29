@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — חניון משותף (כמה משתמשים)</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 12px; background: #f6f7f9; color: #1d2433; }
+  .banner { background: #fff4d6; border: 1px solid #e7c66b; padding: 8px 10px; border-radius: 8px; font-size: 14px; }
+  section { background: #fff; border-radius: 10px; padding: 12px; margin-top: 12px; }
+  button, input, select { font: inherit; padding: 6px 10px; margin: 2px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
+  .spot { border-radius: 8px; padding: 8px 4px; text-align: center; border: 2px solid transparent; }
+  .free { background: #d9f7df; } .occupied { background: #f8d7d7; } .claim-me { border-color: #1a7f37; }
+  .claim-other { border-color: #b88200; } .muted { color: #5b6475; font-size: 13px; }
+  .alert { background: #e6f0ff; padding: 8px; border-radius: 8px; margin: 4px 0; }
+</style>
+</head>
+<body>
+<p class="banner">חניון משותף: כמה משתמשים רואים את אותו חניון דרך השרת (<code>node server/node.js</code>). כל לשונית היא משתמש נפרד. התפוסה מדווחת ידנית ע״י מנהל החניון — לא ממצלמה חיה. אין סיסמאות: זו הדגמת סשן, לא חשבון מאובטח.</p>
+
+<section id="login">
+  <h2>כניסה</h2>
+  <input id="name" placeholder="שם" maxlength="40">
+  <select id="role"><option value="driver">נהג</option><option value="manager">מנהל חניון</option></select>
+  <button id="go">כניסה</button>
+  <p class="muted" id="health">בודק שרת…</p>
+</section>
+
+<section id="main" hidden>
+  <p><b id="who"></b> · <button id="logout">יציאה</button></p>
+  <div id="managerTools" hidden>
+    <input id="lotName" placeholder="שם החניון" maxlength="80">
+    <input id="spotCount" type="number" min="1" max="100" value="8" style="width:70px">
+    <button id="createLot">צור חניון</button>
+  </div>
+  <label>חניון: <select id="lots"></select></label>
+  <div id="alerts" aria-live="polite"></div>
+  <div class="grid" id="grid"></div>
+  <p class="muted" id="status"></p>
+</section>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const roleHe = { driver: 'נהג', manager: 'מנהל חניון' };
+  let session = JSON.parse(sessionStorage.getItem('parkwiz-session') || 'null');
+  let lotId = '';
+  let since = -1;
+  let view = null;
+
+  async function api(method, path, body) {
+    const res = await fetch(path, {
+      method,
+      headers: Object.assign({ 'content-type': 'application/json' }, session ? { authorization: 'Bearer ' + session.token } : {}),
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) logout();
+    if (!res.ok) throw Object.assign(new Error(data.message || data.error), { code: data.error });
+    return data;
+  }
+
+  function logout() {
+    session = null;
+    sessionStorage.removeItem('parkwiz-session');
+    [$('main').hidden, $('login').hidden] = [true, false];
+  }
+
+  function alertLine(text) {
+    const p = Object.assign(document.createElement('p'), { className: 'alert', textContent: text });
+    $('alerts').prepend(p);
+    while ($('alerts').children.length > 3) $('alerts').lastChild.remove();
+  }
+
+  function render() {
+    const grid = $('grid');
+    grid.textContent = '';
+    if (!view) return;
+    for (const s of view.spots) {
+      const div = document.createElement('div');
+      div.className = 'spot ' + (s.occupied ? 'occupied' : 'free') + (s.claim ? ' claim-' + s.claim : '');
+      const label = s.occupied ? 'תפוס' : s.claim === 'me' ? 'שמור לך' : s.claim === 'other' ? 'נהג בדרך' : 'פנוי';
+      div.innerText = s.id + '\n' + label + '\n';
+      const btn = document.createElement('button');
+      const path = `/api/lots/${lotId}/spots/${encodeURIComponent(s.id)}`;
+      if (session.user.role === 'manager' && view.mine) {
+        btn.textContent = s.occupied ? 'סמן פנוי' : 'סמן תפוס';
+        btn.onclick = () => act(() => api('POST', path, { occupied: !s.occupied, ifVersion: view.version }));
+        div.appendChild(btn);
+      } else if (session.user.role === 'driver' && !s.occupied && !s.claim) {
+        btn.textContent = 'אני בדרך';
+        btn.onclick = () => act(() => api('POST', path + '/claim'));
+        div.appendChild(btn);
+      }
+      grid.appendChild(div);
+    }
+  }
+
+  const errorsHe = { CLAIMED: 'נהג אחר כבר בדרך למקום הזה', OCCUPIED: 'המקום נתפס בינתיים', STALE_VERSION: 'החניון השתנה — מרענן' };
+  async function act(fn) {
+    try { await fn(); } catch (err) { alertLine(errorsHe[err.code] || 'שגיאה: ' + err.message); }
+    await poll();
+  }
+
+  async function poll() {
+    if (!session || !lotId) return;
+    try {
+      const next = await api('GET', `/api/lots/${lotId}?since=${since}`);
+      for (const e of session.user.role === 'driver' && since >= 0 ? next.events : []) {
+        if (e.kind === 'freed') alertLine('מקום התפנה! ' + e.spotId + ' — לחצו «אני בדרך» כדי לשמור אותו');
+      }
+      [since, view] = [next.version, next];
+      render();
+      $('status').textContent = 'גרסה ' + next.version + ' · עודכן ' + new Date().toLocaleTimeString('he-IL');
+    } catch (err) {
+      $('status').textContent = 'אין חיבור לשרת — מנסה שוב';
+    }
+  }
+
+  async function loadLots(select) {
+    const lots = await api('GET', '/api/lots');
+    $('lots').innerHTML = '';
+    for (const l of lots) $('lots').add(new Option(`${l.name} (${l.free}/${l.total} פנויים)`, l.id));
+    if (select) $('lots').value = select;
+    if (lotId !== $('lots').value) { lotId = $('lots').value; since = -1; }
+    await poll();
+  }
+
+  async function enter() {
+    [$('login').hidden, $('main').hidden] = [true, false];
+    $('who').textContent = session.user.name + ' (' + roleHe[session.user.role] + ')';
+    $('managerTools').hidden = session.user.role !== 'manager';
+    await loadLots();
+  }
+
+  $('go').onclick = async () => {
+    try {
+      session = await api('POST', '/api/session', { name: $('name').value, role: $('role').value });
+      sessionStorage.setItem('parkwiz-session', JSON.stringify(session));
+      await enter();
+    } catch (err) { $('health').textContent = 'הכניסה נכשלה: ' + err.message; }
+  };
+  $('logout').onclick = logout;
+  $('lots').onchange = () => loadLots($('lots').value);
+  $('createLot').onclick = () => act(async () => {
+    const n = Math.max(1, Math.min(100, Number($('spotCount').value) || 1));
+    const spots = Array.from({ length: n }, (_, i) => ({ id: 'P' + (i + 1), occupied: true }));
+    const lot = await api('POST', '/api/lots', { name: $('lotName').value, spots });
+    await loadLots(lot.id);
+  });
+
+  fetch('/health').then((r) => r.json()).then((h) => { $('health').textContent = `השרת פעיל · ${h.users} משתמשים · ${h.lots} חניונים`; })
+    .catch(() => { $('health').textContent = 'השרת לא זמין — הפעילו node server/node.js'; });
+  if (session) enter().catch(logout);
+  setInterval(poll, 2000);
+})();
+</script>
+</body>
+</html>
