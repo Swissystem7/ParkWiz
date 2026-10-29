@@ -7,6 +7,13 @@
  *   createMockTransport({ configByLot })   → in-memory transport recording `calls`.
  *   createInMemoryTransport                → alias of createMockTransport.
  *   createHttpTransport({ baseUrl })       → stub; always throws "not configured".
+ *   toCityZoneFreed(event)                 → { lotId, spotId, freedAt }
+ *     Accepts the relay shape { lot, spotId, freedAt } and the connector
+ *     shape { lotId, spotId, freedAt | timestamp }. `lot` is copied to
+ *     `lotId`. Output never carries `lot` or `timestamp`.
+ *
+ * fetchLotConfig returns only lotId, name, total, and spots[{id, state}].
+ * Any other key is rejected. Real HTTP is not implemented here.
  *
  * Privacy (fail-closed): occupancy data is counts / spot states only.
  * Never send images, frames, video, faces, licence plates or vehicle ids.
@@ -27,7 +34,8 @@
     'face', 'facial', 'plate', 'licenseplate', 'lpn', 'vehicleid', 'vin'];
   const SNAPSHOT_KEYS = ['total', 'occupied', 'free', 'timestamp', 'ts', 'spots'];
   const SPOT_KEYS = ['id', 'state'];
-  const FREED_KEYS = ['lotId', 'spotId', 'freedAt', 'timestamp'];
+  const FREED_KEYS = ['lot', 'lotId', 'spotId', 'freedAt', 'timestamp'];
+  const CONFIG_KEYS = ['lotId', 'name', 'total', 'spots'];
 
   const isObj = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
   const nonEmpty = (v) => typeof v === 'string' && v.length > 0;
@@ -116,19 +124,79 @@
     optionalString(snapshot.ts, 'ts');
     const timestamp = snapshot.timestamp !== undefined ? snapshot.timestamp : snapshot.ts;
     if (timestamp !== undefined) payload.timestamp = timestamp;
-    if (snapshot.spots !== undefined) {
-      if (!Array.isArray(snapshot.spots)) throw new TypeError('CityZone: spots must be an array');
-      payload.spots = snapshot.spots.map((spot) => {
-        if (!isObj(spot)) throw new TypeError('CityZone: spot must be an object');
-        assertAllowlist(spot, SPOT_KEYS, 'spot');
-        assertNonEmptyString(spot.id, 'spot.id');
-        if (!SPOT_STATES.includes(spot.state)) {
-          throw new TypeError(`CityZone: spot.state must be one of ${SPOT_STATES.join(', ')}`);
-        }
-        return { id: spot.id, state: spot.state };
-      });
-    }
+    if (snapshot.spots !== undefined) payload.spots = normalizeSpots(snapshot.spots);
     return payload;
+  }
+
+  function normalizeSpots(spots) {
+    if (!Array.isArray(spots)) throw new TypeError('CityZone: spots must be an array');
+    return spots.map((spot) => {
+      if (!isObj(spot)) throw new TypeError('CityZone: spot must be an object');
+      scanForbidden(spot);
+      assertAllowlist(spot, SPOT_KEYS, 'spot');
+      assertNonEmptyString(spot.id, 'spot.id');
+      if (!SPOT_STATES.includes(spot.state)) {
+        throw new TypeError(`CityZone: spot.state must be one of ${SPOT_STATES.join(', ')}`);
+      }
+      return { id: spot.id, state: spot.state };
+    });
+  }
+
+  // Relay payloads use `lot` (spot-freed.js). The connector wire shape uses
+  // `lotId`. Both may be present only when they are the same string.
+  function lotIdOf(event) {
+    const hasId = event.lotId !== undefined;
+    const hasLot = event.lot !== undefined;
+    if (hasId) assertNonEmptyString(event.lotId, 'lotId');
+    if (hasLot) assertNonEmptyString(event.lot, 'lot');
+    if (hasId && hasLot && event.lotId !== event.lot) {
+      throw new TypeError('CityZone: lot and lotId disagree');
+    }
+    if (!hasId && !hasLot) throw new TypeError('CityZone: lotId must be a non-empty string');
+    return hasId ? event.lotId : event.lot;
+  }
+
+  // `freedAt` from the relay is a finite number of milliseconds. The connector
+  // also accepts an ISO string, or `timestamp` as a string alias. Zero is a
+  // real instant, so it must not collapse to null.
+  function coerceFreedAt(value, name) {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.length > 0) return value;
+    throw new TypeError(`CityZone: ${name} must be a non-empty string or a finite number`);
+  }
+
+  function pickFreedAt(event) {
+    if (event.freedAt !== undefined && event.freedAt !== null) return coerceFreedAt(event.freedAt, 'freedAt');
+    if (event.timestamp !== undefined && event.timestamp !== null) return coerceFreedAt(event.timestamp, 'timestamp');
+    return null;
+  }
+
+  function toCityZoneFreed(event) {
+    if (!isObj(event)) throw new TypeError('CityZone: event must be an object');
+    scanForbidden(event);
+    assertAllowlist(event, FREED_KEYS, 'event');
+    const lotId = lotIdOf(event);
+    assertNonEmptyString(event.spotId, 'spotId');
+    return { lotId, spotId: event.spotId, freedAt: pickFreedAt(event) };
+  }
+
+  function normalizeLotConfig(config) {
+    if (config === null || config === undefined) return null;
+    if (!isObj(config)) throw new TypeError('CityZone: lot config must be an object');
+    scanForbidden(config);
+    assertAllowlist(config, CONFIG_KEYS, 'lot config');
+    const out = {};
+    if (config.lotId !== undefined) {
+      assertNonEmptyString(config.lotId, 'lotId');
+      out.lotId = config.lotId;
+    }
+    if (config.name !== undefined) {
+      assertNonEmptyString(config.name, 'name');
+      out.name = config.name;
+    }
+    if (config.total !== undefined) out.total = countField(config.total, 'total', false);
+    if (config.spots !== undefined) out.spots = normalizeSpots(config.spots);
+    return out;
   }
 
   function createCityZoneConnector({ transport } = {}) {
@@ -140,23 +208,11 @@
         return t.pushOccupancy(lotId, normalizeSnapshot(snapshot));
       },
       pushSpotFreed(event) {
-        if (!isObj(event)) throw new TypeError('CityZone: event must be an object');
-        scanForbidden(event);
-        assertAllowlist(event, FREED_KEYS, 'event');
-        assertNonEmptyString(event.lotId, 'lotId');
-        assertNonEmptyString(event.spotId, 'spotId');
-        optionalString(event.freedAt, 'freedAt');
-        optionalString(event.timestamp, 'timestamp');
-        const normalized = {
-          lotId: event.lotId,
-          spotId: event.spotId,
-          freedAt: event.freedAt || event.timestamp || null,
-        };
-        return t.pushSpotFreed(normalized);
+        return t.pushSpotFreed(toCityZoneFreed(event));
       },
       fetchLotConfig(lotId) {
         assertNonEmptyString(lotId, 'lotId');
-        return t.fetchLotConfig(lotId);
+        return normalizeLotConfig(t.fetchLotConfig(lotId));
       },
     };
   }
@@ -166,6 +222,7 @@
     createMockTransport,
     createInMemoryTransport: createMockTransport,
     createHttpTransport,
+    toCityZoneFreed,
     SPOT_STATES,
   };
 });

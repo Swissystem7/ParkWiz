@@ -10,8 +10,8 @@
 | שיטה | תיאור |
 | --- | --- |
 | `pushOccupancy(lotId, snapshot)` | שליחת תמונת תפוסה לחניון |
-| `pushSpotFreed(event)` | דיווח שמקום חניה התפנה (`lotId`, `spotId`, `freedAt`) |
-| `fetchLotConfig(lotId)` | קריאת תצורת חניון |
+| `pushSpotFreed(event)` | דיווח שמקום התפנה. `{lot, spotId, freedAt}` מהממסר הופך ל־`{lotId, spotId, freedAt}` |
+| `fetchLotConfig(lotId)` | קריאת תצורת חניון. שדות מותרים: `lotId`, `name`, `total`, `spots` |
 
 מצבי מקום מותרים: `free`, `occupied`, `reserved`, `disabled`.
 
@@ -47,8 +47,8 @@ It sends occupancy data only — counts and spot states — and reads lot config
 | Method | Description |
 | --- | --- |
 | `pushOccupancy(lotId, snapshot)` | Push an occupancy snapshot for a lot |
-| `pushSpotFreed(event)` | Report a freed spot (`lotId`, `spotId`, `freedAt`) |
-| `fetchLotConfig(lotId)` | Fetch a lot's configuration |
+| `pushSpotFreed(event)` | Report a freed spot. Relay `{lot, spotId, freedAt}` becomes `{lotId, spotId, freedAt}` |
+| `fetchLotConfig(lotId)` | Fetch lot config. Allowed fields: `lotId`, `name`, `total`, `spots` |
 
 Allowed spot states: `free`, `occupied`, `reserved`, `disabled`.
 
