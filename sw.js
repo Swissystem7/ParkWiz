@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v26';
+const CACHE = 'parkwiz-field-v27';
 const ASSETS = [
   './',
   './index.html',
@@ -70,6 +70,8 @@ const ASSETS = [
   './src/ui/tokens.css',
   './src/ui/driver.css',
   './src/lib/theme.js',
+  // Error gate (#344). No-op unless deploy replaces the DSN placeholder.
+  './src/lib/sentry.js',
   './demo/atidim.html',
   './demo/atidim-board.html',
   // Real camera occupancy (#264). The TensorFlow.js model it loads is

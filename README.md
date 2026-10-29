@@ -78,3 +78,15 @@
 ## יצירת קשר
 
 ערך אחד בלבד: `CONTACT` ב־[`src/lib/contact.js`](./src/lib/contact.js) (מייל, טלפון ל־WhatsApp, או קישור https לטופס). מאז 28.9 הוא מצביע על טופס Google "משוב על האפליקציות", ממולא מראש ב־ParkWiz, ולכן `offer.html`, `pilot-brief.html` והמפה מציגים קישור לטופס. לא ממציאים פרטי קשר. אם מרוקנים אותו, הדפים האלה מציגים במקום זה קישור לטופס GitHub Issue בעברית (ציבורי, דורש חשבון GitHub). כשמשנים את הערך מעלים את גרסת המטמון ב־`sw.js`.
+
+## שגיאות דפדפן (Sentry)
+
+`index.html` וכל `pilot-*.html` טוענים את [`src/lib/sentry.js`](./src/lib/sentry.js) לפני שאר הסקריפטים. הקובץ בודק את ה־DSN ורק אז טוען את ה־SDK מ־CDN (חבילת שגיאות בלבד, בלי Session Replay). בלי DSN אין בקשת רשת ל־Sentry והדפים מתנהגים כרגיל.
+
+ה־DSN לא נשמר בריפו. מפעילים כך:
+
+1. ב־GitHub: Settings → Secrets and variables → Actions → New repository secret. השם `SENTRY_DSN`. הערך הוא ה־DSN של פרויקט Sentry (`https://…@….sentry.io/…`).
+2. בזמן פרסום מחליפים את המופע היחיד של `__SENTRY_DSN__` ב־`src/lib/sentry.js` בערך הסוד. צינור ה־validate לא עושה את ההחלפה. עד שהיא קורית, ה־placeholder משאיר את Sentry כבוי.
+3. אחרי פרסום עם DSN, פתיחה חד־פעמית של `index.html?sentryTest=1` שולחת שגיאת בדיקה. בלי הפרמטר לא נשלחת שגיאת בדיקה.
+
+`sendDefaultPii` כבוי. לא נשלחים פריימי וידאו, תמונות או קואורדינטות.
