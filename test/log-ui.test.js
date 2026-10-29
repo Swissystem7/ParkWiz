@@ -69,8 +69,9 @@ test('pilot log page has accessible status regions, empty states, copy/reset act
   assert.match(html, /getElementById\("btnJson"\)\.addEventListener\("click",\s*\(\)\s*=>\s*\{[\s\S]*?if\s*\(!PRO\.filledDays\(state\.days\)\.length\)\s*\{\s*setStatus\("אין ימים עם ספירה לייצוא\."\);\s*return;\s*\}/);
   assert.match(html, /getElementById\("btnClear"\)\.addEventListener\("click",\s*\(\)\s*=>\s*\{[\s\S]*?if\s*\(!PRO\.filledDays\(state\.days\)\.length\)\s*\{\s*setStatus\("היומן כבר ריק\."\);\s*return;\s*\}/);
 
-  // Copy summary function implementation and listener
-  assert.match(html, /(?:async\s+)?function copySummary\(\)\s*\{[\s\S]*?if\s*\(!filled\.length\)\s*\{[\s\S]*?setStatus\("אין ימים עם ספירה להעתקת סיכום\."\);\s*return;\s*\}/);
+  // Copy summary: empty log is announced on #status, then the clipboard is tried.
+  assert.match(html, /function buildSummaryText\(\)\s*\{[\s\S]*?if\s*\(!filled\.length\)\s*return\s*"";/);
+  assert.match(html, /async function copySummary\(\)\s*\{[\s\S]*?if\s*\(!text\)\s*\{\s*setStatus\("אין ימים עם ספירה להעתקת סיכום\.",\s*true\);\s*return;\s*\}/);
   assert.match(html, /document\.getElementById\("btnCopySummary"\)\.addEventListener\("click",\s*copySummary\)/);
 
   // Reset flags function implementation and listener

@@ -56,6 +56,7 @@ textarea{min-height:64px;resize:vertical}
 #pwInstallBtn{display:none}
 #pwInstallBtn.show{display:inline-block}
 .status{min-height:1.3em;font-size:.86rem;font-weight:700;margin:8px 0 0}
+button:disabled{opacity:.45;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -76,14 +77,14 @@ textarea{min-height:64px;resize:vertical}
     <label class="no-print" style="margin:0;max-width:none">טען יומן JSON
       <input type="file" id="fileLog" accept=".json,application/json" aria-label="טען יומן מקובץ JSON">
     </label>
-    <button type="button" id="btnCopySummary" aria-label="העתק סיכום יומן שדה ללוח">העתק סיכום</button>
-    <button type="button" id="btnCsv" aria-label="ייצוא CSV של היומן">ייצוא CSV</button>
-    <button type="button" id="btnJson" aria-label="ייצוא JSON של היומן כולל פסק דין">ייצוא JSON</button>
+    <button type="button" id="btnCopySummary" aria-label="העתק סיכום יומן שדה ללוח" disabled>העתק סיכום</button>
+    <button type="button" id="btnCsv" aria-label="ייצוא CSV של היומן" disabled>ייצוא CSV</button>
+    <button type="button" id="btnJson" aria-label="ייצוא JSON של היומן כולל פסק דין" disabled>ייצוא JSON</button>
     <button type="button" id="pwInstallBtn">הוסף למסך הבית</button>
-    <button type="button" id="btnResetFlags" aria-label="אפס תנאי פיילוט ויומן לברירת מחדל">אפס תנאי פיילוט</button>
-    <button type="button" id="btnClear" aria-label="מחק יומן בדפדפן זה">מחק יומן בדפדפן זה</button>
+    <button type="button" id="btnResetFlags" aria-label="אפס תנאי פיילוט ויומן לברירת מחדל" disabled>אפס תנאי פיילוט</button>
+    <button type="button" id="btnClear" aria-label="מחק יומן בדפדפן זה" disabled>מחק יומן בדפדפן זה</button>
   </div>
-  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <p class="status" id="status" role="status" aria-live="polite" aria-atomic="true"></p>
 
   <section class="panel" role="region" aria-labelledby="hVerdict">
     <h2 id="hVerdict">פסק הדין לפי כלל העצירה</h2>
@@ -211,8 +212,10 @@ PRO.LIGHTING.forEach((name) => {
   lightSel.appendChild(o);
 });
 
-function setStatus(text) {
-  document.getElementById("status").textContent = text || "";
+function setStatus(text, isError) {
+  const el = document.getElementById("status");
+  el.textContent = text || "";
+  el.style.color = isError ? "var(--occ)" : "var(--brand)";
 }
 
 function persist() {
@@ -334,11 +337,37 @@ function renderHeat() {
   host.innerHTML = OCC.hourHeatmapSvg(recs);
 }
 
+function hasResettableLog() {
+  if (PRO.filledDays(state.days).length) return true;
+  const m = state.meta;
+  if (m.street !== "הרצל, נתניה" || m.startDate !== "2026-08-01" || m.outreachSentAt
+      || m.hasCalibrationPlan || m.cameraAccess || m.integratorAsk) return true;
+  try {
+    return !!(localStorage.getItem(OCC.LS.log) || localStorage.getItem(LS_META));
+  } catch (e) { return false; }
+}
+
+function refreshActionButtons() {
+  const copyBtn = document.getElementById("btnCopySummary");
+  const csvBtn = document.getElementById("btnCsv");
+  const jsonBtn = document.getElementById("btnJson");
+  const clearBtn = document.getElementById("btnClear");
+  const resetBtn = document.getElementById("btnResetFlags");
+  const noFilled = PRO.filledDays(state.days).length === 0;
+  // A summary or export needs a counted day. Reset also covers edited flags or a pack left in localStorage.
+  if (copyBtn) copyBtn.disabled = noFilled;
+  if (csvBtn) csvBtn.disabled = noFilled;
+  if (jsonBtn) jsonBtn.disabled = noFilled;
+  if (clearBtn) clearBtn.disabled = noFilled;
+  if (resetBtn) resetBtn.disabled = !hasResettableLog();
+}
+
 function render() {
   renderGrid();
   renderEditor();
   renderVerdict();
   renderHeat();
+  refreshActionButtons();
 }
 
 function applyLog(days, meta) {
@@ -437,12 +466,9 @@ document.getElementById("fileLog").addEventListener("change", async (e) => {
   setStatus("נטען יומן מהקובץ.");
 });
 
-async function copySummary() {
+function buildSummaryText() {
   const filled = PRO.filledDays(state.days);
-  if (!filled.length) {
-    setStatus("אין ימים עם ספירה להעתקת סיכום.");
-    return;
-  }
+  if (!filled.length) return "";
   readFlags();
   const pairs = PRO.logToPairs(state.days, state.meta.street);
   const v = PRO.decidePilot({
@@ -453,13 +479,11 @@ async function copySummary() {
     outreachSentAt: state.meta.outreachSentAt,
     now: new Date(),
   });
-
   const rateStr = v.pooled.rate == null ? "—" : OCC.pct(v.pooled.rate);
   const ciStr = v.pooled.wilson ? (OCC.pct(v.pooled.wilson.lo) + "–" + OCC.pct(v.pooled.wilson.hi)) : "—";
   const bias = v.pooled.meanSignedError;
   const biasStr = bias == null ? "—" : ((bias > 0 ? "+" : "") + bias.toFixed(2));
-
-  const lines = [
+  return [
     "ParkWiz — סיכום יומן שדה 30 יום",
     "אתר: " + state.meta.street,
     "תאריך התחלה: " + state.meta.startDate,
@@ -471,15 +495,35 @@ async function copySummary() {
     v.reasons && v.reasons.length ? ("סיבות: " + v.reasons.join("; ")) : "",
     "הערה: יומן שדה מקומי. אין מצלמת עירייה ואין לוחיות.",
   ].filter(Boolean).join("\n");
+}
 
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(lines);
-    }
-    setStatus("סיכום יומן השדה הועתק ללוח.");
-  } catch (e) {
-    setStatus("לא ניתן להעתיק ללוח בדפדפן זה.");
+function copyTextFallback(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  if (typeof ta.setSelectionRange === "function") ta.setSelectionRange(0, text.length);
+  let ok = false;
+  try { ok = typeof document.execCommand === "function" && document.execCommand("copy"); } catch (e) { ok = false; }
+  ta.remove();
+  return !!ok;
+}
+
+async function copySummary() {
+  const text = buildSummaryText();
+  if (!text) {
+    setStatus("אין ימים עם ספירה להעתקת סיכום.", true);
+    return;
   }
+  let copied = false;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try { await navigator.clipboard.writeText(text); copied = true; } catch (e) { copied = false; }
+  }
+  if (!copied) copied = copyTextFallback(text);
+  setStatus(copied ? "סיכום יומן השדה הועתק ללוח." : "לא ניתן להעתיק ללוח בדפדפן זה.", !copied);
 }
 document.getElementById("btnCopySummary").addEventListener("click", copySummary);
 
@@ -493,10 +537,15 @@ function resetFlags() {
     integratorAsk: false,
   };
   state.days = PRO.buildCalendar("2026-08-01", 30);
-  persist();
+  state.selected = 1;
+  try {
+    localStorage.removeItem(OCC.LS.log);
+    localStorage.removeItem(LS_META);
+  } catch (e) { /* private mode */ }
   writeFlags();
-  setStatus("תנאי הפיילוט והיומן אופסו לברירת המחדל.");
+  document.getElementById("fileLog").value = "";
   render();
+  setStatus("תנאי הפיילוט והיומן אופסו לברירת המחדל.");
 }
 document.getElementById("btnResetFlags").addEventListener("click", resetFlags);
 
