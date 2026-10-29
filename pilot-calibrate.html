@@ -41,6 +41,7 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
 .badge.occ{background:#fee2e2;color:#991b1b}
 .badge.unk{background:#f3f4f6;color:#374151}
 .empty-msg{font-size:.84rem;color:var(--muted);padding:8px 0;margin:4px 0}
+button:disabled{opacity:.45;cursor:not-allowed}
 .navrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
 </style>
@@ -116,9 +117,9 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
     <h2 id="hCheck">4. בדיקה ושמירה</h2>
     <div class="row">
       <button type="button" class="primary" id="btnEstimate" aria-label="חשב תפוסת מקומות לפי היוריסטיקה">חשב תפוסה (היוריסטיקה)</button>
-      <button type="button" id="btnCopySummary" aria-label="העתק סיכום כיול ללוח">העתק סיכום כיול</button>
+      <button type="button" id="btnCopySummary" aria-label="העתק סיכום כיול ללוח" disabled>העתק סיכום כיול</button>
       <button type="button" id="btnSave" aria-label="שמור כיול מקומי בדפדפן והורד קובץ JSON">שמור כיול בדפדפן + JSON</button>
-      <button type="button" id="btnReset" aria-label="אפס את כל נתוני הכיול">איפוס כיול</button>
+      <button type="button" id="btnReset" aria-label="אפס את כל נתוני הכיול" disabled>איפוס כיול</button>
     </div>
     <div class="kpis" role="region" aria-label="מדדי תפוסה והערכה">
       <div class="kpi"><div class="n" id="kTotal">0</div><div class="l">מקומות</div></div>
@@ -181,6 +182,20 @@ function setStatus(msg, isError = false) {
   el.style.color = isError ? "var(--occ)" : "var(--brand)";
 }
 
+// In-memory wizard work only. A pack left in localStorage is a separate reset.
+function wizardHasWork() {
+  return !!(state.startedAt || state.step || state.spots.length || state.estimates.length
+    || state.snap || state.hasEmpty || state.hasNight || state.lastLot);
+}
+
+function refreshActionButtons() {
+  const copyBtn = document.getElementById("btnCopySummary");
+  const resetBtn = document.getElementById("btnReset");
+  // A summary needs marked spots. Reset covers a running clock, a later step, or loaded frames.
+  if (copyBtn) copyBtn.disabled = state.spots.length === 0;
+  if (resetBtn) resetBtn.disabled = !wizardHasWork();
+}
+
 function download(name, text) {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
@@ -235,6 +250,7 @@ function renderSteps() {
   });
   document.getElementById("btnPrev").disabled = state.step === 0;
   document.getElementById("btnNext").textContent = state.step === 3 ? "סיים" : "המשך";
+  refreshActionButtons();
 }
 
 function tickClock() {
@@ -258,6 +274,7 @@ function startClock() {
   state.startedAt = Date.now();
   state.tick = setInterval(tickClock, 250);
   tickClock();
+  refreshActionButtons();
 }
 
 function resizeCanvas() {
@@ -342,6 +359,7 @@ function renderSpotList() {
   const btnClear = document.getElementById("btnClear");
   if (btnUndo) btnUndo.disabled = state.spots.length === 0;
   if (btnClear) btnClear.disabled = state.spots.length === 0;
+  refreshActionButtons();
 
   if (!state.spots.length) {
     if (emptyEl) emptyEl.style.display = "block";
@@ -527,6 +545,7 @@ async function copySummary() {
 }
 
 function resetCalibrate() {
+  if (!wizardHasWork()) return;
   if (state.tick) {
     clearInterval(state.tick);
     state.tick = null;
@@ -572,6 +591,7 @@ async function setSnap(url) {
   state.estimates = [];
   await waitImg();
   drawOverlay();
+  refreshActionButtons();
 }
 
 async function fillDemo() {
@@ -602,6 +622,7 @@ function showEmptyNote() {
   if (state.hasEmpty) parts.push("יש ייחוס יום");
   if (state.hasNight) parts.push("יש ייחוס לילה");
   document.getElementById("emptyNote").textContent = parts.length ? parts.join(" · ") : "עדיין אין ייחוס ריק.";
+  refreshActionButtons();
 }
 
 document.getElementById("btnStart").addEventListener("click", () => {

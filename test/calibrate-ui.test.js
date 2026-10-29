@@ -83,6 +83,20 @@ test('pilot calibrate page has copy/reset actions, landmark regions, and labelle
   assert.match(html, /document\.getElementById\("btnReset"\)\.addEventListener\("click",\s*resetCalibrate\)/);
 });
 
+test('copy and reset start disabled until the wizard has something to copy or clear', () => {
+  assert.match(html, /id="btnCopySummary"[^>]*disabled/);
+  assert.match(html, /id="btnReset"[^>]*disabled/);
+  assert.match(html, /button:disabled\{opacity:\.45;cursor:not-allowed\}/);
+  assert.match(html, /function wizardHasWork\(\)/);
+  assert.match(html, /copyBtn\.disabled = state\.spots\.length === 0/);
+  assert.match(html, /resetBtn\.disabled = !wizardHasWork\(\)/);
+  assert.match(html, /function resetCalibrate\(\)\s*\{\s*if \(!wizardHasWork\(\)\) return;/);
+  assert.match(html, /tickClock\(\);\s*refreshActionButtons\(\);/);
+  // A stored pack is not wizard work yet: reset does not clear those keys.
+  const work = html.match(/function wizardHasWork\(\)\s*\{[\s\S]*?\n\}/)[0];
+  assert.doesNotMatch(work, /localStorage/);
+});
+
 test('reset clears the calibration clock and the stale status line', () => {
   const body = html.match(/function resetCalibrate\(\)\s*\{[\s\S]*?\n\}/)[0];
   assert.match(body, /clearInterval\(state\.tick\)/);
