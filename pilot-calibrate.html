@@ -41,6 +41,7 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
 .badge.occ{background:#fee2e2;color:#991b1b}
 .badge.unk{background:#f3f4f6;color:#374151}
 .empty-msg{font-size:.84rem;color:var(--muted);padding:8px 0;margin:4px 0}
+button:disabled{opacity:.45;cursor:not-allowed}
 .navrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
 </style>
@@ -128,7 +129,7 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
     </div>
     <p class="hint" id="estNote">עדיין לא חושב. אחרי הייחוס הריק — «חשב תפוסה».</p>
   </section>
-  <div id="calStatus" role="status" aria-live="polite" class="hint" style="margin-top:8px"></div>
+  <div id="calStatus" role="status" aria-live="polite" aria-atomic="true" class="hint" style="margin-top:8px"></div>
 
   <div class="navrow">
     <button type="button" id="btnPrev" aria-label="מעבר לשלב הקודם באשף">חזרה</button>
@@ -182,18 +183,18 @@ function setStatus(msg, isError = false) {
 }
 
 function hasCalibrationData() {
-  if (state.spots.length || state.estimates.length || state.snap || state.hasEmpty || state.hasNight || state.lastLot) return true;
+  if (state.startedAt || state.step || state.spots.length || state.estimates.length || state.snap || state.hasEmpty || state.hasNight || state.lastLot) return true;
   try {
     return !!(localStorage.getItem(OCC.LS.calibration) || localStorage.getItem(OCC.LS.spots) || localStorage.getItem(OCC.LS.estimate));
   } catch (e) { return false; }
 }
 
 function refreshActionButtons() {
-  const has = hasCalibrationData();
   const copyBtn = document.getElementById("btnCopySummary");
   const resetBtn = document.getElementById("btnReset");
-  if (copyBtn) copyBtn.disabled = !has;
-  if (resetBtn) resetBtn.disabled = !has;
+  // A summary needs marked spots. Reset also covers a running clock or a pack left in localStorage.
+  if (copyBtn) copyBtn.disabled = state.spots.length === 0;
+  if (resetBtn) resetBtn.disabled = !hasCalibrationData();
 }
 
 function download(name, text) {
@@ -273,6 +274,7 @@ function startClock() {
   state.startedAt = Date.now();
   state.tick = setInterval(tickClock, 250);
   tickClock();
+  refreshActionButtons();
 }
 
 function resizeCanvas() {
@@ -496,9 +498,9 @@ function savePack() {
   download("calibration.json", JSON.stringify(pack, null, 2));
   refreshActionButtons();
   const note = document.getElementById("estNote");
-  setStatus("");
   if (!state.startedAt) {
     note.textContent = "כיול נשמר (השעון לא הופעל — אין זמן למדוד). הקובץ מסומן heuristic-occupancy.";
+    setStatus(note.textContent);
     return;
   }
   const elapsed = Date.now() - state.startedAt;
@@ -506,6 +508,7 @@ function savePack() {
   note.textContent =
     (CAL.underTarget(elapsed) ? "כיול נשמר תוך " : "כיול נשמר אחרי ") +
     clock + ". הקובץ מסומן heuristic-occupancy.";
+  setStatus(note.textContent);
 }
 
 function buildSummaryText() {
@@ -536,6 +539,7 @@ function copyTextFallback(text) {
   ta.style.opacity = "0";
   document.body.appendChild(ta);
   ta.select();
+  if (typeof ta.setSelectionRange === "function") ta.setSelectionRange(0, text.length);
   let ok = false;
   try { ok = typeof document.execCommand === "function" && document.execCommand("copy"); } catch (e) { ok = false; }
   ta.remove();

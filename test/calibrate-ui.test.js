@@ -38,10 +38,14 @@ test('pilot calibration page has empty states, accessible status regions, and a1
 });
 
 test('pilot calibrate page has copy/reset actions, landmark regions, and labelled controls', () => {
-  // Live status and timer elements. estNote and emptyNote announce the inline
-  // result; calStatus (asserted above) announces per-action feedback.
-  assert.match(html, /id="estNote"[^>]*role="status"[^>]*aria-live="polite"/);
-  assert.match(html, /id="emptyNote"[^>]*role="status"[^>]*aria-live="polite"/);
+  // estNote and emptyNote are visible notes. The only polite status region is
+  // #calStatus, after the wizard panels, so copy, reset and save stay announced
+  // when renderSteps() returns to step 1 and hides panel 4.
+  assert.match(html, /<p class="hint" id="estNote">/);
+  assert.match(html, /<p class="hint" id="emptyNote">/);
+  assert.doesNotMatch(html, /id="estNote"[^>]*aria-live/);
+  assert.doesNotMatch(html, /id="emptyNote"[^>]*aria-live/);
+  assert.match(html, /id="panel-check"[\s\S]*?<\/section>\s*<div id="calStatus" role="status" aria-live="polite" aria-atomic="true"/);
   assert.match(html, /id="timer"[^>]*role="timer"[^>]*aria-live="polite"/);
 
   // Regions, stage, canvas, and panels
@@ -74,8 +78,9 @@ test('pilot calibrate page has copy/reset actions, landmark regions, and labelle
   assert.match(html, /function computeEstimate\(\)\s*\{[\s\S]*?if\s*\(!state\.snap\s*\|\|\s*!state\.spots\.length\)\s*\{[\s\S]*?"חסרים תמונה או מלבנים לחישוב תפוסה\.";/);
   assert.match(html, /function savePack\(\)\s*\{[\s\S]*?if\s*\(!state\.spots\.length\)\s*\{[\s\S]*?document\.getElementById\("estNote"\)\.textContent\s*=\s*"אין מלבנים שמורים לשמירת כיול\.";/);
 
-  // Copy summary action
-  assert.match(html, /(?:async\s+)?function copySummary\(\)\s*\{[\s\S]*?if\s*\(!state\.spots\.length\)\s*\{[\s\S]*?"אין נתוני כיול להעתקה\.";\s*return;\s*\}/);
+  // Copy summary action. An empty summary is announced on #calStatus.
+  assert.match(html, /function buildSummaryText\(\)\s*\{\s*if\s*\(!state\.spots\.length\)\s*return\s*"";/);
+  assert.match(html, /async function copySummary\(\)\s*\{[\s\S]*?if\s*\(!text\)\s*\{\s*setStatus\("אין נתוני כיול להעתקה\.",\s*true\);\s*return;\s*\}/);
   assert.match(html, /document\.getElementById\("btnCopySummary"\)\.addEventListener\("click",\s*copySummary\)/);
 
   // Reset action
@@ -83,16 +88,15 @@ test('pilot calibrate page has copy/reset actions, landmark regions, and labelle
   assert.match(html, /document\.getElementById\("btnReset"\)\.addEventListener\("click",\s*resetCalibrate\)/);
 });
 
-test('reset clears the calibration clock and the stale status line', () => {
+test('reset clears the calibration clock and announces on the live status', () => {
   const body = html.match(/function resetCalibrate\(\)\s*\{[\s\S]*?\n\}/)[0];
   assert.match(body, /clearInterval\(state\.tick\)/);
   assert.match(body, /state\.startedAt\s*=\s*null/);
   assert.match(body, /state\.lastLot\s*=\s*null/);
-  // A status line written before the reset describes state that no longer exists.
-  assert.match(body, /setStatus\(""\)/);
-  // The confirmation has to be visible after renderSteps() returns to step 1,
-  // which hides the panel that owns estNote.
-  assert.match(body, /timerNote"\)\.textContent\s*=\s*"הכיול אופס\./);
+  // #calStatus stays on screen at every step, so the confirmation replaces any
+  // stale line there instead of a note inside the hidden check panel.
+  assert.match(body, /setStatus\("הכיול אופס בהצלחה\."\)/);
+  assert.match(body, /timerNote"\)\.textContent\s*=\s*"השעון מתחיל בלחיצה על «התחל כיול»\. היעד הוא 3 דקות, לא SLA\."/);
   // src="" resolves to the document URL and requests the page as an image.
   assert.doesNotMatch(body, /snapImg\.src\s*=\s*""/);
   assert.match(body, /snapImg\.removeAttribute\("src"\)/);

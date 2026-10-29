@@ -43,10 +43,17 @@ test('reset wiring clears localStorage keys and resets state', () => {
   assert.match(body, /state\.lastLot = null/);
 });
 
-test('refreshActionButtons disables both buttons without calibration data and runs on load', () => {
+test('copy stays disabled without spots; reset stays disabled without session or stored data', () => {
   assert.match(html, /function hasCalibrationData\(\)/);
-  assert.match(html, /function refreshActionButtons\(\)\s*\{\s*const has = hasCalibrationData\(\);/);
-  assert.match(html, /copyBtn\.disabled = !has/);
-  assert.match(html, /resetBtn\.disabled = !has/);
+  assert.match(html, /state\.startedAt \|\| state\.step \|\| state\.spots\.length/);
+  assert.match(html, /copyBtn\.disabled = state\.spots\.length === 0/);
+  assert.match(html, /resetBtn\.disabled = !hasCalibrationData\(\)/);
+  assert.match(html, /tickClock\(\);\s*refreshActionButtons\(\);/);
   assert.match(html, /renderSteps\(\);\s*renderSpotList\(\);\s*refreshActionButtons\(\);/);
+});
+
+test('a saved pack is announced on #calStatus', () => {
+  const body = html.match(/function savePack\(\)\s*\{[\s\S]*?\n\}/)[0];
+  assert.match(body, /setStatus\(note\.textContent\)/);
+  assert.doesNotMatch(body, /setStatus\(""\)/);
 });
