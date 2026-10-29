@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v26';
+const CACHE = 'parkwiz-field-v27';
 const ASSETS = [
   './',
   './index.html',
@@ -40,6 +40,8 @@ const ASSETS = [
   './pilot/dataset/labels.json',
   './src/lib/occupancy.js',
   './src/lib/heuristic.js',
+  // Privacy-mode lock on pilot-kit.html (#281). The page reads it at boot.
+  './src/lib/redact.js',
   './src/lib/dataset.js',
   './src/lib/calibrate.js',
   './src/lib/compare.js',

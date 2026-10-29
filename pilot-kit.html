@@ -52,6 +52,13 @@ button.danger{color:var(--occ);border-color:#fecaca}
 .badge.unk{background:#f3f4f6;color:#374151}
 svg.chart{display:block;width:100%;height:auto}
 .status{min-height:1.3em;font-size:.86rem;font-weight:700;margin:8px 0 12px}
+.panel.priv{border-color:#99f6e4;background:#f0fdfa;margin-bottom:14px}
+.priv-toggle{background:var(--brand);border-color:var(--brand);color:#fff}
+.priv-toggle[disabled]{cursor:not-allowed;opacity:1}
+.priv-toggle[aria-pressed=false]{background:#fff;border-color:#f59e0b;color:#92400e}
+.priv-badge{font-size:.72rem;font-weight:800;padding:2px 9px;border-radius:99px;background:#ccfbf1;color:#115e59}
+.priv-badge.off{background:#fef3c7;color:#92400e}
+.priv-lock{font-size:.72rem;font-weight:700;color:var(--muted)}
 .empty-msg{color:var(--muted);font-size:.82rem;padding:8px 0}
 .foot{margin-top:22px;text-align:center;color:var(--muted);font-size:.72rem}
 </style>
@@ -71,6 +78,16 @@ svg.chart{display:block;width:100%;height:auto}
     <a href="./pilot-eval.html">דיוק דמו</a>
   </div>
   <p class="status" id="kitStatus" role="status" aria-live="polite"></p>
+
+  <section class="panel priv" role="region" aria-labelledby="privHead">
+    <h2 id="privHead">פרטיות</h2>
+    <div class="row">
+      <button type="button" id="btnPrivacy" class="priv-toggle" aria-pressed="true" aria-describedby="privNote">מצב פרטיות פועל</button>
+      <span class="priv-badge" id="privBadge">פועל</span>
+      <span class="priv-lock" id="privLock" hidden>נעול בבילד ייצור</span>
+    </div>
+    <p class="hint" id="privNote">מצב פרטיות פועל כברירת מחדל. בבילד ייצור הכפתור נעול ואי אפשר לכבות אותו. אין זיהוי לוחיות ואין זיהוי פנים. <a href="./pilot-privacy.html">נוהל הפרטיות המלא</a>.</p>
+  </section>
 
   <div class="grid">
     <div>
@@ -148,6 +165,7 @@ svg.chart{display:block;width:100%;height:auto}
 </div>
 <script src="src/lib/occupancy.js"></script>
 <script src="src/lib/heuristic.js"></script>
+<script src="src/lib/redact.js"></script>
 <script src="src/lib/compare.js"></script>
 <script src="src/lib/export.js"></script>
 <script src="src/lib/surface-nav.js"></script>
@@ -157,6 +175,8 @@ svg.chart{display:block;width:100%;height:auto}
 
 const OCC = window.ParkWizOccupancy;
 const HEU = window.ParkWizHeuristic;
+const RED = window.ParkWizRedact;
+const privacy = RED.createPrivacyMode(window.location);
 const LS_SPOTS = OCC.LS.spots;
 const LS_OCC = OCC.LS.occupancy;
 const LS_STREET = OCC.LS.street;
@@ -177,6 +197,20 @@ const state = {
 const snapImg = document.getElementById("snapImg");
 const canvas = document.getElementById("calCanvas");
 const ctx = canvas.getContext("2d");
+
+function renderPrivacy() {
+  const btn = document.getElementById("btnPrivacy");
+  const badge = document.getElementById("privBadge");
+  const lock = document.getElementById("privLock");
+  btn.textContent = privacy.labelHe();
+  btn.setAttribute("aria-pressed", privacy.enabled ? "true" : "false");
+  // In a production build the guarantee is not a switch: the control stays
+  // visible so the park can see the state, but it cannot be flipped.
+  btn.disabled = privacy.locked;
+  badge.textContent = privacy.enabled ? "פועל" : "כבוי";
+  badge.classList.toggle("off", !privacy.enabled);
+  lock.hidden = !privacy.locked;
+}
 
 function setStatus(msg, isErr) {
   const el = document.getElementById("kitStatus");
@@ -539,6 +573,10 @@ function drawChart(recs) {
   host.innerHTML = OCC.chartSvg(recs, { width: 720, height: 220 });
 }
 
+document.getElementById("btnPrivacy").addEventListener("click", () => {
+  privacy.toggle();
+  renderPrivacy();
+});
 document.getElementById("btnSample").addEventListener("click", () => loadSample());
 document.getElementById("fileSnap").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0];
@@ -716,6 +754,7 @@ window.addEventListener("resize", drawOverlay);
     const o = localStorage.getItem(LS_OCC);
     if (o) applyOccupancy(JSON.parse(o));
   } catch (e) {}
+  renderPrivacy();
   renderSpotList();
   drawChart(state.occupancy);
   loadSample();

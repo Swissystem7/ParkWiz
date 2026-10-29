@@ -22,9 +22,11 @@
 //            a white car, and blurring a random band across light vehicles both
 //            looks broken and costs the occupancy read.
 //
-// This file currently holds the detection half only. The destructive half
-// (mosaic + blur over the located boxes) lands in the follow-up PR split out
-// of #286; until then nothing in the UI calls this module.
+// This file holds the detection half and the privacy-mode lock. The pilot kit
+// reads the lock: privacy mode starts on, and outside a dev host the operator
+// cannot turn it off. The destructive half (mosaic + blur over the located
+// boxes) is still the follow-up split out of #286; nothing here overwrites
+// pixels yet.
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -216,6 +218,46 @@
     return { faces: mergeRects(faces), plates: mergeRects(plates), cell };
   }
 
+  // Privacy mode is on by default and, outside a dev host, cannot be turned
+  // off. The kit renders the control disabled so the park sees the guarantee
+  // rather than a switch somebody could have flipped.
+  const DEV_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '::1'];
+
+  // Unknown environment counts as production. Defaulting the other way would
+  // mean a page that failed to read its own location shipped an unlockable
+  // guarantee as a flippable switch.
+  function isDevHost(hostname, protocol) {
+    const host = String(hostname == null ? '' : hostname).toLowerCase();
+    if (protocol === 'file:') return true;   // opened straight off a USB stick
+    return DEV_HOSTS.indexOf(host) !== -1 || host.endsWith('.local');
+  }
+
+  function createPrivacyMode(env) {
+    const locked = !isDevHost(env && env.hostname, env && env.protocol);
+    let enabled = true;
+    function setEnabled(value) {
+      if (locked) return enabled;                // production: always on
+      enabled = !!value;
+      return enabled;
+    }
+    return {
+      get enabled() { return enabled; },
+      get locked() { return locked; },
+      setEnabled,
+      // Closes over setEnabled rather than going through `this`, so a
+      // destructured handler (`onclick = privacy.toggle`) still works.
+      toggle() { return setEnabled(!enabled); },
+      labelHe() {
+        if (enabled) return locked ? 'מצב פרטיות פועל — נעול בבילד ייצור' : 'מצב פרטיות פועל';
+        return 'מצב פרטיות כבוי — פיתוח בלבד';
+      },
+      labelEn() {
+        if (enabled) return locked ? 'Privacy mode ON — locked in production' : 'Privacy mode ON';
+        return 'Privacy mode OFF — development only';
+      },
+    };
+  }
+
   return {
     FACE,
     PLATE,
@@ -224,5 +266,7 @@
     isSkin,
     isPlateYellow,
     detectRegions,
+    isDevHost,
+    createPrivacyMode,
   };
 });
