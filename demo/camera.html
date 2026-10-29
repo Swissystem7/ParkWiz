@@ -84,7 +84,7 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     </div>
 
     <section class="panel"><h2>פרטיות</h2>
-      <p class="hint">הווידאו נשאר במכשיר: הגלאי רץ מקומית, אין <code>fetch</code> של פריימים ואין שמירה. אנשים
+      <p class="hint"><b id="privacyMode">מצב פרטיות פועל</b> — הווידאו נשאר במכשיר: הגלאי רץ מקומית, אין <code>fetch</code> של פריימים ואין שמירה. אנשים
         ורכבים מטושטשים במכשיר עצמו לפני הצגת הפריים. הפלט הוא
         ספירה בלבד — תא תפוס או פנוי. <b>אין זיהוי לוחיות רישוי ואין זיהוי אנשים</b> (המחלקות הנספרות: רכב,
         משאית, אוטובוס, אופנוע). <a href="../pilot-privacy.html">נוהל הפרטיות המלא</a>.</p></section>
@@ -107,14 +107,15 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
   var SAMPLE_MS = 20000;  // one chart record per 20s, plus every real transition
   var canvas = document.getElementById('frame'), ctx = canvas.getContext('2d');
   // The detector reads a second canvas, so it never sees our own overlay.
-  var work = document.createElement('canvas'), wctx = work.getContext('2d');
+  var work = document.createElement('canvas'), wctx = work.getContext('2d', { willReadFrequently: true });
   var video = document.getElementById('srcVideo'), image = document.getElementById('srcImage');
   var srcStatus = document.getElementById('srcStatus'), spotStatus = document.getElementById('spotStatus');
   var spots = [], boxes = [], records = [], tracker = VO.createTracker(spots), state = tracker.snapshot();
   var source = null, model = null, loading = null, timer = null, stream = null;
   var lastSample = 0, drag = null, seq = 0;
-  // True only while `work` holds a frame that has already been redacted.
-  var hasRedactedFrame = false;
+  // Last buffer that survived redaction. The visible canvas paints this and
+  // never `work`, which holds the raw frame the detector is still reading.
+  var redacted = null, hasRedactedFrame = false, frameGen = 0;
   // occupancy.hourFromTs reads the literal "T<hh>", so a UTC stamp would file a
   // 15:00 meeting under 13:00. Record the wall clock of the room instead.
   function stamp() {
@@ -160,7 +161,9 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
     video.pause();
     source = null;
+    frameGen++;
     hasRedactedFrame = false;
+    render();
   }
   // Callers stop the previous source *before* acquiring the next one: tearing
   // down from in here would stop the tracks of the camera just opened and
@@ -213,25 +216,34 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     var w = (source === video ? video.videoWidth : source.naturalWidth) || 0;
     var h = (source === video ? video.videoHeight : source.naturalHeight) || 0;
     if (!w || !h) return;
-    if (canvas.width !== w || canvas.height !== h) { canvas.width = work.width = w; canvas.height = work.height = h; }
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = work.width = w; canvas.height = work.height = h;
+      hasRedactedFrame = false;
+    }
+    // Bump before the draw so an in-flight callback cannot publish this raw frame.
+    var gen = ++frameGen;
     try { wctx.drawImage(source, 0, 0, w, h); } catch (e) { return; }  // tainted / not yet decoded
-    // `work` now holds a raw frame; nothing may render it until redacted.
-    hasRedactedFrame = false;
-    model.detect(work).then(function (preds) {
-      try {
-        var img = wctx.getImageData(0, 0, w, h);
-        if (!ParkWizRedact) throw new Error('redact unavailable');
-        ParkWizRedact.redactDetections(img, preds);
-        wctx.putImageData(img, 0, 0);
-        hasRedactedFrame = true;
-      } catch (e) { hasRedactedFrame = false; }
-      boxes = VO.normalizeDetections(preds, { frameWidth: w, frameHeight: h });
-      var ts = stamp();
-      state = tracker.update(boxes, ts);
-      state.freed.forEach(announceFreed);
-      record();
-      render();
-    }).catch(function () { /* one dropped frame must not kill the loop */ });
+    model.detect(work).then(function (preds) { publish(preds, w, h, gen); })
+      .catch(function () { /* one dropped frame must not kill the loop */ });
+  }
+  // Colour pass first (faces and plates COCO may call too small), then the
+  // person/vehicle box. A stale gen means `work` already holds a newer raw frame.
+  function publish(preds, w, h, gen) {
+    if (gen !== frameGen || !source) return;
+    var img = null;
+    try {
+      img = wctx.getImageData(0, 0, w, h);
+      if (!ParkWizRedact) throw new Error('redact unavailable');
+      ParkWizRedact.redactFrame(img);
+      ParkWizRedact.redactDetections(img, preds);
+    } catch (e) { img = null; }
+    boxes = VO.normalizeDetections(preds, { frameWidth: w, frameHeight: h });
+    var ts = stamp();
+    state = tracker.update(boxes, ts);
+    state.freed.forEach(announceFreed);
+    record();
+    if (img) { redacted = img; hasRedactedFrame = true; }
+    render();
   }
   // #263: occupied -> free is the transition the rest of the product listens
   // on. The tracker debounces it, so this fires once per real freeing.
@@ -256,10 +268,10 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     var W = canvas.width, H = canvas.height;
     // Spots can be drawn before any source exists, and a detection can resolve
     // just after "עצור" cleared it — neither may throw in front of an operator.
-    // Only the redacted offscreen frame is ever shown; before the first
-    // redacted frame (or while a raw frame awaits redaction) stay empty.
-    if (hasRedactedFrame) { try { ctx.drawImage(work, 0, 0, W, H); } catch (e) { ctx.clearRect(0, 0, W, H); } }
-    else ctx.clearRect(0, 0, W, H);
+    // `redacted` is the only buffer that has been through the redaction gate.
+    if (source && hasRedactedFrame && redacted) {
+      try { ctx.putImageData(redacted, 0, 0); } catch (e) { ctx.clearRect(0, 0, W, H); }
+    } else ctx.clearRect(0, 0, W, H);
     ctx.lineWidth = Math.max(2, Math.round(W / 420));
     ctx.font = (ctx.lineWidth * 7) + 'px system-ui, sans-serif';
     ctx.strokeStyle = '#67e8f9';

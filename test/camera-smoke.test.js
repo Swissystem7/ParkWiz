@@ -42,10 +42,29 @@ function makeElement(id) {
   };
 }
 
-function makeContext(calls) {
+function makeContext(calls, canvas) {
   const op = (name) => () => { calls.push(name); };
+  const buf = new Uint8ClampedArray(canvas.width * canvas.height * 4);
+  canvas._buf = buf;
   return {
-    drawImage: op('drawImage'), clearRect: op('clearRect'), fillRect: op('fillRect'),
+    drawImage(src) {
+      calls.push('drawImage');
+      calls.push(canvas.id + ':draw:' + (src && src.id || 'source'));
+      const n = canvas.width * canvas.height;
+      if (src && src._buf) buf.set(src._buf.subarray(0, buf.length));
+      else {
+        for (let p = 0, i = 0; p < n; p++, i += 4) {
+          buf[i] = (p * 7) % 256; buf[i + 1] = (p * 13) % 256; buf[i + 2] = (p * 29) % 256; buf[i + 3] = 255;
+        }
+      }
+    },
+    getImageData() { return { data: buf, width: canvas.width, height: canvas.height }; },
+    putImageData(img) {
+      calls.push('putImageData');
+      calls.push(canvas.id + ':putImageData');
+      if (img && img.data && img.data !== buf) buf.set(img.data.subarray(0, buf.length));
+    },
+    clearRect: op('clearRect'), fillRect: op('fillRect'),
     strokeRect: op('strokeRect'), fillText: op('fillText'), setLineDash: op('setLineDash'),
   };
 }
@@ -54,7 +73,7 @@ function makeCanvas(id, calls) {
   const c = makeElement(id);
   c.width = 960;
   c.height = 540;
-  c.getContext = () => makeContext(calls);
+  c.getContext = () => c._ctx || (c._ctx = makeContext(calls, c));
   return c;
 }
 
@@ -70,6 +89,7 @@ function runPage() {
   const stopped = [];
   const loaded = [];
   const model = { detect: () => Promise.resolve([]) };
+  let work = null;
 
   const canvas = makeCanvas('frame', ctxCalls);
   elements.set('frame', canvas);
@@ -87,6 +107,7 @@ function runPage() {
   const window = {
     ParkWizVisionOccupancy: require('../src/lib/vision-occupancy'),
     ParkWizOccupancy: require('../src/lib/occupancy'),
+    ParkWizRedact: require('../src/lib/redact'),
     dispatchEvent(ev) { events.push(ev); return true; },
   };
   const document = {
@@ -102,7 +123,11 @@ function runPage() {
       if (!elements.has(id)) elements.set(id, makeElement(id));
       return elements.get(id);
     },
-    createElement(tag) { return tag === 'canvas' ? makeCanvas('work', ctxCalls) : { tag }; },
+    createElement(tag) {
+      if (tag !== 'canvas') return { tag };
+      work = makeCanvas('work', ctxCalls);
+      return work;
+    },
   };
   const stream = { getTracks: () => [{ stop() { stopped.push('track'); } }] };
   const sandbox = {
@@ -119,7 +144,7 @@ function runPage() {
   vm.createContext(sandbox);
   new vm.Script(inlineScript(), { filename: 'demo/camera.html' }).runInContext(sandbox);
   const el = (id) => elements.get(id);
-  return { el, canvas, video, model, events, timers, timeouts, stopped, loaded, ctxCalls };
+  return { el, canvas, work, video, model, events, timers, timeouts, stopped, loaded, ctxCalls };
 }
 
 function dragBay(page) {
@@ -210,6 +235,38 @@ test('both charts are rendered as SVG from the run\'s own detections', async () 
   await frames(page, [], 3);
   assert.match(page.el('sessionChart').innerHTML, /^<svg[\s\S]*<\/svg>$/);
   assert.match(page.el('hourChart').innerHTML, /^<svg[\s\S]*<\/svg>$/);
+});
+
+function rawAt(x, y) {
+  const p = y * 960 + x;
+  return [(p * 7) % 256, (p * 13) % 256, (p * 29) % 256];
+}
+function px(buf, x, y) {
+  const i = (y * 960 + x) * 4;
+  return [buf[i], buf[i + 1], buf[i + 2]];
+}
+
+test('the shown frame is redacted and a stale detection cannot publish the next raw frame', async () => {
+  const page = runPage();
+  page.el('btnCam').fire('click');
+  await settle();
+  const pending = [];
+  page.model.detect = () => new Promise((resolve) => pending.push(resolve));
+  page.timers[0]();
+  page.timers[0]();
+  assert.equal(pending.length, 2);
+  // The first callback is older than the frame now sitting on `work`.
+  pending[0]([{ class: 'person', score: 0.99, bbox: [0, 0, 400, 400] }]);
+  await settle();
+  assert.deepEqual(px(page.work._buf, 20, 20), rawAt(20, 20), 'stale callback left the new raw frame alone');
+  assert.equal(page.ctxCalls.filter((c) => c === 'frame:putImageData').length, 0);
+  pending[1](CAR);
+  await settle();
+  assert.deepEqual(px(page.canvas._buf, 10, 10), rawAt(10, 10), 'outside the car box the frame is untouched');
+  assert.notDeepEqual(px(page.canvas._buf, 200, 100), rawAt(200, 100), 'inside the car box the frame is destroyed');
+  assert.ok(page.ctxCalls.includes('frame:putImageData'));
+  assert.equal(page.ctxCalls.filter((c) => c.startsWith('frame:draw:')).length, 0, 'the visible canvas never draws a source');
+  assert.ok(page.ctxCalls.includes('work:draw:srcVideo'));
 });
 
 test('the page is reachable from the landing page, the offer and the Atidim demo', () => {

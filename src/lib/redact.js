@@ -24,7 +24,7 @@
 //
 // This file holds both halves: detection, and the destructive half (mosaic +
 // blur over the located boxes). The camera demo also feeds COCO-SSD
-// detections through filterRedactDetections/redactDetections (#281).
+// detections through redactFrame and redactDetections (#281).
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;

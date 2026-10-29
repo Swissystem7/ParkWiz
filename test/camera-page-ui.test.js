@@ -97,6 +97,16 @@ test('frames never leave the browser, and the page says so', () => {
   assert.doesNotMatch(html, /fetch\(|XMLHttpRequest|FormData|sendBeacon|WebSocket|toDataURL|toBlob/);
   assert.match(html, /הפריימים לא יוצאים מהמכשיר/);
   assert.match(html, /אין זיהוי לוחיות רישוי/);
+  assert.match(html, /id="privacyMode">מצב פרטיות פועל/);
+  assert.match(html, /src="\.\.\/src\/lib\/redact\.js"/);
+  // The visible canvas only ever receives a buffer publish() already redacted.
+  // The raw source is drawn onto the offscreen canvas the detector reads.
+  assert.match(js, /ParkWizRedact\.redactFrame\(img\)/);
+  assert.match(js, /ParkWizRedact\.redactDetections\(img, preds\)/);
+  assert.match(js, /ctx\.putImageData\(redacted/);
+  assert.match(js, /wctx\.drawImage\(source/);
+  assert.doesNotMatch(js, /\bctx\.drawImage\(source|\bctx\.drawImage\(work/);
+  assert.match(js, /gen !== frameGen/);
   // Only the model is off-origin, and only from the pinned CDN build.
   const urls = [...html.matchAll(/https?:\/\/[^\s"')]+/g)].map((m) => m[0]);
   assert.deepEqual(urls.filter((u) => !/^https:\/\/cdn\.jsdelivr\.net\/npm\/@tensorflow/.test(u)), []);
@@ -108,6 +118,7 @@ test('the page and the lib it needs are in the offline shell', () => {
   const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
   assert.ok(sw.includes("'./demo/camera.html'"));
   assert.ok(sw.includes("'./src/lib/vision-occupancy.js'"));
+  assert.ok(sw.includes("'./src/lib/redact.js'"));
   // Every in-page link must resolve, or the demo dead-ends mid-meeting.
   for (const m of html.matchAll(/href="(\.\.?\/[^"]+)"/g)) {
     assert.ok(fs.existsSync(path.join(root, 'demo', m[1])), m[1] + ' is a dead link');
