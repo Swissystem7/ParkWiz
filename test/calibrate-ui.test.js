@@ -77,6 +77,13 @@ test('pilot calibrate page has copy/reset actions, landmark regions, and labelle
   // Copy summary action
   assert.match(html, /(?:async\s+)?function copySummary\(\)\s*\{[\s\S]*?if\s*\(!state\.spots\.length\)\s*\{[\s\S]*?"אין נתוני כיול להעתקה\.";\s*return;\s*\}/);
   assert.match(html, /document\.getElementById\("btnCopySummary"\)\.addEventListener\("click",\s*copySummary\)/);
+  // file:// and LAN http:// have no clipboard API. A rejected writeText takes
+  // the same hidden-textarea fallback, and a failed fallback is not reported as success.
+  assert.match(html, /function copyTextFallback\(text\)/);
+  assert.match(html, /document\.execCommand\("copy"\)/);
+  assert.match(html, /await navigator\.clipboard\.writeText\(lines\)/);
+  assert.match(html, /if \(!copied\) \{\s*try \{ copied = copyTextFallback\(lines\); \} catch \(e\) \{ copied = false; \}\s*\}/);
+  assert.match(html, /note\.textContent = copied \? "סיכום הכיול הועתק ללוח\." : "לא ניתן להעתיק ללוח בדפדפן זה\."/);
 
   // Reset action
   assert.match(html, /function resetCalibrate\(\)\s*\{[\s\S]*?state\.spots\s*=\s*\[\];/);

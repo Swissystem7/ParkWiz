@@ -510,6 +510,23 @@ function savePack() {
     clock + ". הקובץ מסומן heuristic-occupancy.";
 }
 
+function copyTextFallback(text) {
+  // navigator.clipboard exists only in a secure context. The wizard is often
+  // opened from file:// or a LAN http:// address, so fall back to a hidden
+  // textarea + execCommand("copy"), the same path as the pilot kit.
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  document.body.removeChild(ta);
+  return !!ok;
+}
+
 async function copySummary() {
   const note = document.getElementById("estNote");
   if (!state.spots.length) {
@@ -534,14 +551,14 @@ async function copySummary() {
   ].filter(Boolean).join("\n");
 
   setStatus("");
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(lines);
-    }
-    note.textContent = "סיכום הכיול הועתק ללוח.";
-  } catch (e) {
-    note.textContent = "לא ניתן להעתיק ללוח בדפדפן זה.";
+  let copied = false;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try { await navigator.clipboard.writeText(lines); copied = true; } catch (e) { copied = false; }
   }
+  if (!copied) {
+    try { copied = copyTextFallback(lines); } catch (e) { copied = false; }
+  }
+  note.textContent = copied ? "סיכום הכיול הועתק ללוח." : "לא ניתן להעתיק ללוח בדפדפן זה.";
 }
 
 function resetCalibrate() {
