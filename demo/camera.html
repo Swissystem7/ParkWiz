@@ -84,7 +84,8 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     </div>
 
     <section class="panel"><h2>פרטיות</h2>
-      <p class="hint">הווידאו נשאר במכשיר: הגלאי רץ מקומית, אין <code>fetch</code> של פריימים ואין שמירה. הפלט הוא
+      <p class="hint">הווידאו נשאר במכשיר: הגלאי רץ מקומית, אין <code>fetch</code> של פריימים ואין שמירה. אנשים
+        ורכבים מטושטשים במכשיר עצמו לפני הצגת הפריים. הפלט הוא
         ספירה בלבד — תא תפוס או פנוי. <b>אין זיהוי לוחיות רישוי ואין זיהוי אנשים</b> (המחלקות הנספרות: רכב,
         משאית, אוטובוס, אופנוע). <a href="../pilot-privacy.html">נוהל הפרטיות המלא</a>.</p></section>
   </main>
@@ -95,10 +96,11 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
 
 <script src="../src/lib/occupancy.js"></script>
 <script src="../src/lib/vision-occupancy.js"></script>
+<script src="../src/lib/redact.js"></script>
 <script>
 (function () {
   'use strict';
-  var VO = window.ParkWizVisionOccupancy, OCC = window.ParkWizOccupancy;
+  var VO = window.ParkWizVisionOccupancy, OCC = window.ParkWizOccupancy, ParkWizRedact = window.ParkWizRedact;
   var TFJS = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js';
   var COCO = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js';
   var TICK_MS = 700;      // ~1.4 fps — enough for parking, cheap on a phone
@@ -111,6 +113,8 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
   var spots = [], boxes = [], records = [], tracker = VO.createTracker(spots), state = tracker.snapshot();
   var source = null, model = null, loading = null, timer = null, stream = null;
   var lastSample = 0, drag = null, seq = 0;
+  // True only while `work` holds a frame that has already been redacted.
+  var hasRedactedFrame = false;
   // occupancy.hourFromTs reads the literal "T<hh>", so a UTC stamp would file a
   // 15:00 meeting under 13:00. Record the wall clock of the room instead.
   function stamp() {
@@ -156,12 +160,14 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
     video.pause();
     source = null;
+    hasRedactedFrame = false;
   }
   // Callers stop the previous source *before* acquiring the next one: tearing
   // down from in here would stop the tracks of the camera just opened and
   // pause the video the caller just started.
   function start(el, label) {
     source = el;
+    hasRedactedFrame = false;
     srcStatus.textContent = label;
     if (el === video) video.play().catch(function () { /* autoplay refusal must not stop detection */ });
     ensureModel().then(function () { if (!timer) timer = setInterval(tick, TICK_MS); },
@@ -209,7 +215,16 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     if (!w || !h) return;
     if (canvas.width !== w || canvas.height !== h) { canvas.width = work.width = w; canvas.height = work.height = h; }
     try { wctx.drawImage(source, 0, 0, w, h); } catch (e) { return; }  // tainted / not yet decoded
+    // `work` now holds a raw frame; nothing may render it until redacted.
+    hasRedactedFrame = false;
     model.detect(work).then(function (preds) {
+      try {
+        var img = wctx.getImageData(0, 0, w, h);
+        if (!ParkWizRedact) throw new Error('redact unavailable');
+        ParkWizRedact.redactDetections(img, preds);
+        wctx.putImageData(img, 0, 0);
+        hasRedactedFrame = true;
+      } catch (e) { hasRedactedFrame = false; }
       boxes = VO.normalizeDetections(preds, { frameWidth: w, frameHeight: h });
       var ts = stamp();
       state = tracker.update(boxes, ts);
@@ -241,7 +256,9 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     var W = canvas.width, H = canvas.height;
     // Spots can be drawn before any source exists, and a detection can resolve
     // just after "עצור" cleared it — neither may throw in front of an operator.
-    if (source) { try { ctx.drawImage(source, 0, 0, W, H); } catch (e) { ctx.clearRect(0, 0, W, H); } }
+    // Only the redacted offscreen frame is ever shown; before the first
+    // redacted frame (or while a raw frame awaits redaction) stay empty.
+    if (hasRedactedFrame) { try { ctx.drawImage(work, 0, 0, W, H); } catch (e) { ctx.clearRect(0, 0, W, H); } }
     else ctx.clearRect(0, 0, W, H);
     ctx.lineWidth = Math.max(2, Math.round(W / 420));
     ctx.font = (ctx.lineWidth * 7) + 'px system-ui, sans-serif';

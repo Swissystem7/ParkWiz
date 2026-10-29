@@ -23,8 +23,8 @@
 //            looks broken and costs the occupancy read.
 //
 // This file holds both halves: detection, and the destructive half (mosaic +
-// blur over the located boxes). Nothing in the UI calls it yet — the camera
-// hookup is the next slice of #289.
+// blur over the located boxes). The camera demo also feeds COCO-SSD
+// detections through filterRedactDetections/redactDetections (#281).
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -318,6 +318,62 @@
   // opts: mode 'mosaic' | 'both' (default, mosaic then seam blur), block,
   // radius, cell. There is no blur-only mode: a small blur alone leaves plates
   // and faces readable. A caller block below REDACT.minBlock is raised to it.
+  // COCO-SSD classes whose boxes are destroyed before a frame is shown.
+  // Exact labels only — a near-miss label is not a privacy target we trust.
+  const REDACT_CLASSES = Object.freeze(['person', 'car', 'truck', 'bus', 'motorcycle', 'bicycle']);
+  const MIN_BOX_AREA_PX = 10000;
+
+  function redactThreshold(opts) {
+    if (opts && opts.minBoxAreaPx != null) {
+      const v = Number(opts.minBoxAreaPx);
+      if (Number.isFinite(v) && v >= 0) return v;
+    }
+    return MIN_BOX_AREA_PX;
+  }
+
+  // COCO-SSD bbox is [x, y, width, height] in pixels (see
+  // vision-occupancy.js normalizeDetections). Pure: returns new
+  // {x,y,w,h,class} rects in input order, never mutates, never throws.
+  function filterRedactDetections(detections, opts) {
+    if (!Array.isArray(detections)) return [];
+    const threshold = redactThreshold(opts);
+    const allowed = new Set(REDACT_CLASSES);
+    const out = [];
+    for (const det of detections) {
+      if (!det || !allowed.has(det.class)) continue;
+      const bbox = det.bbox;
+      if (!Array.isArray(bbox) || bbox.length < 4) continue;
+      const [x, y, w, h] = bbox;
+      if (![x, y, w, h].every(Number.isFinite) || w <= 0 || h <= 0) continue;
+      if (!(w * h > threshold)) continue;
+      out.push({ x, y, w, h, class: det.class });
+    }
+    return out;
+  }
+
+  // Apply filter + mosaic-then-blur to a frame. Accepts an ImageData-like
+  // {data,width,height} plus detections, or raw RGBA + width/height +
+  // detections (mirroring redactFrame's two call shapes). Blur is only ever
+  // the seam softener after pixelation — never the sole redaction.
+  // Returns { rects, redacted } like redactFrame's rects + count.
+  function redactDetections(input, width, height, detections, opts) {
+    let rgba = input, w = width, h = height, dets = detections, options = opts;
+    if (input && input.data && input.width) {
+      rgba = input.data; w = input.width; h = input.height; dets = width; options = height;
+    }
+    options = options || {};
+    const rects = filterRedactDetections(dets, options);
+    if (!validFrame(rgba, w, h)) return { rects, redacted: 0 };
+    const block = options.block != null ? Math.max(REDACT.minBlock, Math.floor(options.block) || 0) : null;
+    let redacted = 0;
+    for (const rect of rects) {
+      if (!pixelateRect(rgba, w, h, rect, block)) continue;
+      blurRect(rgba, w, h, rect, options.radius);
+      redacted++;
+    }
+    return { rects, redacted };
+  }
+
   function redactFrame(input, width, height, opts) {
     let rgba = input, w = width, h = height, options = opts;
     if (input && input.data && input.width) {
@@ -350,5 +406,9 @@
     pixelateRect,
     blurRect,
     redactFrame,
+    MIN_BOX_AREA_PX,
+    REDACT_CLASSES,
+    filterRedactDetections,
+    redactDetections,
   };
 });
