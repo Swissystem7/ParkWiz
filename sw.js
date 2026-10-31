@@ -70,6 +70,8 @@ const ASSETS = [
   './src/ui/tokens.css',
   './src/ui/driver.css',
   './src/lib/theme.js',
+  // Error gate (#344). No-op unless deploy replaces the DSN placeholder.
+  './src/lib/sentry.js',
   './demo/atidim.html',
   './demo/atidim-board.html',
   // Real camera occupancy (#264). The TensorFlow.js model it loads is
