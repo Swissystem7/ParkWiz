@@ -99,9 +99,27 @@ test('copy and reset start disabled until the wizard has something to copy or cl
   assert.match(html, /resetBtn\.disabled = !wizardHasWork\(\)/);
   assert.match(html, /function resetCalibrate\(\)\s*\{\s*if \(!wizardHasWork\(\)\) return;/);
   assert.match(html, /tickClock\(\);\s*refreshActionButtons\(\);/);
-  // A stored pack is not wizard work yet: reset does not clear those keys.
   const work = html.match(/function wizardHasWork\(\)\s*\{[\s\S]*?\n\}/)[0];
-  assert.doesNotMatch(work, /localStorage/);
+  assert.match(work, /hasStoredCalibration\(\)/);
+  const stored = html.match(/function hasStoredCalibration\(\)\s*\{[\s\S]*?\n\}/)[0];
+  assert.match(stored, /OCC\.LS\.calibration/);
+  assert.match(stored, /OCC\.LS\.spots/);
+  assert.match(stored, /OCC\.LS\.estimate/);
+  assert.match(stored, /OCC\.LS\.street/);
+});
+
+test('calStatus is an atomic live region outside the wizard panels', () => {
+  assert.match(html, /id="calStatus"[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"/);
+  assert.match(html, /id="estNote"[^>]*role="status"[^>]*aria-live="polite"/);
+  assert.match(html, /id="emptyNote"[^>]*role="status"[^>]*aria-live="polite"/);
+  const panel = html.indexOf('id="panel-check"');
+  const panelEnd = html.indexOf('</section>', panel);
+  assert.ok(html.indexOf('id="calStatus"') > panelEnd, 'calStatus stays visible when a panel is hidden');
+  const save = html.match(/function savePack\(\)\s*\{[\s\S]*?\n\}/)[0];
+  assert.match(save, /setStatus\("כיול נשמר \(השעון לא הופעל/);
+  assert.match(save, /setStatus\(\s*\(CAL\.underTarget\(elapsed\) \? "כיול נשמר תוך " : "כיול נשמר אחרי "\)/);
+  assert.doesNotMatch(save, /note\.textContent\s*=\s*"כיול נשמר/);
+  assert.doesNotMatch(save, /setStatus\(note\.textContent\)/);
 });
 
 test('reset clears the calibration clock and the stale status line', () => {
@@ -117,4 +135,9 @@ test('reset clears the calibration clock and the stale status line', () => {
   // src="" resolves to the document URL and requests the page as an image.
   assert.doesNotMatch(body, /snapImg\.src\s*=\s*""/);
   assert.match(body, /snapImg\.removeAttribute\("src"\)/);
+  assert.match(body, /localStorage\.removeItem\(OCC\.LS\.calibration\)/);
+  assert.match(body, /localStorage\.removeItem\(OCC\.LS\.spots\)/);
+  assert.match(body, /localStorage\.removeItem\(OCC\.LS\.estimate\)/);
+  assert.match(body, /localStorage\.removeItem\(OCC\.LS\.street\)/);
+  assert.match(body, /\["fileSnap", "fileEmpty", "fileNight"\]/);
 });

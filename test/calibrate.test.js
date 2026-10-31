@@ -61,7 +61,7 @@ test('underTarget never reports an untimed or invalid elapsed as under target', 
 
 test('calibration wizard does not claim a save time when the clock never started', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'pilot-calibrate.html'), 'utf8');
-  assert.match(html, /if \(!state\.startedAt\) \{\s*note\.textContent = "כיול נשמר \(השעון לא הופעל/);
+  assert.match(html, /if \(!state\.startedAt\) \{\s*setStatus\("כיול נשמר \(השעון לא הופעל/);
 });
 
 test('formatClock returns null for non-numeric input', () => {
