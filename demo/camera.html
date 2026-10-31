@@ -25,7 +25,7 @@ h1 { font-size: 1.16rem; margin: 0 0 3px; } h2 { font-size: .96rem; margin: 0 0 
 input[type="url"], input[type="file"] { font: inherit; font-size: .82rem; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
 input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
 #toast { position: fixed; inset-block-end: 16px; inset-inline-start: 16px; z-index: 50; display: none; background: var(--free); color: #fff; font-weight: 700; font-size: .86rem; padding: 10px 16px; border-radius: 10px; box-shadow: var(--shadow); }
-#toast.show { display: block; }
+#toast.show { display: block; } /* A control with nothing to act on (no spots, no source) is disabled and must look it. */ button:disabled { opacity: .5; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -51,7 +51,7 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
         <button type="button" id="btnCam" class="primary">מצלמת המכשיר</button>
         <input type="url" id="urlIn" aria-label="כתובת סטרים מצלמה" placeholder="כתובת סטרים (MJPEG / HLS / MP4) — בכפוף ל‑CORS">
         <button type="button" id="btnUrl">טען כתובת</button>
-        <button type="button" id="btnStop">עצור</button>
+        <button type="button" id="btnStop" disabled>עצור</button>
       </div>
       <p class="hint" id="srcStatus" role="status">בחרו מקור כדי להתחיל — קובץ מקומי, מצלמת המכשיר או כתובת סטרים.</p>
     </section>
@@ -62,8 +62,8 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
         <canvas id="frame" width="960" height="540" role="img" aria-label="פריים המצלמה עם שכבת תאי החניה והזיהויים"></canvas>
       </div>
       <div class="toolbar" style="margin-top:10px">
-        <button type="button" id="btnUndo">בטל תא אחרון</button>
-        <button type="button" id="btnClear">נקה תאים</button>
+        <button type="button" id="btnUndo" disabled>בטל תא אחרון</button>
+        <button type="button" id="btnClear" disabled>נקה תאים</button>
         <span class="hint" id="spotStatus" role="status">גררו על הפריים כדי לסמן תא חניה.</span>
       </div>
       <p class="hint">תא נחשב תפוס כשרכב מכסה מעל 30% משטחו, ורק אחרי 3 פריימים רצופים — כדי שעובר אורח או הבהוב של הגלאי לא יצבעו תא באדום.</p>
@@ -108,6 +108,8 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
   var work = document.createElement('canvas'), wctx = work.getContext('2d');
   var video = document.getElementById('srcVideo'), image = document.getElementById('srcImage');
   var srcStatus = document.getElementById('srcStatus'), spotStatus = document.getElementById('spotStatus');
+  var btnStop = document.getElementById('btnStop'), btnUndo = document.getElementById('btnUndo'),
+    btnClear = document.getElementById('btnClear'), urlIn = document.getElementById('urlIn');
   var spots = [], boxes = [], records = [], tracker = VO.createTracker(spots), state = tracker.snapshot();
   var source = null, model = null, loading = null, timer = null, stream = null;
   var lastSample = 0, drag = null, seq = 0;
@@ -156,12 +158,14 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
     video.pause();
     source = null;
+    btnStop.disabled = true;
   }
   // Callers stop the previous source *before* acquiring the next one: tearing
   // down from in here would stop the tracks of the camera just opened and
   // pause the video the caller just started.
   function start(el, label) {
     source = el;
+    btnStop.disabled = false;
     srcStatus.textContent = label;
     if (el === video) video.play().catch(function () { /* autoplay refusal must not stop detection */ });
     ensureModel().then(function () { if (!timer) timer = setInterval(tick, TICK_MS); },
@@ -191,13 +195,16 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
       .then(function (s) { stream = s; video.removeAttribute('src'); video.srcObject = s; start(video, 'מצלמת המכשיר פעילה.'); })
       .catch(function () { srcStatus.textContent = 'הגישה למצלמה נדחתה.'; });
   });
-  document.getElementById('btnUrl').addEventListener('click', function () {
-    var url = document.getElementById('urlIn').value.trim();
-    if (!url) return;
+  function loadUrl() {
+    var url = urlIn.value.trim();
+    // An empty click used to do nothing at all; say why and put the caret where the fix is.
+    if (!url) { srcStatus.textContent = 'הזינו כתובת סטרים לפני הטעינה.'; urlIn.focus(); return; }
     // An MJPEG endpoint is an endless image, not a <video> source.
     if (/mjpe?g|\.(jpe?g|png)(\?|$)/i.test(url)) useImage(url, 'סטרים תמונה: ' + url);
     else useVideoUrl(url, 'סטרים וידאו: ' + url);
-  });
+  }
+  document.getElementById('btnUrl').addEventListener('click', loadUrl);
+  urlIn.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); loadUrl(); } });
   document.getElementById('btnStop').addEventListener('click', function () {
     stopSource();
     srcStatus.textContent = 'הזיהוי הופסק.';
@@ -276,6 +283,7 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     tracker.setSpots(spots);
     state = tracker.snapshot();
     spotStatus.textContent = message || (spots.length + ' תאים מסומנים.');
+    btnUndo.disabled = btnClear.disabled = spots.length === 0;
     render();
   }
   canvas.addEventListener('pointerdown', function (ev) { canvas.setPointerCapture(ev.pointerId); drag = { a: at(ev), b: at(ev) }; });
@@ -289,8 +297,9 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     spots.push(spot);
     syncSpots();
   });
-  document.getElementById('btnUndo').addEventListener('click', function () { spots.pop(); syncSpots(); });
-  document.getElementById('btnClear').addEventListener('click', function () { spots = []; syncSpots('כל התאים נמחקו.'); });
+  canvas.addEventListener('pointercancel', function () { if (drag) { drag = null; render(); } });
+  btnUndo.addEventListener('click', function () { spots.pop(); syncSpots(); });
+  btnClear.addEventListener('click', function () { spots = []; syncSpots('כל התאים נמחקו.'); });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(function () {});
 })();
 </script>
