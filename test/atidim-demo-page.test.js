@@ -86,10 +86,109 @@ test('the live counters and the canvas are exposed to assistive tech', () => {
   assert.match(html, /class="cam-sel"[^>]*data-cam="cam-02"[^>]*aria-pressed="false"[^>]*aria-label="מצלמה 02/);
   assert.match(html, /class="cam-sel"[^>]*data-cam="cam-03"[^>]*aria-pressed="false"[^>]*aria-label="מצלמה 03/);
   assert.match(html, /id="btnCopySummary">העתק תקציר מצב<\/button>/);
+  assert.match(html, /id="btnClearFeed">נקה פיד<\/button>/);
   assert.match(html, /כל התאים בפריים כבר תפוסים/);
   assert.match(html, /כל התאים בפריים כבר פנויים/);
   assert.match(html, /תקציר מצב החניון הועתק ללוח/);
+  assert.match(html, /הפיד כבר ריק\./);
+  assert.match(html, /פיד ההתפנויות נוקה\./);
   assert.match(html, /מודל החניון לא נטען — נא לרענן את הדף/);
+});
+
+test('clear feed button guards empty state and resets feed/toast, and reset stops auto-flow', () => {
+  const SE = require('../src/lib/spot-events');
+  const ids = new Set([...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  const inline = /<script(?![^>]*src=)>([\s\S]*?)<\/script>/i.exec(html)[1];
+  const elements = new Map();
+  let clearedIntervals = 0;
+  function makeEl(id) {
+    const classes = new Set();
+    return {
+      id,
+      textContent: '',
+      innerHTML: '',
+      hidden: undefined,
+      style: {},
+      attributes: {},
+      classes,
+      classList: {
+        add(c) { classes.add(c); },
+        remove(c) { classes.delete(c); },
+        toggle(c, force) { force ? classes.add(c) : classes.delete(c); },
+      },
+      setAttribute(k, v) { this.attributes[k] = v; },
+      getAttribute(k) { return this.attributes[k]; },
+      addEventListener(t, fn) { (this.handlers[t] = this.handlers[t] || []).push(fn); },
+      handlers: {},
+      getBoundingClientRect() { return { left: 0, top: 0, width: 960, height: 540 }; },
+    };
+  }
+  const noop = () => {};
+  const canvas = makeEl('lotCanvas');
+  canvas.width = 960;
+  canvas.height = 540;
+  canvas.getContext = () => ({
+    clearRect: noop, fillRect: noop, strokeRect: noop, beginPath: noop, closePath: noop,
+    moveTo: noop, lineTo: noop, quadraticCurveTo: noop, fill: noop, stroke: noop,
+    setLineDash: noop, fillText: noop, roundRect: noop,
+    createLinearGradient() { return { addColorStop() {} }; },
+  });
+  elements.set('lotCanvas', canvas);
+  const fixedNow = Date.parse('2026-10-19T09:30:00.000Z');
+  const FakeDate = function (...args) { return args.length ? new Date(...args) : new Date(fixedNow); };
+  FakeDate.now = () => fixedNow;
+  FakeDate.prototype = Date.prototype;
+  const sandbox = {
+    window: {
+      ParkWizAtidimLot: Object.assign({}, lotModel, {
+        lotHour: (d) => lotModel.lotHour(d === undefined ? new Date(fixedNow) : d),
+      }),
+      ParkWizSpotEvents: SE,
+      CustomEvent: function (type, init) { this.type = type; this.detail = init && init.detail; },
+      dispatchEvent() { return true; },
+      BroadcastChannel: function () { return { postMessage() {} }; },
+    },
+    document: {
+      getElementById(id) {
+        assert.ok(ids.has(id), 'missing #' + id);
+        if (!elements.has(id)) elements.set(id, makeEl(id));
+        return elements.get(id);
+      },
+      querySelectorAll() { return []; },
+    },
+    navigator: {},
+    location: { protocol: 'file:' },
+    setInterval: () => 42,
+    clearInterval: () => { clearedIntervals++; },
+    Math, Date: FakeDate, Number, String, Object, Array, Boolean, JSON, Intl, isNaN,
+  };
+  vm.createContext(sandbox);
+  new vm.Script(inline).runInContext(sandbox);
+  const el = (id) => elements.get(id) || sandbox.document.getElementById(id);
+  const click = (id) => el(id).handlers.click[0].call(el(id));
+
+  // Empty feed guard
+  click('btnClearFeed');
+  assert.equal(el('notifyState').textContent, 'הפיד כבר ריק.');
+
+  // Populate feed by leaving a spot, then clear it
+  click('btnLeave');
+  assert.equal(el('freedToast').hidden, false);
+  assert.match(el('freedFeed').innerHTML, /<li>/);
+  click('btnClearFeed');
+  assert.equal(el('freedToast').hidden, true);
+  assert.match(el('freedFeed').innerHTML, /עדיין לא התפנה תא בפריים/);
+  assert.equal(el('notifyState').textContent, 'פיד ההתפנויות נוקה.');
+  assert.equal(el('bayStatus').textContent, 'פיד ההתפנויות נוקה.');
+
+  // Start auto-flow, then reset frame: autoTimer must be stopped and button state restored
+  click('btnAuto');
+  assert.equal(el('btnAuto').getAttribute('aria-pressed'), 'true');
+  assert.equal(el('btnAuto').textContent, 'עצור זרימה אוטומטית');
+  click('btnReset');
+  assert.ok(clearedIntervals > 0, 'btnReset must clear active autoTimer');
+  assert.equal(el('btnAuto').getAttribute('aria-pressed'), 'false');
+  assert.equal(el('btnAuto').textContent, 'הפעל זרימה אוטומטית');
 });
 
 test('the peak caption is derived from the model, not typed into the markup', () => {

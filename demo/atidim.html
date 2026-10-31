@@ -172,7 +172,10 @@ svg.chart line[stroke="#ef4444"]{stroke:var(--occ)}
         <h2>פיד התפנויות — 20 האחרונות</h2>
         <div class="sub">כל מעבר של תא מ<b>תפוס</b> ל<b>פנוי</b> משדר <code>parkwiz:spot-freed</code> לדף, ללשוניות אחרות באותו דפדפן (BroadcastChannel) ולהתראת דפדפן · <b>נתוני הדגמה בלבד</b></div>
       </div>
-      <button type="button" id="btnNotify">הפעל התראות בדפדפן</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" id="btnNotify">הפעל התראות בדפדפן</button>
+        <button type="button" id="btnClearFeed">נקה פיד</button>
+      </div>
     </div>
     <p class="hint" id="notifyState" role="status" aria-live="polite">התראות דפדפן כבויות.</p>
     <ol class="feed" id="freedFeed" role="log" aria-label="אירועי התפנות אחרונים">
@@ -448,11 +451,20 @@ svg.chart line[stroke="#ef4444"]{stroke:var(--occ)}
     announce('יצא רכב · פנויים בפריים: ' + occ.availableInView + ' מתוך ' + occ.totalInView + '.');
   });
   document.getElementById('btnReset').addEventListener('click', function(){
+    if (autoTimer) {
+      clearInterval(autoTimer); autoTimer = null;
+      const autoBtn = document.getElementById('btnAuto');
+      autoBtn.classList.remove('active');
+      autoBtn.setAttribute('aria-pressed', 'false');
+      autoBtn.textContent = 'הפעל זרימה אוטומטית';
+    }
     seededHour = model.lotHour();
     // Reseeding the whole frame is not a car leaving, so it raises no events —
     // only the map rings are cleared.
     spots = model.createCameraSpots(currentCam, seededHour);
     flashes = {};
+    toastUntil = 0;
+    document.getElementById('freedToast').hidden = true;
     selected = -1; refresh(); renderChart();
     announce('הפריים אופס למצב האופייני לשעה ' + model.hourlyPoint(seededHour).label + '.');
   });
@@ -550,6 +562,20 @@ svg.chart line[stroke="#ef4444"]{stroke:var(--occ)}
     const asked = window.Notification.requestPermission();
     if (asked && typeof asked.then === 'function') asked.then(syncNotifyState).catch(syncNotifyState);
     else syncNotifyState();
+  });
+  document.getElementById('btnClearFeed').addEventListener('click', function(){
+    if (!feed || feed.size() === 0) {
+      notifyState('הפיד כבר ריק.');
+      return;
+    }
+    feed.clear();
+    flashes = {};
+    toastUntil = 0;
+    document.getElementById('freedToast').hidden = true;
+    renderFeed();
+    drawScene();
+    notifyState('פיד ההתפנויות נוקה.');
+    announce('פיד ההתפנויות נוקה.');
   });
 
   // A stall freed in another tab — or on another device signed into the same
