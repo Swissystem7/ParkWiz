@@ -2422,6 +2422,12 @@ window.addEventListener('keydown', (e) => {
     if (lock && lock.classList.contains('show')) { closeLockModal(); return; }
     const card = document.getElementById('streetCardOverlay');
     if (card && card.classList.contains('show')) { closeStreetCard(); return; }
+    const auth = document.getElementById('pwAuthOverlay');
+    if (auth && auth.classList.contains('show')) { pwCloseAuth(); return; }
+    const legal = document.getElementById('pwLegalOverlay');
+    if (legal && legal.classList.contains('show')) { pwCloseLegal(); return; }
+    const fb = document.getElementById('pwFbOverlay');
+    if (fb && fb.classList.contains('show')) { pwCloseFeedback(); return; }
   }
 });
 
@@ -2766,7 +2772,8 @@ init();
 .pw-field{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:0.85rem;font-family:inherit;margin-bottom:10px;direction:rtl}
 .pw-field:focus{outline:none;border-color:var(--green)}
 .pw-error{color:var(--red);font-size:0.75rem;margin-bottom:8px;min-height:1em}
-.pw-close{display:block;text-align:center;margin-top:10px;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline}
+.pw-close{display:block;width:100%;text-align:center;margin-top:10px;color:var(--muted);font-size:0.75rem;cursor:pointer;text-decoration:underline;background:none;border:none;font-family:inherit;padding:4px 0}
+.pw-close:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:4px}
 .pw-legal-body{font-size:0.8rem;color:rgba(224,240,224,.75);line-height:1.7;text-align:right}
 .pw-legal-body p{margin-bottom:10px}
 /* Onboarding */
@@ -2828,29 +2835,29 @@ init();
   </div>
 </div>
 <!-- Auth Modal -->
-<div class="pw-overlay" id="pwAuthOverlay">
-  <div class="pw-modal">
+<div class="pw-overlay" id="pwAuthOverlay" onclick="pwCloseAuth(event)" role="region" aria-label="התחברות והרשמה">
+  <div class="pw-modal" role="dialog" aria-modal="true" aria-labelledby="pwAuthTitle">
     <h2 id="pwAuthTitle">התחברות ל-ParkWiz</h2>
     <div class="sub" id="pwAuthSub">הדיווחים וה-XP שלך במקום אחד</div>
-    <div class="pw-tabs">
-      <button class="pw-tab active" id="pwTabLogin" onclick="pwSetAuthTab('login')">התחברות</button>
-      <button class="pw-tab" id="pwTabSignup" onclick="pwSetAuthTab('signup')">הרשמה</button>
+    <div class="pw-tabs" role="tablist" aria-label="סוג כניסה">
+      <button type="button" class="pw-tab active" id="pwTabLogin" role="tab" aria-selected="true" onclick="pwSetAuthTab('login')">התחברות</button>
+      <button type="button" class="pw-tab" id="pwTabSignup" role="tab" aria-selected="false" onclick="pwSetAuthTab('signup')">הרשמה</button>
     </div>
-    <div id="pwAuthNameWrap" style="display:none"><input class="pw-field" id="pwAuthName" placeholder="שם מלא"></div>
-    <input class="pw-field" id="pwAuthEmail" type="email" placeholder="אימייל">
-    <input class="pw-field" id="pwAuthPass" type="password" placeholder="סיסמה">
-    <div class="pw-error" id="pwAuthError"></div>
-    <button class="pw-submit" id="pwAuthSubmit" onclick="pwSubmitAuth()">התחבר</button>
-    <span class="pw-close" onclick="pwCloseAuth()">סגור</span>
+    <div id="pwAuthNameWrap" style="display:none"><input class="pw-field" id="pwAuthName" placeholder="שם מלא" aria-label="שם מלא"></div>
+    <input class="pw-field" id="pwAuthEmail" type="email" placeholder="אימייל" aria-label="כתובת אימייל">
+    <input class="pw-field" id="pwAuthPass" type="password" placeholder="סיסמה" aria-label="סיסמה">
+    <div class="pw-error" id="pwAuthError" role="alert" aria-live="assertive"></div>
+    <button type="button" class="pw-submit" id="pwAuthSubmit" onclick="pwSubmitAuth()">התחבר</button>
+    <button type="button" class="pw-close" id="pwAuthCloseBtn" onclick="pwCloseAuth(event)" aria-label="סגור חלון התחברות">סגור</button>
   </div>
 </div>
 
 <!-- Legal Modal -->
-<div class="pw-overlay" id="pwLegalOverlay">
-  <div class="pw-modal">
+<div class="pw-overlay" id="pwLegalOverlay" onclick="pwCloseLegal(event)" role="region" aria-label="תנאי שימוש ומדיניות">
+  <div class="pw-modal" role="dialog" aria-modal="true" aria-labelledby="pwLegalTitle">
     <h2 id="pwLegalTitle">תנאי שימוש</h2>
-    <div class="pw-legal-body" id="pwLegalBody"></div>
-    <span class="pw-close" onclick="document.getElementById('pwLegalOverlay').classList.remove('show')">סגור</span>
+    <div class="pw-legal-body" id="pwLegalBody" role="region" aria-label="תוכן תנאי שימוש"></div>
+    <button type="button" class="pw-close" id="pwLegalCloseBtn" onclick="pwCloseLegal(event)" aria-label="סגור תנאי שימוש">סגור</button>
   </div>
 </div>
 
@@ -2869,16 +2876,16 @@ init();
 </div>
 
 <!-- Feedback -->
-<button class="pw-fb-fab" onclick="pwOpenFeedback()">💬 משוב</button>
-<div class="pw-overlay" id="pwFbOverlay">
-  <div class="pw-modal">
-    <h2>נשמח לשמוע ממך 💚</h2>
+<button class="pw-fb-fab" onclick="pwOpenFeedback()" aria-label="פתח חלון משוב">💬 משוב</button>
+<div class="pw-overlay" id="pwFbOverlay" onclick="pwCloseFeedback(event)" role="region" aria-label="משוב משתמשים">
+  <div class="pw-modal" role="dialog" aria-modal="true" aria-labelledby="pwFbTitle">
+    <h2 id="pwFbTitle">נשמח לשמוע ממך 💚</h2>
     <div class="sub">איך היית מדרג את ParkWiz?</div>
-    <div class="pw-fb-stars" id="pwFbStars"></div>
-    <textarea class="pw-fb-text" id="pwFbText" placeholder="ספר לנו מה אהבת ומה כדאי לשפר..."></textarea>
-    <div class="sub" style="margin-top:6px">הכפתור למטה שומר רק בדפדפן הזה. כדי שהמשוב יגיע אלינו: <a id="pwFbForm" href="https://docs.google.com/forms/d/e/1FAIpQLSdT8YduNx-VWKM3bWGUJdiSj4Sw9D-EA6R6c-oYVYCQmOVXxQ/viewform?usp=pp_url&amp;entry.368039752=ParkWiz" target="_blank" rel="noopener">שלחו משוב בטופס</a> (טופס Google, נפתח בחלון חדש; כתבו בלי פרטים אישיים). לפיילוט או שאלה: <a href="#pwContact" onclick="document.getElementById('pwFbOverlay').classList.remove('show')">טופס הפנייה</a>.</div>
-    <button class="pw-submit" style="margin-top:10px" onclick="pwSubmitFeedback()">שמור משוב בדפדפן</button>
-    <span class="pw-close" onclick="document.getElementById('pwFbOverlay').classList.remove('show')">ביטול</span>
+    <div class="pw-fb-stars" id="pwFbStars" role="group" aria-label="דירוג בכוכבים"></div>
+    <textarea class="pw-fb-text" id="pwFbText" placeholder="ספר לנו מה אהבת ומה כדאי לשפר..." aria-label="תוכן המשוב"></textarea>
+    <div class="sub" style="margin-top:6px">הכפתור למטה שומר רק בדפדפן הזה. כדי שהמשוב יגיע אלינו: <a id="pwFbForm" href="https://docs.google.com/forms/d/e/1FAIpQLSdT8YduNx-VWKM3bWGUJdiSj4Sw9D-EA6R6c-oYVYCQmOVXxQ/viewform?usp=pp_url&amp;entry.368039752=ParkWiz" target="_blank" rel="noopener">שלחו משוב בטופס</a> (טופס Google, נפתח בחלון חדש; כתבו בלי פרטים אישיים). לפיילוט או שאלה: <a href="#pwContact" onclick="pwCloseFeedback()">טופס הפנייה</a>.</div>
+    <button type="button" class="pw-submit" id="pwFbSubmit" style="margin-top:10px" onclick="pwSubmitFeedback()">שמור משוב בדפדפן</button>
+    <button type="button" class="pw-close" id="pwFbCloseBtn" onclick="pwCloseFeedback(event)" aria-label="סגור חלון משוב">ביטול</button>
   </div>
 </div>
 
@@ -2907,15 +2914,23 @@ function pwOpenAuth(mode, gated) {
   document.getElementById('pwAuthError').textContent = '';
   document.getElementById('pwAuthOverlay').classList.add('show');
 }
-function pwCloseAuth() { document.getElementById('pwAuthOverlay').classList.remove('show'); }
+function pwCloseAuth(e) {
+  if (e && e.target && e.target !== document.getElementById('pwAuthOverlay') && !e.target.closest('#pwAuthCloseBtn') && !e.target.closest('.pw-close')) return;
+  document.getElementById('pwAuthOverlay').classList.remove('show');
+}
 function pwSetAuthTab(mode, silent) {
   pwAuthMode = mode;
-  document.getElementById('pwTabLogin').classList.toggle('active', mode === 'login');
-  document.getElementById('pwTabSignup').classList.toggle('active', mode === 'signup');
-  document.getElementById('pwAuthNameWrap').style.display = mode === 'signup' ? 'block' : 'none';
-  document.getElementById('pwAuthSubmit').textContent = mode === 'login' ? 'התחבר' : 'צור חשבון';
+  const isLogin = mode === 'login';
+  const tabLogin = document.getElementById('pwTabLogin');
+  const tabSignup = document.getElementById('pwTabSignup');
+  tabLogin.classList.toggle('active', isLogin);
+  tabLogin.setAttribute('aria-selected', isLogin ? 'true' : 'false');
+  tabSignup.classList.toggle('active', !isLogin);
+  tabSignup.setAttribute('aria-selected', !isLogin ? 'true' : 'false');
+  document.getElementById('pwAuthNameWrap').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('pwAuthSubmit').textContent = isLogin ? 'התחבר' : 'צור חשבון';
   if (!silent) {
-    document.getElementById('pwAuthTitle').textContent = mode === 'login' ? 'התחברות ל-ParkWiz' : 'הרשמה ל-ParkWiz';
+    document.getElementById('pwAuthTitle').textContent = isLogin ? 'התחברות ל-ParkWiz' : 'הרשמה ל-ParkWiz';
   }
 }
 function pwSubmitAuth() {
@@ -2995,6 +3010,10 @@ function pwOpenLegal(kind) {
   document.getElementById('pwLegalBody').innerHTML = PW_LEGAL[kind].html;
   document.getElementById('pwLegalOverlay').classList.add('show');
 }
+function pwCloseLegal(e) {
+  if (e && e.target && e.target !== document.getElementById('pwLegalOverlay') && !e.target.closest('#pwLegalCloseBtn') && !e.target.closest('.pw-close')) return;
+  document.getElementById('pwLegalOverlay').classList.remove('show');
+}
 
 /* ── Onboarding ── */
 const PW_OB_STEPS = [
@@ -3035,13 +3054,17 @@ function pwGoContact() {
 let pwFbRating = 0;
 function pwRenderFbStars() {
   document.getElementById('pwFbStars').innerHTML = [1,2,3,4,5].map(n =>
-    `<span class="pw-fb-star${n <= pwFbRating ? ' on' : ''}" onclick="pwFbRating=${n};pwRenderFbStars()">⭐</span>`).join('');
+    `<button type="button" class="pw-fb-star${n <= pwFbRating ? ' on' : ''}" style="background:none;border:none;font-family:inherit;padding:0" aria-label="${n} כוכבים" onclick="pwFbRating=${n};pwRenderFbStars()">⭐</button>`).join('');
 }
 function pwOpenFeedback() {
   pwFbRating = 0;
   document.getElementById('pwFbText').value = '';
   pwRenderFbStars();
   document.getElementById('pwFbOverlay').classList.add('show');
+}
+function pwCloseFeedback(e) {
+  if (e && e.target && e.target !== document.getElementById('pwFbOverlay') && !e.target.closest('#pwFbCloseBtn') && !e.target.closest('.pw-close')) return;
+  document.getElementById('pwFbOverlay').classList.remove('show');
 }
 function pwSubmitFeedback() {
   if (!pwFbRating) { showToast('בחר דירוג כוכבים 🙂'); return; }
@@ -3051,7 +3074,7 @@ function pwSubmitFeedback() {
     localStorage.setItem('parkwiz_feedback', JSON.stringify(arr));
   } catch(e) {}
   track('feedback', { rating: pwFbRating });
-  document.getElementById('pwFbOverlay').classList.remove('show');
+  pwCloseFeedback();
   showToast('💾 נשמר רק בדפדפן הזה — לא נשלח אלינו. לשליחה: טופס הפנייה בראש הדף');
   pwGoContact();
 }
