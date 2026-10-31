@@ -11,7 +11,12 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
-const { chromium } = require('playwright');
+let chromium;
+try {
+  ({ chromium } = require('playwright'));
+} catch (e) {
+  // Playwright is optional (installed only when running npm run test:smoke)
+}
 
 const root = path.join(__dirname, '..', '..');
 const leafletDist = path.join(root, 'node_modules', 'leaflet', 'dist');
@@ -102,6 +107,7 @@ let server;
 let base;
 let browser;
 test.before(async () => {
+  if (!chromium) return;
   server = await serve();
   base = 'http://127.0.0.1:' + server.address().port;
   browser = await chromium.launch();
@@ -111,7 +117,11 @@ test.after(async () => {
   if (server) server.close();
 });
 
-test('main page loads at 390px with no console errors and no outside requests', async () => {
+test('main page loads at 390px with no console errors and no outside requests', async (t) => {
+  if (!chromium || !browser) {
+    t.skip('playwright not installed in environment');
+    return;
+  }
   const { context, page, errors, external } = await openPage(browser, base);
   try {
     assert.deepEqual(errors, [], 'console / page errors:\n' + errors.join('\n'));
@@ -124,7 +134,11 @@ test('main page loads at 390px with no console errors and no outside requests', 
   }
 });
 
-test('nothing overflows the 390px viewport sideways (RTL layout)', async () => {
+test('nothing overflows the 390px viewport sideways (RTL layout)', async (t) => {
+  if (!chromium || !browser) {
+    t.skip('playwright not installed in environment');
+    return;
+  }
   const { context, page } = await openPage(browser, base);
   try {
     const { scrollWidth, out } = await overflowing(page);
