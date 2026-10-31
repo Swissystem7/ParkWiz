@@ -40,6 +40,8 @@ const ASSETS = [
   './pilot/dataset/labels.json',
   './src/lib/occupancy.js',
   './src/lib/heuristic.js',
+  // Privacy-mode lock on pilot-kit.html (#281). The page reads it at boot.
+  './src/lib/redact.js',
   './src/lib/dataset.js',
   './src/lib/calibrate.js',
   './src/lib/compare.js',
