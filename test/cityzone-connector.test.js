@@ -5,7 +5,9 @@ const {
   createCityZoneConnector,
   createMockTransport,
   createHttpTransport,
+  toCityZoneFreed,
 } = require('../src/lib/cityzone-connector.js');
+const { relayPayload } = require('../src/lib/spot-freed.js');
 
 test('mock pushOccupancy: ack + recorded normalised call', () => {
   const c = createCityZoneConnector();
@@ -88,6 +90,56 @@ test('rejects occupied>total, negative counts, and missing lotId', () => {
   assert.throws(() => c.fetchLotConfig(''), TypeError);
 });
 
+test('relay {lot, spotId, freedAt} maps to {lotId, spotId, freedAt}', () => {
+  const relay = relayPayload({ kind: 'freed', lot: 'atidim', spotId: 'A-01', at: 5000 });
+  assert.deepEqual(relay, { lot: 'atidim', spotId: 'A-01', freedAt: 5000 });
+  assert.deepEqual(toCityZoneFreed(relay), { lotId: 'atidim', spotId: 'A-01', freedAt: 5000 });
+
+  const c = createCityZoneConnector();
+  assert.deepEqual(c.pushSpotFreed(relay), { accepted: true });
+  assert.deepEqual(c.transport.calls[0].payload, { lotId: 'atidim', spotId: 'A-01', freedAt: 5000 });
+  assert.equal(Object.hasOwn(c.transport.calls[0].payload, 'lot'), false);
+});
+
+test('freedAt 0 is kept, and lot must agree with lotId', () => {
+  assert.deepEqual(
+    toCityZoneFreed({ lot: 'atidim', spotId: 'A-01', freedAt: 0 }),
+    { lotId: 'atidim', spotId: 'A-01', freedAt: 0 },
+  );
+  assert.deepEqual(
+    toCityZoneFreed({ lot: 'atidim', lotId: 'atidim', spotId: 'A-01' }),
+    { lotId: 'atidim', spotId: 'A-01', freedAt: null },
+  );
+  assert.throws(() => toCityZoneFreed({ lot: 'atidim', lotId: 'other', spotId: 'A-01' }), /disagree/);
+  assert.throws(() => toCityZoneFreed({ spotId: 'A-01', freedAt: 1 }), /lotId/);
+  assert.throws(() => toCityZoneFreed({ lot: 'atidim', spotId: 'A-01', plate: '1' }), /forbidden field: plate/);
+});
+
+test('fetchLotConfig returns only allowlisted fields', () => {
+  const transport = createMockTransport({
+    configByLot: {
+      'lot-1': {
+        lotId: 'lot-1',
+        name: 'Atidim',
+        total: 220,
+        spots: [{ id: 'A1', state: 'reserved' }],
+      },
+      'lot-bad': { name: 'Atidim', streamUrl: 'rtsp://camera' },
+      'lot-plate': { name: 'Atidim', spots: [{ id: 'A1', state: 'free', plateNumber: '12' }] },
+    },
+  });
+  const c = createCityZoneConnector({ transport });
+  assert.deepEqual(c.fetchLotConfig('lot-1'), {
+    lotId: 'lot-1',
+    name: 'Atidim',
+    total: 220,
+    spots: [{ id: 'A1', state: 'reserved' }],
+  });
+  assert.throws(() => c.fetchLotConfig('lot-bad'), /unknown field: streamUrl/);
+  assert.throws(() => c.fetchLotConfig('lot-plate'), /forbidden field: plateNumber/);
+  assert.equal(c.fetchLotConfig('missing'), null);
+});
+
 test('custom transport: result returned verbatim and errors propagate', () => {
   const ack = { ok: true, id: 42 };
   const boom = new Error('boom');
@@ -95,10 +147,10 @@ test('custom transport: result returned verbatim and errors propagate', () => {
     transport: {
       pushOccupancy: () => ack,
       pushSpotFreed: () => { throw boom; },
-      fetchLotConfig: () => ack,
+      fetchLotConfig: () => ({ name: 'Atidim' }),
     },
   });
   assert.equal(c.pushOccupancy('lot-1', { total: 1, occupied: 0 }), ack);
-  assert.equal(c.fetchLotConfig('lot-1'), ack);
+  assert.deepEqual(c.fetchLotConfig('lot-1'), { name: 'Atidim' });
   assert.throws(() => c.pushSpotFreed({ lotId: 'lot-1', spotId: 'A1' }), (e) => e === boom);
 });
