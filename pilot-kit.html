@@ -34,6 +34,7 @@ button{
 }
 button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
 button.danger{color:var(--occ);border-color:#fecaca}
+button[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
 .stage{
   position:relative;background:#1f2937;border-radius:12px;overflow:hidden;
   min-height:200px;user-select:none;touch-action:none;
@@ -71,7 +72,7 @@ svg.chart{display:block;width:100%;height:auto}
     <a href="./pilot-calibrate.html">כיול 3 דק׳</a> ·
     <a href="./pilot-eval.html">דיוק דמו</a>
   </div>
-  <p class="status" id="kitStatus" role="status" aria-live="polite"></p>
+  <p class="status" id="kitStatus" role="status" aria-live="polite" aria-atomic="true"></p>
 
   <div class="grid">
     <div>
@@ -87,7 +88,7 @@ svg.chart{display:block;width:100%;height:auto}
         <input type="text" id="streetName" value="הרצל, נתניה" aria-label="שם רחוב או אתר">
         <div class="stage" id="stage" role="region" aria-label="אזור סימון תמונת snapshot">
           <img id="snapImg" alt="צילום מגרש חניה">
-          <canvas id="calCanvas" role="img" aria-label="משטח סימון מלבני חניה"></canvas>
+          <canvas id="calCanvas" role="img" aria-label="משטח סימון מלבני חניה. אין מלבנים מסומנים"></canvas>
         </div>
         <p class="hint">לחצו וגררו על התמונה כדי לסמן מלבן חניה. המלבנים נשמרים כשברים (0–1) כדי לעבוד בכל גודל תמונה.</p>
       </section>
@@ -96,9 +97,9 @@ svg.chart{display:block;width:100%;height:auto}
         <h2 id="secEst">2. מפת תפוסה (היוריסטיקה)</h2>
         <div class="row">
           <button type="button" class="primary" id="btnEstimate" aria-label="חשב תפוסה מוערכת">חשב תפוסה</button>
-          <button type="button" id="btnCopySummary" aria-label="העתק תקציר תפוסה ללוח">העתק תקציר</button>
-          <button type="button" id="btnExportOcc" aria-label="ייצוא occupancy.json">ייצוא occupancy.json</button>
-          <button type="button" id="btnExportCsv" aria-label="ייצוא occupancy.csv">ייצוא occupancy.csv</button>
+          <button type="button" id="btnCopySummary" aria-label="העתק תקציר תפוסה ללוח" aria-disabled="true">העתק תקציר</button>
+          <button type="button" id="btnExportOcc" aria-label="ייצוא occupancy.json" aria-disabled="true">ייצוא occupancy.json</button>
+          <button type="button" id="btnExportCsv" aria-label="ייצוא occupancy.csv" aria-disabled="true">ייצוא occupancy.csv</button>
           <a href="./pilot-compare.html" style="font-size:.82rem;font-weight:700">השווה מול ספירת פקח</a>
         </div>
         <div class="kpis" role="region" aria-label="מדדי תפוסה מוערכת">
@@ -106,7 +107,7 @@ svg.chart{display:block;width:100%;height:auto}
           <div class="kpi"><div class="n" id="kOcc" style="color:var(--occ)">0</div><div class="l">תפוסים (הערכה)</div></div>
           <div class="kpi"><div class="n" id="kFree" style="color:var(--free)">0</div><div class="l">פנויים (הערכה)</div></div>
         </div>
-        <p class="hint" id="estNote" role="status" aria-live="polite">עדיין לא חושב. אחרי כיול — לחצו «חשב תפוסה».</p>
+        <p class="hint" id="estNote" role="status" aria-live="polite" aria-atomic="true">עדיין לא חושב. אחרי כיול — לחצו «חשב תפוסה».</p>
       </section>
 
       <section class="panel" style="margin-top:16px" role="region" aria-labelledby="secChart">
@@ -115,7 +116,7 @@ svg.chart{display:block;width:100%;height:auto}
           <button type="button" id="btnLoadSampleOcc" aria-label="טען סדרת דוגמה של תפוסה שעתית">טען סדרת דוגמה</button>
           <label class="file" for="fileOcc">טען occupancy.json <input type="file" id="fileOcc" accept=".json,application/json" aria-label="טעינת קובץ occupancy.json"></label>
         </div>
-        <div id="chart" role="region" aria-label="עקומה שעתית מ-occupancy.json"></div>
+        <div id="chart" role="region" aria-label="עקומה שעתית מ-occupancy.json" aria-describedby="chartEmpty"></div>
         <p class="empty-msg" id="chartEmpty" style="display:none">אין סדרת occupancy עדיין. טענו סדרת דוגמה או חשבו תפוסה.</p>
         <p class="hint">סכמה: <code>{ts, street, total, occupied, source, confidence}</code>. סדרת הדוגמה מסומנת <code>source: sample</code> — לא מדידה חיה.</p>
       </section>
@@ -125,15 +126,17 @@ svg.chart{display:block;width:100%;height:auto}
       <section class="panel" role="region" aria-labelledby="secSpots">
         <h2 id="secSpots">מלבנים / spots.json</h2>
         <div class="row">
-          <button type="button" id="btnUndo" aria-label="בטל אחרון — מחק את המלבן שסומן לאחרונה">בטל אחרון</button>
-          <button type="button" class="danger" id="btnClear" aria-label="נקה הכול — מחק את כל המלבנים המסומנים">נקה הכול</button>
+          <button type="button" id="btnUndo" aria-label="בטל אחרון — מחק את המלבן שסומן לאחרונה" aria-disabled="true">בטל אחרון</button>
+          <button type="button" class="danger" id="btnClear" aria-label="נקה הכול — מחק את כל המלבנים המסומנים" aria-disabled="true">נקה הכול</button>
         </div>
         <div class="row">
           <button type="button" id="btnSaveLs" aria-label="שמור בדפדפן — שמור את המלבנים ב־localStorage">שמור בדפדפן</button>
-          <button type="button" id="btnExportSpots" aria-label="ייצוא spots.json">ייצוא spots.json</button>
+          <button type="button" id="btnExportSpots" aria-label="ייצוא spots.json" aria-disabled="true">ייצוא spots.json</button>
         </div>
         <label class="file" for="fileSpots">ייבוא spots.json <input type="file" id="fileSpots" accept=".json,application/json" aria-label="ייבוא spots.json"></label>
-        <div class="spot-list" id="spotList" role="region" aria-label="רשימת מלבני חניה מסומנים"></div>
+        <div class="spot-list" id="spotList" role="region" aria-label="רשימת מלבני חניה מסומנים" aria-describedby="spotListEmpty" tabindex="0">
+          <div id="spotItems" role="list"></div>
+        </div>
         <p class="empty-msg" id="spotListEmpty" style="display:none">אין מלבנים מסומנים. גררו על התמונה לסימון מקום חניה, או טענו דוגמה.</p>
       </section>
       <section class="panel" style="margin-top:16px">
@@ -184,6 +187,33 @@ function setStatus(msg, isErr) {
   if (!el) return;
   el.textContent = msg || "";
   el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e7490)";
+}
+
+function labelCanvas() {
+  const n = state.spots.length;
+  let text = "משטח סימון מלבני חניה";
+  if (!n) text += ". אין מלבנים מסומנים";
+  else if (!state.estimates.length) text += ". " + n + " מלבנים, טרם חושבה תפוסה";
+  else {
+    const occ = state.estimates.filter((e) => e && e.occupied).length;
+    text += ". " + n + " מלבנים, " + occ + " תפוסים, " + (n - occ) + " פנויים";
+  }
+  canvas.setAttribute("aria-label", text);
+}
+
+function syncExportGuards() {
+  const noSpots = !state.spots.length;
+  const noOcc = !state.occupancy.length;
+  const mark = (id, blocked) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.setAttribute("aria-disabled", blocked ? "true" : "false");
+  };
+  mark("btnCopySummary", noSpots);
+  mark("btnUndo", noSpots);
+  mark("btnClear", noSpots);
+  mark("btnExportSpots", noSpots);
+  mark("btnExportOcc", noOcc);
+  mark("btnExportCsv", noOcc);
 }
 
 function street() {
@@ -390,31 +420,33 @@ canvas.addEventListener("pointerup", () => {
 });
 
 function renderSpotList() {
-  const el = document.getElementById("spotList");
+  const el = document.getElementById("spotItems");
   const emptyEl = document.getElementById("spotListEmpty");
   if (!state.spots.length) {
     el.replaceChildren();
     if (emptyEl) emptyEl.style.display = "block";
-    return;
+  } else {
+    if (emptyEl) emptyEl.style.display = "none";
+    el.replaceChildren();
+    state.spots.forEach((s, i) => {
+      const est = state.estimates[i];
+      const row = document.createElement("div");
+      row.className = "spot-item";
+      const statusText = est ? (est.occupied ? "תפוס · היוריסטיקה" : "פנוי · היוריסטיקה") : "לא חושב";
+      row.setAttribute("role", "listitem");
+      row.setAttribute("aria-label", "מקום " + (i + 1) + ": " + statusText);
+      const name = document.createElement("span");
+      name.textContent = "מקום " + (i + 1);
+      const badge = document.createElement("span");
+      badge.className = "badge " + (est ? (est.occupied ? "occ" : "free") : "unk");
+      badge.textContent = statusText;
+      row.appendChild(name);
+      row.appendChild(badge);
+      el.appendChild(row);
+    });
   }
-  if (emptyEl) emptyEl.style.display = "none";
-  el.replaceChildren();
-  state.spots.forEach((s, i) => {
-    const est = state.estimates[i];
-    const row = document.createElement("div");
-    row.className = "spot-item";
-    const statusText = est ? (est.occupied ? "תפוס · היוריסטיקה" : "פנוי · היוריסטיקה") : "לא חושב";
-    row.setAttribute("role", "listitem");
-    row.setAttribute("aria-label", "מקום " + (i + 1) + ": " + statusText);
-    const name = document.createElement("span");
-    name.textContent = "מקום " + (i + 1);
-    const badge = document.createElement("span");
-    badge.className = "badge " + (est ? (est.occupied ? "occ" : "free") : "unk");
-    badge.textContent = statusText;
-    row.appendChild(name);
-    row.appendChild(badge);
-    el.appendChild(row);
-  });
+  labelCanvas();
+  syncExportGuards();
 }
 
 function applySpotsDoc(doc) {
@@ -534,10 +566,11 @@ function drawChart(recs) {
   if (!recs || !recs.length) {
     host.replaceChildren();
     if (emptyEl) emptyEl.style.display = "block";
-    return;
+  } else {
+    if (emptyEl) emptyEl.style.display = "none";
+    host.innerHTML = OCC.chartSvg(recs, { width: 720, height: 220 });
   }
-  if (emptyEl) emptyEl.style.display = "none";
-  host.innerHTML = OCC.chartSvg(recs, { width: 720, height: 220 });
+  syncExportGuards();
 }
 
 document.getElementById("btnSample").addEventListener("click", () => loadSample());

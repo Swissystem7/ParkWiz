@@ -113,3 +113,31 @@ test('pilot kit panels are labelled landmarks and every action button names itse
   // The copied summary says the numbers are heuristic, not AI or a live camera
   assert.match(html, /"הערה: הערכה היוריסטית על snapshot — לא בינה מלאכותית ולא מצלמה חיה\."/);
 });
+
+test('pilot kit announces a whole status, keeps spots in a real list, and disables empty exports', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'pilot-kit.html'), 'utf8');
+
+  // A replacement of the status text is read in full, not as a leftover diff
+  assert.match(html, /id="kitStatus"[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"/);
+  assert.match(html, /id="estNote"[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"/);
+
+  // listitem rows need a list parent; the region stays the labelled landmark
+  assert.match(html, /id="spotList"[^>]*role="region"[^>]*aria-label="[^"]+"[^>]*aria-describedby="spotListEmpty"[^>]*tabindex="0"/);
+  assert.match(html, /id="spotItems"[^>]*role="list"/);
+  assert.match(html, /const el = document\.getElementById\("spotItems"\)/);
+  assert.match(html, /id="chart"[^>]*role="region"[^>]*aria-label="[^"]+"[^>]*aria-describedby="chartEmpty"/);
+
+  // The canvas name follows the marking, including the empty and pre-estimate states
+  assert.match(html, /function labelCanvas\(\) \{[\s\S]*?אין מלבנים מסומנים[\s\S]*?טרם חושבה תפוסה[\s\S]*?canvas\.setAttribute\("aria-label", text\)/);
+  assert.match(html, /labelCanvas\(\);\s*syncExportGuards\(\);/);
+
+  // Empty copy/export/undo/clear is visible to assistive tech before the click
+  assert.match(html, /id="btnCopySummary"[^>]*aria-disabled="true"/);
+  assert.match(html, /id="btnExportOcc"[^>]*aria-disabled="true"/);
+  assert.match(html, /id="btnExportCsv"[^>]*aria-disabled="true"/);
+  assert.match(html, /id="btnExportSpots"[^>]*aria-disabled="true"/);
+  assert.match(html, /id="btnUndo"[^>]*aria-disabled="true"/);
+  assert.match(html, /id="btnClear"[^>]*aria-disabled="true"/);
+  assert.match(html, /function syncExportGuards\(\) \{[\s\S]*?mark\("btnExportSpots", noSpots\);[\s\S]*?mark\("btnExportOcc", noOcc\);[\s\S]*?mark\("btnExportCsv", noOcc\);/);
+  assert.match(html, /btn\.setAttribute\("aria-disabled", blocked \? "true" : "false"\)/);
+});
