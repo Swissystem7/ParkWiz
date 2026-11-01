@@ -448,8 +448,12 @@
     await loadLots(lot.id);
   });
 
-  fetch('/health').then((r) => r.json()).then((h) => { $('health').textContent = `השרת פעיל · ${h.users} משתמשים · ${h.lots} חניונים`; })
-    .catch(() => { $('health').textContent = 'השרת לא זמין — הפעילו node server/node.js'; });
+  if (location.hostname === 'swissystem7.github.io' || location.protocol === 'file:') {
+    $('health').textContent = 'הדגמת ממשק בדפדפן (סטטי) · להפעלת שרת חי: node server/node.js';
+  } else {
+    fetch('/health').then((r) => r.json()).then((h) => { $('health').textContent = `השרת פעיל · ${h.users} משתמשים · ${h.lots} חניונים`; })
+      .catch(() => { $('health').textContent = 'השרת לא זמין — הפעילו node server/node.js'; });
+  }
   if (session) enter().catch(logout);
   setInterval(poll, 2000);
 })();
