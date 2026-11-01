@@ -1,5 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v27';
+const CACHE = 'parkwiz-field-v28';
 const ASSETS = [
   './',
   './index.html',
@@ -80,6 +80,7 @@ const ASSETS = [
   // off-origin, so the fetch handler ignores it: the page says in its banner
   // that the first visit needs network, and only the model does.
   './demo/camera.html',
+  './demo/live-lot.html',
   // Operator-editable labels for the Atidim demo.
   './demo/atidim-data.json',
 ];
