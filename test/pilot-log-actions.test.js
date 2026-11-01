@@ -74,8 +74,10 @@ function boot() {
   vm.runInContext(fs.readFileSync(path.join(root, 'src/lib/protocol.js'), 'utf8'), context);
   vm.runInContext(fs.readFileSync(path.join(root, 'src/lib/export.js'), 'utf8'), context);
   const html = fs.readFileSync(path.join(root, 'pilot-log.html'), 'utf8');
-  const start = html.indexOf('<script>\n"use strict";');
-  const code = html.slice(start + '<script>\n'.length, html.lastIndexOf('</script>'));
+  const m = html.match(/<script>\s*["']use strict["'];/);
+  const start = m ? m.index : html.indexOf('<script>');
+  const scriptOpenEnd = html.indexOf('>', start) + 1;
+  const code = html.slice(scriptOpenEnd, html.lastIndexOf('</script>'));
   vm.runInContext(
     code + '\nglobalThis.__api = { state, copySummary, resetFlags, refreshActionButtons, render };',
     context,
