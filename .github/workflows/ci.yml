@@ -24,6 +24,11 @@ jobs:
     name: Test, Security & Coverage (dell-ai)
     runs-on: ${{ fromJSON(vars.CI_RUNNER || '["ubuntu-latest"]') }}
     timeout-minutes: 20
+    env:
+      # Secrets are read into env once so step-level `if` guards can test them
+      # (the secrets context is not available in steps.if).
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -63,7 +68,7 @@ jobs:
           fi
 
       - name: Upload Coverage to Codecov
-        if: ${{ secrets.CODECOV_TOKEN != '' }}
+        if: env.CODECOV_TOKEN != ''
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -74,7 +79,7 @@ jobs:
         if: >-
           github.event_name == 'push' &&
           (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') &&
-          secrets.SENTRY_AUTH_TOKEN != ''
+          env.SENTRY_AUTH_TOKEN != ''
         uses: getsentry/action-release@v1
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
