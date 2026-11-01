@@ -106,3 +106,5 @@ npm run test:load                           # 20 משתמשים במקביל (ר
 3. אחרי פרסום עם DSN, פתיחה חד־פעמית של `index.html?sentryTest=1` שולחת שגיאת בדיקה. בלי הפרמטר לא נשלחת שגיאת בדיקה.
 
 `sendDefaultPii` כבוי. לא נשלחים פריימי וידאו, תמונות או קואורדינטות.
+
+<!-- e2e pipeline verification marker -->
