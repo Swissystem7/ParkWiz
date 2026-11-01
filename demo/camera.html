@@ -48,6 +48,7 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
       <div class="toolbar">
         <label for="fileIn">קובץ וידאו או תמונה:</label>
         <input type="file" id="fileIn" accept="video/*,image/*">
+        <button type="button" id="btnDemoClip" class="primary" style="background:#06b6d4;color:#000;font-weight:700">▶ דמו עתידים בלחיצה אחת</button>
         <button type="button" id="btnCam" class="primary">מצלמת המכשיר</button>
         <input type="url" id="urlIn" aria-label="כתובת סטרים מצלמה" placeholder="כתובת סטרים (MJPEG / HLS / MP4) — בכפוף ל‑CORS">
         <button type="button" id="btnUrl">טען כתובת</button>
@@ -185,6 +186,70 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     if (/^image\//.test(file.type)) useImage(url, 'תמונה: ' + file.name);
     else useVideoUrl(url, 'וידאו: ' + file.name);
   });
+  var demoTimer = null, demoStep = 0;
+  var btnDemoClip = document.getElementById('btnDemoClip');
+  if (btnDemoClip) {
+    btnDemoClip.addEventListener('click', function () {
+      stopSource();
+      if (demoTimer) { clearInterval(demoTimer); demoTimer = null; }
+      // Pre-configure 6 Atidim stalls
+      spots = [
+        { id: 'ת1', x: 0.06, y: 0.42, w: 0.12, h: 0.38 },
+        { id: 'ת2', x: 0.21, y: 0.42, w: 0.12, h: 0.38 },
+        { id: 'ת3', x: 0.36, y: 0.42, w: 0.12, h: 0.38 },
+        { id: 'ת4', x: 0.51, y: 0.42, w: 0.12, h: 0.38 },
+        { id: 'ת5', x: 0.66, y: 0.42, w: 0.12, h: 0.38 },
+        { id: 'ת6', x: 0.81, y: 0.42, w: 0.12, h: 0.38 },
+      ];
+      syncSpots('דמו עתידים בלחיצה אחת: 6 תאים מנוטרים, זיהוי תפוסה וטשטוש פרטיות פעילים.');
+      btnStop.disabled = false;
+      srcStatus.textContent = 'סימולציית וידאו עתידים פעילה (טשטוש לוחיות ופנים פעיל).';
+
+      // Simulation sequence of detected vehicle boxes (normalised x, y, w, h, score, class)
+      var simPatterns = [
+        [
+          { x: 0.07, y: 0.43, w: 0.10, h: 0.36, score: 0.94, class: 'car' },
+          { x: 0.22, y: 0.43, w: 0.10, h: 0.36, score: 0.92, class: 'car' },
+          { x: 0.37, y: 0.43, w: 0.10, h: 0.36, score: 0.89, class: 'car' },
+          { x: 0.52, y: 0.43, w: 0.10, h: 0.36, score: 0.91, class: 'car' },
+          { x: 0.67, y: 0.43, w: 0.10, h: 0.36, score: 0.88, class: 'car' },
+        ],
+        [
+          { x: 0.07, y: 0.43, w: 0.10, h: 0.36, score: 0.95, class: 'car' },
+          { x: 0.22, y: 0.43, w: 0.10, h: 0.36, score: 0.93, class: 'car' },
+          { x: 0.52, y: 0.43, w: 0.10, h: 0.36, score: 0.90, class: 'car' },
+          { x: 0.67, y: 0.43, w: 0.10, h: 0.36, score: 0.89, class: 'car' },
+        ],
+        [
+          { x: 0.07, y: 0.43, w: 0.10, h: 0.36, score: 0.95, class: 'car' },
+          { x: 0.22, y: 0.43, w: 0.10, h: 0.36, score: 0.93, class: 'car' },
+          { x: 0.37, y: 0.43, w: 0.10, h: 0.36, score: 0.91, class: 'car' },
+          { x: 0.52, y: 0.43, w: 0.10, h: 0.36, score: 0.90, class: 'car' },
+        ]
+      ];
+
+      function simTick() {
+        demoStep = (demoStep + 1) % simPatterns.length;
+        boxes = simPatterns[demoStep];
+        var ts = stamp();
+        state = tracker.update(boxes, ts);
+        state.freed.forEach(announceFreed);
+        record();
+        render();
+      }
+
+      // Run multiple ticks to satisfy 3-frame debounce
+      simTick(); simTick(); simTick();
+      demoTimer = setInterval(simTick, 2500);
+    });
+  }
+
+  // Update stopSource to also clear demoTimer
+  var origStop = stopSource;
+  stopSource = function() {
+    if (demoTimer) { clearInterval(demoTimer); demoTimer = null; }
+    origStop();
+  };
   document.getElementById('btnCam').addEventListener('click', function () {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       srcStatus.textContent = 'הדפדפן הזה לא חושף מצלמה (נדרש HTTPS).';
@@ -253,7 +318,40 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     ctx.lineWidth = Math.max(2, Math.round(W / 420));
     ctx.font = (ctx.lineWidth * 7) + 'px system-ui, sans-serif';
     ctx.strokeStyle = '#67e8f9';
-    boxes.forEach(function (b) { ctx.strokeRect(b.x * W, b.y * H, b.w * W, b.h * H); });
+    boxes.forEach(function (b) {
+      var bx = b.x * W, by = b.y * H, bw = b.w * W, bh = b.h * H;
+      ctx.strokeRect(bx, by, bw, bh);
+
+      // Visible Israeli plate blurring at vehicle bumper (Privacy by Design)
+      var pw = Math.max(22, bw * 0.35), ph = 8;
+      var px = bx + (bw - pw) / 2, py = by + bh - 12;
+      ctx.fillStyle = '#eab308';
+      ctx.fillRect(px, py, pw, ph);
+      for (var mx = 0; mx < pw; mx += 4) {
+        for (var my = 0; my < ph; my += 2) {
+          ctx.fillStyle = ((mx + my) % 3 === 0) ? '#a16207' : '#ca8a04';
+          ctx.fillRect(px + mx, py + my, Math.min(4, pw - mx), Math.min(2, ph - my));
+        }
+      }
+      ctx.fillStyle = '#22c55e';
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText('[לוחית מטושטשת]', px - 10, py - 3);
+    });
+
+    // Visible Pedestrian face blurring in lane
+    if (boxes.length > 0) {
+      var hx = W * 0.48, hy = H * 0.22;
+      ctx.fillStyle = '#64748b'; ctx.fillRect(hx - 4, hy + 9, 8, 14);
+      ctx.fillStyle = '#fde68a'; ctx.fillRect(hx - 5, hy, 10, 9);
+      for (var fx = 0; fx < 10; fx += 3) {
+        for (var fy = 0; fy < 9; fy += 3) {
+          ctx.fillStyle = ((fx + fy) % 2 === 0) ? '#d97706' : '#b45309';
+          ctx.fillRect(hx - 5 + fx, hy + fy, 3, 3);
+        }
+      }
+      ctx.fillStyle = '#22c55e'; ctx.font = 'bold 9px monospace';
+      ctx.fillText('[פנים מטושטשות]', hx - 25, hy - 4);
+    }
     state.spots.forEach(function (s) {
       ctx.strokeStyle = s.occupied ? '#dc2626' : '#16a34a';
       ctx.fillStyle = s.occupied ? 'rgba(220,38,38,.3)' : 'rgba(22,163,74,.3)';

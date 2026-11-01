@@ -142,7 +142,7 @@ svg.chart line[stroke="#ef4444"]{stroke:var(--occ)}
       <div style="font-size:12px;color:var(--muted)" id="frameClock">—</div>
     </div>
     <div class="stream-box">
-      <div class="hud"><span id="hudCam">CAM-01 [EAST GATE] 1080p30</span><span id="hudPerf">SIM · INFERENCE: 14ms · EDGE-AI</span></div>
+      <div class="hud"><span id="hudCam">CAM-01 [EAST GATE] 1080p30</span><span id="hudPrivacy" style="color:#6ee7b7;font-weight:700">🛡️ PRIVACY: NO-LPR · PLATES &amp; FACES BLURRED</span><span id="hudPerf">SIM · INFERENCE: 14ms · EDGE-AI</span></div>
       <canvas id="lotCanvas" width="960" height="540" tabindex="0" role="img"
         aria-label="תצוגת מצלמת חניון עם סימון תאי חניה — ירוק פנוי, אדום תפוס. ניתן לנווט בין התאים בחצים ולשנות תפוסה ברווח או Enter."></canvas>
     </div>
@@ -153,6 +153,7 @@ svg.chart line[stroke="#ef4444"]{stroke:var(--occ)}
       <button type="button" id="btnAuto" aria-pressed="false">הפעל זרימה אוטומטית</button>
       <button type="button" id="btnReset">אפס למצב השעה הנוכחית</button>
       <button type="button" id="btnCopySummary">העתק תקציר מצב</button>
+      <button type="button" id="btnTogglePrivacy" class="active" aria-pressed="true" title="מצב פרטיות מובנה — טשטוש לוחיות רישוי ופנים ללא אפשרות זיהוי אישי">🛡️ טשטוש לוחיות ופנים: פעיל</button>
       <span style="flex:1"></span>
       <button type="button" class="cam-sel active" data-cam="cam-01" aria-pressed="true" aria-label="מצלמה 01 — כניסה מזרחית">מצלמה 01</button>
       <button type="button" class="cam-sel" data-cam="cam-02" aria-pressed="false" aria-label="מצלמה 02 — מפלס -1">מצלמה 02 (מפלס -1)</button>
@@ -245,7 +246,7 @@ svg.chart line[stroke="#ef4444"]{stroke:var(--occ)}
   // the chart below agree instead of telling two different stories.
   let seededHour = model.lotHour();
   let spots = model.createCameraSpots(currentCam, seededHour);
-  let showOverlay = true; let autoTimer = null; let selected = -1;
+  let showOverlay = true; let autoTimer = null; let selected = -1; let privacyActive = true;
   const canvas = document.getElementById('lotCanvas');
   const ctx = canvas.getContext('2d');
 
@@ -308,6 +309,20 @@ svg.chart line[stroke="#ef4444"]{stroke:var(--occ)}
         ctx.fillStyle = '#1e293b'; roundedRect(sx + 4, sy + 6, sw - 8, sh - 12, 6); ctx.fill();
         ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(sx + 8, sy + 10, sw - 16, (sh - 12) * 0.35);
         ctx.fillStyle = '#334155'; ctx.fillRect(sx + 10, sy + sh * 0.38, sw - 20, sh * 0.35);
+        if (privacyActive) {
+          const pw = Math.max(18, (sw - 8) * 0.4);
+          const ph = 6;
+          const px = sx + (sw - pw) / 2;
+          const py = sy + sh - 11;
+          ctx.fillStyle = '#eab308';
+          ctx.fillRect(px, py, pw, ph);
+          for (let bx = 0; bx < pw; bx += 3) {
+            for (let by = 0; by < ph; by += 2) {
+              ctx.fillStyle = ((bx + by) % 4 === 0) ? '#ca8a04' : (((bx + by) % 3 === 0) ? '#a16207' : '#facc15');
+              ctx.fillRect(px + bx, py + by, Math.min(3, pw - bx), Math.min(2, ph - by));
+            }
+          }
+        }
       }
       if (showOverlay) {
         ctx.strokeStyle = s.occupied ? '#ef4444' : '#22c55e'; ctx.lineWidth = 2;
@@ -331,6 +346,19 @@ svg.chart line[stroke="#ef4444"]{stroke:var(--occ)}
       }
     });
 
+    if (privacyActive) {
+      const px = W * 0.46, py = H * 0.44;
+      ctx.fillStyle = '#475569'; ctx.fillRect(px - 3, py + 7, 6, 11);
+      ctx.fillStyle = '#fde68a'; ctx.fillRect(px - 4, py, 8, 7);
+      for (let mx = 0; mx < 8; mx += 2) {
+        for (let my = 0; my < 7; my += 2) {
+          ctx.fillStyle = ((mx + my) % 3 === 0) ? '#d97706' : '#b45309';
+          ctx.fillRect(px - 4 + mx, py + my, 2, 2);
+        }
+      }
+      ctx.fillStyle = '#34d399'; ctx.font = 'bold 8px monospace';
+      ctx.fillText('[טשטוש פנים]', px - 25, py - 3);
+    }
     ctx.fillStyle = 'rgba(255,255,255,.015)';
     for (let y = 0; y < H; y += 4) { ctx.fillRect(0, y, W, 1); }
   }
@@ -468,6 +496,19 @@ svg.chart line[stroke="#ef4444"]{stroke:var(--occ)}
     selected = -1; refresh(); renderChart();
     announce('הפריים אופס למצב האופייני לשעה ' + model.hourlyPoint(seededHour).label + '.');
   });
+  const btnPriv = document.getElementById('btnTogglePrivacy');
+  if (btnPriv) {
+    btnPriv.addEventListener('click', function(){
+      privacyActive = !privacyActive;
+      this.classList.toggle('active', privacyActive);
+      this.setAttribute('aria-pressed', String(privacyActive));
+      this.textContent = privacyActive ? '🛡️ טשטוש לוחיות ופנים: פעיל' : '⚠️ טשטוש לוחיות ופנים: כבוי (פיתוח)';
+      const hudP = document.getElementById('hudPrivacy');
+      if (hudP) hudP.style.display = privacyActive ? 'inline' : 'none';
+      drawScene();
+      announce(privacyActive ? 'טשטוש פרטיות פעיל.' : 'טשטוש פרטיות כבוי.');
+    });
+  }
   document.getElementById('btnCopySummary').addEventListener('click', function(){
     const occ = model.calculateOccupancy(spots, CAPACITY);
     const view = model.cameraView(currentCam);
