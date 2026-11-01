@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="src/lib/sentry.js"></script>
-<title>ParkWiz — הדגמת חניית רחוב בנתניה</title>
+<title>ParkWiz — זיהוי תפוסת חניה מווידאו | עתידים, CityZone ועיריית תל אביב</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="src/ui/tokens.css">
@@ -381,6 +381,150 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 .nav-park-btn{padding:8px 16px;border-radius:14px;border:none;background:var(--green);color:#0a0f0a;font-size:0.8rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
 </style>
 <link rel="stylesheet" href="src/ui/driver.css">
+
+<style>
+/* ParkWiz Hebrew Landing Page Overlay (#Atidim-CityZone) */
+.atidim-hero {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: var(--pw-bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px 16px 48px;
+  direction: rtl;
+  text-align: right;
+  box-sizing: border-box;
+}
+.atidim-hero[hidden] {
+  display: none !important;
+}
+.atidim-hero-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+.atidim-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--pw-line);
+  padding-bottom: 14px;
+}
+.atidim-hero-badge {
+  display: inline-block;
+  background: var(--pw-brand-soft);
+  border: 1px solid var(--pw-brand);
+  color: var(--pw-brand);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: var(--pw-radius-pill);
+  margin-bottom: 8px;
+}
+.atidim-hero h1 {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: var(--pw-ink);
+  line-height: 1.3;
+  margin: 0 0 8px;
+}
+.atidim-hero-lead {
+  font-size: 0.95rem;
+  color: var(--pw-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+.atidim-audiences {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin: 20px 0 24px;
+}
+.atidim-aud-card {
+  background: var(--pw-surface);
+  border: 1px solid var(--pw-line);
+  border-radius: var(--pw-radius-md);
+  padding: 14px 16px;
+  box-shadow: inset 0 3px 0 var(--pw-brand);
+  box-sizing: border-box;
+}
+.atidim-aud-card h2 {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--pw-ink);
+  margin: 0 0 8px;
+}
+.atidim-aud-card p {
+  font-size: 0.84rem;
+  color: var(--pw-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+.atidim-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 18px;
+}
+.atidim-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: var(--pw-radius-pill);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid var(--pw-line);
+  background: var(--pw-surface-2);
+  color: var(--pw-ink);
+  box-sizing: border-box;
+  transition: transform var(--pw-dur), background var(--pw-dur);
+}
+.atidim-btn:hover {
+  background: var(--pw-surface);
+  color: var(--pw-brand);
+}
+.atidim-btn.primary {
+  background: var(--pw-brand);
+  color: var(--pw-on-brand);
+  border-color: var(--pw-brand);
+  font-size: 0.95rem;
+  padding: 12px 22px;
+}
+.atidim-btn.primary:hover {
+  filter: brightness(1.1);
+  color: var(--pw-on-brand);
+}
+.atidim-btn-dismiss {
+  background: transparent;
+  border: 1px solid var(--pw-line);
+  color: var(--pw-muted);
+  border-radius: var(--pw-radius-pill);
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.atidim-btn-dismiss:hover {
+  color: var(--pw-ink);
+  border-color: var(--pw-ink);
+}
+@media (max-width: 600px) {
+  .atidim-hero { padding: 16px 12px 36px; }
+  .atidim-hero h1 { font-size: 1.15rem; }
+  .atidim-hero-lead { font-size: 0.84rem; }
+  .atidim-audiences { grid-template-columns: 1fr; margin: 14px 0 16px; }
+  .atidim-btn { width: 100%; text-align: center; font-size: 0.84rem; padding: 9px 14px; }
+}
+</style>
 </head>
 <body>
 <script>
@@ -409,7 +553,45 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 </script>
 <a class="skip-link" href="#searchInput">דלג לחיפוש</a>
 <div id="pwSurfaceNav" data-active="map" style="position:relative;z-index:9999"></div>
+
+<section class="atidim-hero" id="atidimWelcomeHero" role="region" aria-label="מבוא למערכת ParkWiz — פיילוט פארק עתידים ועיריית תל אביב">
+  <div class="atidim-hero-wrap">
+    <div class="atidim-hero-top">
+      <div>
+        <span class="atidim-hero-badge">פיילוט חכם · ParkWiz × CityZone</span>
+        <h1>מה זה ParkWiz? זיהוי תפוסת חניה מווידאו בזמן אמת</h1>
+        <p class="atidim-hero-lead">טכנולוגיית Edge AI לחישת תפוסת חניה ממצלמות אבטחה קיימות — ללא חיישנים פיזיים באספלט, ללא LPR (ללא קריאת לוחיות רישוי) וללא זיהוי פנים. 100% שמירה על פרטיות.</p>
+      </div>
+      <button type="button" class="atidim-btn-dismiss" id="btnDismissHero" aria-label="סגור דף פתיחה ועבור למפה">מעבר למפה ✕</button>
+    </div>
+
+    <div class="atidim-audiences">
+      <article class="atidim-aud-card">
+        <h2>🏢 לפארק עתידים (רוני נדלר)</h2>
+        <p>שליטה בתפוסת 220 מקומות חניה ב-3 מפלסים, ביטול סבבי חיפוש בשעות שיא (09:00–14:00), הכוונה ישירה למפלסים פנויים ודוחות עומס שעתית למנהל החניון.</p>
+      </article>
+      <article class="atidim-aud-card">
+        <h2>🏙️ ל-CityZone (יואב מילוא)</h2>
+        <p>שדה ניסוי עירוני טכנולוגי מאומת, אינטגרציה למערכות עיר חכמה (CityZone Connector), אפס עלויות תשתית והוכחת ערך מהירה תוך 4 שבועות.</p>
+      </article>
+      <article class="atidim-aud-card">
+        <h2>🏛️ לעיריית תל אביב-יפו</h2>
+        <p>ניהול ביקושים והפחתת גודש תחבורתי בכניסה למתחמי תעסוקה, מודל עומסים שעתית, ואינטגרציה עתידית עם שילוט עירוני ואפליקציות נהגים.</p>
+      </article>
+    </div>
+
+    <div class="atidim-hero-actions">
+      <a href="./demo/atidim.html" class="atidim-btn primary" id="btnHeroDemo">▶ כניסה לדמו מפעיל עתידים (בלחיצה אחת)</a>
+      <a href="./demo/atidim-board.html" class="atidim-btn">📊 לוח מפעיל יומי ומפת חניון</a>
+      <a href="./demo/camera.html" class="atidim-btn">📷 מנוע זיהוי וידאו ומצלמה</a>
+      <a href="./demo/commute.html" class="atidim-btn" id="btnHeroCommute">🚗 דמו נהג יומם (תל אביב-עתידים)</a>
+      <a href="./docs/pilot.md" class="atidim-btn">📄 תוכנית הפיילוט (docs/pilot.md)</a>
+    </div>
+  </div>
+</section>
+
 <div class="eval-banner" role="note">
+  <button type="button" id="btnOpenHero" style="background:#0e7490;border:1px solid #67e8f9;color:#fff;border-radius:8px;padding:2px 8px;font:inherit;font-size:.74rem;font-weight:700;cursor:pointer;margin-inline-end:6px">🏢 דף פתיחה לעתידים / CityZone</button>
   <button type="button" id="pwConsumerToggle" aria-pressed="false">הצג גם את דמו הנהגים (Premium, XP, הרשמה)</button>
   <a href="./demo/live-lot.html" style="color:#67e8f9;font-weight:700">👥 דמו רב-משתמשים בזמן אמת (Live Lot)</a>
   ·
@@ -3101,6 +3283,32 @@ function bookingWindowRemaining(nowMs, releaseAtMs) {
   const remainingTime = Math.max(0, releaseAtMs - nowMs);
   return Math.floor(remainingTime / (1000 * 60));
 }
+</script>
+<script>
+  (function() {
+    var hero = document.getElementById('atidimWelcomeHero');
+    var btnDismiss = document.getElementById('btnDismissHero');
+    var btnOpen = document.getElementById('btnOpenHero');
+    if (!hero) return;
+    try {
+      if (sessionStorage.getItem('parkwiz_hero_dismissed') === '1') {
+        hero.hidden = true;
+      }
+    } catch (_) {}
+    if (btnDismiss) {
+      btnDismiss.addEventListener('click', function() {
+        hero.hidden = true;
+        try { sessionStorage.setItem('parkwiz_hero_dismissed', '1'); } catch (_) {}
+      });
+    }
+    if (btnOpen) {
+      btnOpen.addEventListener('click', function() {
+        hero.hidden = false;
+        try { sessionStorage.removeItem('parkwiz_hero_dismissed'); } catch (_) {}
+        hero.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+  })();
 </script>
 </body>
 </html>
