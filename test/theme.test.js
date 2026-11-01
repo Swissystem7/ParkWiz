@@ -82,8 +82,8 @@ for (const [label, css] of [['dark', block(':root')], ['light', block('[data-the
   });
 }
 
-test('driver map and lot-manager page load the design system before first paint', () => {
-  for (const [page, prefix] of [['index.html', ''], ['demo/atidim.html', '../']]) {
+test('driver map, lot-manager page, and live-lot page load the design system before first paint', () => {
+  for (const [page, prefix] of [['index.html', ''], ['demo/atidim.html', '../'], ['demo/live-lot.html', '../']]) {
     const html = read(page);
     const head = html.slice(0, html.indexOf('</head>'));
     assert.ok(head.includes(`<link rel="stylesheet" href="${prefix}src/ui/tokens.css">`), page);

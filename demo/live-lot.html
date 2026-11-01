@@ -3,42 +3,339 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ParkWiz — חניון משותף (כמה משתמשים)</title>
+<title>ParkWiz — חניון משותף (רב-משתמשים)</title>
+<link rel="icon" href="../icon.svg">
+<link rel="stylesheet" href="../src/ui/tokens.css">
+<script src="../src/lib/theme.js"></script>
 <style>
-  body { font-family: system-ui, sans-serif; margin: 0; padding: 12px; background: #f6f7f9; color: #1d2433; }
-  .banner { background: #fff4d6; border: 1px solid #e7c66b; padding: 8px 10px; border-radius: 8px; font-size: 14px; }
-  section { background: #fff; border-radius: 10px; padding: 12px; margin-top: 12px; }
-  button, input, select { font: inherit; padding: 6px 10px; margin: 2px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
-  .spot { border-radius: 8px; padding: 8px 4px; text-align: center; border: 2px solid transparent; }
-  .free { background: #d9f7df; } .occupied { background: #f8d7d7; } .claim-me { border-color: #1a7f37; }
-  .claim-other { border-color: #b88200; } .muted { color: #5b6475; font-size: 13px; }
-  .alert { background: #e6f0ff; padding: 8px; border-radius: 8px; margin: 4px 0; }
+  :root {
+    --bg: var(--pw-bg);
+    --panel: var(--pw-surface);
+    --panel2: var(--pw-surface-2);
+    --ink: var(--pw-ink);
+    --muted: var(--pw-muted);
+    --line: var(--pw-line);
+    --brand: var(--pw-brand);
+    --free: var(--pw-brand);
+    --free-bg: var(--pw-brand-soft);
+    --occ: var(--pw-danger);
+    --warn: var(--pw-warn);
+    --shadow: var(--pw-shadow-1);
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: var(--pw-font);
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+    min-height: 100dvh;
+  }
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 16px 14px 60px;
+  }
+  header.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 12px;
+  }
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-logo {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--brand);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .brand-badge {
+    background: var(--brand);
+    color: var(--pw-on-brand);
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+  }
+  .live-pill {
+    background: var(--free-bg);
+    border: 1px solid var(--free);
+    color: var(--free);
+    font-size: 11.5px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--free);
+    box-shadow: 0 0 8px var(--free);
+  }
+  .banner {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    padding: 12px 14px;
+    border-radius: var(--pw-radius-md);
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .banner b { color: var(--ink); }
+  .banner code {
+    background: var(--pw-chip);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--pw-radius-lg);
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    color: var(--ink);
+  }
+  .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  input, select {
+    font: inherit;
+    background: var(--panel2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: var(--pw-radius-sm);
+    padding: 8px 12px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color var(--pw-dur) var(--pw-ease);
+  }
+  input:focus, select:focus {
+    border-color: var(--brand);
+  }
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+  button {
+    font: inherit;
+    background: var(--panel2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: var(--pw-radius-sm);
+    padding: 8px 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--pw-dur) var(--pw-ease);
+  }
+  button:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+  button.primary {
+    background: var(--brand);
+    color: var(--pw-on-brand);
+    border-color: var(--brand);
+  }
+  button.primary:hover {
+    opacity: 0.92;
+    color: var(--pw-on-brand);
+  }
+  .user-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .user-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+  }
+  .role-chip {
+    font-size: 11.5px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: var(--pw-chip);
+    border: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .manager-box {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: var(--pw-radius-md);
+    padding: 12px;
+    margin-bottom: 14px;
+  }
+  .manager-box-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .lot-select-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .spot {
+    background: var(--panel2);
+    border: 2px solid var(--line);
+    border-radius: var(--pw-radius-md);
+    padding: 12px 6px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--pw-font);
+    line-height: 1.35;
+    transition: transform var(--pw-dur) var(--pw-ease), border-color var(--pw-dur) var(--pw-ease);
+  }
+  .spot:hover {
+    transform: translateY(-2px);
+  }
+  .spot.free {
+    background: var(--free-bg);
+    border-color: rgba(34, 197, 94, 0.35);
+  }
+  .spot.occupied {
+    background: rgba(248, 113, 113, 0.1);
+    border-color: rgba(248, 113, 113, 0.3);
+  }
+  .spot.claim-me {
+    border-color: var(--brand);
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+  }
+  .spot.claim-other {
+    border-color: var(--warn);
+  }
+  .spot button {
+    width: 100%;
+    font-size: 11.5px;
+    padding: 6px 4px;
+    white-space: nowrap;
+    margin-top: 4px;
+  }
+  .alert {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-right: 4px solid var(--brand);
+    padding: 10px 14px;
+    border-radius: var(--pw-radius-sm);
+    margin: 6px 0;
+    font-size: 13.5px;
+    animation: pwRise var(--pw-dur) var(--pw-ease);
+  }
+  .muted {
+    color: var(--muted);
+    font-size: 12.5px;
+  }
 </style>
 </head>
 <body>
-<p class="banner">חניון משותף: כמה משתמשים רואים את אותו חניון דרך השרת (<code>node server/node.js</code>). כל לשונית היא משתמש נפרד. התפוסה מדווחת ידנית ע״י מנהל החניון — לא ממצלמה חיה. אין סיסמאות: זו הדגמת סשן, לא חשבון מאובטח.</p>
+<div class="wrap">
+  <header class="top">
+    <div class="brand-group">
+      <a href="../index.html" class="brand-logo" title="חזרה למפה">
+        ParkWiz
+        <span class="brand-badge">Multi-User</span>
+      </a>
+      <span class="live-pill"><span class="pulse-dot"></span> שרת חי</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="../index.html" style="color:var(--brand);font-size:13px;text-decoration:none">← חזרה לדף הראשי</a>
+      <button type="button" class="pw-theme-toggle" data-theme-toggle aria-label="החלף ערכת נושא">🌓</button>
+    </div>
+  </header>
 
-<section id="login">
-  <h2>כניסה</h2>
-  <input id="name" placeholder="שם" maxlength="40">
-  <select id="role"><option value="driver">נהג</option><option value="manager">מנהל חניון</option></select>
-  <button id="go">כניסה</button>
-  <p class="muted" id="health">בודק שרת…</p>
-</section>
+  <p class="banner">חניון משותף: כמה משתמשים רואים את אותו חניון דרך השרת (<code>node server/node.js</code>). כל לשונית היא משתמש נפרד. התפוסה מדווחת ע״י מנהל החניון — לא ממצלמה חיה. אין סיסמאות: זו הדגמת סשן, לא חשבון מאובטח.</p>
 
-<section id="main" hidden>
-  <p><b id="who"></b> · <button id="logout">יציאה</button></p>
-  <div id="managerTools" hidden>
-    <input id="lotName" placeholder="שם החניון" maxlength="80">
-    <input id="spotCount" type="number" min="1" max="100" value="8" style="width:70px">
-    <button id="createLot">צור חניון</button>
-  </div>
-  <label>חניון: <select id="lots"></select></label>
-  <div id="alerts" aria-live="polite"></div>
-  <div class="grid" id="grid"></div>
-  <p class="muted" id="status"></p>
-</section>
+  <section id="login" class="card">
+    <h2>כניסה למערכת</h2>
+    <div class="form-row">
+      <input id="name" placeholder="שם משתמש" maxlength="40">
+      <select id="role">
+        <option value="driver">נהג</option>
+        <option value="manager">מנהל חניון</option>
+      </select>
+      <button id="go" class="primary">כניסה</button>
+    </div>
+    <p class="muted" id="health">בודק שרת…</p>
+  </section>
+
+  <section id="main" class="card" hidden>
+    <div class="user-bar">
+      <div class="user-badge">
+        <span id="who"></span>
+      </div>
+      <button id="logout">יציאה</button>
+    </div>
+
+    <div id="managerTools" class="manager-box" hidden>
+      <div class="manager-box-title">כלים למנהל חניון</div>
+      <div class="form-row">
+        <input id="lotName" placeholder="שם החניון" maxlength="80">
+        <input id="spotCount" type="number" min="1" max="100" value="8" style="width:80px" aria-label="מספר מקומות">
+        <button id="createLot" class="primary">צור חניון</button>
+      </div>
+    </div>
+
+    <label class="lot-select-bar">
+      חניון נוכחי:
+      <select id="lots"></select>
+    </label>
+
+    <div id="alerts" aria-live="polite"></div>
+    <div class="grid" id="grid"></div>
+    <p class="muted" id="status" style="margin-top:14px"></p>
+  </section>
+</div>
 
 <script>
 (function () {
@@ -90,6 +387,7 @@
         div.appendChild(btn);
       } else if (session.user.role === 'driver' && !s.occupied && !s.claim) {
         btn.textContent = 'אני בדרך';
+        btn.className = 'primary';
         btn.onclick = () => act(() => api('POST', path + '/claim'));
         div.appendChild(btn);
       }
