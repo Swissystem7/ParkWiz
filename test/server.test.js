@@ -1,6 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const { createStore, CLAIM_TTL_MS } = require('../server/store');
+const { startServer } = require('../server/node');
 
 function setup() {
   let t = 1000;
@@ -56,4 +60,26 @@ test('versions: since returns only missed events, stale ifVersion is refused', (
   assert.deepEqual(view.events.map((e) => [e.kind, e.spotId]), [['freed', 'A1']]);
   assert.equal(JSON.stringify(view.events).includes(a.id), false);
   assert.throws(() => store.setOccupied(mgr, lot.id, 'A2', { occupied: false, ifVersion: v0 }), { code: 'STALE_VERSION' });
+});
+
+test('HTTP: health, session, 401 without token, data survives a restart', async () => {
+  const dataFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'parkwiz-')), 'data.json');
+  const srv = await startServer({ port: 0, dataFile });
+  assert.equal((await (await fetch(srv.url + '/health')).json()).ok, true);
+  assert.equal((await fetch(srv.url + '/api/lots')).status, 401);
+  const { token } = await (await fetch(srv.url + '/api/session', {
+    method: 'POST', body: JSON.stringify({ name: 'מנהל', role: 'manager' }),
+  })).json();
+  const auth = { authorization: `Bearer ${token}` };
+  const created = await fetch(srv.url + '/api/lots', { method: 'POST', headers: auth, body: JSON.stringify({ name: 'ח', spots: ['1', '2'] }) });
+  assert.equal(created.status, 201);
+  assert.equal((await fetch(srv.url + '/api/lots', { method: 'POST', headers: auth, body: '{' })).status, 400);
+  assert.equal((await fetch(srv.url + '/index.html')).status, 200);
+  assert.equal((await fetch(srv.url + '/server/store.js')).status, 404);
+  await new Promise((r) => setTimeout(r, 300));
+  await srv.close();
+  const again = await startServer({ port: 0, dataFile });
+  const lots = await (await fetch(again.url + '/api/lots', { headers: auth })).json();
+  assert.deepEqual(lots.map((l) => [l.name, l.total]), [['ח', 2]]);
+  await again.close();
 });
