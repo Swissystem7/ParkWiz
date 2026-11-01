@@ -1,0 +1,82 @@
+name: CI Pipeline & Quality Gates
+
+# Full quality pipeline for the Swissystem7 ecosystem.
+# The job name below is the required status-check name used by the
+# branch protection rule on master ("Test, Security & Coverage (dell-ai)").
+# Runner: set the repository variable CI_RUNNER to a JSON labels array,
+# e.g. '["self-hosted","linux","x64","dell-ai"]', to move this job onto the
+# Dell self-hosted runner. Until then it runs on GitHub-hosted ubuntu-latest.
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-scan:
+    name: Test, Security & Coverage (dell-ai)
+    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["ubuntu-latest"]') }}
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install Dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          elif [ -f package.json ]; then
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Run Security Scanner (npm audit)
+        run: |
+          npm audit --omit=dev --audit-level=high || echo "::warning::npm audit reported findings (non-blocking, see log above)"
+
+      - name: Run Tests with Coverage
+        run: |
+          mkdir -p coverage
+          if ls test/*.js >/dev/null 2>&1; then
+            node --test --experimental-test-coverage \
+              --test-reporter=spec --test-reporter=lcov \
+              --test-reporter-destination=stdout --test-reporter-destination=coverage/lcov.info \
+              test/*.js
+          else
+            node --test --experimental-test-coverage \
+              --test-reporter=spec --test-reporter=lcov \
+              --test-reporter-destination=stdout --test-reporter-destination=coverage/lcov.info
+          fi
+
+      - name: Upload Coverage to Codecov
+        if: ${{ secrets.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/lcov.info
+          fail_ci_if_error: false
+
+      - name: Notify Sentry Release
+        if: >-
+          github.event_name == 'push' &&
+          (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') &&
+          secrets.SENTRY_AUTH_TOKEN != ''
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: college-da
+          SENTRY_PROJECT: ${{ github.event.repository.name }}
