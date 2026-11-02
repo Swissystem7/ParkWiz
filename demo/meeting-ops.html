@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — גבולות, התראות, הפעלה וסיום ניסוי</title>
+<link rel="icon" href="../icon.svg">
+<link rel="stylesheet" href="../src/ui/tokens.css">
+<script src="../src/lib/theme.js"></script>
+<style>
+body{margin:0;font-family:var(--pw-font);background:var(--pw-bg);color:var(--pw-ink);line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 14px 60px}
+.badge{display:inline-block;background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px}
+h1{font-size:1.3rem;margin:8px 0 4px}.lede{color:var(--pw-muted);max-width:68ch}
+.card{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:12px;padding:16px;margin:14px 0}
+.btn{display:inline-flex;min-height:40px;align-items:center;padding:8px 16px;border-radius:999px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:800;text-decoration:none;border:0;cursor:pointer;font:inherit}
+.btn2{display:inline-flex;min-height:40px;align-items:center;padding:8px 14px;border-radius:999px;background:var(--pw-chip);color:var(--pw-ink);border:1px solid var(--pw-line);cursor:pointer;font:inherit;margin:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.z{border:1px solid var(--pw-line);border-radius:12px;padding:12px;background:var(--pw-surface-2)}
+label{display:block;margin:8px 0}a{color:var(--pw-brand)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">המחשת ממשק — ללא חיבור למערכות האתר</span>
+  <h1>גבולות הניסוי, התראות, הפעלה וסיום</h1>
+  <p class="lede">מה רואים כאן: מה בתוך הניסוי ומה בחוץ, איך התראה מתבטלת, מתגי הפעלה להדגמה, בדיקת התאמה בלי ציון, ורשימת סיום. הנתונים נשמרים בדפדפן בלבד.</p>
+
+  <section class="card"><h2>מפת גבולות הניסוי (המחשה, לא מפת עתידים)</h2>
+    <div class="grid"><div class="z">באזור הניסוי — אזור שייבחר בסיור</div><div class="z">מחוץ לכיסוי — שאר האזורים</div><div class="z">לא נבדק — ייבדק רק בשטח</div></div>
+  </section>
+
+  <section class="card"><h2>מסלול התראה</h2>
+    <p id="alertState" role="status" aria-live="polite">שלב: מקום תפוס (הדגמה).</p>
+    <button class="btn2" id="stepBtn">התקדמות לשלב הבא</button>
+    <p>התפנות, ואז זמינות, ואז נתפס מחדש — ההתראה מתבטלת. אין שמירת מקום.</p>
+  </section>
+
+  <section class="card"><h2>מסך הפעלה למנהל (הדגמה בלבד)</h2>
+    <label><input type="checkbox" id="pauseAlerts"> השהה התראות</label>
+    <label><input type="checkbox" id="closeZone"> סגור אזור</label>
+    <label><input type="checkbox" id="measureOnly"> מדידה בלבד</label>
+    <p id="opsMsg" role="status" aria-live="polite">מצב רגיל (הדגמה).</p>
+  </section>
+
+  <section class="card"><h2>בדיקת התאמה ראשונית — בלי ציון ובלי הבטחה</h2>
+    <label>סוג מצלמות קיים <input id="camType"></label>
+    <label>אזור מבוקש <input id="zone"></label>
+    <button class="btn" id="compatBtn" type="button">הפקת רשימת בירור</button>
+    <p id="compatOut" role="status" aria-live="polite">עדיין לא הופקה רשימה.</p>
+  </section>
+
+  <section class="card"><h2>מסך סיום ניסוי — רשימת סגירה</h2>
+    <label><input type="checkbox"> הפסקת התראות</label>
+    <label><input type="checkbox"> ביטול גישה למצלמות</label>
+    <label><input type="checkbox"> מחיקת נתוני הניסוי ואישור בכתב</label>
+    <label><input type="checkbox"> סיכום תוצאות מול ספירה ידנית</label>
+    <label><input type="checkbox"> החלטה על המשך או סיום</label>
+  </section>
+
+  <p><a class="btn" href="./atidim.html">לדמו החניון</a> &nbsp;<a href="../index.html">דף הבית</a></p>
+</div>
+<script>
+var steps=['מקום תפוס (הדגמה).','מקום התפנה — נשלחת התראה (הדגמה).','מקום זמין עם חותמת זמן (הדגמה).','מקום נתפס מחדש — ההתראה מתבטלת, אין שמירת מקום.'],i=0;
+document.getElementById('stepBtn').addEventListener('click',function(){i=(i+1)%steps.length;document.getElementById('alertState').textContent='שלב: '+steps[i];});
+function ops(){var p=[];if(document.getElementById('pauseAlerts').checked)p.push('התראות מושהות');if(document.getElementById('closeZone').checked)p.push('אזור סגור');if(document.getElementById('measureOnly').checked)p.push('מדידה בלבד');document.getElementById('opsMsg').textContent=p.length?p.join(', ')+' (הדגמה).':'מצב רגיל (הדגמה).';}
+['pauseAlerts','closeZone','measureOnly'].forEach(function(id){document.getElementById(id).addEventListener('change',ops);});
+document.getElementById('compatBtn').addEventListener('click',function(){document.getElementById('compatOut').textContent='מה צריך לברר: זיהוי מערכת המצלמות הקיימת, נקודת חיבור מאושרת, אזור מוגדר, אנשי קשר. אין ציון ואין הבטחת התאמה.';});
+</script>
+</body>
+</html>
