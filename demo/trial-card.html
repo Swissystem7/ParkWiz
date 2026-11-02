@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — כרטיס ניסוי להדפסה</title>
+<link rel="icon" href="../icon.svg">
+<link rel="stylesheet" href="../src/ui/tokens.css">
+<script src="../src/lib/theme.js"></script>
+<style>
+body{margin:0;font-family:var(--pw-font);background:var(--pw-bg);color:var(--pw-ink);line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 14px 60px}
+.badge{display:inline-block;background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px}
+h1{font-size:1.3rem;margin:8px 0 4px}.lede{color:var(--pw-muted);max-width:68ch}
+.card{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:12px;padding:16px;margin:14px 0}
+.btn{display:inline-flex;min-height:40px;align-items:center;padding:8px 16px;border-radius:999px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:800;text-decoration:none;border:0;cursor:pointer;font:inherit}
+label{display:block;margin:10px 0}input,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid var(--pw-line);background:var(--pw-surface-2);color:var(--pw-ink);font:inherit}
+@media print{.btn,.noprint{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">טיוטת עבודה — המחשת ממשק, ללא חיבור למערכות האתר</span>
+  <h1>כרטיס ניסוי משותף להדפסה</h1>
+  <p class="lede">מה רואים כאן: טופס אחד לסיכום הניסוי לפני שמתחילים. הנתונים נשמרים בדפדפן בלבד ולא נשלחים.</p>
+  <form class="card" onsubmit="return false">
+    <label>אזור הניסוי <input name="area"></label>
+    <label>הבעיה שמודדים <input name="problem"></label>
+    <label>מה כלול ומה מוחרג <textarea name="scope" rows="3"></textarea></label>
+    <label>אנשי קשר (תפעולי וטכני) <input name="contacts"></label>
+    <label>מדדי הצלחה <textarea name="metrics" rows="2">הסכמה מול ספירה ידנית, זמן עדכון, תקלות</textarea></label>
+    <label>תנאי עצירה <input name="stop"></label>
+    <button class="btn" type="button" onclick="window.print()">הדפסה</button>
+  </form>
+  <p class="noprint"><a class="btn" href="../pilot.html">להצעת הניסוי</a> &nbsp;<a href="../index.html">דף הבית</a></p>
+</div>
+</body>
+</html>
