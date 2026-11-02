@@ -91,6 +91,14 @@ npm run test:load                           # 20 משתמשים במקביל (ר
 - **מגבלות כנות:** אין סיסמאות — הסשן הוא טוקן אקראי, הדגמה ולא חשבון מאובטח. תהליך Node אחד בלבד מול קובץ נתונים (שני תהליכים = שני מצבים שונים). התפוסה מדווחת ידנית, לא ממצלמה. המפה הראשית (`index.html`) עוד לא מחוברת לשרת.
 - **ענן חינמי (שלב הבא):** ה־handler ב־[`server/app.js`](./server/app.js) כתוב על Fetch API (`Request → Response`), כך שאפשר להריץ אותו ב־Cloudflare Worker עם Durable Object אחד (חד־הליכי, כמו תהליך Node) בלי לשכתב. עוד לא נפרס.
 
+## הקצאת מקום לפי תפוסה (PW-302)
+
+`POST /api/assign` הוא פונקציית Vercel ב־[`api/assign.js`](./api/assign.js). היא מקבלת או רשימת `{spot_id, status, ts}` או מערך פריימים של Lenovo `pipeline.py` (השעון בשם הקובץ `YYYY-MM-DD_HH_MM_SS.jpg`), שומרת מצב בזיכרון התהליך בלבד, ומחזירה `{zone, spot, eta}`. GitHub Pages נשאר אתר סטטי ואינו מריץ את הפונקציה. הסכמה והנחות: [`docs/occupancy-assign-api.md`](./docs/occupancy-assign-api.md).
+
+```bash
+npm run test:assign
+```
+
 ## יצירת קשר
 
 ערך אחד בלבד: `CONTACT` ב־[`src/lib/contact.js`](./src/lib/contact.js) (מייל, טלפון ל־WhatsApp, או קישור https לטופס). מאז 28.9 הוא מצביע על טופס Google "משוב על האפליקציות", ממולא מראש ב־ParkWiz, ולכן `offer.html`, `pilot-brief.html` והמפה מציגים קישור לטופס. לא ממציאים פרטי קשר. אם מרוקנים אותו, הדפים האלה מציגים במקום זה קישור לטופס GitHub Issue בעברית (ציבורי, דורש חשבון GitHub). כשמשנים את הערך מעלים את גרסת המטמון ב־`sw.js`.

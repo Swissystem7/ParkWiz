@@ -1,0 +1,18 @@
+[
+  {
+    "frame": "2012-12-20_10_00_04.jpg",
+    "occupied": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"],
+    "free": [],
+    "assignment": {},
+    "unassigned": ["driver_0", "driver_1", "driver_2", "driver_3", "driver_4", "driver_5", "driver_6", "driver_7", "driver_8", "driver_9"],
+    "ms": { "read": 4.7, "detect": 19.8, "status": 2.2, "match": 0.1, "total": 26.7 }
+  },
+  {
+    "frame": "2012-12-20_10_00_09.jpg",
+    "occupied": ["1", "2", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"],
+    "free": ["3"],
+    "assignment": { "driver_0": "1" },
+    "unassigned": ["driver_1", "driver_2", "driver_3", "driver_4", "driver_5", "driver_6", "driver_7", "driver_8", "driver_9"],
+    "ms": { "read": 4.1, "detect": 18.2, "status": 2.0, "match": 0.1, "total": 24.4 }
+  }
+]
