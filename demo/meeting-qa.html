@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — מה עובד היום, מה עוד לא נבדק, שאלות ותשובות</title>
+<link rel="icon" href="../icon.svg">
+<link rel="stylesheet" href="../src/ui/tokens.css">
+<script src="../src/lib/theme.js"></script>
+<style>
+body{margin:0;font-family:var(--pw-font);background:var(--pw-bg);color:var(--pw-ink);line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 14px 60px}
+.badge{display:inline-block;background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px}
+h1{font-size:1.3rem;margin:8px 0 4px}.lede{color:var(--pw-muted);max-width:68ch}
+.card{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:12px;padding:16px;margin:14px 0}
+a{color:var(--pw-brand)}ul{margin:6px 0;padding-inline-start:20px}dt{font-weight:700;margin-top:10px}dd{margin:2px 0 0}
+.btn{display:inline-flex;min-height:40px;align-items:center;padding:8px 16px;border-radius:999px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:800;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">דף הכנה לפגישה — גלוי ושקוף</span>
+  <h1>מה עובד היום, מה עוד לא נבדק, ושאלות צפויות</h1>
+  <p class="lede">מה רואים כאן: הפרדה ברורה בין מה שכבר אפשר להראות בדמו לבין מה שייבדק רק בניסוי בשטח.</p>
+  <section class="card"><h2>מה עובד היום — אפשר לראות בדמו</h2>
+    <ul><li>זיהוי רכבים מווידאו בתוך הדפדפן וספירת תפוס/פנוי.</li><li>לוח מפעיל עם תפוסה לפי שעה ומפת חניות.</li><li>מסלול עובד עם התראת מקום שמתפנה, חותמת זמן וסימון לא עדכני.</li></ul>
+  </section>
+  <section class="card"><h2>מה עוד לא נבדק</h2>
+    <ul><li>חיבור למצלמות של חניון מסוים — ייבדק רק אחרי סיור וזיהוי המערכת הקיימת.</li><li>דיוק בשטח אמיתי — אין נתון מאומת; יימדד בניסוי מול ספירה ידנית.</li><li>עומס, תאורה ומזג אוויר של חניון מסוים לאורך זמן.</li></ul>
+  </section>
+  <section class="card"><h2>שאלות ותשובות למפעיל חניון</h2>
+    <dl>
+      <dt>אמרתם שיש מקום פנוי, ובינתיים תפסו אותו. מה אז?</dt><dd>כל מידע פנוי נושא שעת עדכון. מעל 5 דקות בלי עדכון הוא מסומן לא עדכני, והנהג רואה שייתכן שהמקום כבר נתפס.</dd>
+      <dt>כבר יש לנו מערכת חניה. למה צריך גם את זה?</dt><dd>המערכת הקיימת מנהלת כניסה ותשלום. ParkWiz מוסיף איפה בדיוק יש מקום פנוי, מה העומס באזור, וכמה זמן חיפוש נחסך — בלי להחליף אותה.</dd>
+      <dt>הווידאו נשמר אצלכם?</dt><dd>לא. הווידאו מעובד ליד המצלמה ויוצא רק מידע תפוסה: חניון, מקום, תפוס או פנוי, שעה. ראו <a href="./data-flow.html">דף זרימת המידע</a>.</dd>
+      <dt>איך מפסיקים ומוחקים בסוף?</dt><dd>מנתקים את החיבור למצלמות, מוחקים את נתוני הניסוי, ומאשרים מחיקה בכתב. פירוט ב<a href="./data-flow.html">דף זרימת המידע</a>.</dd>
+      <dt>כמה זה יעלה אחרי הניסוי?</dt><dd>לפי מספר מצלמות, מחשוב, תמיכה ואינטגרציות שיידרשו בפועל — יתומחר אחרי שיודעים את היקף השטח, לא לפני.</dd>
+    </dl>
+  </section>
+  <section class="card"><h2>מדדי הצלחה לניסוי</h2>
+    <ul><li>הסכמה מול ספירה ידנית באותן שעות.</li><li>זמן עדכון משינוי בשטח עד הלוח.</li><li>מספר תקלות ומשך זמן בלי מידע עדכני.</li></ul>
+    <p><a href="../pilot.html">להצעת הניסוי המלאה</a></p>
+  </section>
+  <p><a class="btn" href="./atidim.html">לדמו החניון</a> &nbsp;<a href="../index.html">דף הבית</a></p>
+</div>
+</body>
+</html>
