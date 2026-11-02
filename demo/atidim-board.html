@@ -70,6 +70,7 @@
   .foot{margin-top:20px;text-align:center;font-size:11px;color:var(--muted)}
   a.back{color:var(--brand);text-decoration:none;font-size:13px;font-weight:600}
 </style>
+<script src="../src/lib/freshness.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -92,7 +93,8 @@
     <span id="dataNote"></span>
   </div>
 
-  <div class="ctl">
+  <p id="pwFreshness" role="status" style="font-size:.85rem;margin:8px 0">עודכן עכשיו</p>
+<div class="ctl">
     <label for="hourRange">שעה בדמו</label>
     <span class="hr" id="hourOut" aria-hidden="true">—</span>
     <input id="hourRange" type="range" min="0" max="23" step="1" value="10" dir="ltr"
