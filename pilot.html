@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — הצעת ניסוי קטן לחניון אחד</title>
+<link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="src/ui/tokens.css">
+<script src="src/lib/theme.js"></script>
+<style>
+body{margin:0;font-family:var(--pw-font);background:var(--pw-bg);color:var(--pw-ink);line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 14px 60px}
+.badge{display:inline-block;background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px}
+h1{font-size:1.3rem;margin:8px 0 4px}.lede{color:var(--pw-muted);max-width:68ch}
+.card{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:12px;padding:16px;margin:14px 0}
+a{color:var(--pw-brand)}ul{margin:6px 0;padding-inline-start:20px}
+.btn{display:inline-flex;min-height:40px;align-items:center;padding:8px 16px;border-radius:999px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:800;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">הצעה לדיון — לא התחייבות</span>
+  <h1>ניסוי קטן אחד, לפני כל החלטה גדולה</h1>
+  <p class="lede">מה רואים כאן: הצעה לבדיקת היתכנות באזור אחד, כדי למדוד דיוק אמיתי בשטח — במקום להבטיח מספרים מראש.</p>
+  <section class="card"><h2>היקף הניסוי</h2>
+    <ul><li>אזור חניה אחד שייבחר יחד בסיור.</li><li>מצלמה אחת עד שתיים באותו אזור.</li><li>ארבעה שבועות, ללא עלות רישוי בהיקף שנסכם מראש בכתב.</li></ul>
+  </section>
+  <section class="card"><h2>איך נדע אם זה עובד — מדדי הצלחה</h2>
+    <ul><li>הסכמה מול ספירה ידנית: משווים את ספירת המערכת לספירה ידנית באותן שעות, ומודדים כמה מהמקומות סווגו נכון.</li><li>זמן עדכון: כמה זמן עובר משינוי בשטח עד שהוא מופיע בלוח.</li><li>תקלות: כמה פעמים המידע היה חסר או לא עדכני, ולכמה זמן.</li></ul>
+    <p>אין כאן מספרי דיוק מובטחים — הדיוק יימדד בניסוי ויוצג כפי שנמדד.</p>
+  </section>
+  <section class="card"><h2>מה צריך מכם</h2>
+    <ul><li>סיור אחד בחניון ובחירת אזור יחד.</li><li>איש קשר תפעולי ואיש קשר טכני.</li><li>חיבור מאושר למצלמות באזור המוגדר בלבד, אחרי שמזהים את המערכת הקיימת.</li></ul>
+  </section>
+  <section class="card"><h2>מה לא מבקשים</h2>
+    <ul><li>לא שינוי מחסומים.</li><li>לא גישת נהגים למצלמות.</li><li>לא החלפת מערכת תשלום ולא חיבור אליה בשלב זה.</li></ul>
+  </section>
+  <p><a class="btn" href="./demo/atidim.html">לדמו החניון</a> &nbsp;<a href="./demo/data-flow.html">איך המידע זורם ומה לא נשמר</a> &nbsp;<a href="./index.html">דף הבית</a></p>
+</div>
+</body>
+</html>
