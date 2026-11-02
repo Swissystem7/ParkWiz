@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — מעבדת תקלות</title>
+<link rel="icon" href="../icon.svg">
+<link rel="stylesheet" href="../src/ui/tokens.css">
+<script src="../src/lib/theme.js"></script>
+<style>
+body{margin:0;font-family:var(--pw-font);background:var(--pw-bg);color:var(--pw-ink);line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 14px 60px}
+.badge{display:inline-block;background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px}
+h1{font-size:1.3rem;margin:8px 0 4px}.lede{color:var(--pw-muted);max-width:68ch}
+.card{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:12px;padding:16px;margin:14px 0}
+.btn{display:inline-flex;min-height:40px;align-items:center;padding:8px 16px;border-radius:999px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:800;text-decoration:none;border:0;cursor:pointer;font:inherit}
+.btn2{display:inline-flex;min-height:40px;align-items:center;padding:8px 14px;border-radius:999px;background:var(--pw-chip);color:var(--pw-ink);border:1px solid var(--pw-line);cursor:pointer;font:inherit;margin:4px}
+#spot{font-size:1.1rem;font-weight:800}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">המחשת ממשק — ללא חיבור למערכות האתר</span>
+  <h1>מעבדת תקלות: מה קורה כשמשהו משתבש</h1>
+  <p class="lede">מה רואים כאן: לחיצה על תקלה מדומה מעבירה את כרטיס המקום למצב לא ידוע — לא מנחשים פנוי או תפוס כשאין מידע אמין.</p>
+  <section class="card">
+    <p id="spot" role="status" aria-live="polite">מקום A1: פנוי (הדגמה)</p>
+    <p id="why">המידע עדכני לפי ההדגמה.</p>
+    <button class="btn2" data-fault="מצלמה נותקה">מצלמה נותקה</button>
+    <button class="btn2" data-fault="ראות חסומה">ראות חסומה</button>
+    <button class="btn2" data-fault="מידע לא עדכני">מידע לא עדכני</button>
+    <button class="btn2" id="reset">איפוס להדגמה תקינה</button>
+  </section>
+  <section class="card"><h2>העיקרון</h2><p>בכל תקלה המצב הוא לא ידוע, והמפעיל רואה שצריך לבדוק — המערכת לא מציגה מקום כפנוי על סמך מידע ישן או חסר.</p></section>
+  <p><a class="btn" href="./atidim.html">לדמו החניון</a> &nbsp;<a href="../index.html">דף הבית</a></p>
+</div>
+<script>
+var spot=document.getElementById('spot'),why=document.getElementById('why');
+document.querySelectorAll('[data-fault]').forEach(function(b){b.addEventListener('click',function(){spot.textContent='מקום A1: לא ידוע';why.textContent='סיבה: '+b.getAttribute('data-fault')+'. לא מציגים פנוי/תפוס בלי מידע אמין.';});});
+document.getElementById('reset').addEventListener('click',function(){spot.textContent='מקום A1: פנוי (הדגמה)';why.textContent='המידע עדכני לפי ההדגמה.';});
+</script>
+</body>
+</html>
