@@ -1,0 +1,14 @@
+/* Shared demo chrome for the meeting pages (index + demo/*).
+   One header, one demo badge, one lede line, same buttons and spacing
+   on every page. Colours and fonts come only from src/ui/tokens.css. */
+.pw-demo-badge{display:inline-flex;align-items:center;gap:6px;background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:var(--pw-radius-pill);letter-spacing:.01em}
+.pw-demo-lede{color:var(--pw-muted);font-size:.92rem;line-height:1.55;margin:6px 0 14px;max-width:68ch}
+.pw-demo-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
+.pw-demo-btn{display:inline-flex;align-items:center;min-height:40px;padding:8px 16px;border-radius:var(--pw-radius-pill);border:1px solid var(--pw-line);background:var(--pw-chip);color:var(--pw-ink);font:inherit;font-size:.85rem;font-weight:700;text-decoration:none;cursor:pointer}
+.pw-demo-btn:hover{background:var(--pw-brand-soft)}
+.pw-demo-btn:focus-visible{outline:none;box-shadow:var(--pw-focus)}
+.pw-demo-btn.primary{background:var(--pw-brand);border-color:var(--pw-brand);color:var(--pw-on-brand)}
+img,canvas,video,svg{max-width:100%}
+.grid-commute>*,.kpis>*,.grid2>*{min-width:0}
+@media (max-width:600px){.table-sources{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
