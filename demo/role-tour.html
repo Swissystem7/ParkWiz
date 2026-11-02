@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — סיור לפי תפקיד</title>
+<link rel="icon" href="../icon.svg">
+<link rel="stylesheet" href="../src/ui/tokens.css">
+<script src="../src/lib/theme.js"></script>
+<style>
+body{margin:0;font-family:var(--pw-font);background:var(--pw-bg);color:var(--pw-ink);line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 14px 60px}
+.badge{display:inline-block;background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px}
+h1{font-size:1.3rem;margin:8px 0 4px}.lede{color:var(--pw-muted);max-width:68ch}
+.card{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:12px;padding:16px;margin:14px 0}
+.card.hl{outline:3px solid var(--pw-brand)}
+.btn{display:inline-flex;min-height:40px;align-items:center;padding:8px 16px;border-radius:999px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:800;text-decoration:none}
+.btn2{display:inline-flex;min-height:40px;align-items:center;padding:8px 14px;border-radius:999px;background:var(--pw-chip);color:var(--pw-ink);border:1px solid var(--pw-line);cursor:pointer;font:inherit;margin:4px}
+a{color:var(--pw-brand)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">המחשת ממשק — ללא חיבור למערכות האתר</span>
+  <h1>סיור לפי תפקיד</h1>
+  <p class="lede">מה רואים כאן: בחרו תפקיד והחלקים הרלוונטיים לו מודגשים, כדי לקצר את הפגישה למה שחשוב לכם.</p>
+  <div>
+    <button class="btn2" data-role="manager">מנהל חניון</button>
+    <button class="btn2" data-role="it">IT ופרטיות</button>
+    <button class="btn2" data-role="innovation">חדשנות</button>
+  </div>
+  <section class="card" data-roles="manager"><h2>למנהל חניון</h2><p>לוח תפוסה, תקלות ולא ידוע כשאין מידע. ראו <a href="./atidim-board.html">לוח מפעיל</a> ו<a href="./fault-lab.html">מעבדת תקלות</a>.</p></section>
+  <section class="card" data-roles="it"><h2>ל-IT ופרטיות</h2><p>עיבוד ליד המצלמה, מידע תפוסה בלבד, ביטול גישה ומחיקה. ראו <a href="./data-flow.html">זרימת מידע</a>.</p></section>
+  <section class="card" data-roles="innovation"><h2>לחדשנות</h2><p>ניסוי קטן מדיד באזור אחד. ראו <a href="../pilot.html">הצעת ניסוי</a> ו<a href="./trial-card.html">כרטיס ניסוי</a>.</p></section>
+  <p><a class="btn" href="./atidim.html">לדמו החניון</a></p>
+</div>
+<script>
+document.querySelectorAll('[data-role]').forEach(function(b){b.addEventListener('click',function(){var r=b.getAttribute('data-role');document.querySelectorAll('[data-roles]').forEach(function(c){c.classList.toggle('hl',c.getAttribute('data-roles')===r);});});});
+</script>
+</body>
+</html>
