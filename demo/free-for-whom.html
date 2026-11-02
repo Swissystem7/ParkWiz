@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — פנוי, אבל למי?</title>
+<link rel="icon" href="../icon.svg">
+<link rel="stylesheet" href="../src/ui/tokens.css">
+<script src="../src/lib/theme.js"></script>
+<style>
+body{margin:0;font-family:var(--pw-font);background:var(--pw-bg);color:var(--pw-ink);line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 14px 60px}
+.badge{display:inline-block;background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px}
+h1{font-size:1.3rem;margin:8px 0 4px}.lede{color:var(--pw-muted);max-width:68ch}
+.card{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:12px;padding:16px;margin:14px 0}
+.btn{display:inline-flex;min-height:40px;align-items:center;padding:8px 16px;border-radius:999px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:800;text-decoration:none}
+.btn2{display:inline-flex;min-height:40px;align-items:center;padding:8px 14px;border-radius:999px;background:var(--pw-chip);color:var(--pw-ink);border:1px solid var(--pw-line);cursor:pointer;font:inherit;margin:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.spot{border:1px solid var(--pw-line);border-radius:12px;padding:12px;background:var(--pw-surface-2)}
+.spot[hidden]{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">המחשת ממשק — ללא חיבור למערכות האתר</span>
+  <h1>פנוי — אבל למי?</h1>
+  <p class="lede">מה רואים כאן: מקום פנוי אינו מתאים לכל נהג. בחירת סוג משתמש מסננת את המקומות הרלוונטיים בלבד. הנתונים נשמרים בדפדפן בלבד לצורך ההדגמה.</p>
+  <section class="card">
+    <p>אני:</p>
+    <button class="btn2" data-user="visitor">מבקר</button>
+    <button class="btn2" data-user="reserved">בעל מקום שמור</button>
+    <button class="btn2" data-user="ev">רכב חשמלי לטעינה</button>
+    <button class="btn2" data-user="accessible">נגישות</button>
+    <div class="grid" style="margin-top:12px">
+      <div class="spot" data-kind="visitor reserved">A1 — רגיל</div>
+      <div class="spot" data-kind="reserved">A2 — שמור</div>
+      <div class="spot" data-kind="ev visitor">A3 — טעינה</div>
+      <div class="spot" data-kind="accessible visitor">A4 — נגיש</div>
+    </div>
+    <p id="msg" role="status" aria-live="polite">בחרו סוג משתמש לסינון.</p>
+  </section>
+  <p><a class="btn" href="./atidim.html">לדמו החניון</a> &nbsp;<a href="../index.html">דף הבית</a></p>
+</div>
+<script>
+document.querySelectorAll('[data-user]').forEach(function(b){b.addEventListener('click',function(){var u=b.getAttribute('data-user'),n=0;document.querySelectorAll('.spot').forEach(function(s){var ok=s.getAttribute('data-kind').split(' ').indexOf(u)>-1;s.hidden=!ok;if(ok)n++;});document.getElementById('msg').textContent='מוצגים '+n+' מקומות מתאימים (הדגמה).';});});
+</script>
+</body>
+</html>
