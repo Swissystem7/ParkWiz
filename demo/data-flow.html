@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — איך המידע זורם ומה לא נשמר</title>
+<link rel="icon" href="../icon.svg">
+<link rel="stylesheet" href="../src/ui/tokens.css">
+<script src="../src/lib/theme.js"></script>
+<style>
+body{margin:0;font-family:var(--pw-font);background:var(--pw-bg);color:var(--pw-ink);line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 14px 60px}
+.badge{display:inline-block;background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px}
+h1{font-size:1.3rem;margin:8px 0 4px}.lede{color:var(--pw-muted);max-width:68ch}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;margin:18px 0}
+.step{flex:1 1 180px;background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:12px;padding:14px}
+.step b{display:block;margin-bottom:4px}.arrow{align-self:center;color:var(--pw-brand);font-weight:800}
+.card{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:12px;padding:16px;margin:14px 0}
+a{color:var(--pw-brand)} ul{margin:6px 0;padding-inline-start:20px}
+.btn{display:inline-flex;min-height:40px;align-items:center;padding:8px 16px;border-radius:999px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:800;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">דמו להמחשה — הסבר לפגישה</span>
+  <h1>איך המידע זורם: ממצלמה למידע תפוסה בלבד</h1>
+  <p class="lede">מה רואים כאן: באיזה שלב הווידאו מעובד, איזה מידע בדיוק יוצא ממנו, ומה לא נשמר בשום שלב.</p>
+  <div class="flow" role="img" aria-label="מצלמה, עיבוד מקומי, מידע תפוסה, מפעיל ונהג">
+    <div class="step"><b>1. מצלמה קיימת בחניון</b>צילום של אזור חניה מוגדר שסוכם מראש.</div><span class="arrow" aria-hidden="true">←</span>
+    <div class="step"><b>2. עיבוד ליד המצלמה</b>זיהוי רכב בתוך מקום חניה. הווידאו מעובד שם — לא נשמר כקובץ.</div><span class="arrow" aria-hidden="true">←</span>
+    <div class="step"><b>3. מידע תפוסה בלבד</b>חניון, מקום, תפוס או פנוי, ושעת העדכון. זה כל מה שיוצא הלאה.</div><span class="arrow" aria-hidden="true">←</span>
+    <div class="step"><b>4. מפעיל ונהג</b>המפעיל רואה לוח תפוסה; הנהג רואה אם יש מקום פנוי ומתי עודכן.</div>
+  </div>
+  <section class="card"><h2>מה לא נשמר</h2>
+    <ul><li>לא נשמר וידאו ולא נשמרות תמונות מהמצלמה.</li><li>אין זיהוי פנים ואין קריאת לוחיות רישוי.</li><li>אין מעקב אחרי נהג מסוים ואין זיהוי אישי.</li></ul>
+  </section>
+  <section class="card"><h2>ביטול גישה ומחיקה בסיום</h2>
+    <ul><li>הגישה ניתנת רק לאזור ולמצלמות שסוכמו, ואפשר לבטל אותה בכל רגע מצד המפעיל.</li><li>בסיום הניסוי: מנתקים את החיבור למצלמות, מוחקים את נתוני התפוסה של הניסוי, ומאשרים את המחיקה בכתב.</li><li>בלי החיבור — המערכת לא מקבלת שום מידע חדש מהחניון.</li></ul>
+  </section>
+  <p><a class="btn" href="./atidim.html">לדמו החניון</a> &nbsp;<a href="../index.html">חזרה לדף הבית</a></p>
+</div>
+</body>
+</html>
