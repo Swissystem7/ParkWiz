@@ -8,6 +8,10 @@
 <link rel="stylesheet" href="../src/ui/tokens.css">
 <script src="../src/lib/theme.js"></script>
 <style>
+/* research-04: driver alert card */
+.alert-card{border:1px solid var(--pw-line);border-radius:12px;padding:12px;margin:10px 0}
+.alert-card[data-status="active"]{border:2px solid var(--pw-brand);font-weight:600}
+.alert-card:not([data-status="active"]){border-style:dashed;color:var(--pw-muted)}
 body{margin:0;font-family:var(--pw-font);background:var(--pw-bg);color:var(--pw-ink);line-height:1.55}
 .wrap{max-width:1040px;margin:0 auto;padding:16px 14px 60px}
 .badge{display:inline-block;background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px}
@@ -50,7 +54,10 @@ input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(-
   <section class="card"><h2>מסלול התראה</h2>
     <p id="alertState" role="status" aria-live="polite">שלב: מקום תפוס (הדגמה).</p>
     <button class="btn2" id="stepBtn">התקדמות לשלב הבא</button>
+    <button class="btn2" id="ageBtn">קדימה 2 דקות (הדגמה)</button>
+    <p id="alertCard" class="alert-card" data-status="none">אין התראה — אין מקום פנוי</p>
     <p>התפנות, ואז זמינות, ואז נתפס מחדש — ההתראה מתבטלת. אין שמירת מקום.</p>
+    <p>ההתראה לנהג כוללת רק מקום, מצב וזמן עדכון — בלי תמונה ובלי לוחית. היא פגה אחרי 5 דקות, ונעלמת כשהמפעיל משהה התראות, סוגר אזור או עובר למדידה בלבד.</p>
   </section>
 
   <section class="card"><h2>מסך הפעלה למנהל (הדגמה בלבד)</h2>
@@ -77,12 +84,23 @@ input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(-
 
   <p><a class="btn" href="./atidim.html">לדמו החניון</a> &nbsp;<a href="../index.html">דף הבית</a></p>
 </div>
+<script src="../src/lib/alert-path.js"></script>
 <script>
 var steps=['מקום תפוס (הדגמה).','מקום התפנה — נשלחת התראה (הדגמה).','מקום זמין עם חותמת זמן (הדגמה).','מקום נתפס מחדש — ההתראה מתבטלת, אין שמירת מקום.'],i=0;
 document.getElementById('stepBtn').addEventListener('click',function(){i=(i+1)%steps.length;document.getElementById('alertState').textContent='שלב: '+steps[i];});
 function ops(){var p=[];if(document.getElementById('pauseAlerts').checked)p.push('התראות מושהות');if(document.getElementById('closeZone').checked)p.push('אזור סגור');if(document.getElementById('measureOnly').checked)p.push('מדידה בלבד');document.getElementById('opsMsg').textContent=p.length?p.join(', ')+' (הדגמה).':'מצב רגיל (הדגמה).';}
 ['pauseAlerts','closeZone','measureOnly'].forEach(function(id){document.getElementById(id).addEventListener('change',ops);});
 document.getElementById('compatBtn').addEventListener('click',function(){document.getElementById('compatOut').textContent='מה צריך לברר: זיהוי מערכת המצלמות הקיימת, נקודת חיבור מאושרת, אזור מוגדר, אנשי קשר. אין ציון ואין הבטחת התאמה.';});
+</script>
+<script>
+// research-04: driver alert card — time stamp, expiry, cancel when taken,
+// suppressed by the operator screen (src/lib/alert-path.js).
+(function(){var STAGES=['occupied','freed','available','taken'],age=0,card=document.getElementById('alertCard');
+function render(){var r=PWAlertPath.alertCard({stage:STAGES[i],ageSec:age,ops:{pauseAlerts:document.getElementById('pauseAlerts').checked,closeZone:document.getElementById('closeZone').checked,measureOnly:document.getElementById('measureOnly').checked}});card.textContent=r.textHe;card.setAttribute('data-status',r.status);}
+document.getElementById('stepBtn').addEventListener('click',function(){if(STAGES[i]==='freed')age=0;render();});
+document.getElementById('ageBtn').addEventListener('click',function(){age+=120;render();});
+['pauseAlerts','closeZone','measureOnly'].forEach(function(id){document.getElementById(id).addEventListener('change',render);});
+render();})();
 </script>
 </body>
 </html>
