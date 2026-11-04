@@ -47,10 +47,24 @@ input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(-
     <p id="out" role="status" aria-live="polite">עדיין לא הוזנו נתונים — אין תוצאה להציג.</p>
     <p>המכנה הוא סך המקומות שנספרו ידנית. התוצאה היא נכונים חלקי המכנה. בלי הזנה — בלי מספר.</p>
   </section>
+  <section class="card" aria-labelledby="aTitle">
+    <h2 id="aTitle">התראות "פנוי": נבדקו, נכונות, הוחמצו</h2>
+    <label>התראות "פנוי" שנבדקו מול ספירה ידנית <input id="aChecked" type="number" min="1" inputmode="numeric"></label>
+    <label>מתוכן — המקום באמת היה פנוי <input id="aCorrect" type="number" min="0" inputmode="numeric"></label>
+    <label>מקומות שהתפנו בלי התראה (הוחמצו) <input id="aMissed" type="number" min="0" inputmode="numeric"></label>
+    <button class="btn" id="aCalc">חישוב התראות</button>
+    <p id="aOut" role="status" aria-live="polite">עדיין לא הוזנו נתונים — אין תוצאה להציג.</p>
+    <p>דיוק "פנוי" = נכונות חלקי נבדקו. כיסוי = נכונות חלקי (נכונות + הוחמצו). "הוצג פנוי אך תפוס" מוצג בנפרד. יעד פתיחה מוצע לדיון: דיוק 98% וכיסוי 90% — הצעה, לא התחייבות.</p>
+  </section>
   <p><a class="btn" href="../pilot.html">להצעת הניסוי</a> &nbsp;<a href="../index.html">דף הבית</a></p>
 </div>
 <script>
 document.getElementById('calc').addEventListener('click',function(){var t=Number(document.getElementById('total').value),a=Number(document.getElementById('agree').value),o=document.getElementById('out');if(!t||a<0||a>t){o.textContent='בדקו את ההזנה: הסך חייב להיות גדול מאפס, והנכונים לא מעל הסך.';return;}o.textContent='הסכמה: '+a+' מתוך '+t+' ('+Math.round(a/t*100)+'%). המכנה: '+t+' מקומות שנספרו ידנית.';});
+</script>
+<script src="../src/lib/results-calc.js"></script>
+<script>
+// research-03: alert results (checked / correct / missed) — number only after input.
+document.getElementById('aCalc').addEventListener('click',function(){var v=function(id){return document.getElementById(id).value;},r=PWResultsCalc.alerts({checked:v('aChecked'),correct:v('aCorrect'),missed:v('aMissed')}),o=document.getElementById('aOut');if(!r.ok){o.textContent=r.textHe;return;}var t=PWResultsCalc.TARGETS;o.textContent='דיוק "פנוי": '+r.precision+'% (יעד פתיחה מוצע '+t.precision+'% — '+(r.meetsPrecision?'עומד':'לא עומד')+'). כיסוי: '+(r.recall===null?'אין מכנה':r.recall+'% (יעד פתיחה מוצע '+t.recall+'% — '+(r.meetsRecall?'עומד':'לא עומד')+')')+'. הוצג פנוי אך תפוס: '+r.falseFree+'.';});
 </script>
 </body>
 </html>
