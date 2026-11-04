@@ -13,7 +13,7 @@
 <meta property="og:title" content="ParkWiz — הדגמת חניית רחוב בנתניה">
 <meta property="og:description" content="מפת סיכויי חניה להדגמה: בסיס מקומי לפי רחוב, דיווחי «אני עוזב» בדפדפן, וערכת פיילוט תפוסה לעירייה. אין סליקה ואין הזנה עירונית חיה.">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#22c55e">
+<meta name="theme-color" content="#0e5a5e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -32,9 +32,9 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--pw-font);background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 :focus-visible{outline:2px solid var(--green);outline-offset:2px}
-.skip-link{position:absolute;top:-40px;right:8px;z-index:400;background:var(--green);color:#0a0f0a;padding:8px 12px;border-radius:8px;font-weight:700}
+.skip-link{position:absolute;top:-40px;right:8px;z-index:400;background:var(--green);color:var(--pw-on-brand);padding:8px 12px;border-radius:8px;font-weight:700}
 .skip-link:focus{top:8px}
-.eval-banner{background:#0e7490;color:#ecfeff;padding:8px 12px;font-size:0.78rem;font-weight:600;text-align:center;z-index:31;flex-shrink:0;line-height:1.45}
+.eval-banner{background:#14211f;color:#eef3f2;padding:8px 12px;font-size:0.78rem;font-weight:600;text-align:center;z-index:31;flex-shrink:0;line-height:1.45}
 .eval-banner a{color:#fff;text-decoration:underline}
 /* Buyer view by default: the driver demo (Premium, XP, sign-up, rentals) is opt-in */
 body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
@@ -59,7 +59,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 .ac-item:hover,.ac-item:focus-visible{background:rgba(34,197,94,.1);color:var(--green)}
 .ac-item:focus-visible{outline:2px solid var(--green);outline-offset:-2px}
 .btn{padding:7px 14px;border-radius:20px;border:none;cursor:pointer;font-size:0.8rem;font-weight:600;font-family:inherit;transition:all.2s;white-space:nowrap}
-.btn-primary{background:var(--green);color:#0a0f0a}
+.btn-primary{background:var(--green);color:var(--pw-on-brand)}
 .btn-ghost{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--border)}
 .heatmap-btn{background:rgba(168,85,247,.15);color:var(--purple);border:1px solid rgba(168,85,247,.3);border-radius:20px;padding:7px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;border-style:solid;transition:all.2s;white-space:nowrap}
 .heatmap-btn.active{background:var(--purple);color:#fff}
@@ -383,15 +383,19 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 <link rel="stylesheet" href="src/ui/driver.css">
 
 <style>
-/* ParkWiz Hebrew Landing Page Overlay (#Atidim-CityZone) */
+/* ParkWiz Hebrew Landing Page Overlay (#Atidim-CityZone).
+   Look: Claude Design system (project 4db02f73): teal hero card, white
+   20px cards on the grey-green surface, 52px buttons (radius 14). */
 .atidim-hero {
   position: fixed;
   inset: 0;
   z-index: 99999;
   background: var(--pw-bg);
+  color: var(--pw-ink);
+  font-family: var(--pw-font);
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 24px 16px 48px;
+  padding: 32px 20px 48px;
   direction: rtl;
   text-align: right;
   box-sizing: border-box;
@@ -400,129 +404,215 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
   display: none !important;
 }
 .atidim-hero-wrap {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   box-sizing: border-box;
 }
+/* design "hero card": teal fill, white title, soft-teal lead */
 .atidim-hero-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--pw-line);
-  padding-bottom: 14px;
+  gap: 16px;
+  background: var(--pw-hero-bg);
+  color: var(--pw-hero-ink);
+  border-radius: var(--pw-radius-hero);
+  padding: 28px;
+  box-shadow: var(--pw-shadow-2);
 }
+.atidim-hero-top > div { flex: 1 1 420px; min-width: 0; }
 .atidim-hero-badge {
-  display: inline-block;
-  background: var(--pw-brand-soft);
-  border: 1px solid var(--pw-brand);
-  color: var(--pw-brand);
-  font-size: 0.78rem;
-  font-weight: 800;
-  padding: 3px 10px;
-  border-radius: var(--pw-radius-pill);
-  margin-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border: 1px dashed var(--pw-hero-muted);
+  color: var(--pw-hero-muted);
+  font-size: var(--pw-fs-caption);
+  font-weight: 600;
+  padding: 0 8px;
+  border-radius: 6px;
+  margin-bottom: 12px;
 }
 .atidim-hero h1 {
-  font-size: 1.45rem;
-  font-weight: 900;
-  color: var(--pw-ink);
-  line-height: 1.3;
-  margin: 0 0 8px;
+  font-size: var(--pw-fs-h1);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--pw-hero-ink);
+  line-height: 1.25;
+  margin: 0 0 10px;
+  text-wrap: balance;
 }
 .atidim-hero-lead {
-  font-size: 0.95rem;
-  color: var(--pw-muted);
-  line-height: 1.5;
+  font-size: var(--pw-fs-body);
+  color: var(--pw-hero-muted);
+  line-height: 1.6;
   margin: 0;
+  max-width: 64ch;
+  text-wrap: pretty;
 }
 .atidim-audiences {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
-  margin: 20px 0 24px;
+  gap: 16px;
+  margin: 0;
 }
 .atidim-aud-card {
   background: var(--pw-surface);
   border: 1px solid var(--pw-line);
-  border-radius: var(--pw-radius-md);
-  padding: 14px 16px;
-  box-shadow: inset 0 3px 0 var(--pw-brand);
+  border-radius: var(--pw-radius-card);
+  padding: 20px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .atidim-aud-card h2 {
-  font-size: 1.02rem;
-  font-weight: 800;
+  font-size: var(--pw-fs-h2);
+  font-weight: 600;
   color: var(--pw-ink);
-  margin: 0 0 8px;
+  line-height: 1.3;
+  margin: 0;
 }
 .atidim-aud-card p {
-  font-size: 0.84rem;
+  font-size: var(--pw-fs-small);
   color: var(--pw-muted);
-  line-height: 1.5;
+  line-height: 1.6;
   margin: 0;
 }
 .atidim-hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  background: var(--pw-surface);
+  border: 1px solid var(--pw-line);
+  border-radius: var(--pw-radius-card);
+  padding: 20px;
+  margin: 0;
 }
+/* design secondary button: white, teal 1.5px border, 52px, radius 14 */
 .atidim-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 18px;
-  border-radius: var(--pw-radius-pill);
-  font-size: 0.88rem;
-  font-weight: 700;
+  gap: 8px;
+  min-height: var(--pw-control-lg);
+  padding: 8px 20px;
+  border-radius: var(--pw-radius-btn);
+  font-family: inherit;
+  font-size: 0.94rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
   text-decoration: none;
   cursor: pointer;
-  border: 1px solid var(--pw-line);
-  background: var(--pw-surface-2);
-  color: var(--pw-ink);
-  box-sizing: border-box;
-  transition: transform var(--pw-dur), background var(--pw-dur);
-}
-.atidim-btn:hover {
+  border: 1.5px solid var(--pw-brand);
   background: var(--pw-surface);
   color: var(--pw-brand);
+  box-sizing: border-box;
+  transition: transform var(--pw-dur), background var(--pw-dur), color var(--pw-dur);
 }
+.atidim-btn:hover {
+  background: var(--pw-brand-soft);
+  color: var(--pw-brand);
+}
+.atidim-btn:focus-visible,
+.atidim-btn-dismiss:focus-visible { outline: none; box-shadow: var(--pw-focus); }
+/* design primary button: teal fill, white text; spans the row */
 .atidim-btn.primary {
+  grid-column: 1 / -1;
   background: var(--pw-brand);
   color: var(--pw-on-brand);
   border-color: var(--pw-brand);
-  font-size: 0.95rem;
-  padding: 12px 22px;
+  font-size: var(--pw-fs-body);
 }
 .atidim-btn.primary:hover {
-  filter: brightness(1.1);
+  background: var(--pw-brand-hover);
+  border-color: var(--pw-brand-hover);
   color: var(--pw-on-brand);
 }
+/* on the teal hero card: white outline button, 44px */
 .atidim-btn-dismiss {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--pw-control);
   background: transparent;
-  border: 1px solid var(--pw-line);
-  color: var(--pw-muted);
-  border-radius: var(--pw-radius-pill);
-  padding: 6px 14px;
-  font-size: 0.8rem;
+  border: 1.5px solid var(--pw-hero-muted);
+  color: var(--pw-hero-ink);
+  border-radius: var(--pw-radius-md);
+  padding: 0 16px;
+  font-family: inherit;
+  font-size: 0.94rem;
   font-weight: 600;
   cursor: pointer;
 }
 .atidim-btn-dismiss:hover {
-  color: var(--pw-ink);
-  border-color: var(--pw-ink);
+  background: rgba(255, 255, 255, .12);
+  color: var(--pw-hero-ink);
 }
 @media (max-width: 600px) {
-  .atidim-hero { padding: 16px 12px 36px; }
-  .atidim-hero h1 { font-size: 1.15rem; }
-  .atidim-hero-lead { font-size: 0.84rem; }
-  .atidim-audiences { grid-template-columns: 1fr; margin: 14px 0 16px; }
-  .atidim-btn { width: 100%; text-align: center; font-size: 0.84rem; padding: 9px 14px; }
+  .atidim-hero { padding: 16px 16px 36px; }
+  .atidim-hero-top { padding: 20px; border-radius: var(--pw-radius-card); }
+  .atidim-hero h1 { font-size: 1.375rem; }
+  .atidim-hero-lead { font-size: 0.94rem; }
+  .atidim-audiences { grid-template-columns: 1fr; gap: 12px; }
+  .atidim-aud-card { padding: 16px 18px; }
+  .atidim-aud-card h2 { font-size: 1.06rem; }
+  .atidim-hero-actions { grid-template-columns: 1fr; padding: 16px; }
+  .atidim-btn { width: 100%; }
+}
+
+/* "ParkWiz לפגישה" section (main page, above the map) */
+.pw-meet {
+  background: var(--pw-surface);
+  border-bottom: 1px solid var(--pw-line);
+  padding: 24px 16px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.pw-meet .pw-demo-badge { color: var(--pw-attn); background: var(--pw-attn-soft); border-color: var(--pw-attn); }
+.pw-meet h1 {
+  font-size: var(--pw-fs-h1);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 auto;
+  max-width: 24ch;
+  line-height: 1.25;
+  color: var(--pw-ink);
+  text-wrap: balance;
+}
+.pw-meet-lead { color: var(--pw-muted); max-width: 62ch; margin: 0 auto 4px; line-height: 1.6; font-size: var(--pw-fs-body); }
+.pw-meet-links { margin: 2px 0 0; font-size: var(--pw-fs-small); color: var(--pw-muted); line-height: 2; }
+.pw-meet-links a { color: var(--pw-brand); font-weight: 500; }
+.pw-meet-links a:first-child { font-weight: 700; }
+@media (max-width: 600px) {
+  .pw-meet { padding: 18px 16px 16px; }
+  .pw-meet h1 { font-size: 1.375rem; }
+  .pw-meet-lead { font-size: 0.94rem; }
+  .pw-meet .pw-btn { width: 100%; }
+}
+
+/* evaluation banner: ink strip (design offline / system banner) */
+.eval-banner a.eb-strong { color: #a8ded9; font-weight: 700; }
+.eval-banner a.eb-demo { color: #f3d58c; font-weight: 700; }
+.eval-banner .eb-hero-btn {
+  background: var(--pw-hero-bg);
+  border: 1px solid #a8ded9;
+  color: #fff;
+  border-radius: 8px;
+  padding: 2px 8px;
+  font: inherit;
+  font-size: .74rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-inline-end: 6px;
 }
 </style>
 </head>
@@ -591,23 +681,23 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
   </div>
 </section>
 
-<section aria-label="ParkWiz לפגישה" style="background:var(--pw-surface);border-bottom:1px solid var(--pw-line);padding:22px 16px;text-align:center">
-  <span class="pw-demo-badge" style="background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px">דמו להמחשה לקראת ניסוי</span>
-  <h1 style="font-size:1.55rem;margin:10px auto 6px;max-width:22ch;line-height:1.25">ParkWiz מראה למפעיל ולנהג איפה יש מקום פנוי בחניון — מתוך מצלמות קיימות</h1>
-  <p style="color:var(--pw-muted);max-width:62ch;margin:0 auto 14px;line-height:1.55">למפעילי חניונים ולעובדים שמגיעים ברכב: מידע תפוסה בלבד (חניון, מקום, תפוס או פנוי, שעה) — בלי לשמור וידאו, פנים או לוחיות רישוי.</p>
-  <a href="./demo/atidim.html" style="display:inline-flex;align-items:center;min-height:44px;padding:10px 22px;border-radius:999px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:800;text-decoration:none">לדמו חניון עתידים</a>
-  <p style="margin:12px 0 0;font-size:.85rem"><a href="./live-assign.html" style="color:var(--pw-brand);font-weight:700">🎯 שיוך חניה חי</a> · <a href="./demo/atidim-board.html">לוח מפעיל</a> · <a href="./demo/commute.html">מסלול עובד</a> · <a href="./demo/camera.html">זיהוי ממצלמה</a></p>
+<section aria-label="ParkWiz לפגישה" class="pw-meet">
+  <span class="pw-demo-badge pw-tag-demo">דמו להמחשה לקראת ניסוי</span>
+  <h1>ParkWiz מראה למפעיל ולנהג איפה יש מקום פנוי בחניון — מתוך מצלמות קיימות</h1>
+  <p class="pw-meet-lead">למפעילי חניונים ולעובדים שמגיעים ברכב: מידע תפוסה בלבד (חניון, מקום, תפוס או פנוי, שעה) — בלי לשמור וידאו, פנים או לוחיות רישוי.</p>
+  <a href="./demo/atidim.html" class="pw-btn pw-btn-primary">לדמו חניון עתידים</a>
+  <p class="pw-meet-links"><a href="./live-assign.html">🎯 שיוך חניה חי</a> · <a href="./demo/atidim-board.html">לוח מפעיל</a> · <a href="./demo/commute.html">מסלול עובד</a> · <a href="./demo/camera.html">זיהוי ממצלמה</a></p>
 </section>
 <div class="eval-banner" role="note">
-  <button type="button" id="btnOpenHero" style="background:#0e7490;border:1px solid #67e8f9;color:#fff;border-radius:8px;padding:2px 8px;font:inherit;font-size:.74rem;font-weight:700;cursor:pointer;margin-inline-end:6px">🏢 דף פתיחה לעתידים / CityZone</button>
+  <button type="button" id="btnOpenHero" class="eb-hero-btn">🏢 דף פתיחה לעתידים / CityZone</button>
   <button type="button" id="pwConsumerToggle" aria-pressed="false">הצג גם את דמו הנהגים (Premium, XP, הרשמה)</button>
-  <a href="./live-assign.html" style="color:#67e8f9;font-weight:700">🎯 דמו שיוך חניה חי (Live Assign)</a>
+  <a href="./live-assign.html" class="eb-strong">🎯 דמו שיוך חניה חי (Live Assign)</a>
   ·
-  <a href="./demo/live-lot.html" style="color:#67e8f9;font-weight:700">👥 דמו רב-משתמשים בזמן אמת (Live Lot)</a>
+  <a href="./demo/live-lot.html" class="eb-strong">👥 דמו רב-משתמשים בזמן אמת (Live Lot)</a>
   ·
-  <a href="./demo/atidim.html" style="color:#fde047;font-weight:700">🏢 דמו מפעיל חניון (פארק עתידים / CityZone)</a>
+  <a href="./demo/atidim.html" class="eb-demo">🏢 דמו מפעיל חניון (פארק עתידים / CityZone)</a>
   ·
-  <a href="./demo/camera.html" style="color:#fde047;font-weight:700">📷 זיהוי תפוסה ממצלמה/וידאו בדפדפן</a>
+  <a href="./demo/camera.html" class="eb-demo">📷 זיהוי תפוסה ממצלמה/וידאו בדפדפן</a>
   ·
   המפה למטה היא הדגמת ממשק (נתוני <b>הדגמה</b>). הפיילוט המדיד לעירייה:
   <a href="./offer.html">הצעה / הזמן פיילוט</a>

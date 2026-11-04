@@ -1,44 +1,94 @@
-/* ParkWiz design system (#339): one set of tokens for every surface.
-   Pages map their legacy variables onto these, so a colour, radius or font
-   changes in one place. Dark is the default; src/lib/theme.js sets
-   data-theme="light" from the visitor's choice or their OS preference.
-   Fonts are local-first (Heebo / Rubik when installed, then the OS UI font):
-   the pages must work offline in a car park, so no web-font CDN. */
+/* ParkWiz design system (#339), restyled to the Claude Design system
+   (project 4db02f73 "ParkWiz design system review", export #417):
+   teal + ink on a calm grey-green surface, white cards, 52px buttons,
+   dashed "demo / proposal" tags, status chips (free / taken / attention).
+   One set of tokens for every surface. Pages map their legacy variables onto
+   these, so a colour, radius or font changes in one place. src/lib/theme.js
+   sets data-theme="light" from the visitor's choice or their OS preference;
+   the light theme is the design's own palette, the dark theme is the same
+   family (ink + teal) for night use.
+   Fonts are local-first (IBM Plex Sans Hebrew as in the design, then Heebo /
+   Rubik when installed, then the OS UI font): the pages must work offline in
+   a car park, so no web-font CDN. */
 :root{
-  --pw-font:'Heebo','Rubik',system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans Hebrew',Arial,sans-serif;
-  --pw-font-num:'Rubik','Heebo',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  --pw-font:'IBM Plex Sans Hebrew','Heebo','Rubik',system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans Hebrew',Arial,sans-serif;
+  --pw-font-num:'IBM Plex Sans Hebrew','Rubik','Heebo',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
 
-  --pw-space-1:4px; --pw-space-2:8px; --pw-space-3:12px; --pw-space-4:16px; --pw-space-5:20px; --pw-space-6:28px;
+  --pw-space-1:4px; --pw-space-2:8px; --pw-space-3:12px; --pw-space-4:16px; --pw-space-5:20px; --pw-space-6:28px; --pw-space-7:32px;
   --pw-radius-sm:8px; --pw-radius-md:12px; --pw-radius-lg:16px; --pw-radius-xl:22px; --pw-radius-pill:999px;
+  /* design radii: button 14, card 20, hero card 24 */
+  --pw-radius-btn:14px; --pw-radius-card:20px; --pw-radius-hero:24px;
+  /* design controls: primary / secondary 52px; ghost and minimum tap target 44px */
+  --pw-control-lg:52px; --pw-control:44px;
+  /* design type scale: Display 56/700, H1 28/700, H2 20/600, Body 16/400, Small 14/500, Caption 12/500 */
+  --pw-fs-display:3.5rem; --pw-fs-h1:1.75rem; --pw-fs-h2:1.25rem; --pw-fs-body:1rem; --pw-fs-small:.875rem; --pw-fs-caption:.75rem;
   --pw-ease:cubic-bezier(.2,.8,.2,1); --pw-dur:.2s; --pw-dur-slow:.35s;
 
-  /* dark (default) — every text/background pair below is >= 4.5:1 */
-  --pw-bg:#0b1210; --pw-surface:#111b17; --pw-surface-2:#16231e; --pw-chip:rgba(255,255,255,.06);
-  --pw-overlay:rgba(11,18,16,.9); --pw-scrim:rgba(0,0,0,.6);
-  --pw-ink:#e8f3ee; --pw-muted:#9fb8ad; --pw-line:rgba(255,255,255,.09); --pw-track:rgba(255,255,255,.09);
-  --pw-brand:#22c55e; --pw-on-brand:#05240f; --pw-brand-soft:rgba(34,197,94,.14);
-  --pw-warn:#eab308; --pw-danger:#f87171; --pw-info:#60a5fa; --pw-accent:#c084fc;
+  /* dark: design family (ink + teal); every text/background pair is >= 4.5:1 */
+  --pw-bg:#0f1a19; --pw-surface:#14211f; --pw-surface-2:#1b2c2a; --pw-chip:rgba(255,255,255,.06);
+  --pw-overlay:rgba(15,26,25,.92); --pw-scrim:rgba(0,0,0,.6);
+  --pw-ink:#eef3f2; --pw-muted:#a9b8b5; --pw-line:rgba(255,255,255,.1); --pw-track:rgba(255,255,255,.09);
+  --pw-brand:#5cc2bc; --pw-on-brand:#06302f; --pw-brand-soft:rgba(92,194,188,.14); --pw-brand-hover:#7fd3ce;
+  --pw-warn:#e5b45a; --pw-danger:#f87171; --pw-info:#60a5fa; --pw-accent:#c084fc;
+  /* status (design: free = green dashed, taken = grey, attention = amber) */
+  --pw-free:#6fd39d; --pw-free-soft:rgba(111,211,157,.14);
+  --pw-taken:#b4c0bd; --pw-taken-soft:rgba(255,255,255,.08);
+  --pw-attn:#e5b45a; --pw-attn-soft:rgba(229,180,90,.14);
+  --pw-hero-bg:#0e5a5e; --pw-hero-ink:#ffffff; --pw-hero-muted:#d5e8e6;
   --pw-shadow-1:0 1px 2px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.25);
   --pw-shadow-2:0 10px 30px rgba(0,0,0,.45);
-  --pw-focus:0 0 0 3px rgba(34,197,94,.55);
+  --pw-focus:0 0 0 3px rgba(92,194,188,.55);
   --pw-skel-a:rgba(255,255,255,.05); --pw-skel-b:rgba(255,255,255,.12);
   color-scheme:dark;
 }
 [data-theme="light"]{
-  --pw-bg:#f3f6f4; --pw-surface:#ffffff; --pw-surface-2:#eef3f0; --pw-chip:rgba(15,31,23,.05);
-  --pw-overlay:rgba(255,255,255,.94); --pw-scrim:rgba(15,31,23,.45);
-  --pw-ink:#10201a; --pw-muted:#4a5e55; --pw-line:rgba(15,31,23,.12); --pw-track:rgba(15,31,23,.1);
-  --pw-brand:#147a3a; --pw-on-brand:#ffffff; --pw-brand-soft:rgba(21,128,61,.1);
-  --pw-warn:#965a06; --pw-danger:#b91c1c; --pw-info:#1d4ed8; --pw-accent:#7e22ce;
-  --pw-shadow-1:0 1px 2px rgba(16,32,26,.06),0 2px 10px rgba(16,32,26,.07);
-  --pw-shadow-2:0 14px 34px rgba(16,32,26,.16);
-  --pw-focus:0 0 0 3px rgba(21,128,61,.4);
-  --pw-skel-a:rgba(15,31,23,.05); --pw-skel-b:rgba(15,31,23,.11);
+  --pw-bg:#f3f5f4; --pw-surface:#ffffff; --pw-surface-2:#e9eceb; --pw-chip:#f3f5f4;
+  --pw-overlay:rgba(255,255,255,.96); --pw-scrim:rgba(20,33,31,.45);
+  --pw-ink:#14211f; --pw-muted:#4a5654; --pw-line:#dde3e1; --pw-track:#e7eae9;
+  --pw-brand:#0e5a5e; --pw-on-brand:#ffffff; --pw-brand-soft:#e3efee; --pw-brand-hover:#0a4245;
+  --pw-warn:#8a5a00; --pw-danger:#b42318; --pw-info:#1d4ed8; --pw-accent:#7e22ce;
+  --pw-free:#1b6e45; --pw-free-soft:#e2f1e8;
+  --pw-taken:#5b6664; --pw-taken-soft:#e7eae9;
+  --pw-attn:#8a5a00; --pw-attn-soft:#fbf0d9;
+  --pw-hero-bg:#0e5a5e; --pw-hero-ink:#ffffff; --pw-hero-muted:#d5e8e6;
+  --pw-shadow-1:0 1px 2px rgba(20,33,31,.08),0 2px 10px rgba(20,33,31,.06);
+  --pw-shadow-2:0 1px 2px rgba(20,33,31,.08),0 12px 40px rgba(20,33,31,.10);
+  --pw-focus:0 0 0 3px #ffffff,0 0 0 5px #0e5a5e;
+  --pw-skel-a:rgba(20,33,31,.05); --pw-skel-b:rgba(20,33,31,.11);
   color-scheme:light;
 }
 
+/* ── base components (design system "רכיבים") ──
+   Opt-in classes; existing page classes map onto the same values. */
+.pw-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--pw-control-lg);padding:0 24px;border-radius:var(--pw-radius-btn);border:1.5px solid transparent;font:600 var(--pw-fs-body)/1.2 var(--pw-font);text-decoration:none;cursor:pointer;transition:background var(--pw-dur) var(--pw-ease),color var(--pw-dur),border-color var(--pw-dur),transform var(--pw-dur)}
+.pw-btn:focus-visible{outline:none;box-shadow:var(--pw-focus)}
+.pw-btn:active{transform:scale(.98)}
+.pw-btn-primary{background:var(--pw-brand);color:var(--pw-on-brand)}
+.pw-btn-primary:hover{background:var(--pw-brand-hover);color:var(--pw-on-brand)}
+.pw-btn-secondary{background:var(--pw-surface);color:var(--pw-brand);border-color:var(--pw-brand)}
+.pw-btn-secondary:hover{background:var(--pw-brand-soft)}
+.pw-btn-ghost{min-height:var(--pw-control);padding:0 16px;border-radius:var(--pw-radius-md);background:transparent;color:var(--pw-brand);font-size:.94rem}
+.pw-btn-ghost:hover{background:var(--pw-brand-soft)}
+.pw-card{background:var(--pw-surface);border-radius:var(--pw-radius-card);padding:var(--pw-space-5)}
+.pw-card-hero{background:var(--pw-hero-bg);color:var(--pw-hero-ink);border-radius:var(--pw-radius-hero);padding:var(--pw-space-5)}
+.pw-chip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 12px;border-radius:15px;font-size:.81rem;font-weight:600;background:var(--pw-brand-soft);color:var(--pw-brand)}
+.pw-chip-free{background:var(--pw-free-soft);color:var(--pw-free)}
+.pw-chip-free::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.pw-chip-taken{background:var(--pw-taken-soft);color:var(--pw-taken)}
+.pw-chip-attn{background:var(--pw-attn-soft);color:var(--pw-attn)}
+/* dashed "demo / proposal" tag: anything not yet real is marked, never hidden */
+.pw-tag-demo{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:6px;border:1px dashed currentColor;color:var(--pw-muted);font-size:.75rem;font-weight:600;flex-shrink:0;white-space:nowrap}
+/* offline banner: ink fill, white text */
+.pw-offline{display:flex;align-items:center;gap:10px;min-height:var(--pw-control);padding:8px 12px;border-radius:var(--pw-radius-md);background:#14211f;color:#fff;font-size:.875rem;font-weight:500}
+/* bay tiles: free = green dashed, taken = grey, mine = teal fill with a ring */
+.pw-bay{display:inline-flex;align-items:center;justify-content:center;width:48px;height:56px;border-radius:10px;font-size:.81rem;font-weight:600}
+.pw-bay-free{background:var(--pw-free-soft);color:var(--pw-free);border:1.5px dashed var(--pw-free)}
+.pw-bay-taken{background:var(--pw-taken-soft);color:var(--pw-taken)}
+.pw-bay-mine{background:var(--pw-brand);color:var(--pw-on-brand);font-weight:700;box-shadow:0 0 0 3px var(--pw-surface),0 0 0 5px var(--pw-brand)}
+.pw-num{font-family:var(--pw-font-num);font-variant-numeric:tabular-nums}
+
 /* theme toggle (rendered by any page that has a [data-theme-toggle] button) */
-.pw-theme-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:36px;min-height:36px;padding:0 10px;border-radius:var(--pw-radius-pill);border:1px solid var(--pw-line);background:var(--pw-chip);color:var(--pw-ink);font:inherit;font-size:1rem;cursor:pointer;transition:background var(--pw-dur) var(--pw-ease),transform var(--pw-dur) var(--pw-ease)}
+.pw-theme-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 10px;border-radius:var(--pw-radius-md);border:1px solid var(--pw-line);background:var(--pw-chip);color:var(--pw-ink);font:inherit;font-size:1rem;cursor:pointer;transition:background var(--pw-dur) var(--pw-ease),transform var(--pw-dur) var(--pw-ease)}
 .pw-theme-toggle:hover{background:var(--pw-brand-soft)}
 .pw-theme-toggle:active{transform:scale(.94)}
 .pw-theme-toggle:focus-visible{outline:none;box-shadow:var(--pw-focus)}
