@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{{const n=new URLSearchParams(location.search).get("theme");if(n==="light"||n==="dark"){document.documentElement.dataset.theme=n}}{if(new URLSearchParams(location.search).get("_omthumb")==="1"){const n=(f)=>{const g=f.focus;if(!g)return;f.focus=function(h){g.call(this,{...h,preventScroll:true})}};n(HTMLElement.prototype);n(SVGElement.prototype);if(typeof MathMLElement!=="undefined"){n(MathMLElement.prototype)}const d=(f)=>{f.removeAttribute("autofocus");f.inert=true;if(!(f instanceof HTMLElement))f.removeAttribute("tabindex")};const p=(f)=>{if(f.hasAttribute("autofocus"))d(f);for(const g of f.querySelectorAll("[autofocus]")){d(g)}};p(document.documentElement);new MutationObserver((f)=>{for(const g of f){for(const h of g.addedNodes){if(h.nodeType===1)p(h)}}}).observe(document,{childList:true,subtree:true})}}{const n=()=>{try{if(document.querySelector('meta[name="color-scheme"]'))return;const d=getComputedStyle(document.documentElement).getPropertyValue("color-scheme").trim();if(d&&d!=="normal")return;const p=(y)=>{if(!y)return null;const m=getComputedStyle(y).backgroundColor.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+%?))?\s*\)$/);if(!m)return null;const w=m[4]==null?1:parseFloat(m[4])/(m[4].endsWith("%")?100:1);if(w<0.99)return null;return[+m[1],+m[2],+m[3]]};const f=p(document.body)||p(document.documentElement);if(!f)return;const g=(y)=>{const m=y/255;return m<=0.04045?m/12.92:((m+0.055)/1.055)**2.4};const h=0.2126*g(f[0])+0.7152*g(f[1])+0.0722*g(f[2]);document.documentElement.style.setProperty("color-scheme",h<0.4?"dark":"light")}catch{}};if(document.readyState==="complete")n();else window.addEventListener("load",n)}var I=[];var B=false;var K=false;var C=()=>{};if(K===true){try{const n=setTimeout.bind(window);const d=1e4;const p=15;const f=1e4;const g=120000;const h=200;const y=(o)=>{try{let r;if(typeof o==="string")r=o;else if(o instanceof URL)r=o.href;else if(typeof Request!=="undefined"&&o instanceof Request)r=o.url;else return null;if(!r)return null;const l=document.baseURI;const i=new URL(r,l);if(i.protocol!=="http:"&&i.protocol!=="https:")return null;if(i.origin!==new URL(l).origin)return null;return i.origin+i.pathname}catch{return null}};const m=new Map;const w=(o)=>{let r=m.get(o);if(!r){if(m.size>=h){const l=m.keys().next().value;if(l!==undefined)m.delete(l)}r={fails:[],until:0,cooldown:f,hard:false};m.set(o,r)}return r};const R=(o)=>{const r=m.get(o);return r!==undefined&&r.until>Date.now()};const O=(o,r)=>{const l=Date.now();const i=w(o);if(r)i.hard=true;if(i.until>l)return;i.fails.push(l);while(i.fails.length>0&&i.fails[0]<=l-d)i.fails.shift();if(i.fails.length>=p){i.until=l+i.cooldown;if(i.hard)i.cooldown=Math.min(i.cooldown*2,g);i.fails.length=0;try{n(()=>{try{S(true)}catch{}},i.until-l+100)}catch{}console.warn("[omelette] asset circuit breaker: pausing requests to "+o+" for "+Math.round((i.until-l)/1000)+"s after "+p+" failures in "+d/1000+"s")}};const e=(o)=>{m.delete(o)};const t=100;const a=new WeakMap;const u=new Set;let s=null;const S=(o)=>{for(const r of Array.from(u)){try{const l=a.get(r);if(l===undefined){u.delete(r);continue}if(o){const i=y(l);if(i!==null&&R(i))continue}a.delete(r);u.delete(r);if(s!==null)s.call(r,l)}catch{}}};C=()=>{try{m.clear();S(false)}catch{}};document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")C()});const _=window.fetch;if(typeof _==="function"){const o=function(...r){let l=null;try{l=y(r[0])}catch{}if(l!==null&&R(l)){let c;try{if(r[1]&&r[1].signal!==undefined){c=r[1].signal||undefined}else if(typeof Request!=="undefined"&&r[0]instanceof Request){c=r[0].signal||undefined}}catch{c=undefined}return new Promise((k,b)=>{const E=()=>{try{return c.reason!==undefined?c.reason:new DOMException("The operation was aborted.","AbortError")}catch{return new DOMException("The operation was aborted.","AbortError")}};try{if(c&&c.aborted){b(E());return}}catch{}let T=false;const j=()=>{if(T)return;T=true;b(E())};try{if(c)c.addEventListener("abort",j,{once:true})}catch{}n(()=>{if(T)return;T=true;try{if(c)c.removeEventListener("abort",j)}catch{}let L;try{L=new Response(null,{status:429,statusText:"Too Many Requests",headers:{"Retry-After":"10"}})}catch{L={ok:false,status:429}}k(L)},250)})}const i=_.apply(window,r);if(l!==null){const c=l;i.then((k)=>{try{if(k.ok)e(c);else if(k.status===401||k.status===403||k.status===404||k.status===429){O(c,k.status!==404)}}catch{}},()=>{})}return i};window.fetch=o}const v=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,"src");if(v!==undefined&&v.set!==undefined&&v.get!==undefined){const o=v.set;s=o;Object.defineProperty(HTMLImageElement.prototype,"src",{configurable:true,enumerable:v.enumerable,get:v.get,set(r){const l=`${r}`;try{const i=y(l);if(i!==null&&R(i)){a.set(this,l);if(u.size<t)u.add(this);return}}catch{}try{a.delete(this);u.delete(this)}catch{}o.call(this,l)}})}try{const o=HTMLImageElement.prototype.setAttribute;HTMLImageElement.prototype.setAttribute=function(r,l){if(arguments.length<2){o.apply(this,arguments);return}if(typeof r==="string"&&r.toLowerCase()==="src"){const i=`${l}`;try{const c=y(i);if(c!==null&&R(c)){a.set(this,i);if(u.size<t)u.add(this);return}a.delete(this);u.delete(this)}catch{}o.call(this,r,i);return}o.call(this,r,l)}}catch{}window.addEventListener("error",(o)=>{try{const r=o.target;if(r instanceof HTMLImageElement){const l=y(r.currentSrc||r.src||"");if(l!==null)O(l,true)}}catch{}},true);window.addEventListener("load",(o)=>{try{const r=o.target;if(r instanceof HTMLImageElement){const l=y(r.currentSrc||r.src||"");if(l!==null)e(l);const i=a.get(r);if(i!==undefined){let c=false;try{c=new URL(i,document.baseURI).href===new URL(r.currentSrc||r.src||"",document.baseURI).href}catch{c=false}if(c){a.delete(r);u.delete(r)}}}}catch{}},true)}catch{}}var J=30000;var G=3000;document.addEventListener("DOMContentLoaded",()=>{const n=window.Babel;const d="om-src-id";if(n&&n.registerPlugin&&!(n.availablePlugins&&n.availablePlugins[d])){n.registerPlugin(d,({types:h})=>({visitor:{JSXOpeningElement(y,m){const w=y.node;if(w.name&&w.name.type==="JSXMemberExpression")return;for(let t=0;t<w.attributes.length;t++){const a=w.attributes[t];if(a.type==="JSXAttribute"&&a.name&&a.name.name==="data-om-id")return}const R=m.file&&m.file.opts&&m.file.opts.filename||"?";const O=w.loc&&w.loc.start;const e=`jsx:${R}:${w.start??0}:${O?O.line:0}:${O?O.column+1:0}`;w.attributes.push(h.jsxAttribute(h.jsxIdentifier("data-om-id"),h.stringLiteral(e)))}}}))}const p="om-text-extract";let f=false;if(B&&n&&n.registerPlugin&&!(n.availablePlugins&&n.availablePlugins[p])){const h=window.React;if(h&&h.useSyncExternalStore&&h.createElement){f=true;const y={};const m=new Set;let w=0;window.__omTextO=y;window.__omTextSet=(e)=>{for(const t in e){const a=e[t];if(a==null)delete y[t];else y[t]=a}w++;m.forEach((t)=>t())};const R=(e)=>{m.add(e);return()=>m.delete(e)};const O=()=>w;window.__OmT=function e(t){h.useSyncExternalStore(R,O,O);return h.createElement("span",{"data-om-text":t.i,className:"__om-t"},t.i in y?y[t.i]:t.children)};n.registerPlugin(p,({types:e})=>{const t={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const a={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const u=(o,r)=>e.logicalExpression("??",e.memberExpression(e.logicalExpression("||",e.memberExpression(e.identifier("window"),e.identifier("__omTextO")),e.objectExpression([])),e.stringLiteral(o),true),r);const s=(o)=>o.file&&o.file.opts&&o.file.opts.filename||"?";const S=(o)=>o.file&&o.file.code||"";const _=(o,r)=>{const l=(c)=>c&&c.start!=null&&c.end!=null&&(c.type==="StringLiteral"||c.type==="TemplateLiteral"&&c.expressions.length===0)?[c.start,c.end]:null;const i=l(r);if(i)return i;if(r&&r.type==="Identifier"){const c=o.scope.getBinding(r.name);if(c&&c.constant&&c.path.node.type==="VariableDeclarator"){return l(c.path.node.init)}}return null};const v=(o,r,l)=>{const i=o.node;let c=false;const k=(E,T)=>{c=true;return e.jsxElement(e.jsxOpeningElement(e.jsxIdentifier("__OmT"),[e.jsxAttribute(e.jsxIdentifier("i"),e.stringLiteral(E))],false),e.jsxClosingElement(e.jsxIdentifier("__OmT")),[T],false)};const b=i.children.map((E)=>{if(E.type==="JSXText"){if(E.start==null||E.end==null)return E;const T=l.slice(E.start,E.end);const j=T.length-T.trimStart().length;const L=T.length-T.trimEnd().length;if(j+L>=T.length)return E;return k(`txt:${r}:${E.start+j}:${E.end-L}`,E)}if(E.type==="JSXExpressionContainer"){const T=_(o,E.expression);if(T)return k(`str:${r}:${T[0]}:${T[1]}`,E)}return E});if(c)i.children=b};return{visitor:{JSXOpeningElement(o,r){const l=o.node;const i=s(r);const c={};for(let k=0;k<l.attributes.length;k++){const b=l.attributes[k];if(b.type!=="JSXAttribute"||!b.name)continue;const E=b.name.name;if(!a[E])continue;if(!b.value||b.value.type!=="StringLiteral")continue;if(b.value.start==null||b.value.end==null)continue;const T=`txt:${i}:${b.value.start}:${b.value.end}`;c[E]=T;b.value=e.jsxExpressionContainer(u(T,e.stringLiteral(b.value.value)))}if(Object.keys(c).length){l.attributes.push(e.jsxAttribute(e.jsxIdentifier("data-om-text-attrs"),e.stringLiteral(JSON.stringify(c))))}},JSXElement(o,r){const l=o.node.openingElement;const i=l&&l.name&&l.name.name;if(i==="__OmT")return;if(typeof i==="string"&&t[i])return;v(o,s(r),S(r))},JSXFragment(o,r){v(o,s(r),S(r))}}}})}}const g=f?["transform-react-jsx-source",d,p]:["transform-react-jsx-source",d];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((h,y)=>{const m=h.getAttribute("data-plugins")||"";const w=g.filter((R)=>m.indexOf(R)<0);if(w.length){h.setAttribute("data-plugins",m?`${m},${w.join(",")}`:w.join(","))}if(!h.hasAttribute("data-filename")){h.setAttribute("data-filename",h.getAttribute("src")||`inline-${y}`)}})});var A=window.parent;var U="not editable here — open the project in the Claude Design editor to save";var W=()=>Promise.resolve({persisted:false,noHost:true,reason:U});var H=W;var M="data/storage.json";var z=()=>{try{const n=new URL(document.baseURI);const d=n.pathname.match(/\/projects\/([^/]+)\/serve\//);if(d)return d[1];return n.hostname.split(".")[0]||""}catch{return location.hostname.split(".")[0]||""}};var Z=()=>{try{const n=new URL(document.baseURI);const d=n.pathname.indexOf("/serve/");if(d>=0)return n.origin+n.pathname.slice(0,d+"/serve/".length)+M}catch{}return"./"+M};var x=null;var N=()=>{if(!x){x=fetch(Z(),{cache:"no-store"}).then((n)=>{if(n.ok)return n.text();return n.status===404?"":null}).catch(()=>null).then((n)=>{if(n===null){x=null;return null}const d=new Map;if(!n)return d;let p;try{p=JSON.parse(n)}catch{console.warn("[omelette.storage] "+M+" is not valid JSON; treating the store as unreadable so a save cannot overwrite the "+"hand-edited bytes. Fix the JSON (or delete the file) to re-enable persistence.");x=null;return null}if(p===null||typeof p!=="object"||Array.isArray(p)){console.warn("[omelette.storage] "+M+" doesn't hold a JSON object; treating the store as unreadable so a save cannot "+"overwrite the hand-edited bytes. Make the top level a JSON object to re-enable persistence.");x=null;return null}const f=p;if("data"in f){const g=f.data;if(g===null||typeof g!=="object"||Array.isArray(g)){console.warn("[omelette.storage] "+M+' has a "data" field that is not a JSON object; treating the store as unreadable so a '+'save cannot overwrite the hand-edited bytes. Make "data" a JSON object to re-enable persistence.');x=null;return null}const h=f._meta;const y=h!==null&&typeof h==="object"?h.project:undefined;if(typeof y==="string"&&y!==""&&y!==z())return d;for(const m of Object.keys(g))d.set(m,g[m]);return d}for(const g of Object.keys(f)){if(g!=="_meta")d.set(g,f[g])}return d})}return x};var F=(n)=>H(M,JSON.stringify({_meta:{project:z(),version:1},data:Object.fromEntries(n)},null,2));var D=Promise.resolve();var $=(n)=>{const d=D.then(n);D=d.then(()=>{return},()=>{return});return d};var V=/sk-(?:ant-)?[A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[a-z]-[A-Za-z0-9][A-Za-z0-9-]{9,}|AIza[0-9A-Za-z_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;var Y=/password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|credential/i;var Q=(n,d,p)=>{if(V.test(d)||Y.test(n)&&typeof p==="string"&&p.length>=8){console.warn('[omelette.storage] the value for "'+n+'" looks like a credential. The storage file is a plaintext project file — visible to '+"everyone with project access and copied when the project is duplicated. Do not store secrets here.")}};var q={persisted:false,reason:"could not load the existing store — not overwriting it"};var X={persisted:false,reason:"stored value changed since a failed read — re-read this key before saving"};var P=new Set;var ee={get:(n)=>{if(typeof n!=="string"){return Promise.reject(new TypeError("storage.get: key must be a string"))}return $(N).then((d)=>{if(d===null){P.add(n);return null}P.delete(n);if(!d.has(n))return null;const p=d.get(n);return p==null?null:JSON.parse(JSON.stringify(p))})},set:(n,d)=>{if(typeof n!=="string"){return Promise.reject(new TypeError("storage.set: key must be a string"))}let p;try{p=JSON.stringify(d)}catch(g){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable ("+String(g)+")"))}if(p===undefined){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable"))}Q(n,p,d);const f=JSON.parse(p);return $(()=>N().then((g)=>{if(g===null)return q;if(P.has(n)){if(g.has(n))return X;P.delete(n)}g.set(n,f);return F(g)}))},delete:(n)=>{if(typeof n!=="string"){return Promise.reject(new TypeError("storage.delete: key must be a string"))}return $(()=>N().then((d)=>{if(d===null)return q;if(P.has(n)){if(d.has(n))return X;P.delete(n)}d.delete(n);return F(d)}))},keys:()=>$(N).then((n)=>n===null?[]:Array.from(n.keys()))};window.omelette={writeFile:(n,d)=>H(n,d).then((p)=>{if(!p.persisted&&!p.noHost){throw new Error(p.reason||"write failed")}}),storage:ee};if(A&&A!==window){const n=(e,t)=>{try{A.postMessage({__omelette_log:true,type:e,data:t},"*")}catch{}};["log","warn","error"].forEach((e)=>{const t=console[e];console[e]=(...a)=>{const u=a.map((s)=>{try{return typeof s==="object"?JSON.stringify(s):String(s)}catch{try{return String(s)}catch{return"[unstringifiable]"}}}).join(" ");n(e,u);t.apply(console,a)}});window.addEventListener("error",(e)=>{const t=e.target;if(t&&t!==window&&t.tagName){const a=t.src||t.href||"";n("resource_error",`${t.tagName} failed to load: ${a}`)}else{n("error",`${e.message||"Unknown error"} at ${e.filename||"?"}:${e.lineno||0}:${e.colno||0}`)}},true);window.addEventListener("unhandledrejection",(e)=>{const t=e.reason;const a=t instanceof Error?`${t.message} ${t.stack}`:String(t);n("error",`Unhandled rejection: ${a}`)});window.addEventListener("click",(e)=>{if(e.defaultPrevented||e.button!==0)return;if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;const t=e.composedPath?e.composedPath():[];const a=["button","input","select","textarea","summary","label"];let u=null;for(const v of t){if(!(v instanceof Element))continue;if(v.localName==="a"){if(!(v instanceof HTMLAnchorElement))return;u=v;break}if(a.indexOf(v.localName)!==-1)return}if(!u)return;if(u.isContentEditable)return;const s=u.closest("[contenteditable]");if(s&&s.getAttribute("contenteditable")!=="false")return;const S=(u.getAttribute("target")||"_self").toLowerCase();if(S!=="_self"&&S!=="_top"&&S!=="_parent")return;let _;try{_=new URL(u.href)}catch{return}if(_.protocol!=="http:"&&_.protocol!=="https:")return;if(location.origin==="null")return;if(_.origin===location.origin)return;e.preventDefault();window.open(_.href,"_blank","noopener,noreferrer")});const d=()=>{try{A.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(window.ResizeObserver)new ResizeObserver(d).observe(document.documentElement);const p=()=>{d();if(!document.querySelector('script[type="text/babel"],script[type="text/jsx"]'))return;const e=()=>document.getElementById("root")||document.querySelector("body > div[id]");const t=e()?.firstElementChild??null;let a=0;const u=()=>{const s=e();if(s&&s.firstElementChild!==t||++a>30){d();return}setTimeout(u,100)};setTimeout(u,100)};if(document.readyState==="complete")p();else window.addEventListener("load",p);const f={};let g=0;const h=(e)=>new Promise((t,a)=>{if(!I.length){a(new Error("claude.complete: no parent origin"));return}const u=`c${++g}`;const s=()=>setTimeout(()=>{delete f[u];a(new Error(`claude.complete: no data for ${J/1000}s`))},J);const S=s();f[u]={resolve:t,reject:a,text:"",t:S,arm:s};try{for(const _ of I){A.postMessage({__om_api:true,id:u,body:e},_)}}catch(_){clearTimeout(S);delete f[u];a(_)}});const y=8;const m=async(e,t)=>{if(!Array.isArray(e.messages)){throw new Error("claude.complete: tools require a messages array")}const a=e.messages.slice();const u={...e,tools:e.tools.map((_)=>{if(_===null||typeof _!=="object")return _;const v={};for(const o of Object.keys(_)){if(typeof _[o]!=="function")v[o]=_[o]}return v})};const s=u.tool_choice;const S=s!=null&&(s.type==="any"||s.type==="tool")?{...u,tool_choice:s.disable_parallel_tool_use!==undefined?{type:"auto",disable_parallel_tool_use:s.disable_parallel_tool_use}:{type:"auto"}}:u;for(let _=0;_<y;_++){const v=await h({..._===0?u:S,messages:a});const o=v.message;const r=o&&Array.isArray(o.content)?o.content:null;const l=r?r.filter((c)=>c?.type==="tool_use"):[];if(o?.stop_reason!=="tool_use"||l.length===0){return v.text}const i=[];for(const c of l){const k=t.get(c.name);if(!k){i.push({type:"tool_result",tool_use_id:c.id,content:`no handler for tool "${c.name}"`,is_error:true});continue}try{const b=await k(c.input);const E=typeof b==="string"?b:O(b)??"";i.push({type:"tool_result",tool_use_id:c.id,content:E})}catch(b){i.push({type:"tool_result",tool_use_id:c.id,content:String(b?.message??b??"tool handler failed"),is_error:true})}}a.push({role:"assistant",content:r},{role:"user",content:i})}throw new Error(`claude.complete: exceeded ${y} tool turns`)};window.claude={complete(e){const t=e;if(t!==null&&typeof t==="object"&&Array.isArray(t.tools)&&t.tools.some((a)=>a!==null&&typeof a==="object"&&typeof a.run==="function")){const a=new Map;for(const u of t.tools){if(u!==null&&typeof u==="object"&&typeof u.run==="function"){a.set(String(u.name),u.run)}}return m(t,a)}return h(e).then((a)=>a.text)}};const w={};let R=0;H=(e,t)=>new Promise((a)=>{if(!I.length){a({persisted:false,noHost:true,reason:U});return}const u=`f${++R}`;const s=setTimeout(()=>{delete w[u];a({persisted:false,noHost:true,reason:U})},G);w[u]={settle:a,t:s};try{for(const S of I){A.postMessage({__om_file:true,id:u,op:"write",path:e,content:t},S)}}catch{clearTimeout(s);delete w[u];a({persisted:false,noHost:true,reason:U})}});const O=(e)=>{try{return JSON.stringify(e)}catch{return JSON.stringify(String(e))}};window.addEventListener("message",(e)=>{if(I.indexOf(e.origin)<0)return;if(e.source!==A)return;const t=e.data;if(!t)return;if(t.type==="omelette-preview-refresh"){if(typeof t.token!=="string"||!/^[0-9a-f.-]+(\.(rc|pr-[0-9]+))?(\.[0-9]+\.[0-9a-f]{16})?$/.test(t.token))return;const s=Math.max(1,Math.floor((t.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+t.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+s;C();return}if(t.__om_file_r){const s=w[t.id];if(!s)return;clearTimeout(s.t);delete w[t.id];s.settle(t.ok?{persisted:true}:{persisted:false,reason:t.error||"write failed"});return}if(t.__om_api_r){const s=f[t.id];if(!s)return;if(t.error!=null){clearTimeout(s.t);delete f[t.id];s.reject(new Error(t.error));return}if(t.chunk!=null){clearTimeout(s.t);s.t=s.arm();s.text+=t.chunk;return}if(t.done){clearTimeout(s.t);delete f[t.id];s.resolve({text:t.text!=null?t.text:s.text,message:t.message});return}return}if(!t.__om_eval)return;const a=t;const u=(s)=>{e.source.postMessage({...s,__om_eval_r:1,id:a.id},e.origin)};try{const s=(0,eval)(a.code);if(s&&typeof s.then==="function"){s.then((S)=>u({ok:1,v:O(S)}),(S)=>u({ok:0,e:String(S)}))}else{u({ok:1,v:O(s)})}}catch(s){u({ok:0,e:String(s)})}})}})();
+</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9ECEB;font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;color:#14211F;-webkit-font-smoothing:antialiased}
+a{color:#0E5A5E}a:hover{color:#0A4245}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div dir="rtl" style="padding:64px;display:flex;flex-direction:column;gap:96px;font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;font-variant-numeric:tabular-nums">
+
+<header style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:baseline;gap:20px;flex-wrap:wrap">
+<div style="font-size:40px;font-weight:700;letter-spacing:-0.5px">ParkWiz</div>
+<div style="font-size:18px;color:#4A5654">מהכניסה לחניון עד השולחן, בכמה שפחות זמן</div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5654"><span style="height:22px;padding:0 8px;border-radius:6px;border:1px dashed #4A5654;color:#4A5654;font-size:12px;font-weight:600;display:inline-flex;align-items:center;flex-shrink:0">הצעה</span>מסמן יכולת שעדיין לא קיימת בקוד</div>
+</header>
+
+<!-- DESIGN SYSTEM -->
+<section id="ds" style="display:flex;flex-direction:column;gap:32px;max-width:1280px">
+<div style="display:flex;align-items:center;gap:12px"><span style="background:#14211F;color:#fff;font-size:13px;font-weight:600;padding:4px 10px;border-radius:6px">01</span><h2 style="margin:0;font-size:28px;font-weight:700">מערכת עיצוב</h2></div>
+
+<div style="background:#fff;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:20px">
+<div style="font-size:15px;font-weight:600;color:#4A5654">צבעים · יחס ניגודיות לפי WCAG</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px">
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:88px;border-radius:12px;background:#0E5A5E;color:#fff;padding:12px;font-size:14px;display:flex;align-items:flex-end">7.9:1 על לבן</div><div style="font-size:14px;font-weight:600">ראשי · Teal 700</div><div style="font-size:13px;color:#4A5654;direction:ltr;text-align:right">#0E5A5E</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:88px;border-radius:12px;background:#E3EFEE;color:#0E5A5E;padding:12px;font-size:14px;display:flex;align-items:flex-end">רקע משני</div><div style="font-size:14px;font-weight:600">ראשי רך · Teal 50</div><div style="font-size:13px;color:#4A5654;direction:ltr;text-align:right">#E3EFEE</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:88px;border-radius:12px;background:#E2F1E8;color:#1B6E45;padding:12px;font-size:14px;display:flex;align-items:flex-end;border:1.5px dashed #1B6E45">5.4:1 · פנוי</div><div style="font-size:14px;font-weight:600">פנוי · Green</div><div style="font-size:13px;color:#4A5654;direction:ltr;text-align:right">#1B6E45 / #E2F1E8</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:88px;border-radius:12px;background:#E7EAE9;color:#5B6664;padding:12px;font-size:14px;display:flex;align-items:flex-end">4.9:1 · תפוס</div><div style="font-size:14px;font-weight:600">תפוס · Gray</div><div style="font-size:13px;color:#4A5654;direction:ltr;text-align:right">#5B6664 / #E7EAE9</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:88px;border-radius:12px;background:#FBF0D9;color:#8A5A00;padding:12px;font-size:14px;display:flex;align-items:flex-end">5.2:1 · שעת שיא</div><div style="font-size:14px;font-weight:600">אזהרה · Amber</div><div style="font-size:13px;color:#4A5654;direction:ltr;text-align:right">#8A5A00 / #FBF0D9</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:88px;border-radius:12px;background:#14211F;color:#fff;padding:12px;font-size:14px;display:flex;align-items:flex-end">16:1 · טקסט</div><div style="font-size:14px;font-weight:600">דיו · Ink</div><div style="font-size:13px;color:#4A5654;direction:ltr;text-align:right">#14211F</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:88px;border-radius:12px;background:#4A5654;color:#fff;padding:12px;font-size:14px;display:flex;align-items:flex-end">7.6:1 · משני</div><div style="font-size:14px;font-weight:600">דיו משני · Ink 2</div><div style="font-size:13px;color:#4A5654;direction:ltr;text-align:right">#4A5654</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="height:88px;border-radius:12px;background:#F3F5F4;border:1px solid #DDE3E1;color:#4A5654;padding:12px;font-size:14px;display:flex;align-items:flex-end">רקע / קו</div><div style="font-size:14px;font-weight:600">משטח · Surface</div><div style="font-size:13px;color:#4A5654;direction:ltr;text-align:right">#F3F5F4 / #DDE3E1</div></div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:24px">
+<div style="background:#fff;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:18px">
+<div style="font-size:15px;font-weight:600;color:#4A5654">טיפוגרפיה · IBM Plex Sans Hebrew</div>
+<div style="display:flex;align-items:baseline;gap:16px"><span style="width:96px;font-size:12px;color:#4A5654;flex-shrink:0">Display 56/700</span><span style="font-size:56px;font-weight:700;line-height:1">B-207</span></div>
+<div style="display:flex;align-items:baseline;gap:16px"><span style="width:96px;font-size:12px;color:#4A5654;flex-shrink:0">H1 28/700</span><span style="font-size:28px;font-weight:700">קיבלת מקום בכניסה</span></div>
+<div style="display:flex;align-items:baseline;gap:16px"><span style="width:96px;font-size:12px;color:#4A5654;flex-shrink:0">H2 20/600</span><span style="font-size:20px;font-weight:600">תפוסה לפי קומה ואזור</span></div>
+<div style="display:flex;align-items:baseline;gap:16px"><span style="width:96px;font-size:12px;color:#4A5654;flex-shrink:0">Body 16/400</span><span style="font-size:16px">4 דקות הליכה מהחניה עד השולחן</span></div>
+<div style="display:flex;align-items:baseline;gap:16px"><span style="width:96px;font-size:12px;color:#4A5654;flex-shrink:0">Small 14/500</span><span style="font-size:14px;font-weight:500;color:#4A5654">קומה <bdi dir="ltr">-2</bdi> · אזור B1</span></div>
+<div style="display:flex;align-items:baseline;gap:16px"><span style="width:96px;font-size:12px;color:#4A5654;flex-shrink:0">Caption 12/500</span><span style="font-size:12px;font-weight:500;color:#4A5654">עודכן לפני דקה</span></div>
+</div>
+
+<div style="background:#fff;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:22px">
+<div style="font-size:15px;font-weight:600;color:#4A5654">רכיבים</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+<button style="height:52px;padding:0 24px;border-radius:14px;border:none;background:#0E5A5E;color:#fff;font:600 16px 'IBM Plex Sans Hebrew';cursor:pointer" style-hover="background:#0A4245">הצעד הבא</button>
+<button style="height:52px;padding:0 24px;border-radius:14px;border:1.5px solid #0E5A5E;background:#fff;color:#0E5A5E;font:600 16px 'IBM Plex Sans Hebrew';cursor:pointer" style-hover="background:#E3EFEE">הצג במפה</button>
+<button style="height:44px;padding:0 16px;border-radius:12px;border:none;background:transparent;color:#0E5A5E;font:600 15px 'IBM Plex Sans Hebrew';cursor:pointer" style-hover="background:#E3EFEE">לכל ההיסטוריה</button>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+<span style="height:30px;padding:0 12px;border-radius:15px;background:#E2F1E8;color:#1B6E45;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#1B6E45"></span>62 פנויים</span>
+<span style="height:30px;padding:0 12px;border-radius:15px;background:#E7EAE9;color:#5B6664;font-size:13px;font-weight:600;display:inline-flex;align-items:center">תפוס</span>
+<span style="height:30px;padding:0 12px;border-radius:15px;background:#FBF0D9;color:#8A5A00;font-size:13px;font-weight:600;display:inline-flex;align-items:center">שעת שיא</span>
+<span style="height:30px;padding:0 12px;border-radius:15px;background:#E3EFEE;color:#0E5A5E;font-size:13px;font-weight:600;display:inline-flex;align-items:center">4 דק׳ הליכה</span>
+<span style="height:22px;padding:0 8px;border-radius:6px;border:1px dashed #4A5654;color:#4A5654;font-size:12px;font-weight:600;display:inline-flex;align-items:center">הצעה</span>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center">
+<div style="display:flex;gap:6px">
+<div style="width:48px;height:56px;border-radius:10px;background:#E2F1E8;border:1.5px dashed #1B6E45;color:#1B6E45;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">205</div>
+<div style="width:48px;height:56px;border-radius:10px;background:#E7EAE9;color:#5B6664;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">206</div>
+<div style="width:48px;height:56px;border-radius:10px;background:#0E5A5E;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #fff,0 0 0 5px #0E5A5E">207</div>
+</div>
+<div style="height:44px;padding:0 14px;border-radius:12px;background:#14211F;color:#fff;font-size:14px;font-weight:500;display:flex;align-items:center;gap:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"></path><path d="M3 3l18 18"></path></svg>אין קליטה · ההנחיות שמורות במכשיר</div>
+</div>
+<div style="font-size:13px;color:#4A5654;line-height:1.6">מצב חניה מסומן גם בצורה (קו מקווקו = פנוי, מילוי = שלך) ולא רק בצבע. כל מטרות המגע 44px ומעלה. המערכת סופרת תפוסה בלבד: רק פנוי/תפוס יוצא מהמצלמה. אין תמונות, פנים או לוחיות רישוי.</div>
+</div>
+</div>
+</section>
+
+<!-- DRIVER -->
+<section id="driver" style="display:flex;flex-direction:column;gap:32px">
+<div style="display:flex;align-items:center;gap:12px"><span style="background:#14211F;color:#fff;font-size:13px;font-weight:600;padding:4px 10px;border-radius:6px">02</span><h2 style="margin:0;font-size:28px;font-weight:700">אפליקציית נהג · 360px</h2></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+<!-- Home -->
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:14px;font-weight:600;color:#4A5654">בית · לפני ההגעה</div>
+<div data-screen-label="Driver home" style="width:360px;height:760px;border-radius:32px;background:#F3F5F4;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(20,33,31,.08),0 12px 40px rgba(20,33,31,.10)">
+<div style="height:36px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600"><span>7:52</span><span style="direction:ltr;white-space:nowrap">●●● ▮</span></div>
+<div style="flex:1;padding:12px 20px 16px;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;color:#4A5654">יום שלישי, 3 בנובמבר</span><span style="font-size:24px;font-weight:700">בוקר טוב, נועה</span></div>
+<div style="width:44px;height:44px;border-radius:50%;background:#E3EFEE;color:#0E5A5E;font-weight:700;display:flex;align-items:center;justify-content:center">נ</div>
+</div>
+<div style="background:#0E5A5E;color:#fff;border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<span style="font-size:15px;font-weight:500;color:#D5E8E6">הגעה לחניון</span>
+<span style="font-size:22px;font-weight:700;line-height:1.25;white-space:nowrap">המקום שלך ייקבע בכניסה</span>
+<span style="font-size:15px;color:#D5E8E6;line-height:1.5;text-wrap:pretty">במחסום תקבל/י מקום, קומה ואזור. ההנחיות ימשיכו לעבוד מתחת לאדמה גם בלי קליטה.</span>
+</div>
+<div style="background:#fff;border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600">החניון עכשיו</span><sc-if value="{{ pilot }}" hint-placeholder-val="{{ true }}"><span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#4A5654;white-space:nowrap">פיילוט · {{ totalBays }} מקומות<span style="height:20px;padding:0 6px;border-radius:5px;border:1px dashed #4A5654;font-size:11px;font-weight:600;display:inline-flex;align-items:center">הצעה</span></span></sc-if><sc-if value="{{ notPilot }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#4A5654">עודכן לפני דקה</span></sc-if></div>
+<div style="display:flex;gap:8px">
+<div style="flex:1;background:#E2F1E8;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:2px"><span style="font-size:22px;font-weight:700;color:#1B6E45">{{ freeTotal }}</span><span style="font-size:13px;color:#1B6E45;font-weight:500">מקומות פנויים</span></div>
+<div style="flex:1;background:#F3F5F4;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:2px"><span style="font-size:22px;font-weight:700">{{ occPct }}</span><span style="font-size:13px;color:#4A5654;font-weight:500">תפוסה</span></div>
+</div>
+</div>
+<div style="background:#fff;border-radius:20px;padding:12px 16px;display:flex;align-items:center;gap:14px">
+<div style="width:44px;height:44px;border-radius:12px;background:#E3EFEE;color:#0E5A5E;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"></path></svg></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">מפת החניון שמורה במכשיר</span><span style="font-size:13px;color:#4A5654">עודכנה היום ב-07:30</span></div>
+<span style="height:22px;padding:0 8px;border-radius:6px;border:1px dashed #4A5654;color:#4A5654;font-size:12px;font-weight:600;display:inline-flex;align-items:center;flex-shrink:0">הצעה</span>
+</div>
+<div style="background:#fff;border-radius:20px;padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">תשלום על החניה · בפנגו</span><span style="font-size:13px;color:#4A5654">ParkWiz לא גובה תשלום. התשלום נשאר בפנגו, כרגיל.</span></div>
+<div style="min-height:44px;padding:8px 12px;border-radius:12px;border:1.5px dashed #DDE3E1;display:flex;align-items:center;gap:10px"><span style="flex:1;font-size:14px;font-weight:500">אפליקציה שותפה · מעבר לפנגו מתוך ParkWiz</span><span style="height:22px;padding:0 8px;border-radius:6px;border:1px dashed #4A5654;color:#4A5654;font-size:12px;font-weight:600;display:inline-flex;align-items:center;white-space:nowrap;flex-shrink:0">הצעה</span></div>
+</div>
+</div>
+<nav style="height:72px;background:#fff;border-top:1px solid #DDE3E1;display:flex;justify-content:space-around;align-items:center;padding-bottom:8px">
+<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;color:#0E5A5E;font-size:12px;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"></path></svg>בית</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;color:#4A5654;font-size:12px;font-weight:500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 12h16M12 4v16"></path></svg>מפה</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;color:#4A5654;font-size:12px;font-weight:500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg>היסטוריה</div>
+</nav>
+</div>
+</div>
+
+<!-- Entrance handoff -->
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:14px;font-weight:600;color:#4A5654">כניסה · הקצאת מקום והנחיה לקומה ולאזור (לחיצה על הכפתור מתקדמת)</div>
+<div data-screen-label="Entrance handoff" style="width:360px;height:760px;border-radius:32px;background:#F3F5F4;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(20,33,31,.08),0 12px 40px rgba(20,33,31,.10)">
+<div style="height:36px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600"><span>8:12</span><span style="direction:ltr;white-space:nowrap">{{ signal }}</span></div>
+<div style="flex:1;padding:12px 20px 20px;display:flex;flex-direction:column;gap:14px">
+<sc-if value="{{ offline }}" hint-placeholder-val="{{ true }}">
+<div style="min-height:44px;padding:8px 12px;border-radius:12px;background:#14211F;color:#fff;font-size:14px;font-weight:500;display:flex;align-items:center;gap:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"></path><path d="M3 3l18 18"></path></svg><span style="flex:1">אין קליטה · ההנחיות שמורות במכשיר</span><span style="height:22px;padding:0 8px;border-radius:6px;border:1px dashed #fff;font-size:12px;font-weight:600;display:inline-flex;align-items:center;flex-shrink:0">הצעה</span></div>
+</sc-if>
+<div style="background:#fff;border-radius:24px;padding:20px;display:flex;align-items:center;justify-content:space-between;border:2px solid #0E5A5E">
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;color:#1B6E45;font-weight:600">קיבלת מקום בכניסה</span><span style="font-size:60px;font-weight:700;line-height:1;color:#0E5A5E;direction:ltr;text-align:right">B-207</span></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;font-size:15px;font-weight:600"><span>קומה <bdi dir="ltr">-2</bdi></span><span>אזור B1</span></div>
+</div>
+<div style="background:#fff;border-radius:20px;padding:8px;display:flex;flex-direction:column">
+<sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:{{ s.rowBg }}">
+<span style="width:32px;height:32px;border-radius:50%;background:{{ s.dotBg }};color:{{ s.dotFg }};font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">{{ s.dot }}</span>
+<div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:16px;font-weight:600">{{ s.title }}</span><span style="font-size:13px;color:#4A5654">{{ s.detail }}</span></div>
+<span style="font-size:13px;color:#4A5654;font-weight:500;white-space:nowrap">{{ s.time }}</span>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;padding:0 4px"><span style="font-size:15px;font-weight:500;color:#4A5654">סה״כ מהכניסה עד השולחן</span><span style="font-size:22px;font-weight:700;color:#0E5A5E">6 דק׳</span></div>
+<div style="flex:1"></div>
+<button onClick="{{ nextStep }}" style="height:56px;border-radius:16px;border:none;background:#0E5A5E;color:#fff;font:600 17px 'IBM Plex Sans Hebrew';cursor:pointer" style-hover="background:#0A4245">{{ stepCta }}</button>
+<button style="height:48px;border-radius:14px;border:none;background:transparent;color:#0E5A5E;font:600 15px 'IBM Plex Sans Hebrew';cursor:pointer" style-hover="background:#E3EFEE">הצג במפה</button>
+</div>
+</div>
+</div>
+
+<!-- Map -->
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:14px;font-weight:600;color:#4A5654">מפה חיה · מקומות פנויים</div>
+<div data-screen-label="Live map" style="width:360px;height:760px;border-radius:32px;background:#F3F5F4;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(20,33,31,.08),0 12px 40px rgba(20,33,31,.10)">
+<div style="height:36px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600"><span>8:12</span><span style="direction:ltr;white-space:nowrap">●●● ▮</span></div>
+<div style="flex:1;padding:12px 20px 16px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:24px;font-weight:700">מפת החניון</span><span style="height:30px;padding:0 12px;border-radius:15px;background:#E2F1E8;color:#1B6E45;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#1B6E45"></span>חי</span></div>
+<sc-if value="{{ notPilot }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;gap:6px;background:#E7EAE9;padding:4px;border-radius:14px">
+<sc-for list="{{ levels }}" as="l" hint-placeholder-count="3">
+<button onClick="{{ l.select }}" style="flex:1;height:44px;border:none;border-radius:11px;background:{{ l.bg }};color:{{ l.fg }};font:600 14px 'IBM Plex Sans Hebrew';cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2"><span>{{ l.name }}</span><span style="font-size:11px;font-weight:500">{{ l.free }} פנויים</span></button>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ pilot }}" hint-placeholder-val="{{ true }}">
+<div style="min-height:52px;padding:8px 14px;border-radius:14px;background:#E7EAE9;display:flex;align-items:center;justify-content:space-between;gap:8px"><div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">פיילוט · קומה <bdi dir="ltr">-2</bdi></span><span style="font-size:12px;color:#4A5654">{{ totalBays }} מקומות · {{ freeTotal }} פנויים</span></div><span style="height:22px;padding:0 8px;border-radius:6px;border:1px dashed #4A5654;color:#4A5654;font-size:12px;font-weight:600;display:inline-flex;align-items:center">הצעה</span></div>
+</sc-if>
+<div style="background:#fff;border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:#4A5654"><span>{{ zoneAName }} · ליד מעלית C</span><span>כניסה ↓</span></div>
+<div style="display:grid;grid-template-columns:repeat({{ colsA }},1fr);gap:6px">
+<sc-for list="{{ rowsA }}" as="s" hint-placeholder-count="12">
+<div style="height:50px;border-radius:10px;background:{{ s.bg }};color:{{ s.fg }};border:{{ s.border }};font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ s.n }}</div>
+</sc-for>
+</div>
+<div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#4A5654;border-top:1.5px dashed #DDE3E1;border-bottom:1.5px dashed #DDE3E1;margin:2px 0">נתיב נסיעה</div>
+<div style="font-size:12px;font-weight:600;color:#4A5654">{{ zoneBName }}</div>
+<div style="display:grid;grid-template-columns:repeat({{ colsB }},1fr);gap:6px">
+<sc-for list="{{ rowsB }}" as="s" hint-placeholder-count="12">
+<div style="height:50px;border-radius:10px;background:{{ s.bg }};color:{{ s.fg }};border:{{ s.border }};font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ s.n }}</div>
+</sc-for>
+</div>
+</div>
+<div style="display:flex;gap:14px;font-size:12px;color:#4A5654;font-weight:500">
+<span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:4px;background:#E2F1E8;border:1.5px dashed #1B6E45"></span>פנוי</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:4px;background:#E7EAE9"></span>תפוס</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:4px;background:#0E5A5E"></span>שלך</span>
+</div>
+<div style="flex:1"></div>
+<div style="background:#fff;border-radius:18px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:#4A5654">הפנוי הקרוב למשרד</span><span style="font-size:16px;font-weight:600">{{ nearest }}</span></div>
+<span style="height:30px;padding:0 12px;border-radius:15px;background:#E3EFEE;color:#0E5A5E;font-size:13px;font-weight:600;display:inline-flex;align-items:center;white-space:nowrap">{{ nearestWalk }}</span>
+</div>
+</div>
+<nav style="height:72px;background:#fff;border-top:1px solid #DDE3E1;display:flex;justify-content:space-around;align-items:center;padding-bottom:8px">
+<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;color:#4A5654;font-size:12px;font-weight:500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"></path></svg>בית</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;color:#0E5A5E;font-size:12px;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 12h16M12 4v16"></path></svg>מפה</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;color:#4A5654;font-size:12px;font-weight:500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg>היסטוריה</div>
+</nav>
+</div>
+</div>
+
+<!-- History -->
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:14px;font-weight:600;color:#4A5654">היסטוריית חניה</div>
+<div data-screen-label="History" style="width:360px;height:760px;border-radius:32px;background:#F3F5F4;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(20,33,31,.08),0 12px 40px rgba(20,33,31,.10)">
+<div style="height:36px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600"><span>17:40</span><span style="direction:ltr;white-space:nowrap">●●● ▮</span></div>
+<div style="flex:1;padding:12px 20px 16px;display:flex;flex-direction:column;gap:14px;overflow:hidden">
+<span style="font-size:24px;font-weight:700">ההיסטוריה שלי</span>
+<div style="display:flex;gap:8px">
+<div style="flex:1;background:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:22px;font-weight:700">14</span><span style="font-size:13px;color:#4A5654">חניות באוקטובר</span></div>
+<div style="flex:1;background:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:22px;font-weight:700;color:#0E5A5E">3.8 דק׳</span><span style="font-size:13px;color:#4A5654">ממוצע עד השולחן</span></div>
+</div>
+<div style="background:#fff;border-radius:20px;display:flex;flex-direction:column;overflow:hidden">
+<sc-for list="{{ history }}" as="h" hint-placeholder-count="6">
+<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid #EEF1F0">
+<div style="width:48px;height:48px;border-radius:12px;background:#E3EFEE;color:#0E5A5E;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;flex-shrink:0"><span style="font-size:17px;font-weight:700">{{ h.day }}</span><span style="font-size:11px;font-weight:600">{{ h.mon }}</span></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:16px;font-weight:600;direction:ltr;text-align:right">{{ h.spot }}</span><span style="font-size:13px;color:#4A5654"><bdi dir="ltr">{{ h.time }}</bdi></span></div>
+<span style="font-size:13px;font-weight:600;color:#0E5A5E;white-space:nowrap;flex-shrink:0">{{ h.walk }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+<nav style="height:72px;background:#fff;border-top:1px solid #DDE3E1;display:flex;justify-content:space-around;align-items:center;padding-bottom:8px">
+<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;color:#4A5654;font-size:12px;font-weight:500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"></path></svg>בית</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;color:#4A5654;font-size:12px;font-weight:500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 12h16M12 4v16"></path></svg>מפה</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;color:#0E5A5E;font-size:12px;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg>היסטוריה</div>
+</nav>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ADMIN -->
+<section id="admin" style="display:flex;flex-direction:column;gap:32px">
+<div style="display:flex;align-items:center;gap:12px"><span style="background:#14211F;color:#fff;font-size:13px;font-weight:600;padding:4px 10px;border-radius:6px">03</span><h2 style="margin:0;font-size:28px;font-weight:700">לוח בקרה · מפעיל / מעסיק</h2></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+<!-- Admin mobile -->
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:14px;font-weight:600;color:#4A5654">מובייל · 360px</div>
+<div data-screen-label="Admin mobile" style="width:360px;height:760px;border-radius:32px;background:#F3F5F4;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(20,33,31,.08),0 12px 40px rgba(20,33,31,.10)">
+<div style="height:36px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600"><span>9:41</span><span style="direction:ltr;white-space:nowrap">●●● ▮</span></div>
+<div style="flex:1;min-height:0;padding:12px 20px 20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px"><div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;color:#4A5654">{{ siteName }}</span><span style="font-size:24px;font-weight:700">תמונת מצב</span></div>
+<sc-if value="{{ pilot }}" hint-placeholder-val="{{ true }}"><span style="height:22px;padding:0 8px;border-radius:6px;border:1px dashed #4A5654;color:#4A5654;font-size:12px;font-weight:600;display:inline-flex;align-items:center;white-space:nowrap;flex-shrink:0">פיילוט · הצעה</span></sc-if></div>
+<div style="background:#fff;border-radius:20px;padding:14px 18px;display:flex;align-items:center;gap:16px">
+<div style="width:80px;height:80px;border-radius:50%;background:{{ ring }};display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:60px;height:60px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700">{{ occPct }}</div></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:16px;font-weight:600">תפוסה כעת</span><span style="font-size:14px;color:#4A5654">{{ occCount }} מתוך {{ totalBays }} מקומות</span><span style="font-size:14px;color:#1B6E45;font-weight:600">{{ freeTotal }} פנויים</span></div>
+</div>
+<div style="display:flex;gap:8px">
+<div style="flex:1;background:#fff;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#4A5654">כניסה ← מקום</span><span style="height:18px;padding:0 5px;border-radius:5px;border:1px dashed #4A5654;color:#4A5654;font-size:10px;font-weight:600;display:inline-flex;align-items:center">הצעה</span></div><span style="font-size:22px;font-weight:700;color:#0E5A5E">{{ kpiEntry }}</span><span style="font-size:12px;color:#4A5654">ממוצע היום</span></div>
+<div style="flex:1;background:#fff;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#4A5654">עומס בכניסה</span><span style="height:18px;padding:0 5px;border-radius:5px;border:1px dashed #4A5654;color:#4A5654;font-size:10px;font-weight:600;display:inline-flex;align-items:center">הצעה</span></div><span style="font-size:22px;font-weight:700;color:#8A5A00">{{ kpiWait }}</span><span style="font-size:12px;color:#4A5654">המתנה ממוצעת</span></div>
+</div>
+<div style="background:#fff;border-radius:20px;padding:14px 18px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:16px;font-weight:600">לפי קומה ואזור</span><span style="height:18px;padding:0 5px;border-radius:5px;border:1px dashed #4A5654;color:#4A5654;font-size:10px;font-weight:600;display:inline-flex;align-items:center">הצעה</span></div>
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:5px">
+<span style="font-size:13px;font-weight:600">{{ g.floor }}</span>
+<sc-for list="{{ g.zones }}" as="z" hint-placeholder-count="2">
+<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#4A5654;width:22px">{{ z.name }}</span><div style="flex:1;height:8px;border-radius:4px;background:#E7EAE9;overflow:hidden"><div style="height:100%;width:{{ z.pct }};background:{{ z.color }};border-radius:4px"></div></div><span style="font-size:12px;font-weight:600;width:34px;text-align:left">{{ z.pct }}</span></div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+<div style="background:#fff;border-radius:20px;padding:14px 18px;display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:16px;font-weight:600">שעות שיא</span><span style="height:26px;padding:0 10px;border-radius:13px;background:#FBF0D9;color:#8A5A00;font-size:12px;font-weight:600;display:inline-flex;align-items:center"><bdi dir="ltr">08:00–10:00</bdi></span></div>
+<div style="height:100px;display:flex;align-items:flex-end;gap:4px;direction:ltr">
+<sc-for list="{{ hours }}" as="h" hint-placeholder-count="14">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;height:{{ h.hs }};background:{{ h.color }};border-radius:4px 4px 2px 2px"></div><span style="font-size:10px;color:#4A5654">{{ h.short }}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="background:#fff;border-radius:20px;padding:14px 18px;display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:16px;font-weight:600">מצלמות · כיול וחיבור</span><span style="height:18px;padding:0 5px;border-radius:5px;border:1px dashed #4A5654;color:#4A5654;font-size:10px;font-weight:600;display:inline-flex;align-items:center">הצעה</span></div>
+<sc-if value="{{ hasOffline }}" hint-placeholder-val="{{ true }}"><div style="padding:8px 10px;border-radius:10px;background:#FBF0D9;color:#8A5A00;font-size:12px;font-weight:600;line-height:1.5">{{ offlineNote }}</div></sc-if>
+<sc-for list="{{ cameras }}" as="c" hint-placeholder-count="2">
+<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid #EEF1F0">
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">{{ c.name }} · {{ c.area }}</span><span style="font-size:12px;color:{{ c.connFg }}">{{ c.connShort }} · דיוק {{ c.acc }}</span></div>
+<span style="height:24px;padding:0 8px;border-radius:12px;background:{{ c.sBg }};color:{{ c.sFg }};font-size:12px;font-weight:600;display:inline-flex;align-items:center;white-space:nowrap">{{ c.status }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Admin desktop -->
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:14px;font-weight:600;color:#4A5654">דסקטופ · 1280px</div>
+<div data-screen-label="Admin desktop" style="width:1280px;min-height:800px;border-radius:16px;background:#F3F5F4;overflow:hidden;display:flex;box-shadow:0 1px 2px rgba(20,33,31,.08),0 12px 40px rgba(20,33,31,.10)">
+<aside style="width:232px;background:#fff;border-left:1px solid #DDE3E1;padding:28px 16px;display:flex;flex-direction:column;gap:6px">
+<div style="font-size:22px;font-weight:700;padding:0 12px 24px">ParkWiz</div>
+<div style="height:44px;padding:0 12px;border-radius:12px;background:#E3EFEE;color:#0E5A5E;font-weight:600;font-size:15px;display:flex;align-items:center">לוח בקרה</div>
+<div style="flex:1"></div>
+<div style="padding:12px;font-size:13px;color:#4A5654;line-height:1.6">חניון מגדל הצפון<br>{{ siteInfo }}</div>
+</aside>
+<main style="flex:1;padding:32px 36px;display:flex;flex-direction:column;gap:20px;min-width:0">
+<div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;color:#4A5654">יום שלישי, 3 בנובמבר · 09:41</span><div style="display:flex;align-items:center;gap:12px"><span style="font-size:28px;font-weight:700">תמונת מצב</span><sc-if value="{{ pilot }}" hint-placeholder-val="{{ true }}"><span style="height:26px;padding:0 10px;border-radius:7px;border:1px dashed #4A5654;color:#4A5654;font-size:13px;font-weight:600;display:inline-flex;align-items:center;white-space:nowrap;flex-shrink:0">מצב פיילוט · {{ totalBays }} מקומות · הצעה</span></sc-if></div></div><span style="height:30px;padding:0 12px;border-radius:15px;background:#E2F1E8;color:#1B6E45;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#1B6E45"></span>נתונים חיים</span></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+<div style="background:#fff;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;color:#4A5654">תפוסה כעת</span><span style="font-size:34px;font-weight:700">{{ occPct }}</span><span style="font-size:13px;color:#4A5654">{{ occCount }} מתוך {{ totalBays }}</span></div>
+<div style="background:#fff;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;color:#4A5654">מקומות פנויים</span><span style="font-size:34px;font-weight:700;color:#1B6E45">{{ freeTotal }}</span><span style="font-size:13px;color:#4A5654">{{ freeNote }}</span></div>
+<div style="background:#fff;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;color:#4A5654">זמן מהכניסה עד המקום</span><span style="height:20px;padding:0 6px;border-radius:5px;border:1px dashed #4A5654;color:#4A5654;font-size:11px;font-weight:600;display:inline-flex;align-items:center">הצעה</span></div><span style="font-size:34px;font-weight:700;color:#0E5A5E">{{ kpiEntry }}</span><span style="font-size:13px;color:#4A5654">ממוצע היום · מדד פיילוט</span></div>
+<div style="background:#fff;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;color:#4A5654">עומס בכניסה</span><span style="height:20px;padding:0 6px;border-radius:5px;border:1px dashed #4A5654;color:#4A5654;font-size:11px;font-weight:600;display:inline-flex;align-items:center">הצעה</span></div><span style="font-size:34px;font-weight:700;color:#8A5A00">{{ kpiWait }}</span><span style="font-size:13px;color:#4A5654">המתנה ממוצעת במחסום · {{ kpiEvents }}</span></div>
+</div>
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;height:420px">
+<div style="background:#fff;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:18px;font-weight:600">תפוסה לפי שעה · היום</span><span style="height:26px;padding:0 10px;border-radius:13px;background:#FBF0D9;color:#8A5A00;font-size:12px;font-weight:600;display:inline-flex;align-items:center">שיא <bdi dir="ltr">08:00–10:00</bdi></span></div><span style="display:flex;gap:14px;font-size:12px;color:#4A5654"><span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#0E5A5E"></span>רגיל</span><span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#C98A12"></span>שיא (מעל 90%)</span></span></div>
+<div style="flex:1;display:flex;align-items:flex-end;gap:10px;direction:ltr;border-bottom:1px solid #DDE3E1">
+<sc-for list="{{ hours }}" as="h" hint-placeholder-count="14">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:12px;font-weight:600;color:#4A5654">{{ h.pctLabel }}</span><div style="width:100%;height:{{ h.hl }};background:{{ h.color }};border-radius:6px 6px 0 0"></div></div>
+</sc-for>
+</div>
+<div style="display:flex;gap:10px;direction:ltr">
+<sc-for list="{{ hours }}" as="h" hint-placeholder-count="14"><span style="flex:1;text-align:center;font-size:12px;color:#4A5654">{{ h.label }}</span></sc-for>
+</div>
+</div>
+<div style="background:#fff;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:18px;min-height:0">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:18px;font-weight:600">תפוסה לפי קומה ואזור</span><span style="height:20px;padding:0 6px;border-radius:5px;border:1px dashed #4A5654;color:#4A5654;font-size:11px;font-weight:600;display:inline-flex;align-items:center">הצעה</span></div>
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;justify-content:space-between;font-size:15px"><span style="font-weight:600">{{ g.floor }}</span><span style="color:#4A5654">{{ g.detail }}</span></div>
+<sc-for list="{{ g.zones }}" as="z" hint-placeholder-count="2">
+<div style="display:flex;align-items:center;gap:10px"><span style="width:28px;font-size:13px;color:#4A5654">{{ z.name }}</span><div style="flex:1;height:10px;border-radius:5px;background:#E7EAE9;overflow:hidden"><div style="height:100%;width:{{ z.pct }};background:{{ z.color }};border-radius:5px"></div></div><span style="width:64px;font-size:13px;font-weight:600;text-align:left">{{ z.detail }}</span></div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="background:#fff;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:18px;font-weight:600">מצלמות · כיול וחיבור</span><span style="height:20px;padding:0 6px;border-radius:5px;border:1px dashed #4A5654;color:#4A5654;font-size:11px;font-weight:600;display:inline-flex;align-items:center">הצעה</span></div>
+<sc-if value="{{ hasOffline }}" hint-placeholder-val="{{ true }}"><span style="min-height:30px;padding:4px 12px;border-radius:15px;background:#FBF0D9;color:#8A5A00;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"></path><path d="M3 3l18 18"></path></svg>{{ offlineNote }}</span></sc-if></div>
+<div style="display:grid;grid-template-columns:1fr 1.2fr 1fr 1.6fr 2.2fr;gap:12px;padding:0 4px 8px;border-bottom:1px solid #DDE3E1"><span style="font-size:13px;color:#4A5654;font-weight:500">מצלמה</span><span style="font-size:13px;color:#4A5654;font-weight:500">אזור</span><span style="font-size:13px;color:#4A5654;font-weight:500">כיול</span><span style="font-size:13px;color:#4A5654;font-weight:500">דיוק מול ספירה ידנית</span><span style="font-size:13px;color:#4A5654;font-weight:500">חיבור</span></div>
+<sc-for list="{{ cameras }}" as="c" hint-placeholder-count="2">
+<div style="display:grid;grid-template-columns:1fr 1.2fr 1fr 1.6fr 2.2fr;gap:12px;align-items:center;padding:4px">
+<span style="font-size:15px;font-weight:600">{{ c.name }}</span>
+<span style="font-size:14px">{{ c.area }}</span>
+<span><span style="height:24px;padding:0 8px;border-radius:12px;background:{{ c.sBg }};color:{{ c.sFg }};font-size:12px;font-weight:600;display:inline-flex;align-items:center;white-space:nowrap">{{ c.status }}</span></span>
+<div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px;font-weight:600;width:48px">{{ c.acc }}</span><div style="flex:1;height:8px;border-radius:4px;background:#E7EAE9;overflow:hidden;max-width:120px"><div style="height:100%;width:{{ c.acc }};background:{{ c.sFg }};border-radius:4px"></div></div></div>
+<span style="font-size:14px;color:{{ c.connFg }};font-weight:500">{{ c.conn }}</span>
+</div>
+</sc-for>
+<span style="font-size:12px;color:#4A5654">יעד דיוק לסיום כיול: 97% מול ספירה ידנית. מצלמה לא מקוונת ממשיכה לעבד ושומרת את הסטטוס מקומית.</span>
+</div>
+</main>
+</div>
+</div>
+</div>
+</section>
+<!-- SITE & PRIVACY -->
+<section id="site" style="display:flex;flex-direction:column;gap:32px;max-width:1280px">
+<div style="display:flex;align-items:center;gap:12px"><span style="background:#14211F;color:#fff;font-size:13px;font-weight:600;padding:4px 10px;border-radius:6px">04</span><h2 style="margin:0;font-size:28px;font-weight:700">בכניסה לחניון · זרימת נתונים ופרטיות</h2></div>
+<div style="background:#fff;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;align-items:center;gap:12px"><span style="font-size:15px;font-weight:600;color:#4A5654">זרימת נתונים · החלטת פיילוט</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr) 32px minmax(0,1fr) 32px minmax(0,1fr);align-items:stretch;gap:8px">
+<div style="background:#F3F5F4;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#4A5654">1</span><span style="font-size:18px;font-weight:700">מצלמה</span><span style="font-size:14px;color:#4A5654;line-height:1.5">הווידאו לא יוצא מהמכשיר ולא נשמר</span></div>
+<div style="display:flex;align-items:center;justify-content:center;font-size:22px;color:#0E5A5E">←</div>
+<div style="background:#F3F5F4;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#4A5654">2</span><span style="font-size:18px;font-weight:700">עיבוד קצה</span><span style="font-size:14px;color:#4A5654;line-height:1.5">קובע לכל מקום פנוי או תפוס, מקומית. מזין גם את שלט ה-LED</span></div>
+<div style="display:flex;align-items:center;justify-content:center;font-size:22px;color:#0E5A5E">←</div>
+<div style="background:#F3F5F4;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#4A5654">3</span><span style="font-size:18px;font-weight:700">API</span><span style="font-size:14px;color:#4A5654;line-height:1.5">מקבל מזהה מקום ומצב בלבד</span></div>
+<div style="display:flex;align-items:center;justify-content:center;font-size:22px;color:#0E5A5E">←</div>
+<div style="background:#E3EFEE;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#0E5A5E">4</span><span style="font-size:18px;font-weight:700;color:#0E5A5E">נהג</span><span style="font-size:14px;color:#0E5A5E;line-height:1.5">מקומות פנויים, הקצאה והנחיה</span></div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:32px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600">יוצא מהמצלמה</span><div style="display:flex;gap:8px;flex-wrap:wrap"><span style="height:30px;padding:0 12px;border-radius:15px;background:#E2F1E8;color:#1B6E45;font-size:13px;font-weight:600;display:inline-flex;align-items:center">מזהה מקום</span><span style="height:30px;padding:0 12px;border-radius:15px;background:#E2F1E8;color:#1B6E45;font-size:13px;font-weight:600;display:inline-flex;align-items:center">פנוי / תפוס</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600">לא יוצא לעולם</span><div style="display:flex;gap:8px;flex-wrap:wrap"><span style="height:30px;padding:0 12px;border-radius:15px;background:#E7EAE9;color:#14211F;font-size:13px;font-weight:600;display:inline-flex;align-items:center;text-decoration:line-through">תמונות</span><span style="height:30px;padding:0 12px;border-radius:15px;background:#E7EAE9;color:#14211F;font-size:13px;font-weight:600;display:inline-flex;align-items:center;text-decoration:line-through">פנים</span><span style="height:30px;padding:0 12px;border-radius:15px;background:#E7EAE9;color:#14211F;font-size:13px;font-weight:600;display:inline-flex;align-items:center;text-decoration:line-through">לוחיות רישוי</span></div></div>
+</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:#4A5654">שלט LED בכניסה · פנויים לפי קומה<span style="height:22px;padding:0 8px;border-radius:6px;border:1px dashed #4A5654;color:#4A5654;font-size:12px;font-weight:600;display:inline-flex;align-items:center;white-space:nowrap;flex-shrink:0">הצעה</span></div>
+<div style="width:480px;background:#0B1312;border-radius:14px;padding:24px 28px;display:flex;flex-direction:column;gap:14px;border:6px solid #2A3533">
+<div style="display:flex;justify-content:space-between;align-items:center;color:#E6EDEC;font-size:22px;font-weight:700;padding-bottom:10px;border-bottom:1px solid #2A3533"><span>חניות פנויות</span><span style="font-size:14px;font-weight:500;color:#9FB0AD">P</span></div>
+<sc-for list="{{ ledRows }}" as="r" hint-placeholder-count="3">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#E6EDEC;font-size:24px;font-weight:600">{{ r.label }}</span><span style="color:{{ r.color }};font-size:44px;font-weight:700;line-height:1;letter-spacing:2px">{{ r.n }}</span></div>
+</sc-for>
+</div>
+<span style="font-size:13px;color:#4A5654;max-width:480px;line-height:1.5">מוזן ישירות מעיבוד הקצה, כך שהוא ממשיך להתעדכן גם כשאין קליטה סלולרית בחניון.</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:14px;font-weight:600;color:#4A5654">שלט פרטיות ליד המצלמות</div>
+<div style="width:360px;background:#fff;border-radius:14px;border:3px solid #14211F;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center">
+<div style="width:56px;height:56px;border-radius:50%;background:#E3EFEE;color:#0E5A5E;display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="13" height="10" rx="2"></rect><path d="M16 11l5-3v8l-5-3z"></path></svg></div>
+<span style="font-size:24px;font-weight:700;line-height:1.35;text-wrap:balance">ספירת חניות פנויות, ללא זיהוי, ללא שמירת וידאו</span>
+<span style="font-size:14px;font-weight:600;color:#4A5654">ParkWiz</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;pilotMode&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;פיילוט&quot;},&quot;pilotBays&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:12,&quot;max&quot;:20,&quot;step&quot;:1,&quot;default&quot;:16,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;פיילוט&quot;},&quot;offline&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;נהג&quot;}}">
+class Component extends DCLogic {
+  state = { level: '-2', step: 1 };
+  renderVals() {
+    const pilot = this.props.pilotMode ?? true;
+    const N = Math.min(20, Math.max(12, this.props.pilotBays ?? 16));
+    const offline = this.props.offline ?? true;
+    const fl = k => 'קומה \u2066' + k + '\u2069';
+    const st = {
+      F: { bg: '#E2F1E8', fg: '#1B6E45', border: '1.5px dashed #1B6E45' },
+      T: { bg: '#E7EAE9', fg: '#5B6664', border: '1.5px solid transparent' },
+      M: { bg: '#0E5A5E', fg: '#FFFFFF', border: '1.5px solid #0E5A5E' }
+    };
+    const color = p => p >= 90 ? '#C98A12' : '#0E5A5E';
+    const zone = (name, occ, tot) => { const p = Math.round(occ / tot * 100); return { name, pct: p + '%', detail: occ + '/' + tot, color: color(p) }; };
+    const maps = {
+      '-1': { p: 'A', s: 'TTTTFTTTTTTTTTTFTTTTTTTT' },
+      '-2': { p: 'B', s: 'TFTTTTMTTTFTTFTTTFTTTTFT' },
+      '-3': { p: 'C', s: 'FTFFTFFTFTFFTFFFTFTFFTFF' }
+    };
+    const build = (s, p) => s.split('').map((c, i) => ({ n: String(201 + i), c, ...st[c] }));
+    let lv = pilot ? '-2' : this.state.level;
+    let spots, rowsA, rowsB, totalBays, occCount, groups, freeNote, siteInfo;
+    if (pilot) {
+      spots = build('TFTTFTMTTTFTTTTFTTTF'.slice(0, N));
+      const h = Math.ceil(N / 2);
+      rowsA = spots.slice(0, h); rowsB = spots.slice(h);
+      const occ = a => a.filter(s => s.c !== 'F').length;
+      totalBays = N; occCount = occ(spots);
+      groups = [{ floor: fl('-2'), detail: occCount + ' מתוך ' + N, zones: [zone('B1', occ(rowsA), rowsA.length), zone('B2', occ(rowsB), rowsB.length)] }];
+      freeNote = 'אזור B1: ' + (rowsA.length - occ(rowsA)) + ' · אזור B2: ' + (rowsB.length - occ(rowsB));
+      siteInfo = 'פיילוט · ' + N + ' מקומות · ' + fl('-2');
+    } else {
+      spots = build(maps[lv].s);
+      rowsA = spots.slice(0, 12); rowsB = spots.slice(12);
+      totalBays = 280; occCount = 218;
+      groups = [
+        { floor: fl('-1'), detail: '91 מתוך 94', zones: [zone('A1', 46, 47), zone('A2', 45, 47)] },
+        { floor: fl('-2'), detail: '76 מתוך 93', zones: [zone('B1', 40, 47), zone('B2', 36, 46)] },
+        { floor: fl('-3'), detail: '51 מתוך 93', zones: [zone('C1', 30, 47), zone('C2', 21, 46)] }
+      ];
+      freeNote = 'רובם ב' + fl('-3');
+      siteInfo = '280 מקומות · 3 קומות';
+    }
+    const freeTotal = totalBays - occCount;
+    const occP = Math.round(occCount / totalBays * 100);
+    const levels = ['-1', '-2', '-3'].map(k => ({
+      name: fl(k), free: { '-1': 3, '-2': 17, '-3': 42 }[k],
+      bg: k === lv ? '#FFFFFF' : 'transparent', fg: k === lv ? '#0E5A5E' : '#4A5654',
+      select: () => this.setState({ level: k })
+    }));
+    const pre = pilot ? 'B' : maps[lv].p;
+    const firstFree = spots.find(s => s.c === 'F');
+    const stepsRaw = [
+      ['ירידה ל' + fl('-2'), 'רמפה ראשונה מימין אחרי המחסום', '30 שנ׳'],
+      ['אזור B1', 'עמודים ירוקים, שלט B1 על התקרה', '30 שנ׳'],
+      ['מקום 207', 'שורה שנייה מימין', '20 שנ׳'],
+      ['הליכה לשולחן', 'מעלית C ← קומה 3 · עמדה 3-118', '4 דק׳']
+    ];
+    const step = this.state.step;
+    const steps = stepsRaw.map(([title, detail, time], i) => {
+      const done = i < step, cur = i === step;
+      return { title, detail, time, dot: done ? '✓' : String(i + 1),
+        dotBg: done ? '#1B6E45' : cur ? '#0E5A5E' : '#E7EAE9', dotFg: done || cur ? '#FFFFFF' : '#4A5654',
+        rowBg: cur ? '#E3EFEE' : 'transparent' };
+    });
+    const ctas = ['הגעתי לקומה', 'הגעתי לאזור', 'חניתי', 'התחלה מחדש'];
+    const hoursRaw = [[6,12],[7,41],[8,92],[9,96],[10,88],[11,82],[12,79],[13,80],[14,78],[15,71],[16,58],[17,36],[18,18],[19,7]];
+    const hours = hoursRaw.map(([h, p]) => ({
+      label: String(h).padStart(2, '0') + ':00', short: String(h), pctLabel: p + '%',
+      hs: Math.round(p * 0.9) + 'px', hl: Math.round(p * 2.6) + 'px', color: color(p)
+    }));
+    const history = [
+      ['2','נוב׳','B-207','07:58–17:12','6 דק׳'],
+      ['1','נוב׳','B-211','08:21–16:40','5 דק׳'],
+      ['30','אוק׳','B-203','09:05–18:02','7 דק׳'],
+      ['29','אוק׳','B-207','07:49–17:30','6 דק׳'],
+      ['28','אוק׳','B-215','08:02–16:55','5 דק׳'],
+      ['27','אוק׳','B-205','08:15–17:05','6 דק׳']
+    ].map(([day, mon, spot, time, walk]) => ({ day, mon, spot, time, walk }));
+    const camRaw = pilot
+      ? [['מצלמה 1','B1','ready',98.7,0],['מצלמה 2','B2','cal',93.5,37]]
+      : [['מצלמה 1','A1','ready',99.1,0],['מצלמה 2','A2','ready',98.4,0],['מצלמה 3','B1','ready',98.7,0],['מצלמה 4','B2','cal',93.5,37],['מצלמה 5','C1','ready',97.9,0],['מצלמה 6','C2','cal',89.2,0]];
+    const floorOf = { A: '-1', B: '-2', C: '-3' };
+    const cameras = camRaw.map(([name, z, s, acc, pend]) => ({
+      name, area: fl(floorOf[z[0]]) + ' · ' + z,
+      status: s === 'ready' ? 'מוכנה' : 'בכיול',
+      sBg: s === 'ready' ? '#E2F1E8' : '#FBF0D9', sFg: s === 'ready' ? '#1B6E45' : '#8A5A00',
+      acc: acc + '%',
+      conn: pend ? 'לא מקוונת · שומרת מקומית, ' + pend + ' עדכונים ממתינים' : 'מחוברת',
+      connShort: pend ? 'לא מקוונת · ' + pend + ' ממתינים' : 'מחוברת',
+      connFg: pend ? '#8A5A00' : '#1B6E45'
+    }));
+    const off = camRaw.filter(c => c[4]).length;
+    const freeA = rowsA.filter(s => s.c === 'F').length, freeB = rowsB.filter(s => s.c === 'F').length;
+    const led = (label, n) => ({ label, n: String(n).padStart(2, '0'), color: n === 0 ? '#FF8A7A' : '#7CF29A' });
+    const ledRows = pilot ? [led(fl('-2') + ' · B1', freeA), led(fl('-2') + ' · B2', freeB)] : [led(fl('-1'), 3), led(fl('-2'), 17), led(fl('-3'), 42)];
+    return {
+      cameras, ledRows, hasOffline: off > 0,
+      offlineNote: off + ' מצלמה לא מקוונת · הסטטוס נשמר מקומית ויועלה כשהחיבור יחזור',
+      pilot, notPilot: !pilot, offline, levels, history, hours, groups, steps,
+      signal: offline ? '○○○ ▮' : '●●● ▮',
+      stepCta: ctas[step], nextStep: () => this.setState(s => ({ step: (s.step + 1) % 4 })),
+      rowsA, rowsB, colsA: rowsA.length <= 10 ? rowsA.length : 6, colsB: rowsB.length <= 10 ? rowsB.length : 6, zoneAName: 'אזור ' + pre + '1', zoneBName: 'אזור ' + pre + '2',
+      totalBays, occCount, freeTotal, occPct: occP + '%', freeNote, siteInfo,
+      siteName: pilot ? 'חניון מגדל הצפון · פיילוט' : 'חניון מגדל הצפון · היום',
+      ring: 'conic-gradient(#0E5A5E 0 ' + occP + '%, #E3EFEE ' + occP + '% 100%)',
+      kpiEntry: pilot ? '1:12 דק׳' : '1:48 דק׳', kpiWait: pilot ? '0:18 דק׳' : '0:32 דק׳',
+      kpiEvents: pilot ? 'אירוע עומס 1 היום' : '3 אירועי עומס היום',
+      nearest: firstFree ? pre + '-' + firstFree.n + ' · ' + fl(lv) : 'אין מקום פנוי בקומה',
+      nearestWalk: lv === '-3' ? '6 דק׳ לשולחן' : '4 דק׳ לשולחן'
+    };
+  }
+}
+</script>
+</body>
+</html>
