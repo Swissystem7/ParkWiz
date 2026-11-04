@@ -229,6 +229,37 @@ h1 { font-size: 1.25rem; margin: 0; font-weight: 800; }
   border-color: var(--brand);
   color: var(--brand);
 }
+
+/* design-06: the phone is the design's 360px driver app (project 4db02f73,
+   "אפליקציית נהג"): grey-green screen, white 20px cards, the notification as
+   the teal hero card, dashed privacy tag, 44px controls. Only the look changes. */
+header.top { border-bottom: 0; background: var(--pw-surface); border-radius: 18px; padding: 14px 20px; }
+h1 { font-size: var(--pw-fs-h1); font-weight: 700; letter-spacing: -.01em; line-height: 1.25; }
+.brand-badge { background: var(--pw-brand); color: var(--pw-on-brand); border-radius: 6px; }
+.banner { background: var(--pw-attn-soft); border: 1px dashed var(--pw-attn); color: var(--pw-ink); border-radius: 12px; line-height: 1.6; }
+.phone-mockup { background: #f3f5f4; border: 0; border-radius: 32px; box-shadow: 0 1px 2px rgba(20,33,31,.08), 0 12px 40px rgba(20,33,31,.10); }
+.phone-header { color: #14211f; font-weight: 600; font-size: 13px; border-bottom: 0; padding: 12px 24px 4px; }
+.phone-notch { display: none; }
+.phone-body { padding: 12px 20px 16px; }
+.phone-title { color: #14211f; font-size: 1.125rem; font-weight: 700; }
+.phone-notif-box { background: #0e5a5e; border: 0; border-radius: 24px; padding: 20px; box-shadow: none; }
+.notif-tag { color: #d5e8e6; font-weight: 500; font-size: 13px; }
+.notif-title { color: #fff; font-size: 1.25rem; font-weight: 700; line-height: 1.3; }
+.notif-body { color: #d5e8e6; font-size: .94rem; line-height: 1.5; }
+.notif-meta { color: #d5e8e6; font-family: var(--pw-font-num); }
+.privacy-badge { background: transparent; border: 1px dashed currentColor; border-radius: 6px; color: #4a5654; font-size: 11px; font-weight: 600; padding: 2px 8px; }
+.phone-notif-box .privacy-badge { color: #d5e8e6; }
+.timeline-card { background: #fff; border: 0; border-radius: 20px; }
+.timeline-step { min-height: 44px; border-radius: 14px; color: #14211f; }
+.timeline-step.active { background: #e3efee; color: #0e5a5e; border-color: #0e5a5e; }
+.timeline-step .time { color: #4a5654; }
+.panel { background: var(--pw-surface); border: 1px solid var(--pw-line); border-radius: 18px; box-shadow: none; }
+.panel h2 { font-size: 1.125rem; font-weight: 600; }
+.status-pill { min-height: 24px; display: inline-flex; align-items: center; border-radius: 12px; font-weight: 600; }
+.status-pill.live { background: var(--pw-free-soft); color: var(--pw-free); }
+.status-pill.planned { background: var(--pw-taken-soft); color: var(--pw-taken); }
+.btn-trigger { min-height: 44px; border-radius: 12px; font-weight: 600; }
+@media (max-width: 600px) { h1 { font-size: 1.375rem; } }
 </style>
 <script src="../src/lib/freshness.js" defer></script>
 </head>
