@@ -67,12 +67,19 @@ input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(-
     <p id="compatOut" role="status" aria-live="polite">עדיין לא הופקה רשימה.</p>
   </section>
 
-  <section class="card"><h2>מסך סיום ניסוי — רשימת סגירה</h2>
+  <section class="card" id="endList"><h2>מסך סיום ניסוי — רשימת סגירה</h2>
     <label><input type="checkbox"> הפסקת התראות</label>
     <label><input type="checkbox"> ביטול גישה למצלמות</label>
     <label><input type="checkbox"> מחיקת נתוני הניסוי ואישור בכתב</label>
     <label><input type="checkbox"> סיכום תוצאות מול ספירה ידנית</label>
     <label><input type="checkbox"> החלטה על המשך או סיום</label>
+    <label><input type="checkbox"> פירוק והסרת ציוד ParkWiz מהאתר (מי מסיר — לפי ההסכם)</label>
+    <label><input type="checkbox"> אישור שנתוני הניסוי לא שימשו לאימון בלי הרשאה נפרדת</label>
+    <p id="endStatus" role="status" aria-live="polite">סומנו 0 מתוך 7 — הסגירה לא הושלמה (הדגמה).</p>
+    <script>
+    // research-07: end-of-trial status — "complete" only when every item is checked.
+    (function(){var box=document.getElementById('endList'),out=document.getElementById('endStatus');function upd(){var all=box.querySelectorAll('input[type=checkbox]'),n=0;all.forEach(function(c){if(c.checked)n++;});out.textContent='סומנו '+n+' מתוך '+all.length+' — '+(n===all.length?'הסגירה הושלמה (הדגמה).':'הסגירה לא הושלמה (הדגמה).');}box.addEventListener('change',upd);upd();})();
+    </script>
   </section>
 
   <p><a class="btn" href="./atidim.html">לדמו החניון</a> &nbsp;<a href="../index.html">דף הבית</a></p>
