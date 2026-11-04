@@ -95,5 +95,5 @@ test('driver map, lot-manager page, and live-lot page load the design system bef
 
 test('fonts stay local: no web-font CDN (the pages must work offline)', () => {
   assert.doesNotMatch(tokens, /@import|url\(\s*["']?https?:/);
-  assert.match(tokens, /--pw-font:'Heebo','Rubik'/);
+  assert.match(tokens, /--pw-font:'IBM Plex Sans Hebrew','Heebo','Rubik'/);
 });

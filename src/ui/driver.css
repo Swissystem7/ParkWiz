@@ -99,10 +99,10 @@
 /* Inline styles in the markup paint dark ink on the brand fill; white reads at AA on the light brand. */
 [data-theme="light"] [style*="color:#0a0f0a"]{color:var(--pw-on-brand)!important}
 [data-theme="light"] .btn-ghost,[data-theme="light"] .btn-cancel-r,[data-theme="light"] .free-pill{background:var(--pw-chip);color:var(--pw-ink)}
-[data-theme="light"] .eval-banner{background:#0e7490}
+[data-theme="light"] .eval-banner{background:#14211f}
 [data-theme="light"] .pw-surface-nav{background:var(--pw-surface)!important;border-color:var(--pw-line)!important}
 [data-theme="light"] .pw-surface-nav a{color:var(--pw-ink)!important;border-color:var(--pw-line)!important}
-[data-theme="light"] .pw-surface-nav span.here{color:#fff!important;background:#0e7490!important}
+[data-theme="light"] .pw-surface-nav span.here{color:var(--pw-on-brand)!important;background:var(--pw-brand)!important}
 [data-theme="light"] .profile-overlay{background:var(--pw-bg)}
 /* availColor() returns map-line hexes (Leaflet needs literals); as text on a light card they fail AA. */
 [data-theme="light"] [style*="color:#22c55e"],[data-theme="light"] [style*="color: rgb(34, 197, 94)"]{color:var(--pw-brand)!important}
