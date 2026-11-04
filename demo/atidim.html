@@ -100,6 +100,55 @@ svg.chart line[stroke="#ef4444"]{stroke:var(--occ)}
 [data-theme="light"] button.active,[data-theme="light"] .brand-badge,[data-theme="light"] .step-num,[data-theme="light"] .btn-primary{color:#fff}
 .theme-slot{display:flex;align-items:center;gap:10px}
 @media (prefers-reduced-motion:reduce){.feed li{animation:none}}
+/* ── design-03: operator dashboard in the Claude Design look (project 4db02f73,
+   "לוח בקרה · מפעיל / מעסיק"): white 18px cards on the grey-green surface,
+   KPI = 14px muted label + 34/700 number, section titles 18/600, teal brand,
+   amber notice, 44px controls. Only the look changes. */
+:root,[data-theme="light"]{--brand:var(--pw-brand);--free:var(--pw-free);--free-bg:var(--pw-free-soft)}
+a{color:var(--pw-brand)}
+.wrap{padding:24px 20px 60px}
+header.top{border-bottom:0;padding:20px 24px;margin-bottom:20px;background:var(--pw-surface);border-radius:18px}
+.brand-badge{background:var(--pw-brand);color:var(--pw-on-brand);border-radius:6px;font-weight:700;padding:4px 10px}
+h1{font-size:var(--pw-fs-h1);font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.sub{font-size:var(--pw-fs-small);color:var(--pw-muted)}
+.badge-live{min-height:30px;padding:0 12px;border:0;border-radius:15px;background:var(--pw-free-soft);color:var(--pw-free);font-size:.81rem;font-weight:600}
+.pulse{background:var(--pw-free);box-shadow:none}
+.sim-note,[data-theme="light"] .sim-note{background:var(--pw-attn-soft);border:1px dashed var(--pw-attn);border-radius:var(--pw-radius-md);color:var(--pw-ink);padding:12px 14px;font-size:var(--pw-fs-small);line-height:1.6}
+.sim-note b{color:var(--pw-attn)}
+.kpis{gap:16px;margin-bottom:20px}
+.kpi,.kpi.free,.kpi.occ{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:18px;padding:20px;box-shadow:none;display:flex;flex-direction:column;gap:4px}
+.kpi .num{font-size:2.125rem;font-weight:700;color:var(--pw-ink)}
+.kpi.free .num{color:var(--pw-free)}
+.kpi.occ .num{color:var(--pw-danger)}
+.kpi .lbl{order:-1;margin-top:0;font-size:var(--pw-fs-small);color:var(--pw-muted)}
+.card{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:18px;padding:24px;box-shadow:none;margin-bottom:20px}
+.card-hdr h2{font-size:1.125rem;font-weight:600}
+.stream-box{border-radius:var(--pw-radius-md)}
+button{min-height:44px;padding:0 16px;border-radius:var(--pw-radius-md);border:1.5px solid var(--pw-line);background:var(--pw-surface);color:var(--pw-ink);font-family:inherit;font-size:.88rem;font-weight:600}
+button:hover{border-color:var(--pw-brand);background:var(--pw-brand-soft);color:var(--pw-brand)}
+button.active,[data-theme="light"] button.active{background:var(--pw-brand);border-color:var(--pw-brand);color:var(--pw-on-brand)}
+.bay-status{color:var(--pw-brand);font-weight:500}
+.hint{font-size:var(--pw-fs-caption);color:var(--pw-muted)}
+.step{background:var(--pw-bg);border:0;border-radius:14px;padding:16px}
+.step-num,[data-theme="light"] .step-num{background:var(--pw-brand);color:var(--pw-on-brand);width:28px;height:28px;line-height:28px;font-weight:700}
+.step h3{font-size:1rem;font-weight:600}
+.step p{font-size:var(--pw-fs-small);line-height:1.6}
+.priv-item{background:var(--pw-free-soft);border:1.5px dashed var(--pw-free);border-radius:var(--pw-radius-md);font-size:var(--pw-fs-small)}
+.priv-item b{color:var(--pw-free)}
+.cta,[data-theme="light"] .cta{background:var(--pw-hero-bg);color:var(--pw-hero-ink);border:0;border-radius:var(--pw-radius-hero);padding:24px}
+.cta h3{font-size:1.25rem;font-weight:700;color:var(--pw-hero-ink)}
+.cta p{color:var(--pw-hero-muted)}
+.btn-primary,[data-theme="light"] .btn-primary{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 24px;border-radius:var(--pw-radius-btn);background:#fff;color:var(--pw-hero-bg);font-weight:600;font-size:1rem}
+.toast{background:var(--pw-ink);color:var(--pw-surface);border-radius:var(--pw-radius-md);font-weight:600}
+.feed .sid{color:var(--pw-free)}
+@media(max-width:540px){
+  .wrap{padding:16px 16px 48px}
+  header.top{padding:16px}
+  h1{font-size:1.375rem}
+  .kpi{padding:16px}
+  .kpi .num{font-size:1.75rem}
+  .card{padding:16px}
+}
 </style>
 </head>
 <body>
