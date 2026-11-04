@@ -41,6 +41,9 @@ h2 { font-size: 1.125rem; font-weight: 600; }
 input[type="url"], input[type="file"] { min-height: 44px; border: 1.5px solid var(--line); border-radius: 12px; }
 #toast { background: var(--ink); color: #fff; border-radius: 12px; font-weight: 600; }
 @media (max-width: 600px) { h1 { font-size: 1.375rem; } .kpi .num { font-size: 1.75rem; } }
+
+/* design-10: this page is light-only (pilot/shell.css); the shared demo chrome reads the --pw-* tokens, so point them at the shell values (the lede was pale grey on white) */
+:root { --pw-ink: var(--ink); --pw-muted: var(--muted); --pw-line: var(--line); --pw-surface: var(--panel); --pw-chip: var(--bg); --pw-brand: var(--brand); --pw-brand-soft: #e3efee; --pw-on-brand: #fff; }
 </style>
 </head>
 <body>
@@ -334,7 +337,9 @@ input[type="url"], input[type="file"] { min-height: 44px; border: 1.5px solid va
     else ctx.clearRect(0, 0, W, H);
     ctx.lineWidth = Math.max(2, Math.round(W / 420));
     ctx.font = (ctx.lineWidth * 7) + 'px system-ui, sans-serif';
-    ctx.strokeStyle = '#67e8f9';
+    // Overlay colours from the design tokens (dark-theme values, readable on video frames).
+    var PW_CAM = { box:'#5cc2bc', label:'#6fd39d', free:'#6fd39d', freeFill:'rgba(111,211,157,.3)', occ:'#f87171', occFill:'rgba(248,113,113,.3)', draw:'#5cc2bc' };
+    ctx.strokeStyle = PW_CAM.box;
     boxes.forEach(function (b) {
       var bx = b.x * W, by = b.y * H, bw = b.w * W, bh = b.h * H;
       ctx.strokeRect(bx, by, bw, bh);
@@ -350,7 +355,7 @@ input[type="url"], input[type="file"] { min-height: 44px; border: 1.5px solid va
           ctx.fillRect(px + mx, py + my, Math.min(4, pw - mx), Math.min(2, ph - my));
         }
       }
-      ctx.fillStyle = '#22c55e';
+      ctx.fillStyle = PW_CAM.label;
       ctx.font = 'bold 9px monospace';
       ctx.fillText('[לוחית מטושטשת]', px - 10, py - 3);
     });
@@ -366,19 +371,19 @@ input[type="url"], input[type="file"] { min-height: 44px; border: 1.5px solid va
           ctx.fillRect(hx - 5 + fx, hy + fy, 3, 3);
         }
       }
-      ctx.fillStyle = '#22c55e'; ctx.font = 'bold 9px monospace';
+      ctx.fillStyle = PW_CAM.label; ctx.font = 'bold 9px monospace';
       ctx.fillText('[פנים מטושטשות]', hx - 25, hy - 4);
     }
     state.spots.forEach(function (s) {
-      ctx.strokeStyle = s.occupied ? '#dc2626' : '#16a34a';
-      ctx.fillStyle = s.occupied ? 'rgba(220,38,38,.3)' : 'rgba(22,163,74,.3)';
+      ctx.strokeStyle = s.occupied ? PW_CAM.occ : PW_CAM.free;
+      ctx.fillStyle = s.occupied ? PW_CAM.occFill : PW_CAM.freeFill;
       ctx.fillRect(s.x * W, s.y * H, s.w * W, s.h * H);
       ctx.strokeRect(s.x * W, s.y * H, s.w * W, s.h * H);
       ctx.fillStyle = '#fff';
       ctx.fillText(s.id, s.x * W + 6, s.y * H + ctx.lineWidth * 8);
     });
     if (drag) {
-      ctx.strokeStyle = '#0e7490';
+      ctx.strokeStyle = PW_CAM.draw;
       ctx.setLineDash([6, 4]);
       ctx.strokeRect(drag.a.x * W, drag.a.y * H, (drag.b.x - drag.a.x) * W, (drag.b.y - drag.a.y) * H);
       ctx.setLineDash([]);
