@@ -1,89 +1,110 @@
-/* Shared municipal-page chrome: tokens + surface nav. Page-specific layout stays local. */
+/* Shared municipal-page chrome: tokens + surface nav. Page-specific layout stays local.
+   Look: Claude Design system (project 4db02f73, export #417): teal + ink on the
+   grey-green surface, white 18px cards, 44px controls, amber dashed notices.
+   These pages do not load src/ui/tokens.css, so the design values live here.
+   The "design layer" at the end is prefixed with `html` so it wins over each
+   page's own inline <style> (loaded after this file) without !important. */
 :root {
-  --bg: #f4f6f8;
+  --bg: #f3f5f4;
   --panel: #fff;
-  --ink: #111827;
-  --muted: #6b7280;
-  --line: #e5e7eb;
-  --brand: #0e7490;
-  --free: #16a34a;
-  --occ: #dc2626;
-  --warn: #92400e;
-  --warnbg: #fffbeb;
-  --shadow: 0 1px 2px rgba(16, 24, 40, .06);
+  --ink: #14211f;
+  --muted: #4a5654;
+  --line: #dde3e1;
+  --brand: #0e5a5e;
+  --brand-hover: #0a4245;
+  --brand-soft: #e3efee;
+  --free: #1b6e45;
+  --free-soft: #e2f1e8;
+  --occ: #b42318;
+  --warn: #8a5a00;
+  --warnbg: #fbf0d9;
+  --shadow: none;
+  --pw-font: 'IBM Plex Sans Hebrew', 'Heebo', 'Rubik', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Hebrew', Arial, sans-serif;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
-  font-family: system-ui, "Segoe UI", Roboto, "Noto Sans Hebrew", Arial, sans-serif;
+  font-family: var(--pw-font);
   background: var(--bg);
   color: var(--ink);
   line-height: 1.55;
 }
+a { color: var(--brand); }
 .pw-surface-nav {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   justify-content: center;
-  padding: 7px 12px;
-  background: #0f1420;
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
-  font: 600 0.78rem system-ui, sans-serif;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  font: 600 0.82rem var(--pw-font);
 }
 .pw-surface-nav a,
 .pw-surface-nav span.here {
-  color: #e8f0ff;
-  border: 1px solid rgba(255, 255, 255, .18);
-  border-radius: 14px;
-  padding: 3px 11px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0 14px;
   text-decoration: none;
 }
 .pw-surface-nav span.here {
   color: #fff;
-  background: rgba(14, 116, 144, .45);
-  border-color: rgba(103, 232, 249, .45);
+  background: var(--brand);
+  border-color: var(--brand);
 }
 .banner {
   background: var(--warnbg);
-  border: 1px solid #f59e0b;
-  color: var(--warn);
+  border: 1px dashed var(--warn);
+  color: var(--ink);
   border-radius: 12px;
-  padding: 10px 14px;
-  font-size: .86rem;
+  padding: 12px 14px;
+  font-size: .875rem;
+  line-height: 1.6;
   margin-bottom: 16px;
 }
+.banner b, .banner strong { color: var(--warn); }
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 16px 18px;
+  border-radius: 18px;
+  padding: 20px 24px;
   box-shadow: var(--shadow);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
-.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
 button {
   font: inherit;
   cursor: pointer;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--ink);
-  padding: 7px 12px;
-  border-radius: 10px;
+  border: 1.5px solid var(--brand);
+  background: var(--panel);
+  color: var(--brand);
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
   font-weight: 600;
-  font-size: .82rem;
+  font-size: .88rem;
 }
+button:hover { background: var(--brand-soft); }
 button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+button.primary:hover { background: var(--brand-hover); border-color: var(--brand-hover); }
 svg.chart { display: block; width: 100%; height: auto; }
 .skip-link {
   position: absolute;
-  top: -40px;
+  top: -48px;
   right: 8px;
   z-index: 400;
   background: var(--brand);
   color: #fff;
-  padding: 8px 12px;
-  border-radius: 8px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 12px;
   font-weight: 700;
   text-decoration: none;
 }
@@ -96,4 +117,47 @@ svg.chart { display: block; width: 100%; height: auto; }
     transition-duration: .01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ── design layer: shared look for the municipal pages ── */
+html body { font-family: var(--pw-font); }
+html h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.01em; line-height: 1.25; color: var(--ink); }
+html .sub { color: var(--muted); font-size: .94rem; line-height: 1.6; }
+html .panel h2 { font-size: 1.125rem; font-weight: 600; color: var(--ink); }
+html .kpis { gap: 16px; }
+html .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; box-shadow: none; }
+html .kpi .n { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; }
+html .kpi .l { color: var(--muted); font-size: .875rem; }
+html .hint { color: var(--muted); font-size: .81rem; }
+html .status { color: var(--brand); font-weight: 500; }
+html th { color: var(--muted); font-weight: 600; font-size: .81rem; border-bottom: 1px solid var(--line); }
+html td { border-bottom: 1px solid var(--line); }
+html input[type=text], html input[type=number], html select, html textarea {
+  font: inherit; min-height: 44px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); padding: 8px 12px;
+}
+html textarea { min-height: 88px; }
+html input:focus-visible, html select:focus-visible, html textarea:focus-visible { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+html button { min-height: 44px; border-radius: 12px; }
+html .foot { color: var(--muted); }
+html .banner { background: var(--warnbg); border: 1px dashed var(--warn); color: var(--ink); border-radius: 12px; padding: 12px 14px; font-size: .875rem; line-height: 1.6; }
+html .banner b, html .banner strong { color: var(--warn); }
+html .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: none; }
+html button { border: 1.5px solid var(--brand); background: var(--panel); color: var(--brand); padding: 0 16px; font-weight: 600; }
+html button:hover { background: var(--brand-soft); }
+html button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+html button.primary:hover { background: var(--brand-hover); }
+html button.danger { border-color: var(--occ); color: var(--occ); background: var(--panel); }
+html button:disabled { opacity: .55; cursor: not-allowed; }
+html .toolbar a { display: inline-flex; align-items: center; min-height: 44px; }
+@media (max-width: 600px) {
+  html h1 { font-size: 1.375rem; }
+  html .panel { padding: 16px; }
+}
+html input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]) { min-height: 44px; }
+html input[type=file] { min-height: 44px; max-width: 100%; padding: 6px 0; font: inherit; font-size: .875rem; }
+html input[type=checkbox], html input[type=radio] { width: 22px; height: 22px; accent-color: var(--brand); vertical-align: middle; }
+html .grid > *, html .grid2 > *, html .kpis > * { min-width: 0; }
+@media (max-width: 600px) {
+  html .kpi { padding: 12px 14px; }
+  html .kpi .n { font-size: 1.5rem; }
 }

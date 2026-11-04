@@ -6,7 +6,7 @@
 <script src="src/lib/sentry.js"></script>
 <title>ParkWiz — תוכנית פיילוט לפארק עתידים</title>
 <meta name="description" content="עמוד אחד לרוני, מנהל חניוני פארק עתידים: הבעיה בשעת שיא, מה המערכת נותנת, פרטיות, פיילוט חינם ל-4 שבועות ומה צריך מעתידים.">
-<meta name="theme-color" content="#0e7490">
+<meta name="theme-color" content="#0e5a5e">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="stylesheet" href="pilot/shell.css">
@@ -153,7 +153,7 @@ function setStatus(text, isErr) {
   const el = document.getElementById("planStatus");
   if (!el) return;
   el.textContent = text || "";
-  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e7490)";
+  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e5a5e)";
 }
 
 function getPlanSummaryText() {
