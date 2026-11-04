@@ -20,11 +20,17 @@
     if (typeof document === 'undefined' || document.getElementById('pw-surface-nav-css')) return;
     const s = document.createElement('style');
     s.id = 'pw-surface-nav-css';
-    s.textContent = '.pw-surface-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:7px 12px;background:#0f1420;border-bottom:1px solid rgba(255,255,255,.08);font:600 0.78rem system-ui,sans-serif}'
-      + '.pw-surface-nav a,.pw-surface-nav span.here{color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none}'
-      + '.pw-surface-nav span.here{color:#fff;background:rgba(14,116,144,.45);border-color:rgba(103,232,249,.45)}'
+    // Look: Claude Design system (project 4db02f73): white bar, 44px pills,
+    // teal for the current page. Tokens from src/ui/tokens.css, with fallbacks
+    // for pages that do not load it.
+    s.textContent = '.pw-surface-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:8px 12px;background:var(--pw-surface,#fff);border-bottom:1px solid var(--pw-line,#dde3e1);font:600 0.82rem var(--pw-font,system-ui,sans-serif)}'
+      + '.pw-surface-nav a,.pw-surface-nav span.here{display:inline-flex;align-items:center;min-height:44px;color:var(--pw-ink,#14211f);border:1px solid var(--pw-line,#dde3e1);border-radius:12px;padding:0 14px;text-decoration:none;background:var(--pw-surface,#fff)}'
+      + '.pw-surface-nav a:hover{background:var(--pw-brand-soft,#e3efee);color:var(--pw-brand,#0e5a5e)}'
+      + '.pw-surface-nav a:focus-visible{outline:none;box-shadow:var(--pw-focus,0 0 0 3px #0e5a5e)}'
+      + '.pw-surface-nav span.here{color:var(--pw-on-brand,#fff);background:var(--pw-brand,#0e5a5e);border-color:var(--pw-brand,#0e5a5e)}'
+      + '.pw-surface-nav .pw-nav-brand{font-weight:700;font-size:1rem;color:var(--pw-brand,#0e5a5e);padding-inline-end:4px}'
       // Phones: one swipeable row instead of five wrapped rows above the content.
-      + '@media(max-width:600px){.pw-surface-nav{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}'
+      + '@media(max-width:600px){.pw-surface-nav{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:6px 12px}'
       + '.pw-surface-nav::-webkit-scrollbar{display:none}.pw-surface-nav>*{flex-shrink:0;white-space:nowrap}}';
     document.head.appendChild(s);
   }
@@ -38,7 +44,7 @@
     host.replaceChildren();
     const brand = document.createElement('span');
     brand.textContent = 'ParkWiz';
-    brand.style.color = '#8ba3c7';
+    brand.className = 'pw-nav-brand';
     host.appendChild(brand);
     LINKS.forEach((item) => {
       const el = document.createElement(item.id === active ? 'span' : 'a');
