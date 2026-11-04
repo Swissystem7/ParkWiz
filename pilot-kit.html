@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="src/lib/sentry.js"></script>
 <title>ParkWiz — ערכת פיילוט</title>
-<meta name="theme-color" content="#0e7490">
+<meta name="theme-color" content="#0e5a5e">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="stylesheet" href="pilot/shell.css">
@@ -220,7 +220,7 @@ function setStatus(msg, isErr) {
   const el = document.getElementById("kitStatus");
   if (!el) return;
   el.textContent = msg || "";
-  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e7490)";
+  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e5a5e)";
 }
 
 function labelCanvas() {

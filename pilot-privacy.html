@@ -5,29 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="src/lib/sentry.js"></script>
 <title>ParkWiz — בקשת גישה למצלמה והצהרת פרטיות</title>
-<meta name="theme-color" content="#0e7490">
+<meta name="theme-color" content="#0e5a5e">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="pilot/shell.css">
 <link rel="stylesheet" href="pilot/print.css">
 <style>
 :root{
-  --bg:#f4f6f8; --panel:#fff; --ink:#111827; --muted:#6b7280;
-  --line:#e5e7eb; --brand:#0e7490; --warn:#92400e; --warnbg:#fffbeb;
-  --shadow:0 1px 2px rgba(16,24,40,.06);
+  --bg:#f3f5f4; --panel:#fff; --ink:#14211f; --muted:#4a5654;
+  --line:#dde3e1; --brand:#0e5a5e; --warn:#8a5a00; --warnbg:#fbf0d9;
+  --shadow:none;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
 body{
-  font-family:system-ui,"Segoe UI",Roboto,"Noto Sans Hebrew",Arial,sans-serif;
+  font-family:var(--pw-font);
   background:var(--bg); color:var(--ink); line-height:1.55;
 }
 nav.pw-surface-nav{
   display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;
-  padding:7px 12px;background:#0f1420;border-bottom:1px solid rgba(255,255,255,.08);
-  font:600 0.78rem system-ui,sans-serif;
+  padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);
+  font:600 0.82rem var(--pw-font);
 }
-nav a{color:#e8f0ff;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:3px 11px;text-decoration:none}
-nav a.here{color:#fff;background:rgba(14,116,144,.45);border-color:rgba(103,232,249,.45)}
+nav a{display:inline-flex;align-items:center;min-height:44px;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:0 14px;text-decoration:none}
+nav a.here{color:#fff;background:var(--brand);border-color:var(--brand)}
 .wrap{max-width:800px;margin:0 auto;padding:20px 16px 72px}
 h1{font-size:1.35rem;margin:0 0 4px}
 .sub{color:var(--muted);font-size:.88rem;margin:0 0 14px}
