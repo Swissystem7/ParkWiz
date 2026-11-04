@@ -896,9 +896,9 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
     <!-- Collapsed on phones so the legend does not cover the map; opened on wider screens. -->
     <details class="legend" id="mapLegend">
       <summary>מקרא</summary>
-      <div class="legend-item"><div class="seg-lg" style="background:var(--green)"></div>קל (70%+)</div>
-      <div class="legend-item"><div class="seg-lg" style="background:var(--yellow)"></div>בינוני (30-70%)</div>
-      <div class="legend-item"><div class="seg-lg" style="background:var(--red)"></div>קשה (0-30%)</div>
+      <div class="legend-item"><div class="seg-lg" style="background:#1b6e45"></div>קל (70%+)</div>
+      <div class="legend-item"><div class="seg-lg" style="background:#e5b45a"></div>בינוני (30-70%)</div>
+      <div class="legend-item"><div class="seg-lg" style="background:#b42318"></div>קשה (0-30%)</div>
       <div class="legend-item"><div class="dot-lg" style="background:var(--blue)"></div>אתה כאן</div>
       <div class="legend-item"><div class="seg-lg" style="background:#3b82f6"></div>כחול-לבן</div>
       <div class="legend-item"><div class="seg-lg" style="background:#9ca3af"></div>אפור (חינם)</div>
@@ -1257,6 +1257,10 @@ const STREETS_DEF = [
 ];
 
 // ─── מפה אמיתית (Leaflet + OpenStreetMap) עם סימוני חניה ─────────
+// Map colours from the Claude Design tokens (project 4db02f73, src/ui/tokens.css).
+// Leaflet needs literal colours, so the token values are copied here; curb colours
+// (blue-white, grey, red-white, reserved) stay the real street markings.
+const PW_MAP_COLORS = { free:'#1b6e45', mid:'#e5b45a', hard:'#b42318', brand:'#0e5a5e', ink:'#14211f' };
 const ZONE_COLORS = { blue:'#3b82f6', free:'#9ca3af', timed:'#f59e0b' };
 let realMap = null, segLayers = [], midMarkers = [], heatLayer = null;
 let userMarker = null, overlaySpotLayer = null, overlayPangoLayer = null;
@@ -1297,7 +1301,7 @@ function arrivalMode(lat, lng, name) {
   if (!realMap) return;
   if (destMarker) { destMarker.remove(); destCircle.remove(); }
   destMarker = L.marker([lat, lng]).addTo(realMap).bindTooltip('🎯 ' + name);
-  destCircle = L.circle([lat, lng], { radius: 300, color:'#22c55e', weight:1.5, fillOpacity:0.05 }).addTo(realMap);
+  destCircle = L.circle([lat, lng], { radius: 300, color:PW_MAP_COLORS.brand, weight:1.5, fillOpacity:0.05 }).addTo(realMap);
   realMap.setView([lat, lng], 16);
 
   const near = CURBS.flat().filter(ch => distM([lat,lng], ch.mid) <= 300);
@@ -1436,7 +1440,7 @@ function initRealMap() {
     const mid = [ (s.a[0]+s.b[0])/2, (s.a[1]+s.b[1])/2 ];
     const pct = getCurrentHourAvailabilityPct(idx);
     const mk = L.circleMarker(mid, {
-      radius: 13, color:'#0c1a0c', weight:2,
+      radius: 13, color:PW_MAP_COLORS.ink, weight:2,
       fillColor: availColor(pct), fillOpacity: 0.95,
     }).addTo(realMap);
     mk.bindTooltip(`${s.name} · סיכוי ${pct}% (הערכה, לא הבטחה)`, {direction:'top'});
@@ -1642,9 +1646,9 @@ function fitInfo(idx) {
   const gap = streetGap(idx);
   const need = getVehicle().len + 0.4; // מרווח תמרון
   const ratio = gap / need;
-  if (ratio >= 1.15) return { txt:'✓ מתאים לרכב שלך', color:'#22c55e', gap };
-  if (ratio >= 0.98) return { txt:'⚠ צפוף לרכב שלך', color:'#eab308', gap };
-  return { txt:'✗ צר מדי לרכב שלך', color:'#ef4444', gap };
+  if (ratio >= 1.15) return { txt:'✓ מתאים לרכב שלך', color:PW_MAP_COLORS.free, gap };
+  if (ratio >= 0.98) return { txt:'⚠ צפוף לרכב שלך', color:PW_MAP_COLORS.mid, gap };
+  return { txt:'✗ צר מדי לרכב שלך', color:PW_MAP_COLORS.hard, gap };
 }
 // ─── ניווט חיצוני: Waze + Google Maps (deep links רשמיים) ──────────
 function navWaze(idx, ev) {
@@ -1813,9 +1817,9 @@ function init() {
 
 // ─── Availability color ───────────────────────────────────────────
 function availColor(pct) {
-  if (pct >= 70) return '#22c55e';
-  if (pct >= 30) return '#eab308';
-  return '#ef4444';
+  if (pct >= 70) return PW_MAP_COLORS.free;
+  if (pct >= 30) return PW_MAP_COLORS.mid;
+  return PW_MAP_COLORS.hard;
 }
 
 function getHourlySlotIndex(targetDate, slotCount) {
@@ -1922,7 +1926,7 @@ function updateLeafletOverlays() {
     if (sdef && !activeFilters[sdef.type]) return;
     const frac = sdef && sdef.isH ? s.x : s.y;
     const ll = sdef ? streetPointLatLng(s.streetIdx, frac) : xyToLatLng(s.x, s.y);
-    const color = s.type === 'free' ? '#22c55e' : s.type === 'soon' ? '#eab308' : '#ef4444';
+    const color = s.type === 'free' ? PW_MAP_COLORS.free : s.type === 'soon' ? PW_MAP_COLORS.mid : PW_MAP_COLORS.hard;
     const letter = s.type === 'free' ? 'P' : s.type === 'soon' ? '↑' : '✕';
     const flashing = s.flash && Date.now() - s.flash < 3000;
     overlaySpotLayer.addLayer(L.marker(ll, {
@@ -1963,11 +1967,11 @@ function updateLeafletOverlays() {
   if (overlayRouteParks) { overlayRouteParks.remove(); overlayRouteParks = null; }
   if (route.active && route.path.length > 1) {
     overlayRouteLine = L.polyline(route.path.map(p => xyToLatLng(p.x, p.y)), {
-      color: '#3b82f6', weight: 5, opacity: 0.9, className: 'pw-route-line',
+      color: PW_MAP_COLORS.brand, weight: 5, opacity: 0.9, className: 'pw-route-line',
     }).addTo(realMap);
     overlayRouteParks = L.layerGroup();
     route.parkings.forEach(p => {
-      const color = p.taken ? '#ef4444' : (p.type === 'blue' ? '#3b82f6' : '#22c55e');
+      const color = p.taken ? PW_MAP_COLORS.hard : (p.type === 'blue' ? '#3b82f6' : PW_MAP_COLORS.free);
       const mk = L.circleMarker(xyToLatLng(p.x, p.y), {
         radius: 8, color: '#fff', weight: 2, fillColor: color, fillOpacity: 0.95,
       });
