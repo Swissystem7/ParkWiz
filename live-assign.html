@@ -433,6 +433,53 @@ header.top {
   .kpi-strip { grid-template-columns: 1fr 1fr; }
   .action-row { flex-direction: column; }
 }
+
+/* ── design-05: Live Assign in the Claude Design look (project 4db02f73) ──
+   White 18px cards, KPI label + 34/700 number, amber dashed notice, 44px
+   controls, and the lot map in the design's bay language: free = green
+   dashed, taken = grey, assigned to a driver = teal fill, foreign car = red.
+   The map is drawn with SVG presentation attributes; CSS beats those, so the
+   JS stays untouched. Only the look changes. */
+header.top { border-bottom: 0; background: var(--pw-surface); border-radius: 18px; padding: 14px 20px; }
+.brand-logo { display: inline-flex; align-items: center; min-height: 44px; color: var(--pw-brand); font-weight: 700; }
+.brand-badge { background: var(--pw-brand); color: var(--pw-on-brand); border-radius: 6px; font-weight: 700; }
+.top-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 12px; color: var(--pw-brand); font-weight: 600; }
+.top-nav a:hover { background: var(--pw-brand-soft); }
+.disclaimer-banner { background: var(--pw-attn-soft); border: 1px dashed var(--pw-attn); border-radius: 12px; color: var(--pw-ink); }
+.kpi-card { background: var(--pw-surface); border: 1px solid var(--pw-line); border-radius: 18px; box-shadow: none; padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+.kpi-card .kpi-num { font-size: 2.125rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--pw-ink); }
+.kpi-card.warn .kpi-num { color: var(--pw-attn); }
+.kpi-card.info .kpi-num { color: var(--pw-brand); }
+.kpi-card .kpi-label { order: -1; font-size: .875rem; color: var(--pw-muted); }
+.lot-card, .driver-phone-card, .controls-card, .log-card { background: var(--pw-surface); border: 1px solid var(--pw-line); border-radius: 18px; box-shadow: none; }
+.lot-title, .controls-title, .log-title { font-size: 1.125rem; font-weight: 600; color: var(--pw-ink); }
+.driver-phone-card.active-alert { border: 2px solid var(--pw-brand); }
+.driver-phone-card.foreign-alert { border: 2px solid var(--pw-danger); }
+.countdown-bar { background: var(--pw-brand); }
+.btn-action, .btn-sim { min-height: 44px; border-radius: 12px; font-family: inherit; font-weight: 600; }
+.btn-confirm { background: var(--pw-brand); color: var(--pw-on-brand); border-color: var(--pw-brand); }
+.btn-decline { background: var(--pw-surface); color: var(--pw-brand); border: 1.5px solid var(--pw-brand); }
+.btn-sim { background: var(--pw-surface); border: 1.5px solid var(--pw-line); color: var(--pw-ink); }
+.btn-sim:hover { border-color: var(--pw-brand); background: var(--pw-brand-soft); }
+.dot-free { background: var(--pw-free-soft); border: 1.5px dashed var(--pw-free); }
+.dot-occupied { background: var(--pw-taken-soft); border: 1px solid var(--pw-taken); }
+.dot-assigned { background: var(--pw-brand); }
+.svg-wrap { background: var(--pw-bg); border-radius: 12px; }
+/* lot map: floor, lanes and labels */
+#lotSvg rect[fill="#0d1612"] { fill: var(--pw-surface-2); stroke: var(--pw-line); }
+#lotSvg rect[fill="#131f1a"] { fill: var(--pw-surface); }
+#lotSvg line[stroke="#38bdf8"] { stroke: var(--pw-brand); }
+#lotSvg path[fill="#38bdf8"] { fill: var(--pw-brand); }
+#lotSvg path[stroke="#22332a"] { stroke: var(--pw-taken); }
+#lotSvg text[fill="#64748b"], #lotSvg text[fill="#475569"] { fill: var(--pw-muted); }
+/* bays (fill/stroke set by the script per status) */
+#lotSvg rect[fill="#1e293b"] { fill: var(--pw-taken-soft); stroke: var(--pw-taken); }
+#lotSvg rect[fill="#052e16"] { fill: var(--pw-free-soft); stroke: var(--pw-free); stroke-dasharray: 4 3; }
+#lotSvg rect[fill="#082f49"] { fill: var(--pw-brand); stroke: var(--pw-brand); }
+#lotSvg rect[fill="#450a0a"] { fill: var(--pw-attn-soft); stroke: var(--pw-danger); }
+#lotSvg text[fill="#4ade80"] { fill: var(--pw-free); }
+#lotSvg text[fill="#38bdf8"] { fill: var(--pw-on-brand); }
+#lotSvg text[fill="#cbd5e1"] { fill: var(--pw-taken); }
 </style>
 </head>
 <body>
