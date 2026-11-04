@@ -260,6 +260,16 @@ h1 { font-size: var(--pw-fs-h1); font-weight: 700; letter-spacing: -.01em; line-
 .status-pill.planned { background: var(--pw-taken-soft); color: var(--pw-taken); }
 .btn-trigger { min-height: 44px; border-radius: 12px; font-weight: 600; }
 @media (max-width: 600px) { h1 { font-size: 1.375rem; } }
+
+/* design-08 dark mode: the phone follows the design's ink + teal family */
+[data-theme="dark"] .phone-mockup { background: var(--pw-bg); box-shadow: 0 0 0 1px var(--pw-line), var(--pw-shadow-2); }
+[data-theme="dark"] .phone-header, [data-theme="dark"] .phone-title { color: var(--pw-ink); }
+[data-theme="dark"] .phone-notif-box { background: #0e5a5e; }
+[data-theme="dark"] .timeline-card { background: var(--pw-surface); }
+[data-theme="dark"] .timeline-step { color: var(--pw-ink); }
+[data-theme="dark"] .timeline-step.active { background: var(--pw-brand-soft); color: var(--pw-brand); border-color: var(--pw-brand); }
+[data-theme="dark"] .timeline-step .time { color: var(--pw-muted); }
+[data-theme="dark"] .privacy-badge { color: var(--pw-muted); }
 </style>
 <script src="../src/lib/freshness.js" defer></script>
 </head>
