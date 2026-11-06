@@ -32,6 +32,8 @@
 
 המחקר המלא (שלב 1 + פסק דין PIVOT, 13.8.2026): [RESEARCH.md](./RESEARCH.md). מחקר מונטיזציה (רף פטור ממכרז, מחירי ספקים, מענקים): [MONETIZATION.md](./MONETIZATION.md).
 
+**עסקי ופיילוט עתידים (PW-602, טיוטה):** [מודל עסקי](./docs/business/business-model.md) · [דרישות פיילוט 12–20 חניות](./docs/business/pilot-requirements.md) · [פיץ' מעודכן לעתידים](./docs/business/pitch.md) ([שקפים](./docs/business/pitch.html)) · [מקורות והנחות](./docs/business/SOURCES.md).
+
 מסמכים ישנים/סותרים (פיץ' האקתון, צינור מצלמות שלא היה, מחקר טרום-פיבוט, מודולי factory שלא חוברו) הועברו ל-[docs/archive/](./docs/archive/INDEX.md). הם היסטוריה, לא מקור אמת.
 
 ## Honesty
