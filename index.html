@@ -642,6 +642,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 })();
 </script>
 <a class="skip-link" href="#searchInput">דלג לחיפוש</a>
+<a class="skip-link" href="#mainContent">דלג לתוכן הראשי</a>
 <div id="pwSurfaceNav" data-active="map" style="position:relative;z-index:9999"></div>
 
 <section class="atidim-hero" id="atidimWelcomeHero" role="region" aria-label="מבוא למערכת ParkWiz — פיילוט פארק עתידים ועיריית תל אביב">
@@ -871,7 +872,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
   <button class="filter-btn active" id="filt-timed" onclick="toggleFilter('timed')" aria-pressed="true">⏱️ עד 3 שעות</button>
 </div>
 
-<div class="main">
+<main id="mainContent" class="main" role="main">
   <div class="map-wrap" id="mapWrap" role="region" aria-label="מפת חניה בנתניה">
     <div id="realMap" role="application" aria-label="מפת OpenStreetMap של נתניה"></div>
     <button type="button" id="tlvBtn" onclick="toggleTlvLayer()" aria-pressed="false" aria-label="הצג או הסתר מגרשי חניה עירוניים — מיקום בלבד" style="position:absolute;bottom:14px;right:12px;z-index:11;background:rgba(10,15,10,.92);color:var(--text);border:1px solid rgba(56,189,248,.5);border-radius:10px;padding:8px 11px;font-size:.72rem;cursor:pointer;opacity:.85;font-family:inherit">🏛 מגרשי חניה נתניה · מיקום בלבד</button>
@@ -1032,7 +1033,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
       <div class="ch-progress" role="progressbar" aria-valuenow="4" aria-valuemin="0" aria-valuemax="7" aria-label="אתגר דמו: 4 מתוך 7"><div class="ch-fill" style="width:57%;background:var(--purple)"></div></div>
     </div>
   </div>
-</div>
+</main>
 
 <!-- Recommended 3 streets mini-card -->
 <div class="reco-card" id="recoCard">
