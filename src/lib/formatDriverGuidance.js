@@ -1,3 +1,12 @@
+const ZONE_TRANSLATIONS = Object.freeze({
+	blue: "כחול",
+	green: "ירוק",
+	red: "אדום",
+	yellow: "צהוב",
+	orange: "כתום",
+	purple: "סגול",
+});
+
 function formatDriverGuidance(spotId, level = -1, zone = "Blue") {
 	if (typeof spotId !== "string" || spotId.trim() === "") {
 		return "עקוב אחר שילוט החניון הפנוי";
@@ -16,7 +25,9 @@ function formatDriverGuidance(spotId, level = -1, zone = "Blue") {
 	}
 
 	if (typeof zone === "string" && zone.trim() !== "") {
-		parts.push(`אזור ${zone.trim()}`);
+		const translatedZone =
+			ZONE_TRANSLATIONS[zone.trim().toLowerCase()] || zone.trim();
+		parts.push(`אזור ${translatedZone}`);
 	}
 
 	parts.push(`חניה ${spotId.trim()}`);
@@ -24,4 +35,4 @@ function formatDriverGuidance(spotId, level = -1, zone = "Blue") {
 	return parts.join(", ");
 }
 
-module.exports = { formatDriverGuidance };
+module.exports = { formatDriverGuidance, ZONE_TRANSLATIONS };

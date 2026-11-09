@@ -1,6 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { formatDriverGuidance } = require("../src/lib/formatDriverGuidance");
+const {
+	formatDriverGuidance,
+	ZONE_TRANSLATIONS,
+} = require("../src/lib/formatDriverGuidance");
 
 test("formats negative levels -1 and -2", () => {
 	assert.strictEqual(
@@ -9,28 +12,28 @@ test("formats negative levels -1 and -2", () => {
 	);
 	assert.strictEqual(
 		formatDriverGuidance("B-12", -2, "Red"),
-		"מפלס 2-, אזור Red, חניה B-12",
+		"מפלס 2-, אזור אדום, חניה B-12",
 	);
 });
 
 test("formats ground floor level 0", () => {
 	assert.strictEqual(
 		formatDriverGuidance("G-01", 0, "Green"),
-		"קומת קרקע, אזור Green, חניה G-01",
+		"קומת קרקע, אזור ירוק, חניה G-01",
 	);
 });
 
 test("formats above-ground level 3", () => {
 	assert.strictEqual(
 		formatDriverGuidance("C-15", 3, "Yellow"),
-		"מפלס 3, אזור Yellow, חניה C-15",
+		"מפלס 3, אזור צהוב, חניה C-15",
 	);
 });
 
 test("uses default arguments when level and zone are omitted", () => {
 	assert.strictEqual(
 		formatDriverGuidance("A-04"),
-		"מפלס 1-, אזור Blue, חניה A-04",
+		"מפלס 1-, אזור כחול, חניה A-04",
 	);
 });
 
@@ -52,19 +55,19 @@ test("omits zone when empty, whitespace, or null", () => {
 test("omits level when level is not an integer", () => {
 	assert.strictEqual(
 		formatDriverGuidance("A-04", null, "Blue"),
-		"אזור Blue, חניה A-04",
+		"אזור כחול, חניה A-04",
 	);
 	assert.strictEqual(
 		formatDriverGuidance("A-04", 1.5, "Blue"),
-		"אזור Blue, חניה A-04",
+		"אזור כחול, חניה A-04",
 	);
 	assert.strictEqual(
 		formatDriverGuidance("A-04", "1", "Blue"),
-		"אזור Blue, חניה A-04",
+		"אזור כחול, חניה A-04",
 	);
 	assert.strictEqual(
 		formatDriverGuidance("A-04", Number.NaN, "Blue"),
-		"אזור Blue, חניה A-04",
+		"אזור כחול, חניה A-04",
 	);
 });
 
@@ -81,7 +84,7 @@ test("returns default string when spotId is missing, empty, whitespace, null, or
 test("trims whitespace from spotId and zone", () => {
 	assert.strictEqual(
 		formatDriverGuidance("  A-04  ", 1, "  Purple  "),
-		"מפלס 1, אזור Purple, חניה A-04",
+		"מפלס 1, אזור סגול, חניה A-04",
 	);
 });
 
@@ -98,4 +101,39 @@ test("preserves zone text as given without translating", () => {
 
 test("handles case where both level and zone are omitted", () => {
 	assert.strictEqual(formatDriverGuidance("E-99", null, ""), "חניה E-99");
+});
+
+test("translates zone colors case-insensitively and with trimming", () => {
+	assert.strictEqual(
+		formatDriverGuidance("A-01", 1, "Green"),
+		"מפלס 1, אזור ירוק, חניה A-01",
+	);
+	assert.strictEqual(
+		formatDriverGuidance("A-02", 1, "RED"),
+		"מפלס 1, אזור אדום, חניה A-02",
+	);
+	assert.strictEqual(
+		formatDriverGuidance("A-03", 1, " yellow "),
+		"מפלס 1, אזור צהוב, חניה A-03",
+	);
+	assert.strictEqual(
+		formatDriverGuidance("A-04", 1, "North"),
+		"מפלס 1, אזור North, חניה A-04",
+	);
+	assert.strictEqual(
+		formatDriverGuidance("A-05", 1, "כחול"),
+		"מפלס 1, אזור כחול, חניה A-05",
+	);
+});
+
+test("exports frozen ZONE_TRANSLATIONS dictionary", () => {
+	assert.strictEqual(Object.isFrozen(ZONE_TRANSLATIONS), true);
+	assert.deepStrictEqual(ZONE_TRANSLATIONS, {
+		blue: "כחול",
+		green: "ירוק",
+		red: "אדום",
+		yellow: "צהוב",
+		orange: "כתום",
+		purple: "סגול",
+	});
 });
