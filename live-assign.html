@@ -10,6 +10,7 @@
 <script src="./src/lib/sentry.js"></script>
 <script src="./src/lib/theme.js"></script>
 <script src="./src/lib/live-assign.js"></script>
+<script src="./src/lib/formatDriverGuidance.js"></script>
 <style>
 :root {
   --bg: var(--pw-bg);
@@ -572,6 +573,7 @@ header.top {
           <h3 class="alert-spot-title" id="alertSpotTitle">
             <span>🔔</span> <span id="alertSpotName">ממתין לפינוי חניה...</span>
           </h3>
+          <p id="driverGuidanceText" class="alert-guidance" role="status" aria-live="polite">עקוב אחר שילוט החניון הפנוי</p>
           <div class="alert-details" id="alertDetails">
             כשמצלמת החניון תזהה פינוי מקום, המערכת תאתר מיידית את הנהג המתאים לפי מסלול הנסיעה במעבר.
           </div>
@@ -854,6 +856,8 @@ header.top {
       alertCard.className = 'driver-phone-card';
       alertDriverBadge.textContent = 'כל הנהגים בעמדת המתנה';
       alertSpotName.textContent = 'ממתין לפינוי חניה...';
+      const guideEl0 = document.getElementById('driverGuidanceText');
+      if (guideEl0) guideEl0.textContent = 'עקוב אחר שילוט החניון הפנוי';
       alertDetails.textContent = 'כשמצלמת החניון תזהה פינוי מקום, המערכת תאתר מיידית את הנהג המתאים.';
       alertComparison.textContent = '💡 השיוך מתבצע לפי מסלול נסיעה חוקי בלבד, ולא לפי קו אוויר שגוי.';
       alertActions.style.display = 'none';
@@ -867,6 +871,16 @@ header.top {
 
     alertDriverBadge.textContent = assignment.driverName;
     alertSpotName.textContent = `חניה ${assignment.spotId} התפנתה!`;
+    const guideEl = document.getElementById('driverGuidanceText');
+    if (guideEl) {
+      const fmt = (window.ParkWizFormatDriverGuidance && window.ParkWizFormatDriverGuidance.formatDriverGuidance) || null;
+      const spot = state.spots.find(s => s.id === assignment.spotId) || {};
+      const level = Number.isInteger(spot.level) ? spot.level : (Number.isInteger(assignment.level) ? assignment.level : -1);
+      const zone = spot.zone || assignment.zone || 'Blue';
+      guideEl.textContent = fmt
+        ? fmt(assignment.spotId, level, zone)
+        : 'עקוב אחר שילוט החניון הפנוי';
+    }
     alertDetails.innerHTML = `<strong>זמן הגעה: ${assignment.etaSeconds} שניות</strong> (${assignment.routeDistance} מטרים).<br>${assignment.turnInstruction}.`;
 
     const straight = liveAssign.euclideanDistance(
