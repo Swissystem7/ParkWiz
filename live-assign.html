@@ -42,6 +42,10 @@ a { color: var(--brand); text-decoration: none; }
 a:hover { text-decoration: underline; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
+.skip-link{position:absolute;top:-40px;right:8px;z-index:400;background:var(--brand);color:var(--pw-on-brand);padding:8px 12px;border-radius:8px;font-weight:700}
+.skip-link:focus{top:8px}
+
+
 .wrap {
   width: 100%;
   max-width: 1240px;
@@ -437,6 +441,7 @@ header.top {
 </style>
 </head>
 <body>
+<a class="skip-link" href="#mainContent">דלג לתוכן הראשי</a>
 
 <div class="wrap">
   <!-- Top Navigation Bar -->
@@ -483,7 +488,7 @@ header.top {
   </section>
 
   <!-- Main Grid Area -->
-  <main class="main-grid">
+  <main id="mainContent" class="main-grid" role="main">
     <!-- Left Column: Interactive Map -->
     <section class="lot-card" aria-label="מפת חניון קומה 1">
       <div class="lot-header">
