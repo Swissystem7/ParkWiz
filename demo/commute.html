@@ -309,6 +309,7 @@ h1 { font-size: var(--pw-fs-h1); font-weight: 700; letter-spacing: -.01em; line-
           <span>מסך נעילה / ParkWiz</span>
           <span class="privacy-badge">🔒 ללא LPR</span>
         </div>
+        <div id="commuteEtaText" class="commute-eta" role="status" aria-live="polite" aria-label="זמן הגעה משוער">&lt; דקה</div>
 
         <!-- Dynamic notification toast inside phone -->
         <div class="phone-notif-box" id="phoneNotif" role="status" aria-live="polite">
@@ -497,5 +498,31 @@ h1 { font-size: var(--pw-fs-h1); font-weight: 700; letter-spacing: -.01em; line-
   }
 })();
 </script>
+<script src="../src/lib/formatEtaMinutes.js"></script>
+
+<script>
+(function () {
+  function formatEta(meters) {
+    var api = window.ParkWizFormatEtaMinutes;
+    if (api && typeof api.formatEtaMinutes === 'function') {
+      return api.formatEtaMinutes(meters, 10) || 'עקוב אחר השילוט';
+    }
+    return 'עקוב אחר השילוט';
+  }
+  function setEta(meters) {
+    var el = document.getElementById('commuteEtaText');
+    if (!el) return;
+    var text = formatEta(meters);
+    el.textContent = text;
+    el.setAttribute('aria-label', 'זמן הגעה משוער: ' + text);
+  }
+  window.__pwSetCommuteEta = setEta;
+  // Demo distances: update from remaining meters when present in page state.
+  document.addEventListener('DOMContentLoaded', function () {
+    setEta(20);
+  });
+})();
+</script>
+
 </body>
 </html>
