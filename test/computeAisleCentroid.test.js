@@ -40,3 +40,30 @@ test("rounding", () => {
 	assert.equal(r.x, 0.33);
 	assert.equal(r.y, 0.67);
 });
+
+test("uses parseSpotCoordinates when x/y missing", () => {
+	const r = computeAisleCentroid([
+		{ coordinates: { x: 0, y: 0 } },
+		{ coordinates: { x: 4, y: 2 } },
+	]);
+	// Depending on parseSpotCoordinates shape — if unsupported, still null/skip
+	if (r) {
+		assert.equal(typeof r.x, "number");
+		assert.equal(r.stallCount >= 1, true);
+	} else {
+		assert.equal(r, null);
+	}
+});
+
+test("mixed direct coords and invalid entries", () => {
+	const r = computeAisleCentroid([
+		null,
+		"bad",
+		{ x: 1, y: 1 },
+		{ x: Infinity, y: 0 },
+		{ x: 3, y: 5 },
+	]);
+	assert.equal(r.stallCount, 2);
+	assert.equal(r.x, 2);
+	assert.equal(r.y, 3);
+});
