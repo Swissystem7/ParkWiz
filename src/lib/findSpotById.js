@@ -1,15 +1,8 @@
 const { normalizeSpotId } = require("./normalizeSpotId");
 
+// Callers pass only strings: targetId is checked non-empty and spot ids are checked to be strings.
 function normalize(id) {
-	if (typeof id !== "string") {
-		return null;
-	}
-	const canonical = normalizeSpotId(id);
-	if (canonical !== null) {
-		return canonical;
-	}
-	const trimmed = id.trim();
-	return trimmed === "" ? null : trimmed.toUpperCase();
+	return normalizeSpotId(id) ?? id.trim().toUpperCase();
 }
 
 function findSpotById(spots, targetId) {
@@ -22,9 +15,6 @@ function findSpotById(spots, targetId) {
 	}
 
 	const normalizedTarget = normalize(targetId);
-	if (!normalizedTarget) {
-		return null;
-	}
 
 	for (const spot of spots) {
 		if (spot === null || typeof spot !== "object" || Array.isArray(spot)) {
