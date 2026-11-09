@@ -245,6 +245,24 @@
 <script src="../src/lib/margin.js"></script>
 <script src="../src/lib/spot-freed.js"></script>
 <script>
+  var OCC_BADGE_LABELS = {
+    low: 'עומס נמוך',
+    medium: 'עומס בינוני',
+    high: 'עומס כבד',
+    full: 'חניון מלא',
+    unknown: 'פנוי'
+  };
+  function updateOccupancyBadge(pct) {
+    var el = document.getElementById('occupancyCategoryBadge');
+    if (!el) return;
+    var api = window.ParkWizCategorizeOccupancyLevel;
+    var cat = (api && typeof api.categorizeOccupancyLevel === 'function')
+      ? api.categorizeOccupancyLevel(Number(pct))
+      : 'unknown';
+    el.textContent = OCC_BADGE_LABELS[cat] || OCC_BADGE_LABELS.unknown;
+    el.className = 'badge badge-' + (cat || 'unknown');
+  }
+
 "use strict";
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("../sw.js", { scope: "../" }).catch(function () {});
@@ -522,7 +540,7 @@ function render() {
   const snap = LOT.snapshotAt(hour, config);
   $("kFree").textContent = String(snap.free);
   $("kOcc").textContent = String(snap.occupied);
-  $("kOccPct").textContent = OCC.pct(snap.pct); if (window.__pwUpdateOccupancyBadge) window.__pwUpdateOccupancyBadge(parseFloat(String(OCC.pct(snap.pct))));
+  $("kOccPct").textContent = OCC.pct(snap.pct); updateOccupancyBadge(parseFloat(String(OCC.pct(snap.pct)))); if (window.__pwUpdateOccupancyBadge) window.__pwUpdateOccupancyBadge(parseFloat(String(OCC.pct(snap.pct))));
   $("kTotal").textContent = String(snap.total);
   $("hourOut").textContent = label(hour);
   $("hourRange").value = String(hour);
@@ -663,39 +681,6 @@ fetch("atidim-data.json")
   });
 </script>
 
-<script>
-(function () {
-  var LABELS = {
-    low: 'עומס נמוך',
-    medium: 'עומס בינוני',
-    high: 'עומס כבד',
-    full: 'חניון מלא',
-    unknown: 'פנוי'
-  };
-  function updateOccupancyBadge(pct) {
-    var el = document.getElementById('occupancyCategoryBadge');
-    if (!el) return;
-    var api = window.ParkWizCategorizeOccupancyLevel;
-    var cat = (api && typeof api.categorizeOccupancyLevel === 'function')
-      ? api.categorizeOccupancyLevel(Number(pct))
-      : 'unknown';
-    el.textContent = LABELS[cat] || LABELS.unknown;
-    el.className = 'badge badge-' + (cat || 'unknown');
-  }
-  window.__pwUpdateOccupancyBadge = updateOccupancyBadge;
-  var _orig = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'textContent');
-  // Hook: whenever kOccPct text changes via assignment in page scripts, also update badge.
-  document.addEventListener('DOMContentLoaded', function () {
-    var pctEl = document.getElementById('kOccPct');
-    if (!pctEl) return;
-    var obs = new MutationObserver(function () {
-      var n = parseFloat(String(pctEl.textContent).replace('%','').replace('—','NaN'));
-      if (Number.isFinite(n)) updateOccupancyBadge(n);
-    });
-    obs.observe(pctEl, { childList: true, characterData: true, subtree: true });
-  });
-})();
-</script>
 
 </body>
 </html>
