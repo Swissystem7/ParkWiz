@@ -7,3 +7,4 @@ function spotIdToIndex(spotId) {
 	return num - 1;
 }
 module.exports = { spotIdToIndex };
+// round-17 CI nudge
