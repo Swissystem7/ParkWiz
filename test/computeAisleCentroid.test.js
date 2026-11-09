@@ -67,3 +67,11 @@ test("mixed direct coords and invalid entries", () => {
 	assert.equal(r.x, 2);
 	assert.equal(r.y, 3);
 });
+
+test("coords array via parseSpotCoordinates", () => {
+	const r = computeAisleCentroid([
+		{ coords: [0, 0] },
+		{ coords: [2, 4] },
+	]);
+	assert.deepEqual(r, { x: 1, y: 2, stallCount: 2 });
+});
