@@ -40,3 +40,29 @@ test("skips non-finite free/total", () => {
 		[],
 	);
 });
+
+test("array input -> []", () => {
+	assert.deepEqual(formatZoneGuidanceSummary([]), []);
+});
+
+test("nested zones wrapper with invalid zones value -> treats as top-level keys or []", () => {
+	// zones key present but not an object: fall through to treating input as zone map
+	assert.deepEqual(formatZoneGuidanceSummary({ zones: null }), []);
+	assert.deepEqual(formatZoneGuidanceSummary({ zones: [] }), []);
+});
+
+test("skips entry missing free/total", () => {
+	assert.deepEqual(formatZoneGuidanceSummary({ A: { free: 1 } }), []);
+	assert.deepEqual(formatZoneGuidanceSummary({ A: { total: 2 } }), []);
+});
+
+test("mixed valid and invalid zones keeps only valid sorted", () => {
+	assert.deepEqual(
+		formatZoneGuidanceSummary({
+			C: { free: 0, total: 2 },
+			B: { free: NaN, total: 1 },
+			A: { free: 2, total: 4 },
+		}),
+		["אזור A: 2 פנויות מתוך 4", "אזור C: מלא"],
+	);
+});
