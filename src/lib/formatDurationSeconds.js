@@ -13,3 +13,4 @@ function formatDurationSeconds(totalSeconds) {
 	return `${m}:${String(s).padStart(2, "0")} דקות`;
 }
 module.exports = { formatDurationSeconds };
+// round-17 CI nudge
