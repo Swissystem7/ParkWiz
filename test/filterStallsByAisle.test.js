@@ -119,3 +119,15 @@ test("safely skips malformed items in stalls array", () => {
 
 	assert.deepStrictEqual(filterStallsByAisle(mixed, "A"), [validStall]);
 });
+
+test("numeric stall.aisle is normalized via String(aisle)", () => {
+	const stalls = [
+		{ id: "X-01", aisle: 1 },
+		{ id: "X-02", aisle: "1" },
+		{ id: "A-01", aisle: "A" },
+	];
+	const out = filterStallsByAisle(stalls, "1");
+	assert.equal(out.length, 2);
+	assert.equal(out[0].id, "X-01");
+	assert.equal(out[1].id, "X-02");
+});
