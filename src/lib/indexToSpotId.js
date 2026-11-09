@@ -1,4 +1,5 @@
-function indexToSpotId(index, zoneLetter = "A") {
+function indexToSpotId(index, zoneLetter) {
+	if (arguments.length < 2) zoneLetter = "A";
 	if (!Number.isInteger(index) || index < 0 || index > 98) return null;
 	if (typeof zoneLetter !== "string" || !/^[A-Za-z]$/.test(zoneLetter)) return null;
 	const spotNum = index + 1;
