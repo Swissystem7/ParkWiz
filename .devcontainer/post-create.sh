@@ -31,9 +31,17 @@ install_mongodb_clis() {
 }
 install_mongodb_clis || echo "warn: mongodb-atlas-cli or mongosh install failed"
 
-install_aws_cli() {
-  curl -fsSL https://awscli.amazonaws.com/v2/install.sh | sudo bash -s -- --system
-}
+install_aws_cli() (
+  # Download to a temp file and verify before running (no curl | bash).
+  set -euo pipefail
+  tmp="$(mktemp "${TMPDIR:-/tmp}/aws-install.XXXXXX.sh")"
+  trap rm -f  EXIT
+  curl -fsSL -o "$tmp" https://awscli.amazonaws.com/v2/install.sh
+  [ -s "$tmp" ] || { echo "error: aws installer download is empty" >&2; exit 1; }
+  [ "$(head -c 2 "$tmp")" = "#!" ] || { echo "error: aws installer does not start with a shebang" >&2; exit 1; }
+  echo "aws installer sha256: $(sha256sum "$tmp" | cut -d  -f1)"
+  sudo bash "$tmp" --system
+)
 install_aws_cli || echo "warn: aws cli v2 install failed"
 
 python3 -m pip install --user --upgrade pipx
