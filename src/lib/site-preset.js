@@ -39,7 +39,7 @@
   const clamp01 = (n) => (Number.isFinite(Number(n)) ? Math.max(0, Math.min(1, Number(n))) : 0);
   const clampInt = (n, min, max) => Math.max(min, Math.min(max, Math.round(Number(n) || 0)));
   const wrapHour = (n) => (Number.isFinite(Number(n)) ? ((Math.floor(Number(n)) % 24) + 24) % 24 : null);
-  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   // Accepts a bare query string, a `?`-prefixed one, or a whole URL: callers
   // pass location.search, but a hand-typed link arrives just as often. An
