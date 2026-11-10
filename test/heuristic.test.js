@@ -186,3 +186,21 @@ test('pilot-kit calls the shared heuristic instead of an inline copy', () => {
   assert.match(kit, /estimateOccupied|estimateLot/);
   assert.doesNotMatch(kit, /0\.2126 \* data\[i\] \+ 0\.7152/);
 });
+
+test('confidenceLabel buckets confidence and treats junk as low', () => {
+  assert.equal(h.confidenceLabel(h.CONF_BG_SUBTRACT), 'high');
+  assert.equal(h.confidenceLabel(h.CONF_VS_EMPTY_NORM), 'medium');
+  assert.equal(h.confidenceLabel(h.CONF_VS_EMPTY), 'medium');
+  assert.equal(h.confidenceLabel(h.CONF_ABSOLUTE), 'low');
+  assert.equal(h.confidenceLabel(h.CONF_ABSOLUTE_NIGHT), 'low');
+  assert.equal(h.confidenceLabel(NaN), 'low');
+  assert.equal(h.confidenceLabel(undefined), 'low');
+  assert.equal(h.confidenceLabelHe(0.9), 'גבוהה');
+  assert.equal(h.confidenceLabelHe(0.5), 'בינונית');
+  assert.equal(h.confidenceLabelHe(0), 'נמוכה');
+});
+
+test('pilot-kit shows the confidence label', () => {
+  const kit = fs.readFileSync(path.join(__dirname, '..', 'pilot-kit.html'), 'utf8');
+  assert.match(kit, /confidenceLabelHe/);
+});
