@@ -189,13 +189,33 @@ input[type="url"], input[type="file"] { min-height: 44px; border: 1.5px solid va
     ensureModel().then(function () { if (!timer) timer = setInterval(tick, TICK_MS); },
       function () { /* the Hebrew failure message is already on screen */ });
   }
+  function isSafeMediaUrl(url) {
+    var s = String(url).trim();
+    if (!s) return false;
+    var scheme = /^([a-zA-Z][a-zA-Z0-9+.-]*):/.exec(s);
+    if (!scheme) return s.charAt(0) === '.' || s.charAt(0) === '/';
+    var p = scheme[1].toLowerCase();
+    return p === 'http' || p === 'https' || p === 'blob';
+  }
   function useVideoUrl(url, label) {
     stopSource();
     video.srcObject = null;
+    if (!isSafeMediaUrl(url)) {
+      srcStatus.textContent = 'כתובת המדיה נדחתה (מותר רק http, https או קובץ מקומי).';
+      return;
+    }
     video.src = url;
     start(video, label);
   }
-  function useImage(url, label) { stopSource(); image.src = url; start(image, label); }
+  function useImage(url, label) {
+    stopSource();
+    if (!isSafeMediaUrl(url)) {
+      srcStatus.textContent = 'כתובת המדיה נדחתה (מותר רק http, https או קובץ מקומי).';
+      return;
+    }
+    image.src = url;
+    start(image, label);
+  }
   document.getElementById('fileIn').addEventListener('change', function (e) {
     var file = e.target.files && e.target.files[0];
     if (!file) return;
