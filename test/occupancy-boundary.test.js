@@ -110,3 +110,19 @@ test('boundary output flows through CityZone connector with unknown + per-cell t
     { id: 'A-02', state: 'unknown', ts: iso(T0) },
   ]);
 });
+
+test('a cell with no usable status and no boolean occupied flag is unknown', () => {
+  const noStatus = B.serializeCell({ id: 'A-09', ts: iso(T0), confidence: 0.9 }, { now: T0 + 1000 });
+  assert.deepEqual(noStatus, { id: 'A-09', status: 'unknown', ts: iso(T0) });
+  const notBoolean = B.serializeCell({ id: 'A-10', occupied: 'yes', ts: iso(T0), confidence: 0.9 }, { now: T0 + 1000 });
+  assert.equal(notBoolean.status, 'unknown');
+});
+
+test('cells without their own timestamp take the snapshot timestamp, and go stale with it', () => {
+  const cells = [{ id: 'A-01', status: 'free', confidence: 0.9 }];
+  const fresh = B.serializeSnapshot({ ts: iso(T0), cells }, { now: T0 + 1000 });
+  assert.deepEqual(fresh.cells, [{ id: 'A-01', status: 'free', ts: iso(T0) }]);
+  const stale = B.serializeSnapshot({ ts: iso(T0), cells }, { now: T0 + 60001 });
+  assert.deepEqual(stale.cells, [{ id: 'A-01', status: 'unknown', ts: iso(T0) }]);
+  assert.equal('ts' in cells[0], false);
+});
