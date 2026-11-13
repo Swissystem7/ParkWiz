@@ -17,13 +17,13 @@ function attr(tag, name) {
   return m ? m[1] : null;
 }
 
-function hasAccessibleName(tag) {
+function hasAccessibleName(tag, source = html) {
   const ariaLabel = attr(tag, 'aria-label');
   if (ariaLabel && ariaLabel.trim()) return true;
   const labelledBy = attr(tag, 'aria-labelledby');
-  if (labelledBy && html.includes(`id="${labelledBy}"`)) return true;
+  if (labelledBy && source.includes(`id="${labelledBy}"`)) return true;
   const id = attr(tag, 'id');
-  return Boolean(id && new RegExp(`<label\\b[^>]*\\sfor="${id}"`, 'i').test(html));
+  return Boolean(id && new RegExp(`<label\\b[^>]*\\sfor="${id}"`, 'i').test(source));
 }
 
 test('index.html still has the selects this test is meant to guard', () => {
@@ -47,4 +47,13 @@ test('vehicle selector is named in Hebrew', () => {
 test('select accessible names are distinct, so screen readers can tell them apart', () => {
   const names = selectTags.map((tag) => attr(tag, 'aria-label')).filter(Boolean);
   assert.equal(new Set(names).size, names.length);
+});
+
+test('the name check also accepts aria-labelledby and <label for>, and rejects a bare select', () => {
+  const page = '<span id="hoursTitle">שעות</span><label for="dest">יעד</label>';
+  assert.equal(hasAccessibleName('<select aria-labelledby="hoursTitle">', page), true);
+  assert.equal(hasAccessibleName('<select id="dest">', page), true);
+  assert.equal(hasAccessibleName('<select aria-labelledby="missing">', page), false);
+  assert.equal(hasAccessibleName('<select id="other">', page), false);
+  assert.equal(hasAccessibleName('<select aria-label="  ">', page), false);
 });
