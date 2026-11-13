@@ -8,11 +8,15 @@
     "test:smoke": "node --test test/smoke/*.smoke.js",
     "start": "node server/node.js",
     "test:load": "node scripts/load-test.js",
-    "knip": "knip"
+    "knip": "knip",
+    "size": "size-limit",
+    "check:data": "node scripts/check-atidim-data.js"
   },
   "devDependencies": {
+    "@size-limit/file": "14.3.0",
     "knip": "6.45.1",
     "leaflet": "1.9.4",
-    "playwright": "^1.64.1"
+    "playwright": "^1.64.1",
+    "size-limit": "14.3.0"
   }
 }

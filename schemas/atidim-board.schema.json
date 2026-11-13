@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://parkwiz.local/schemas/atidim-board.schema.json",
+  "title": "Park Atidim operator board occupancy config",
+  "description": "Occupancy/validity config merged over ParkWizAtidimLot.DEFAULT by demo/atidim-board.html (fetch of demo/atidim-data.json). cols and rows must be positive integers so totalBays() is not 0/NaN.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["site", "cols", "rows", "timezone"],
+  "properties": {
+    "site": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Display name of the lot shown on the operator board."
+    },
+    "cols": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of bay columns in the board plan view."
+    },
+    "rows": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of bay rows in the board plan view."
+    },
+    "timezone": {
+      "type": "string",
+      "minLength": 1,
+      "description": "IANA timezone used to pick the hour on the occupancy curve (e.g. Asia/Jerusalem)."
+    },
+    "meetingNote": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional presenter note (synthetic data, not a live camera)."
+    }
+  }
+}
