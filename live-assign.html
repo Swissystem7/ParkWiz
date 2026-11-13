@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz — שיוך חניה חכם בזמן אמת (Live Assignment)</title>
+<link rel="icon" href="./icon.svg">
+<link rel="stylesheet" href="./src/ui/tokens.css">
+<link rel="stylesheet" href="./src/ui/demo-shell.css">
+<script src="./src/lib/sentry.js"></script>
+<script src="./src/lib/theme.js"></script>
+<script src="./src/lib/live-assign.js"></script>
+<script src="./src/lib/formatDriverGuidance.js"></script>
+<style>
+:root {
+  --bg: var(--pw-bg);
+  --panel: var(--pw-surface);
+  --panel2: var(--pw-surface-2);
+  --ink: var(--pw-ink);
+  --muted: var(--pw-muted);
+  --line: var(--pw-line);
+  --brand: var(--pw-brand);
+  --brand-soft: var(--pw-brand-soft);
+  --warn: var(--pw-warn);
+  --danger: var(--pw-danger);
+  --info: var(--pw-info);
+  --radius: var(--pw-radius-md);
+  --shadow: var(--pw-shadow-1);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--pw-font);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.skip-link{position:absolute;top:-40px;right:8px;z-index:400;background:var(--brand);color:var(--pw-on-brand);padding:8px 12px;border-radius:8px;font-weight:700}
+.skip-link:focus{top:8px}
+
+
+.wrap {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 14px 16px 40px;
+  flex: 1;
+}
+
+header.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-logo {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--brand);
+  text-decoration: none;
+}
+.brand-badge {
+  background: var(--brand);
+  color: var(--pw-on-brand);
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: var(--pw-radius-sm);
+  font-size: 0.75rem;
+}
+.top-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.top-nav a {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 6px 10px;
+  border-radius: var(--pw-radius-sm);
+}
+.top-nav a:hover {
+  color: var(--ink);
+  background: var(--pw-chip);
+}
+
+/* Honesty Banner */
+.disclaimer-banner {
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  color: var(--ink);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.disclaimer-banner .badge {
+  display: inline-flex;
+  align-self: flex-start;
+}
+
+/* KPI Cards */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.kpi-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+.kpi-card .kpi-num {
+  font-family: var(--pw-font-num);
+  font-size: 1.85rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--brand);
+}
+.kpi-card.warn .kpi-num { color: var(--warn); }
+.kpi-card.info .kpi-num { color: var(--info); }
+.kpi-card .kpi-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Main Grid Layout */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 390px;
+  gap: 18px;
+  align-items: start;
+}
+.main-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 960px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Parking Lot Section */
+.lot-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.lot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.lot-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0;
+}
+.lot-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.dot-free { background: var(--brand); }
+.dot-occupied { background: #334155; }
+.dot-assigned { background: #38bdf8; }
+.dot-foreign { background: var(--danger); }
+
+/* SVG Map Canvas */
+.svg-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  background: #090e0c;
+  border: 1px solid var(--line);
+  border-radius: var(--pw-radius-sm);
+  padding: 8px;
+  box-sizing: border-box;
+}
+#lotSvg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Control Panel & Simulator Column */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Alert Notification Card */
+.driver-phone-card {
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.driver-phone-card.active-alert {
+  border-color: #38bdf8;
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.08) 0%, var(--panel) 100%);
+}
+.driver-phone-card.foreign-alert {
+  border-color: var(--danger);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.09) 0%, var(--panel) 100%);
+}
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.alert-driver-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--pw-chip);
+}
+.countdown-clock {
+  font-family: var(--pw-font-num);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--warn);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.countdown-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: var(--pw-chip);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.countdown-bar {
+  height: 100%;
+  background: var(--warn);
+  width: 100%;
+  transition: width 0.1s linear;
+}
+
+.alert-body {
+  margin-bottom: 14px;
+}
+.alert-spot-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.alert-details {
+  font-size: 0.9rem;
+  color: var(--ink);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.alert-comparison {
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border-inline-start: 3px solid var(--info);
+}
+
+.action-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn-action {
+  flex: 1;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
+  border-radius: var(--pw-radius-pill);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.1s ease, background 0.2s ease;
+}
+.btn-action:active { transform: scale(0.98); }
+.btn-confirm {
+  background: var(--brand);
+  color: var(--pw-on-brand);
+}
+.btn-decline {
+  background: var(--pw-chip);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+/* Demo Controls Card */
+.controls-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.controls-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+.btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.btn-sim {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.btn-sim:hover {
+  background: var(--pw-brand-soft);
+  border-color: var(--brand);
+}
+.btn-sim.danger-sim:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--danger);
+}
+
+/* Event Log Card */
+.log-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  max-height: 240px;
+  display: flex;
+  flex-direction: column;
+}
+.log-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.log-stream {
+  overflow-y: auto;
+  font-size: 0.78rem;
+  font-family: var(--pw-font);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.log-item {
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  line-height: 1.35;
+}
+.log-time { color: var(--muted); margin-inline-end: 4px; }
+.log-highlight { color: #38bdf8; font-weight: 700; }
+.log-warn { color: var(--warn); font-weight: 700; }
+.log-danger { color: var(--danger); font-weight: 700; }
+
+@media (max-width: 480px) {
+  .wrap { padding: 10px 12px 30px; }
+  .kpi-strip { grid-template-columns: 1fr 1fr; }
+  .action-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#mainContent">דלג לתוכן הראשי</a>
+
+<div class="wrap">
+  <!-- Top Navigation Bar -->
+  <header class="top">
+    <div class="brand-group">
+      <a href="./index.html" class="brand-logo">ParkWiz</a>
+      <span class="brand-badge">הדגמת שיוך חכם</span>
+    </div>
+    <nav class="top-nav" aria-label="ניווט ראשי">
+      <a href="./index.html">← חזרה לדף הבית</a>
+      <a href="./demo/atidim.html">🏢 דמו עתידים</a>
+      <a href="./demo/atidim-board.html">📊 לוח מפעיל</a>
+      <button type="button" class="pw-theme-toggle" data-theme-toggle aria-label="החלף ערכת נושא">🌓</button>
+    </nav>
+  </header>
+
+  <!-- Honesty & Meeting Disclaimer -->
+  <aside class="disclaimer-banner" role="note">
+    <span class="badge pw-demo-badge">הדגמה עם נתונים מדומים לקראת פיילוט</span>
+    <div>
+      <strong>שיוך חניה בזמן אמת לפי מרחק מסלול וכיוון נסיעה (לא קו אוויר).</strong>
+      מנוע השיוך מחשב את נתיב הנסיעה החוקי במעברים החד-סטריים של החניון ומאתר את הנהג שיגיע הכי מהר. אם הנהג לא מאשר תוך 8 שניות — החניה מועברת מיידית לנהג הבא.
+    </div>
+  </aside>
+
+  <!-- KPI Counters -->
+  <section class="kpi-strip" aria-label="מדדי ביצוע">
+    <article class="kpi-card">
+      <div class="kpi-num" id="kpiSuccessRate">94%</div>
+      <div class="kpi-label">אחוז הצלחה בשיוך חניה</div>
+    </article>
+    <article class="kpi-card info">
+      <div class="kpi-num" id="kpiAvgSearch">34 ש'</div>
+      <div class="kpi-label">זמן חיפוש ממוצע (חיסכון של ~85%)</div>
+    </article>
+    <article class="kpi-card">
+      <div class="kpi-num" id="kpiFreeSpots">6 / 36</div>
+      <div class="kpi-label">חניות פנויות כעת בקומה</div>
+    </article>
+    <article class="kpi-card warn">
+      <div class="kpi-num" id="kpiEdgeCases">0</div>
+      <div class="kpi-label">מקרים שטופלו (רכב זר / תפוגה)</div>
+    </article>
+  </section>
+
+  <!-- Main Grid Area -->
+  <main id="mainContent" class="main-grid" role="main">
+    <!-- Left Column: Interactive Map -->
+    <section class="lot-card" aria-label="מפת חניון קומה 1">
+      <div class="lot-header">
+        <h2 class="lot-title">מפת חניון מדומה — קומה 1 (36 חניות, מעברים חד-סטריים)</h2>
+        <div class="lot-legend">
+          <span class="legend-item"><span class="legend-dot dot-free"></span> פנויה</span>
+          <span class="legend-item"><span class="legend-dot dot-occupied"></span> תפוסה</span>
+          <span class="legend-item"><span class="legend-dot dot-assigned"></span> משויכת לנהג</span>
+          <span class="legend-item"><span class="legend-dot dot-foreign"></span> נתפסה ע״י זר</span>
+        </div>
+      </div>
+
+      <!-- SVG Map -->
+      <div class="svg-wrap">
+        <svg id="lotSvg" viewBox="0 0 800 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="מפת חניון אינטראקטיבית">
+          <defs>
+            <!-- Aisle Arrow Marker -->
+            <marker id="arrowE" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+            </marker>
+            <marker id="arrowW" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+            </marker>
+            <marker id="arrowS" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+            </marker>
+          </defs>
+
+          <!-- Parking Lot Floor Background -->
+          <rect x="10" y="10" width="780" height="500" rx="16" fill="#0d1612" stroke="#1f2d26" stroke-width="2" />
+
+          <!-- Aisle 1 (East, y=120) -->
+          <rect x="90" y="102" width="620" height="36" fill="#131f1a" rx="4" />
+          <line x1="100" y1="120" x2="690" y2="120" stroke="#38bdf8" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrowE)" opacity="0.65" />
+          <text x="380" y="125" fill="#64748b" font-size="11" font-weight="700" text-anchor="middle">מעבר 1 — מזרחה ➜</text>
+
+          <!-- Aisle 2 (West, y=260) -->
+          <rect x="90" y="242" width="620" height="36" fill="#131f1a" rx="4" />
+          <line x1="700" y1="260" x2="110" y2="260" stroke="#38bdf8" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrowW)" opacity="0.65" />
+          <text x="380" y="265" fill="#64748b" font-size="11" font-weight="700" text-anchor="middle">מעבר 2 — מערבה 🡸</text>
+
+          <!-- Aisle 3 (East, y=400) -->
+          <rect x="90" y="382" width="620" height="36" fill="#131f1a" rx="4" />
+          <line x1="100" y1="400" x2="690" y2="400" stroke="#38bdf8" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrowE)" opacity="0.65" />
+          <text x="380" y="405" fill="#64748b" font-size="11" font-weight="700" text-anchor="middle">מעבר 3 — מזרחה ➜</text>
+
+          <!-- East Connector (x=700, y=120 to y=260) -->
+          <rect x="682" y="120" width="36" height="150" fill="#131f1a" rx="4" />
+          <line x1="700" y1="120" x2="700" y2="250" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowS)" opacity="0.65" />
+
+          <!-- West Connector (x=100, y=260 to y=400) -->
+          <rect x="82" y="260" width="36" height="150" fill="#131f1a" rx="4" />
+          <line x1="100" y1="260" x2="100" y2="390" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowS)" opacity="0.65" />
+
+          <!-- Perimeter Return Lane (Bottom / East to West & North back to Aisle 1) -->
+          <path d="M 700 400 L 750 400 L 750 480 L 50 480 L 50 120 L 100 120" fill="none" stroke="#22332a" stroke-width="2" stroke-dasharray="4 4" />
+          <text x="400" y="494" fill="#475569" font-size="10" text-anchor="middle">מסלול איגוף היקפי חזרה לכניסה ↰</text>
+
+          <!-- Parking Spots Group (Rendered dynamically by JavaScript) -->
+          <g id="spotsGroup"></g>
+
+          <!-- Active Assignment Route Overlay (Dashed line from driver to spot) -->
+          <g id="routeGroup"></g>
+
+          <!-- Moving Drivers Group -->
+          <g id="driversGroup"></g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- Right Column: Driver Phone Alert & Controls -->
+    <aside class="sidebar">
+      <!-- Live Driver Alert Notification Card -->
+      <section class="driver-phone-card" id="driverAlertCard" role="region" aria-live="polite" aria-label="התראת נהג במסך">
+        <div class="alert-header">
+          <span class="alert-driver-badge" id="alertDriverBadge">נהג 1 (דני)</span>
+          <div class="countdown-clock" id="countdownClock">
+            <span>⏱️</span> <span id="countdownSeconds">8</span> שניות
+          </div>
+        </div>
+
+        <div class="countdown-bar-wrap">
+          <div class="countdown-bar" id="countdownBar"></div>
+        </div>
+
+        <div class="alert-body">
+          <h3 class="alert-spot-title" id="alertSpotTitle">
+            <span>🔔</span> <span id="alertSpotName">ממתין לפינוי חניה...</span>
+          </h3>
+          <p id="driverGuidanceText" class="alert-guidance" role="status" aria-live="polite">עקוב אחר שילוט החניון הפנוי</p>
+          <div class="alert-details" id="alertDetails">
+            כשמצלמת החניון תזהה פינוי מקום, המערכת תאתר מיידית את הנהג המתאים לפי מסלול הנסיעה במעבר.
+          </div>
+          <div class="alert-comparison" id="alertComparison">
+            💡 השיוך מתבצע לפי מסלול נסיעה חוקי בלבד, ולא לפי קו אוויר שגוי.
+          </div>
+        </div>
+
+        <div class="action-row" id="alertActions" style="display: none;">
+          <button type="button" class="btn-action btn-confirm" id="btnConfirmAssign">
+            ✓ אשר הגעה (שמור חניה)
+          </button>
+          <button type="button" class="btn-action btn-decline" id="btnDeclineAssign">
+            ✕ דחה (העבר לנהג הבא)
+          </button>
+        </div>
+      </section>
+
+      <!-- Simulation Scenario Buttons -->
+      <section class="controls-card" aria-label="תרחישי הדגמה לפגישה">
+        <h3 class="controls-title">תרחישי הדגמה לפגישת לקוח</h3>
+        <div class="btn-group">
+          <button type="button" class="btn-sim" id="btnSimFreeSpot">
+            <span>🟢 הדמה פינוי חניה (מצלמה מזהה)</span>
+            <span>▶</span>
+          </button>
+          <button type="button" class="btn-sim danger-sim" id="btnSimForeignCar">
+            <span>⚠️ מקרה קצה: רכב זר תופס חניה משויכת</span>
+            <span>⚡</span>
+          </button>
+          <button type="button" class="btn-sim" id="btnSimTimeout">
+            <span>⏳ הדמה תפוגת 8 שניות (העברה לבא)</span>
+            <span>⏩</span>
+          </button>
+          <button type="button" class="btn-sim" id="btnResetDemo">
+            <span>🔄 איפוס הדגמה מחדש</span>
+            <span>↺</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Event Stream Log -->
+      <section class="log-card" aria-label="יומן אירועים חי">
+        <div class="log-title">
+          <span>📡 יומן זיהוי מצלמות ושיוך בזמן אמת</span>
+          <span style="font-size: 0.72rem; color: var(--brand); font-weight: 700;">● פעיל</span>
+        </div>
+        <div class="log-stream" id="logStream" role="log" aria-live="polite"></div>
+      </section>
+    </aside>
+  </main>
+</div>
+
+<script>
+(function() {
+  'use strict';
+  const liveAssign = window.ParkWizLiveAssign;
+  if (!liveAssign) return;
+
+  const lotConfig = liveAssign.createDefaultLotConfig();
+  let state = liveAssign.createAssignmentState(lotConfig);
+
+  // Preset some spots as free initially for rich demonstration
+  ['A3', 'B4', 'B8', 'C2', 'C7', 'C11'].forEach(id => {
+    const s = state.spots.find(x => x.id === id);
+    if (s) s.status = 'free';
+  });
+
+  let activeSpotId = null;
+  let countdownTimer = null;
+  let remainingTimeMs = 8000;
+  const COUNTDOWN_INTERVAL = 100;
+
+  // DOM Elements
+  const spotsGroup = document.getElementById('spotsGroup');
+  const driversGroup = document.getElementById('driversGroup');
+  const routeGroup = document.getElementById('routeGroup');
+  const logStream = document.getElementById('logStream');
+
+  const alertCard = document.getElementById('driverAlertCard');
+  const alertDriverBadge = document.getElementById('alertDriverBadge');
+  const countdownSeconds = document.getElementById('countdownSeconds');
+  const countdownBar = document.getElementById('countdownBar');
+  const alertSpotTitle = document.getElementById('alertSpotTitle');
+  const alertSpotName = document.getElementById('alertSpotName');
+  const alertDetails = document.getElementById('alertDetails');
+  const alertComparison = document.getElementById('alertComparison');
+  const alertActions = document.getElementById('alertActions');
+
+  const kpiSuccessRate = document.getElementById('kpiSuccessRate');
+  const kpiAvgSearch = document.getElementById('kpiAvgSearch');
+  const kpiFreeSpots = document.getElementById('kpiFreeSpots');
+  const kpiEdgeCases = document.getElementById('kpiEdgeCases');
+
+  const btnConfirmAssign = document.getElementById('btnConfirmAssign');
+  const btnDeclineAssign = document.getElementById('btnDeclineAssign');
+  const btnSimFreeSpot = document.getElementById('btnSimFreeSpot');
+  const btnSimForeignCar = document.getElementById('btnSimForeignCar');
+  const btnSimTimeout = document.getElementById('btnSimTimeout');
+  const btnResetDemo = document.getElementById('btnResetDemo');
+
+  function renderSpots() {
+    spotsGroup.innerHTML = '';
+    state.spots.forEach(spot => {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('class', `spot-item spot-${spot.status}`);
+      g.setAttribute('data-id', spot.id);
+      g.style.cursor = 'pointer';
+
+      let fill = '#1e293b'; // occupied
+      let stroke = '#334155';
+      let strokeWidth = '1.5';
+
+      if (spot.status === 'free') {
+        fill = '#052e16';
+        stroke = '#22c55e';
+        strokeWidth = '2';
+      } else if (spot.status === 'assigned' || spot.status === 'reserved') {
+        fill = '#082f49';
+        stroke = '#38bdf8';
+        strokeWidth = '2.5';
+      } else if (spot.status === 'occupied_foreign') {
+        fill = '#450a0a';
+        stroke = '#ef4444';
+        strokeWidth = '2';
+      }
+
+      // Parking Stall Rectangle (w=40, h=30)
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', spot.x - 20);
+      rect.setAttribute('y', spot.y - 15);
+      rect.setAttribute('width', 40);
+      rect.setAttribute('height', 30);
+      rect.setAttribute('rx', 4);
+      rect.setAttribute('fill', fill);
+      rect.setAttribute('stroke', stroke);
+      rect.setAttribute('stroke-width', strokeWidth);
+
+      // Spot ID Label
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', spot.x);
+      text.setAttribute('y', spot.y + 4);
+      text.setAttribute('fill', spot.status === 'free' ? '#4ade80' : (spot.status === 'assigned' ? '#38bdf8' : '#cbd5e1'));
+      text.setAttribute('font-size', '11');
+      text.setAttribute('font-weight', '800');
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = spot.id;
+
+      g.appendChild(rect);
+      g.appendChild(text);
+
+      g.addEventListener('click', () => {
+        triggerFreeSpot(spot.id);
+      });
+
+      spotsGroup.appendChild(g);
+    });
+  }
+
+  function renderDrivers() {
+    driversGroup.innerHTML = '';
+    state.drivers.forEach(driver => {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('transform', `translate(${driver.x}, ${driver.y})`);
+
+      // Car Body
+      const car = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      car.setAttribute('x', -14);
+      car.setAttribute('y', -9);
+      car.setAttribute('width', 28);
+      car.setAttribute('height', 18);
+      car.setAttribute('rx', 4);
+      car.setAttribute('fill', driver.assignedSpotId ? '#38bdf8' : '#22c55e');
+      car.setAttribute('stroke', '#ffffff');
+      car.setAttribute('stroke-width', '1.5');
+
+      // Driver Name Label
+      const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lbl.setAttribute('x', 0);
+      lbl.setAttribute('y', -13);
+      lbl.setAttribute('fill', '#ffffff');
+      lbl.setAttribute('font-size', '10');
+      lbl.setAttribute('font-weight', '800');
+      lbl.setAttribute('text-anchor', 'middle');
+      lbl.textContent = driver.name.split(' ')[0];
+
+      g.appendChild(car);
+      g.appendChild(lbl);
+      driversGroup.appendChild(g);
+    });
+  }
+
+  function renderRouteOverlay(assignment) {
+    routeGroup.innerHTML = '';
+    if (!assignment) return;
+
+    const spot = state.spots.find(s => s.id === assignment.spotId);
+    const driver = state.drivers.find(d => d.id === assignment.driverId);
+    if (!spot || !driver) return;
+
+    // Draw route path line
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', driver.x);
+    line.setAttribute('y1', driver.y);
+    line.setAttribute('x2', spot.accessX);
+    line.setAttribute('y2', spot.accessY);
+    line.setAttribute('stroke', '#38bdf8');
+    line.setAttribute('stroke-width', '2.5');
+    line.setAttribute('stroke-dasharray', '6 4');
+    line.setAttribute('opacity', '0.85');
+
+    // Indicator at spot access
+    const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    ring.setAttribute('cx', spot.accessX);
+    ring.setAttribute('cy', spot.accessY);
+    ring.setAttribute('r', '7');
+    ring.setAttribute('fill', 'none');
+    ring.setAttribute('stroke', '#38bdf8');
+    ring.setAttribute('stroke-width', '2');
+
+    routeGroup.appendChild(line);
+    routeGroup.appendChild(ring);
+  }
+
+  function updateMetricsUI() {
+    const m = liveAssign.calculateMetrics(state);
+    kpiSuccessRate.textContent = `${m.successRate}%`;
+    kpiAvgSearch.textContent = `${m.averageSearchTimeSec} ש'`;
+    kpiFreeSpots.textContent = `${m.freeSpotsCount} / ${state.spots.length}`;
+    kpiEdgeCases.textContent = `${m.foreignCarTakeovers + m.timedOutAssignments}`;
+  }
+
+  function updateLogUI() {
+    logStream.innerHTML = '';
+    state.auditLog.slice(0, 15).forEach(entry => {
+      const div = document.createElement('div');
+      div.className = 'log-item';
+      let cls = '';
+      if (entry.type.includes('CONFIRMED')) cls = 'log-highlight';
+      else if (entry.type.includes('TIMEOUT')) cls = 'log-warn';
+      else if (entry.type.includes('FOREIGN')) cls = 'log-danger';
+
+      div.innerHTML = `<span class="log-time">[${entry.time}]</span> <span class="${cls}">${entry.message}</span>`;
+      logStream.appendChild(div);
+    });
+  }
+
+  function stopCountdown() {
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
+    remainingTimeMs = 8000;
+    countdownBar.style.width = '100%';
+    countdownSeconds.textContent = '8';
+  }
+
+  function startCountdown(onExpire) {
+    stopCountdown();
+    remainingTimeMs = 8000;
+    countdownTimer = setInterval(() => {
+      remainingTimeMs -= COUNTDOWN_INTERVAL;
+      const sec = Math.max(0, Math.ceil(remainingTimeMs / 1000));
+      const pct = Math.max(0, (remainingTimeMs / 8000) * 100);
+
+      countdownSeconds.textContent = sec;
+      countdownBar.style.width = `${pct}%`;
+
+      if (remainingTimeMs <= 0) {
+        stopCountdown();
+        if (onExpire) onExpire();
+      }
+    }, COUNTDOWN_INTERVAL);
+  }
+
+  function showAssignmentAlert(assignment) {
+    if (!assignment) {
+      activeSpotId = null;
+      stopCountdown();
+      alertCard.className = 'driver-phone-card';
+      alertDriverBadge.textContent = 'כל הנהגים בעמדת המתנה';
+      alertSpotName.textContent = 'ממתין לפינוי חניה...';
+      const guideEl0 = document.getElementById('driverGuidanceText');
+      if (guideEl0) guideEl0.textContent = 'עקוב אחר שילוט החניון הפנוי';
+      alertDetails.textContent = 'כשמצלמת החניון תזהה פינוי מקום, המערכת תאתר מיידית את הנהג המתאים.';
+      alertComparison.textContent = '💡 השיוך מתבצע לפי מסלול נסיעה חוקי בלבד, ולא לפי קו אוויר שגוי.';
+      alertActions.style.display = 'none';
+      renderRouteOverlay(null);
+      return;
+    }
+
+    activeSpotId = assignment.spotId;
+    alertCard.className = 'driver-phone-card active-alert';
+    if (assignment.isAlternative) alertCard.classList.add('foreign-alert');
+
+    alertDriverBadge.textContent = assignment.driverName;
+    alertSpotName.textContent = `חניה ${assignment.spotId} התפנתה!`;
+    const guideEl = document.getElementById('driverGuidanceText');
+    if (guideEl) {
+      const fmt = (window.ParkWizFormatDriverGuidance && window.ParkWizFormatDriverGuidance.formatDriverGuidance) || null;
+      const spot = state.spots.find(s => s.id === assignment.spotId) || {};
+      const level = Number.isInteger(spot.level) ? spot.level : (Number.isInteger(assignment.level) ? assignment.level : -1);
+      const zone = spot.zone || assignment.zone || 'Blue';
+      guideEl.textContent = fmt
+        ? fmt(assignment.spotId, level, zone)
+        : 'עקוב אחר שילוט החניון הפנוי';
+    }
+    alertDetails.innerHTML = `<strong>זמן הגעה: ${assignment.etaSeconds} שניות</strong> (${assignment.routeDistance} מטרים).<br>${assignment.turnInstruction}.`;
+
+    const straight = liveAssign.euclideanDistance(
+      state.drivers.find(d => d.id === assignment.driverId) || { x: 0, y: 0 },
+      { x: state.spots.find(s => s.id === assignment.spotId)?.accessX || 0, y: 120 }
+    );
+
+    alertComparison.innerHTML = `💡 <strong>בקרת כיווניות מעבר:</strong> מרחק מסלול נסיעה חוקי הינו <strong>${assignment.routeDistance} מ'</strong> (לעומת קו אוויר שגוי של כ-${Math.round(straight)} מ').`;
+    alertActions.style.display = 'flex';
+
+    renderRouteOverlay(assignment);
+
+    startCountdown(() => {
+      // 8 seconds expired!
+      const nextAssign = liveAssign.handleTimeout(state, assignment.spotId);
+      renderSpots();
+      renderDrivers();
+      updateMetricsUI();
+      updateLogUI();
+      showAssignmentAlert(nextAssign);
+    });
+  }
+
+  function triggerFreeSpot(spotId) {
+    let targetId = spotId;
+    if (!targetId) {
+      const occupied = state.spots.filter(s => s.status === 'occupied');
+      if (occupied.length === 0) return;
+      targetId = occupied[Math.floor(Math.random() * occupied.length)].id;
+    }
+
+    const s = state.spots.find(x => x.id === targetId);
+    if (!s) return;
+    s.status = 'free';
+
+    state.auditLog.unshift({
+      time: new Date().toLocaleTimeString('he-IL'),
+      type: 'SPOT_FREED_CAMERA',
+      message: `📷 זיהוי מצלמה: חניה ${targetId} התפנתה כעת!`
+    });
+
+    const assignment = liveAssign.assignSpot(state, targetId);
+    renderSpots();
+    renderDrivers();
+    updateMetricsUI();
+    updateLogUI();
+    showAssignmentAlert(assignment);
+  }
+
+  // Simulation Button Handlers
+  btnSimFreeSpot.addEventListener('click', () => {
+    triggerFreeSpot();
+  });
+
+  btnSimForeignCar.addEventListener('click', () => {
+    if (!activeSpotId) {
+      // Trigger a free spot first so we have an active assignment
+      triggerFreeSpot();
+    }
+    setTimeout(() => {
+      if (!activeSpotId) return;
+      const altAssign = liveAssign.handleForeignCarTakeover(state, activeSpotId);
+      renderSpots();
+      renderDrivers();
+      updateMetricsUI();
+      updateLogUI();
+      showAssignmentAlert(altAssign);
+    }, 400);
+  });
+
+  btnSimTimeout.addEventListener('click', () => {
+    if (activeSpotId) {
+      stopCountdown();
+      const nextAssign = liveAssign.handleTimeout(state, activeSpotId);
+      renderSpots();
+      renderDrivers();
+      updateMetricsUI();
+      updateLogUI();
+      showAssignmentAlert(nextAssign);
+    }
+  });
+
+  btnResetDemo.addEventListener('click', () => {
+    stopCountdown();
+    state = liveAssign.createAssignmentState(lotConfig);
+    ['A3', 'B4', 'B8', 'C2', 'C7', 'C11'].forEach(id => {
+      const s = state.spots.find(x => x.id === id);
+      if (s) s.status = 'free';
+    });
+    renderSpots();
+    renderDrivers();
+    renderRouteOverlay(null);
+    updateMetricsUI();
+    updateLogUI();
+    showAssignmentAlert(null);
+  });
+
+  btnConfirmAssign.addEventListener('click', () => {
+    if (activeSpotId) {
+      stopCountdown();
+      liveAssign.confirmAssignment(state, activeSpotId);
+      alertDetails.innerHTML = `<span style="color:var(--brand);font-weight:bold;">✓ הגעה אושרה!</span> חניה ${activeSpotId} שוריינה בהצלחה.`;
+      alertActions.style.display = 'none';
+      renderSpots();
+      renderDrivers();
+      updateMetricsUI();
+      updateLogUI();
+      setTimeout(() => {
+        showAssignmentAlert(null);
+      }, 2500);
+    }
+  });
+
+  btnDeclineAssign.addEventListener('click', () => {
+    if (activeSpotId) {
+      stopCountdown();
+      const nextAssign = liveAssign.handleTimeout(state, activeSpotId);
+      renderSpots();
+      renderDrivers();
+      updateMetricsUI();
+      updateLogUI();
+      showAssignmentAlert(nextAssign);
+    }
+  });
+
+  // Simulated Continuous Traffic Movement (Subtle movement of drivers along aisles)
+  setInterval(() => {
+    state.drivers.forEach(driver => {
+      if (driver.status === 'searching') {
+        if (driver.direction === 'E') {
+          driver.x += 6;
+          if (driver.x > 700) {
+            if (driver.aisleId === 'aisle-1') {
+              driver.aisleId = 'aisle-2';
+              driver.direction = 'W';
+              driver.y = 260;
+              driver.x = 700;
+            } else {
+              driver.x = 100;
+            }
+          }
+        } else if (driver.direction === 'W') {
+          driver.x -= 6;
+          if (driver.x < 100) {
+            driver.aisleId = 'aisle-3';
+            driver.direction = 'E';
+            driver.y = 400;
+            driver.x = 100;
+          }
+        }
+      }
+    });
+    renderDrivers();
+    if (activeSpotId) {
+      const currentAssign = state.activeAssignments[activeSpotId];
+      if (currentAssign) renderRouteOverlay(currentAssign);
+    }
+  }, 1000);
+
+  // Initial Boot
+  renderSpots();
+  renderDrivers();
+  updateMetricsUI();
+  updateLogUI();
+  showAssignmentAlert(null);
+})();
+</script>
+</body>
+</html>

@@ -69,6 +69,56 @@
   .privacy ul{margin:8px 0 0;padding-inline-start:18px}
   .foot{margin-top:20px;text-align:center;font-size:11px;color:var(--muted)}
   a.back{color:var(--brand);text-decoration:none;font-size:13px;font-weight:600}
+  /* ── design-03: operator board in the Claude Design look (project 4db02f73,
+     "לוח בקרה · מפעיל / מעסיק"). This page has no theme switch, so the
+     design values are set here: light by default, the ink + teal family
+     when the OS asks for dark. Only the look changes. */
+  :root{
+    --bg:#f3f5f4; --panel:#fff; --ink:#14211f; --muted:#4a5654; --line:#dde3e1;
+    --brand:#0e5a5e; --brand-soft:#e3efee; --free:#1b6e45; --free-soft:#e2f1e8; --occ:#b42318;
+    --attn:#8a5a00; --attn-soft:#fbf0d9; --shadow:none; --pw-ink:var(--ink); --pw-muted:var(--muted); --pw-line:var(--line); --pw-surface:var(--panel); --pw-chip:var(--bg); --pw-brand:var(--brand); --pw-brand-soft:var(--brand-soft); --pw-on-brand:var(--panel);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0f1a19;--panel:#14211f;--ink:#eef3f2;--muted:#a9b8b5;--line:rgba(255,255,255,.1);
+      --brand:#5cc2bc;--brand-soft:rgba(92,194,188,.14);--free:#6fd39d;--free-soft:rgba(111,211,157,.14);--occ:#f87171;
+      --attn:#e5b45a;--attn-soft:rgba(229,180,90,.14)}
+  }
+  body{font-family:'IBM Plex Sans Hebrew','Heebo','Rubik',system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans Hebrew',sans-serif}
+  .wrap{padding:24px 20px 48px}
+  .banner{background:var(--attn-soft);border:1px dashed var(--attn);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:.875rem;line-height:1.6}
+  h1{font-size:28px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+  .sub{font-size:14px}
+  .grid{gap:16px}
+  .panel{border-radius:18px;padding:24px}
+  .panel h2{font-size:18px;color:var(--ink);font-weight:600;margin-bottom:14px}
+  .kpis{gap:16px;margin-bottom:16px}
+  .kpi{border-radius:18px;padding:20px;text-align:start;display:flex;flex-direction:column;gap:4px}
+  .kpi .n{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+  .kpi .l{order:-1;font-size:14px}
+  .ctl{border-radius:18px;padding:14px 18px;gap:12px}
+  .ctl label{font-size:14px;font-weight:500}
+  .ctl .hr{font-size:22px}
+  .ctl button{min-height:44px;padding:0 16px;border-radius:12px;border:1.5px solid var(--brand);color:var(--brand);background:var(--panel);font-size:14px}
+  .ctl button:hover{background:var(--brand-soft)}
+  .ctl button[aria-pressed=true]{background:var(--brand);color:var(--panel)}
+  .ctl input[type=range]{min-height:44px}
+  .board-status{color:var(--brand)}
+  #bayCanvas{border-radius:12px}
+  .band{background:var(--brand-soft)}
+  .alerts li{background:var(--panel);border:1px solid var(--line);border-inline-start:4px solid var(--free);border-radius:12px;padding:12px 14px}
+  .alerts .go a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border:1.5px solid var(--brand);border-radius:12px;font-size:13px}
+  .alerts .go a:hover{background:var(--brand-soft)}
+  a.back{display:inline-flex;align-items:center;min-height:44px}
+  #btnClearAlerts{min-height:44px!important;padding:0 14px!important;border-radius:12px!important;border-width:1.5px!important}
+  @media(max-width:540px){.wrap{padding:16px 16px 40px} h1{font-size:22px} .panel{padding:16px} .kpi{padding:16px} .kpi .n{font-size:28px}}
+
+  #occupancyCategoryBadge.badge { display:inline-block; margin-top:6px; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+  #occupancyCategoryBadge.badge-low { background:#dcfce7; color:#166534; }
+  #occupancyCategoryBadge.badge-medium { background:#fef9c3; color:#854d0e; }
+  #occupancyCategoryBadge.badge-high { background:#ffedd5; color:#9a3412; }
+  #occupancyCategoryBadge.badge-full { background:#fee2e2; color:#991b1b; }
+  #occupancyCategoryBadge.badge-unknown { background:#e2e8f0; color:#334155; }
+
 </style>
 <script src="../src/lib/freshness.js" defer></script>
 </head>
@@ -110,7 +160,9 @@
   <section class="kpis" aria-label="מדדי תפוסה בשעה שמוצגת" aria-live="polite">
     <div class="kpi free"><div class="n" id="kFree">—</div><div class="l">מקומות פנויים (X)</div></div>
     <div class="kpi occ"><div class="n" id="kOcc">—</div><div class="l">מקומות תפוסים (Y)</div></div>
-    <div class="kpi"><div class="n" id="kOccPct">—</div><div class="l">אחוז תפוסה</div></div>
+    <div class="kpi"><div class="n" id="kOccPct">—</div><div class="l">אחוז תפוסה</div>
+    <span id="occupancyCategoryBadge" class="badge badge-low" role="status" aria-live="polite">פנוי</span>
+  </div>
     <div class="kpi"><div class="n" id="kTotal">—</div><div class="l">סה״כ מקומות בחניון</div></div>
   </section>
 
@@ -189,9 +241,28 @@
 
 <script src="../src/lib/atidim-lot.js"></script>
 <script src="../src/lib/occupancy.js"></script>
+<script src="../src/lib/categorizeOccupancyLevel.js"></script>
 <script src="../src/lib/margin.js"></script>
 <script src="../src/lib/spot-freed.js"></script>
 <script>
+  var OCC_BADGE_LABELS = {
+    low: 'עומס נמוך',
+    medium: 'עומס בינוני',
+    high: 'עומס כבד',
+    full: 'חניון מלא',
+    unknown: 'פנוי'
+  };
+  function updateOccupancyBadge(pct) {
+    var el = document.getElementById('occupancyCategoryBadge');
+    if (!el) return;
+    var api = window.ParkWizCategorizeOccupancyLevel;
+    var cat = (api && typeof api.categorizeOccupancyLevel === 'function')
+      ? api.categorizeOccupancyLevel(Number(pct))
+      : 'unknown';
+    el.textContent = OCC_BADGE_LABELS[cat] || OCC_BADGE_LABELS.unknown;
+    el.className = 'badge badge-' + (cat || 'unknown');
+  }
+
 "use strict";
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("../sw.js", { scope: "../" }).catch(function () {});
@@ -469,7 +540,7 @@ function render() {
   const snap = LOT.snapshotAt(hour, config);
   $("kFree").textContent = String(snap.free);
   $("kOcc").textContent = String(snap.occupied);
-  $("kOccPct").textContent = OCC.pct(snap.pct);
+  $("kOccPct").textContent = OCC.pct(snap.pct); updateOccupancyBadge(parseFloat(String(OCC.pct(snap.pct)))); if (window.__pwUpdateOccupancyBadge) window.__pwUpdateOccupancyBadge(parseFloat(String(OCC.pct(snap.pct))));
   $("kTotal").textContent = String(snap.total);
   $("hourOut").textContent = label(hour);
   $("hourRange").value = String(hour);
@@ -609,5 +680,7 @@ fetch("atidim-data.json")
     start();
   });
 </script>
+
+
 </body>
 </html>

@@ -1,8 +1,10 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v30';
+const CACHE = 'parkwiz-field-v35';
+const CACHE = 'parkwiz-field-v33';
 const ASSETS = [
   './',
   './index.html',
+  './live-assign.html',
   './offer.html',
   './pilot-kit.html',
   './pilot-calibrate.html',
@@ -64,6 +66,10 @@ const ASSETS = [
   // blank on the first offline visit.
   './src/lib/margin.js',
   './src/lib/freshness.js',
+  './src/lib/live-assign.js',
+  './src/lib/formatDriverGuidance.js',
+  './src/lib/formatEtaMinutes.js',
+  './src/lib/categorizeOccupancyLevel.js',
   // <script src>'d by demo/atidim.html for the spot-freed feed (#263).
   './src/lib/spot-events.js',
   // The spot-freed event core (#265). <script src>'d by demo/atidim-board.html;
