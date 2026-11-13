@@ -22,11 +22,11 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  const SPOT_STATES = ['free', 'occupied', 'reserved', 'disabled'];
+  const SPOT_STATES = ['free', 'occupied', 'unknown', 'reserved', 'disabled'];
   const FORBIDDEN = ['image', 'img', 'photo', 'picture', 'frame', 'video',
     'face', 'facial', 'plate', 'licenseplate', 'lpn', 'vehicleid', 'vin'];
   const SNAPSHOT_KEYS = ['total', 'occupied', 'free', 'timestamp', 'ts', 'spots'];
-  const SPOT_KEYS = ['id', 'state'];
+  const SPOT_KEYS = ['id', 'state', 'ts', 'timestamp'];
   const FREED_KEYS = ['lotId', 'spotId', 'freedAt', 'timestamp'];
 
   const isObj = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -125,7 +125,12 @@
         if (!SPOT_STATES.includes(spot.state)) {
           throw new TypeError(`CityZone: spot.state must be one of ${SPOT_STATES.join(', ')}`);
         }
-        return { id: spot.id, state: spot.state };
+        const out = { id: spot.id, state: spot.state };
+        optionalString(spot.ts, 'spot.ts');
+        optionalString(spot.timestamp, 'spot.timestamp');
+        const spotTs = spot.ts !== undefined ? spot.ts : spot.timestamp;
+        if (spotTs !== undefined) out.ts = spotTs;
+        return out;
       });
     }
     return payload;

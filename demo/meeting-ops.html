@@ -8,6 +8,10 @@
 <link rel="stylesheet" href="../src/ui/tokens.css">
 <script src="../src/lib/theme.js"></script>
 <style>
+/* research-04: driver alert card */
+.alert-card{border:1px solid var(--pw-line);border-radius:12px;padding:12px;margin:10px 0}
+.alert-card[data-status="active"]{border:2px solid var(--pw-brand);font-weight:600}
+.alert-card:not([data-status="active"]){border-style:dashed;color:var(--pw-muted)}
 body{margin:0;font-family:var(--pw-font);background:var(--pw-bg);color:var(--pw-ink);line-height:1.55}
 .wrap{max-width:1040px;margin:0 auto;padding:16px 14px 60px}
 .badge{display:inline-block;background:var(--pw-warn);color:#1a1405;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px}
@@ -35,6 +39,9 @@ h1{font-size:var(--pw-fs-h1);font-weight:700;letter-spacing:-.01em;line-height:1
 input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{min-height:44px;border:1.5px solid var(--pw-line);border-radius:12px;background:var(--pw-surface);color:var(--pw-ink);padding:8px 12px;font:inherit}
 input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(--pw-brand);vertical-align:middle}
 @media(max-width:600px){h1{font-size:1.375rem}.card{padding:16px}}
+/* research-05: fit check questions */
+.fit-q{display:block;margin:10px 0}.fit-q select,#fitLimit{display:block;margin-top:4px;width:100%;max-width:320px}
+.fit-list{margin:8px 0;padding-inline-start:20px}
 </style>
 </head>
 <body>
@@ -45,12 +52,16 @@ input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(-
 
   <section class="card"><h2>מפת גבולות הניסוי (המחשה, לא מפת עתידים)</h2>
     <div class="grid"><div class="z">באזור הניסוי — אזור שייבחר בסיור</div><div class="z">מחוץ לכיסוי — שאר האזורים</div><div class="z">לא נבדק — ייבדק רק בשטח</div></div>
+    <p class="map-legend">מה זה אומר לנהג: באזור הניסוי — מצב וזמן עדכון. מחוץ לכיסוי — לא מוצג כפנוי ואין התראה. לא נבדק — מוצג כלא ידוע עד שייבדק בשטח.</p>
   </section>
 
   <section class="card"><h2>מסלול התראה</h2>
     <p id="alertState" role="status" aria-live="polite">שלב: מקום תפוס (הדגמה).</p>
     <button class="btn2" id="stepBtn">התקדמות לשלב הבא</button>
+    <button class="btn2" id="ageBtn">קדימה 2 דקות (הדגמה)</button>
+    <p id="alertCard" class="alert-card" data-status="none">אין התראה — אין מקום פנוי</p>
     <p>התפנות, ואז זמינות, ואז נתפס מחדש — ההתראה מתבטלת. אין שמירת מקום.</p>
+    <p>ההתראה לנהג כוללת רק מקום, מצב וזמן עדכון — בלי תמונה ובלי לוחית. היא פגה אחרי 5 דקות, ונעלמת כשהמפעיל משהה התראות, סוגר אזור או עובר למדידה בלבד.</p>
   </section>
 
   <section class="card"><h2>מסך הפעלה למנהל (הדגמה בלבד)</h2>
@@ -63,8 +74,27 @@ input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(-
   <section class="card"><h2>בדיקת התאמה ראשונית — בלי ציון ובלי הבטחה</h2>
     <label>סוג מצלמות קיים <input id="camType"></label>
     <label>אזור מבוקש <input id="zone"></label>
+    <div id="fitQs" class="fit-qs"></div>
+    <label>מה בדיוק אסור לפי IT?
+      <select id="fitLimit">
+        <option value="unknown">עוד לא ידוע</option>
+        <option value="install">התקנת תוכנה במצלמות</option>
+        <option value="network">חיבור לרשת האתר</option>
+        <option value="video">כל גישה לווידאו הקיים</option>
+        <option value="images">כל עיבוד תמונה</option>
+      </select>
+    </label>
     <button class="btn" id="compatBtn" type="button">הפקת רשימת בירור</button>
     <p id="compatOut" role="status" aria-live="polite">עדיין לא הופקה רשימה.</p>
+    <ul id="fitList" class="fit-list"></ul>
+    <script src="../src/lib/fit-check.js"></script>
+    <script>
+    // research-05: fit check -> "מה לברר" list from the digest (no score).
+    (function(){var box=document.getElementById('fitQs');
+    PWFitCheck.QUESTIONS.forEach(function(q){var l=document.createElement('label');l.className='fit-q';l.textContent=q.qHe+' ';var s=document.createElement('select');s.setAttribute('data-fit',q.id);[['unknown','לא ידוע'],['yes','כן'],['no','לא']].forEach(function(o){var e=document.createElement('option');e.value=o[0];e.textContent=o[1];s.appendChild(e);});l.appendChild(s);box.appendChild(l);});
+    // registered after DOMContentLoaded so it runs after the original handler below.
+    document.addEventListener('DOMContentLoaded',function(){document.getElementById('compatBtn').addEventListener('click',function(){var a={};document.querySelectorAll('[data-fit]').forEach(function(s){a[s.getAttribute('data-fit')]=s.value;});var r=PWFitCheck.toClarify(a,document.getElementById('fitLimit').value),ul=document.getElementById('fitList');ul.textContent='';r.items.forEach(function(t){var li=document.createElement('li');li.textContent=t;ul.appendChild(li);});document.getElementById('compatOut').textContent='מה צריך לברר ('+r.items.length+'): '+(r.items.length?'':'הכול סומן כידוע — לאשר בסיור. ')+'כיוון לבדיקה: '+r.directionHe+'. '+r.noteHe;});});})();
+    </script>
   </section>
 
   <section class="card" id="endList"><h2>מסך סיום ניסוי — רשימת סגירה</h2>
@@ -84,12 +114,23 @@ input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(-
 
   <p><a class="btn" href="./atidim.html">לדמו החניון</a> &nbsp;<a href="../index.html">דף הבית</a></p>
 </div>
+<script src="../src/lib/alert-path.js"></script>
 <script>
 var steps=['מקום תפוס (הדגמה).','מקום התפנה — נשלחת התראה (הדגמה).','מקום זמין עם חותמת זמן (הדגמה).','מקום נתפס מחדש — ההתראה מתבטלת, אין שמירת מקום.'],i=0;
 document.getElementById('stepBtn').addEventListener('click',function(){i=(i+1)%steps.length;document.getElementById('alertState').textContent='שלב: '+steps[i];});
 function ops(){var p=[];if(document.getElementById('pauseAlerts').checked)p.push('התראות מושהות');if(document.getElementById('closeZone').checked)p.push('אזור סגור');if(document.getElementById('measureOnly').checked)p.push('מדידה בלבד');document.getElementById('opsMsg').textContent=p.length?p.join(', ')+' (הדגמה).':'מצב רגיל (הדגמה).';}
 ['pauseAlerts','closeZone','measureOnly'].forEach(function(id){document.getElementById(id).addEventListener('change',ops);});
 document.getElementById('compatBtn').addEventListener('click',function(){document.getElementById('compatOut').textContent='מה צריך לברר: זיהוי מערכת המצלמות הקיימת, נקודת חיבור מאושרת, אזור מוגדר, אנשי קשר. אין ציון ואין הבטחת התאמה.';});
+</script>
+<script>
+// research-04: driver alert card — time stamp, expiry, cancel when taken,
+// suppressed by the operator screen (src/lib/alert-path.js).
+(function(){var STAGES=['occupied','freed','available','taken'],age=0,card=document.getElementById('alertCard');
+function render(){var r=PWAlertPath.alertCard({stage:STAGES[i],ageSec:age,ops:{pauseAlerts:document.getElementById('pauseAlerts').checked,closeZone:document.getElementById('closeZone').checked,measureOnly:document.getElementById('measureOnly').checked}});card.textContent=r.textHe;card.setAttribute('data-status',r.status);}
+document.getElementById('stepBtn').addEventListener('click',function(){if(STAGES[i]==='freed')age=0;render();});
+document.getElementById('ageBtn').addEventListener('click',function(){age+=120;render();});
+['pauseAlerts','closeZone','measureOnly'].forEach(function(id){document.getElementById(id).addEventListener('change',render);});
+render();})();
 </script>
 </body>
 </html>

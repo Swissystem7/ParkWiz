@@ -402,6 +402,23 @@
     return 'לא ידוע';
   }
 
+  // Coarse quality bucket for a 0..1 confidence: 'high' | 'medium' | 'low'.
+  // Non-numeric input is 'low' so a missing estimate never reads as trusted.
+  function confidenceLabel(confidence) {
+    const c = Number(confidence);
+    if (!Number.isFinite(c)) return 'low';
+    if (c >= CONF_BG_SUBTRACT) return 'high';
+    if (c >= CONF_VS_EMPTY) return 'medium';
+    return 'low';
+  }
+
+  function confidenceLabelHe(confidence) {
+    const label = confidenceLabel(confidence);
+    if (label === 'high') return 'גבוהה';
+    if (label === 'medium') return 'בינונית';
+    return 'נמוכה';
+  }
+
   return {
     luma,
     lumaSamples,
@@ -418,6 +435,8 @@
     estimateLot,
     methodConfidence,
     methodLabelHe,
+    confidenceLabel,
+    confidenceLabelHe,
     SAMPLE_STRIDE,
     DAY_LUMA_MIN,
     DUSK_LUMA_MIN,

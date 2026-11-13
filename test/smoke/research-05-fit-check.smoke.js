@@ -1,0 +1,46 @@
+// Headless smoke of demo/meeting-ops.html at 360px (research-05): the fit check
+// turns answers into a to-clarify list with no score. Offline:
+// any non-local request fails the test. Run with `npm run test:smoke`.
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const http = require('node:http');
+const path = require('node:path');
+let chromium;
+try { ({ chromium } = require('playwright')); } catch (e) { /* optional */ }
+const root = path.join(__dirname, '..', '..');
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' };
+
+test('fit check: to-clarify list without a score at 360px', { skip: !chromium && 'playwright not installed' }, async () => {
+  const server = http.createServer((req, res) => {
+    const file = path.join(root, decodeURIComponent(new URL(req.url, 'http://x').pathname));
+    if (!file.startsWith(root) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) return res.writeHead(404).end();
+    res.writeHead(200, { 'content-type': TYPES[path.extname(file)] || 'application/octet-stream' }).end(fs.readFileSync(file));
+  });
+  await new Promise((r) => server.listen(0, '127.0.0.1', r));
+  const base = 'http://127.0.0.1:' + server.address().port;
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({ viewport: { width: 360, height: 780 } });
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+    page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+    await page.route('**/*', (r) => (r.request().url().startsWith(base) ? r.continue() : (errors.push('external ' + r.request().url()), r.abort())));
+    await page.goto(base + '/demo/meeting-ops.html');
+    assert.equal(await page.locator('[data-fit]').count(), 9);
+    await page.selectOption('[data-fit="problem"]', 'yes');
+    await page.selectOption('#fitLimit', 'install');
+    await page.click('#compatBtn');
+    assert.equal(await page.locator('#fitList li').count(), 8);
+    const out = await page.textContent('#compatOut');
+    assert.match(out, /מה צריך לברר \(8\)/);
+    assert.match(out, /אין ציון/);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    assert.ok(overflow <= 0, 'horizontal overflow ' + overflow + 'px');
+    assert.deepEqual(errors, []);
+  } finally {
+    await browser.close();
+    server.close();
+  }
+});

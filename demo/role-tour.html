@@ -47,13 +47,13 @@ input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(-
     <button class="btn2" data-role="it">IT ופרטיות</button>
     <button class="btn2" data-role="innovation">חדשנות</button>
   </div>
-  <section class="card" data-roles="manager"><h2>למנהל חניון</h2><p>לוח תפוסה, תקלות ולא ידוע כשאין מידע. ראו <a href="./atidim-board.html">לוח מפעיל</a> ו<a href="./fault-lab.html">מעבדת תקלות</a>.</p></section>
-  <section class="card" data-roles="it"><h2>ל-IT ופרטיות</h2><p>עיבוד ליד המצלמה, מידע תפוסה בלבד, ביטול גישה ומחיקה. ראו <a href="./data-flow.html">זרימת מידע</a>.</p></section>
-  <section class="card" data-roles="innovation"><h2>לחדשנות</h2><p>ניסוי קטן מדיד באזור אחד. ראו <a href="../pilot.html">הצעת ניסוי</a> ו<a href="./trial-card.html">כרטיס ניסוי</a>.</p></section>
+  <section class="card" data-roles="manager"><h2>למנהל חניון</h2><p>לוח תפוסה, תקלות ולא ידוע כשאין מידע. ראו <a href="./atidim-board.html">לוח מפעיל</a> ו<a href="./fault-lab.html">מעבדת תקלות</a>.</p><p class="more">בלי שינוי בתשלום או במחסומים. מוצע רק מקום פנוי וגם מותר לנהג — ראו <a href="./free-for-whom.html">פנוי, אבל למי?</a>. אין שמירת מקום, והמפעיל יכול להשהות התראות או לסגור אזור — ראו <a href="./meeting-ops.html">גבולות, התראות והפעלה</a>.</p></section>
+  <section class="card" data-roles="it"><h2>ל-IT ופרטיות</h2><p>עיבוד ליד המצלמה, מידע תפוסה בלבד, ביטול גישה ומחיקה. ראו <a href="./data-flow.html">זרימת מידע</a>.</p><p class="more">אין צורך להתקין תוכנה במצלמות: גישת קריאה בלבד לזרם מקומי מאושר, רשת מבודדת, אין מצלמות לאינטרנט. שכבת ParkWiz אינה שומרת וידאו ואינה קוראת לוחיות; לנהג מגיע רק מצב וזמן עדכון, לא תמונה ולא קישור. דרישות מחשוב, חיבור והתראות יאושרו בסקר האתר.</p></section>
+  <section class="card" data-roles="innovation"><h2>לחדשנות</h2><p>ניסוי קטן מדיד באזור אחד. ראו <a href="../pilot.html">הצעת ניסוי</a> ו<a href="./trial-card.html">כרטיס ניסוי</a>.</p><p class="more">ניסוי של 4 שבועות שמתחיל רק אחרי הסכם ואישורי IT ופרטיות; התוצאה מחושבת מול ספירה ידנית — ראו <a href="./results-calculator.html">מחשבון תוצאות</a>. אם אין יתרון — עוצרים.</p></section>
   <p><a class="btn" href="./atidim.html">לדמו החניון</a></p>
 </div>
 <script>
-document.querySelectorAll('[data-role]').forEach(function(b){b.addEventListener('click',function(){var r=b.getAttribute('data-role');document.querySelectorAll('[data-roles]').forEach(function(c){c.classList.toggle('hl',c.getAttribute('data-roles')===r);});});});
+document.querySelectorAll('[data-role]').forEach(function(b){b.addEventListener('click',function(){var r=b.getAttribute('data-role');document.querySelectorAll('[data-roles]').forEach(function(c){c.classList.toggle('hl',c.getAttribute('data-roles')===r);});document.querySelectorAll('[data-role]').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});});});
 </script>
 </body>
 </html>
