@@ -10,7 +10,7 @@
 })(this, function () {
   'use strict';
   var KEY = 'parkwiz_theme';
-  var THEME_COLOR = { dark: '#0b1210', light: '#f3f6f4' };
+  var THEME_COLOR = { dark: '#0f1a19', light: '#f3f5f4' };
 
   function resolveTheme(stored, prefersLight) {
     if (stored === 'light' || stored === 'dark') return stored;

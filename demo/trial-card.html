@@ -16,6 +16,27 @@ h1{font-size:1.3rem;margin:8px 0 4px}.lede{color:var(--pw-muted);max-width:68ch}
 .btn{display:inline-flex;min-height:40px;align-items:center;padding:8px 16px;border-radius:999px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:800;text-decoration:none;border:0;cursor:pointer;font:inherit}
 label{display:block;margin:10px 0}input,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid var(--pw-line);background:var(--pw-surface-2);color:var(--pw-ink);font:inherit}
 @media print{.btn,.noprint{display:none}}
+@media screen{
+
+/* design-06: Claude Design look (project 4db02f73): dashed amber demo tag,
+   H1 28/700, white 18px cards, 52px teal primary / 44px outline secondary,
+   44px inputs. Only the look changes. */
+.wrap{padding:24px 20px 60px}
+.badge{display:inline-flex;align-items:center;min-height:24px;background:#fbf0d9;color:#8a5a00;border:1px dashed #8a5a00;font-size:.75rem;font-weight:600;padding:0 8px;border-radius:6px}
+h1{font-size:var(--pw-fs-h1);font-weight:700;letter-spacing:-.01em;line-height:1.25;margin:12px 0 6px}
+.lede{font-size:1rem;line-height:1.6}
+.card{border-radius:18px;padding:20px 24px;margin:16px 0}
+.card h2,.card h3{font-weight:600}
+.btn{min-height:52px;padding:0 24px;border-radius:var(--pw-radius-btn);font-weight:600}
+.btn:hover{background:var(--pw-brand-hover)}
+.btn2{min-height:44px;padding:0 16px;border-radius:var(--pw-radius-md);background:var(--pw-surface);color:var(--pw-brand);border:1.5px solid var(--pw-brand);font-weight:600}
+.btn2:hover{background:var(--pw-brand-soft)}
+.btn2[aria-pressed="true"],.btn2.active,.btn2.on{background:var(--pw-brand);color:var(--pw-on-brand)}
+input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{min-height:44px;border:1.5px solid var(--pw-line);border-radius:12px;background:var(--pw-surface);color:var(--pw-ink);padding:8px 12px;font:inherit}
+input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(--pw-brand);vertical-align:middle}
+
+}
+@media screen and (max-width:600px){h1{font-size:1.375rem}.card{padding:16px}}
 </style>
 </head>
 <body>

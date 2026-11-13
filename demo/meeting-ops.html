@@ -17,6 +17,27 @@ h1{font-size:1.3rem;margin:8px 0 4px}.lede{color:var(--pw-muted);max-width:68ch}
 .btn2{display:inline-flex;min-height:40px;align-items:center;padding:8px 14px;border-radius:999px;background:var(--pw-chip);color:var(--pw-ink);border:1px solid var(--pw-line);cursor:pointer;font:inherit;margin:4px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.z{border:1px solid var(--pw-line);border-radius:12px;padding:12px;background:var(--pw-surface-2)}
 label{display:block;margin:8px 0}a{color:var(--pw-brand)}
+
+/* design-06: Claude Design look (project 4db02f73): dashed amber demo tag,
+   H1 28/700, white 18px cards, 52px teal primary / 44px outline secondary,
+   44px inputs. Only the look changes. */
+.wrap{padding:24px 20px 60px}
+.badge{display:inline-flex;align-items:center;min-height:24px;background:#fbf0d9;color:#8a5a00;border:1px dashed #8a5a00;font-size:.75rem;font-weight:600;padding:0 8px;border-radius:6px}
+h1{font-size:var(--pw-fs-h1);font-weight:700;letter-spacing:-.01em;line-height:1.25;margin:12px 0 6px}
+.lede{font-size:1rem;line-height:1.6}
+.card{border-radius:18px;padding:20px 24px;margin:16px 0}
+.card h2,.card h3{font-weight:600}
+.btn{min-height:52px;padding:0 24px;border-radius:var(--pw-radius-btn);font-weight:600}
+.btn:hover{background:var(--pw-brand-hover)}
+.btn2{min-height:44px;padding:0 16px;border-radius:var(--pw-radius-md);background:var(--pw-surface);color:var(--pw-brand);border:1.5px solid var(--pw-brand);font-weight:600}
+.btn2:hover{background:var(--pw-brand-soft)}
+.btn2[aria-pressed="true"],.btn2.active,.btn2.on{background:var(--pw-brand);color:var(--pw-on-brand)}
+input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{min-height:44px;border:1.5px solid var(--pw-line);border-radius:12px;background:var(--pw-surface);color:var(--pw-ink);padding:8px 12px;font:inherit}
+input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(--pw-brand);vertical-align:middle}
+@media(max-width:600px){h1{font-size:1.375rem}.card{padding:16px}}
+/* research-05: fit check questions */
+.fit-q{display:block;margin:10px 0}.fit-q select,#fitLimit{display:block;margin-top:4px;width:100%;max-width:320px}
+.fit-list{margin:8px 0;padding-inline-start:20px}
 </style>
 </head>
 <body>
@@ -45,8 +66,27 @@ label{display:block;margin:8px 0}a{color:var(--pw-brand)}
   <section class="card"><h2>בדיקת התאמה ראשונית — בלי ציון ובלי הבטחה</h2>
     <label>סוג מצלמות קיים <input id="camType"></label>
     <label>אזור מבוקש <input id="zone"></label>
+    <div id="fitQs" class="fit-qs"></div>
+    <label>מה בדיוק אסור לפי IT?
+      <select id="fitLimit">
+        <option value="unknown">עוד לא ידוע</option>
+        <option value="install">התקנת תוכנה במצלמות</option>
+        <option value="network">חיבור לרשת האתר</option>
+        <option value="video">כל גישה לווידאו הקיים</option>
+        <option value="images">כל עיבוד תמונה</option>
+      </select>
+    </label>
     <button class="btn" id="compatBtn" type="button">הפקת רשימת בירור</button>
     <p id="compatOut" role="status" aria-live="polite">עדיין לא הופקה רשימה.</p>
+    <ul id="fitList" class="fit-list"></ul>
+    <script src="../src/lib/fit-check.js"></script>
+    <script>
+    // research-05: fit check -> "מה לברר" list from the digest (no score).
+    (function(){var box=document.getElementById('fitQs');
+    PWFitCheck.QUESTIONS.forEach(function(q){var l=document.createElement('label');l.className='fit-q';l.textContent=q.qHe+' ';var s=document.createElement('select');s.setAttribute('data-fit',q.id);[['unknown','לא ידוע'],['yes','כן'],['no','לא']].forEach(function(o){var e=document.createElement('option');e.value=o[0];e.textContent=o[1];s.appendChild(e);});l.appendChild(s);box.appendChild(l);});
+    // registered after DOMContentLoaded so it runs after the original handler below.
+    document.addEventListener('DOMContentLoaded',function(){document.getElementById('compatBtn').addEventListener('click',function(){var a={};document.querySelectorAll('[data-fit]').forEach(function(s){a[s.getAttribute('data-fit')]=s.value;});var r=PWFitCheck.toClarify(a,document.getElementById('fitLimit').value),ul=document.getElementById('fitList');ul.textContent='';r.items.forEach(function(t){var li=document.createElement('li');li.textContent=t;ul.appendChild(li);});document.getElementById('compatOut').textContent='מה צריך לברר ('+r.items.length+'): '+(r.items.length?'':'הכול סומן כידוע — לאשר בסיור. ')+'כיוון לבדיקה: '+r.directionHe+'. '+r.noteHe;});});})();
+    </script>
   </section>
 
   <section class="card"><h2>מסך סיום ניסוי — רשימת סגירה</h2>

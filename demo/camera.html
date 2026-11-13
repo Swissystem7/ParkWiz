@@ -28,6 +28,19 @@ input[type="url"], input[type="file"] { font: inherit; font-size: .82rem; paddin
 input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
 #toast { position: fixed; inset-block-end: 16px; inset-inline-start: 16px; z-index: 50; display: none; background: var(--free); color: #fff; font-weight: 700; font-size: .86rem; padding: 10px 16px; border-radius: 10px; box-shadow: var(--shadow); }
 #toast.show { display: block; } /* A control with nothing to act on (no spots, no source) is disabled and must look it. */ button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* design-06: Claude Design look (project 4db02f73) on top of pilot/shell.css:
+   KPI label-over-number 34/700, 18px cards, 44px inputs, ink toast. */
+h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.01em; line-height: 1.25; }
+h2 { font-size: 1.125rem; font-weight: 600; }
+#stage { border-radius: 18px; }
+.kpis, .grid2 { gap: 16px; }
+.kpi { border-radius: 18px; padding: 18px 20px; text-align: start; display: flex; flex-direction: column; gap: 4px; }
+.kpi .num { font-size: 2.125rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+.kpi .lbl { order: -1; font-size: .875rem; }
+input[type="url"], input[type="file"] { min-height: 44px; border: 1.5px solid var(--line); border-radius: 12px; }
+#toast { background: var(--ink); color: #fff; border-radius: 12px; font-weight: 600; }
+@media (max-width: 600px) { h1 { font-size: 1.375rem; } .kpi .num { font-size: 1.75rem; } }
 </style>
 </head>
 <body>
@@ -52,7 +65,7 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
       <div class="toolbar">
         <label for="fileIn">קובץ וידאו או תמונה:</label>
         <input type="file" id="fileIn" accept="video/*,image/*">
-        <button type="button" id="btnDemoClip" class="primary" style="background:#06b6d4;color:#000;font-weight:700">▶ דמו עתידים בלחיצה אחת</button>
+        <button type="button" id="btnDemoClip" class="primary" style="font-weight:600">▶ דמו עתידים בלחיצה אחת</button>
         <button type="button" id="btnCam" class="primary">מצלמת המכשיר</button>
         <input type="url" id="urlIn" aria-label="כתובת סטרים מצלמה" placeholder="כתובת סטרים (MJPEG / HLS / MP4) — בכפוף ל‑CORS">
         <button type="button" id="btnUrl">טען כתובת</button>
@@ -176,13 +189,40 @@ input[type="url"] { flex: 1 1 15rem; min-width: 11rem; }
     ensureModel().then(function () { if (!timer) timer = setInterval(tick, TICK_MS); },
       function () { /* the Hebrew failure message is already on screen */ });
   }
+  function safeMediaUrl(url) {
+    var s = String(url).trim();
+    var base, parsed, proto;
+    if (!s) return '';
+    try {
+      base = (typeof document !== 'undefined' && document.baseURI) ||
+             (typeof location !== 'undefined' && location.href);
+      parsed = base ? new URL(s, base) : new URL(s);
+      proto = String(parsed.protocol || '').toLowerCase();
+      if (proto === 'https:' || proto === 'http:' || proto === 'blob:') return parsed.href;
+    } catch (e) { /* rejected: bad URL or disallowed scheme */ }
+    return '';
+  }
   function useVideoUrl(url, label) {
     stopSource();
     video.srcObject = null;
-    video.src = url;
+    var safe = safeMediaUrl(url);
+    if (!safe) {
+      srcStatus.textContent = 'כתובת המדיה נדחתה (מותר רק http, https או קובץ מקומי).';
+      return;
+    }
+    video.src = safe;
     start(video, label);
   }
-  function useImage(url, label) { stopSource(); image.src = url; start(image, label); }
+  function useImage(url, label) {
+    stopSource();
+    var safe = safeMediaUrl(url);
+    if (!safe) {
+      srcStatus.textContent = 'כתובת המדיה נדחתה (מותר רק http, https או קובץ מקומי).';
+      return;
+    }
+    image.src = safe;
+    start(image, label);
+  }
   document.getElementById('fileIn').addEventListener('change', function (e) {
     var file = e.target.files && e.target.files[0];
     if (!file) return;

@@ -15,7 +15,7 @@ const occ = require('../src/lib/occupancy');
 const marginLib = require('../src/lib/margin');
 
 // The three <script src> tags carry attributes, so this matches the inline block.
-const inline = html.match(/<script>([\s\S]*?)<\/script>/);
+const inline = html.match(/<script\s*>([\s\S]*?)<\/script\s*>/i);
 
 // 2026-10-19 07:30Z is 10:30 in Jerusalem — mid-morning, the hour the demo opens on.
 const FIXED = '2026-10-19T07:30:00Z';

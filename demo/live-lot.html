@@ -276,6 +276,28 @@
     color: var(--muted);
     font-size: 12.5px;
   }
+
+    /* design-06: Claude Design look (project 4db02f73): white 18px cards, 44px
+       controls, bays as the design tiles (free = green dashed, taken = grey,
+       mine = teal with a ring, someone else's = amber). Only the look changes. */
+    header.top { border-bottom: 0; background: var(--pw-surface); border-radius: 18px; padding: 14px 20px; }
+    .brand-logo { display: inline-flex; align-items: center; min-height: 44px; color: var(--pw-brand); font-weight: 700; }
+    .brand-badge { background: var(--pw-brand); color: var(--pw-on-brand); border-radius: 6px; }
+    .live-pill { background: var(--pw-free-soft); color: var(--pw-free); border: 0; border-radius: 15px; min-height: 30px; }
+    .banner { background: var(--pw-attn-soft); border: 1px dashed var(--pw-attn); color: var(--pw-ink); border-radius: 12px; }
+    .banner b { color: var(--pw-attn); }
+    .card { background: var(--pw-surface); border: 1px solid var(--pw-line); border-radius: 18px; box-shadow: none; padding: 20px; }
+    .card h2 { font-size: 1.125rem; font-weight: 600; }
+    input, select { min-height: 44px; border: 1.5px solid var(--pw-line); border-radius: 12px; }
+    button { min-height: 44px; border-radius: 12px; font-weight: 600; }
+    button.primary { background: var(--pw-brand); border-color: var(--pw-brand); color: var(--pw-on-brand); }
+    button.primary:hover { background: var(--pw-brand-hover); }
+    .spot { border-radius: 12px; }
+    .spot.free { background: var(--pw-free-soft); color: var(--pw-free); border: 1.5px dashed var(--pw-free); }
+    .spot.occupied { background: var(--pw-taken-soft); color: var(--pw-taken); border-color: transparent; }
+    .spot.claim-me { background: var(--pw-brand); color: var(--pw-on-brand); border-color: var(--pw-brand); box-shadow: 0 0 0 3px var(--pw-surface), 0 0 0 5px var(--pw-brand); }
+    .spot.claim-other { background: var(--pw-attn-soft); color: var(--pw-attn); border-color: var(--pw-attn); }
+    .role-chip, .user-badge { border-radius: 15px; min-height: 30px; display: inline-flex; align-items: center; }
 </style>
 </head>
 <body>
