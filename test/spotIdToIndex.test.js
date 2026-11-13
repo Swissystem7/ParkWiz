@@ -13,3 +13,9 @@ test("invalid -> -1", () => {
 	assert.equal(spotIdToIndex(null), -1);
 	assert.equal(spotIdToIndex("A-00"), -1);
 });
+
+test("lowercase prefix and safe integer edge cases", () => {
+	assert.equal(spotIdToIndex("a-05"), 4);
+	assert.equal(spotIdToIndex("b10"), 9);
+	assert.equal(spotIdToIndex("A-9007199254740992"), -1);
+});
