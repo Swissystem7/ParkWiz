@@ -34,6 +34,13 @@ h1{font-size:var(--pw-fs-h1);font-weight:700;letter-spacing:-.01em;line-height:1
 input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{min-height:44px;border:1.5px solid var(--pw-line);border-radius:12px;background:var(--pw-surface);color:var(--pw-ink);padding:8px 12px;font:inherit}
 input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(--pw-brand);vertical-align:middle}
 @media(max-width:600px){h1{font-size:1.375rem}.card{padding:16px}}
+/* research-01: freshness stamp, driver alert and operator view */
+.stamp{color:var(--pw-muted);font-size:.9rem;margin:0 0 8px}
+.views{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.view{border:1px solid var(--pw-line);border-radius:12px;padding:12px}
+.view h3{margin:0 0 6px;font-size:1rem}
+.view[data-state="hidden"]{border-style:dashed;color:var(--pw-muted)}
+@media(max-width:600px){.views{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -44,18 +51,30 @@ input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(-
   <section class="card">
     <p id="spot" role="status" aria-live="polite">מקום A1: פנוי (הדגמה)</p>
     <p id="why">המידע עדכני לפי ההדגמה.</p>
+    <p id="stamp" class="stamp">עודכן לפני 4 שניות</p>
+    <div class="views">
+      <div class="view" id="alertBox"><h3>מה הנהג רואה</h3><p id="alert">מקום פנוי נכון לרגע העדכון — אין שמירת מקום, ויכול להיתפס</p></div>
+      <div class="view"><h3>מה המפעיל רואה</h3><p id="ops">תקין</p></div>
+    </div>
     <button class="btn2" data-fault="מצלמה נותקה">מצלמה נותקה</button>
     <button class="btn2" data-fault="ראות חסומה">ראות חסומה</button>
     <button class="btn2" data-fault="מידע לא עדכני">מידע לא עדכני</button>
     <button class="btn2" id="reset">איפוס להדגמה תקינה</button>
   </section>
-  <section class="card"><h2>העיקרון</h2><p>בכל תקלה המצב הוא לא ידוע, והמפעיל רואה שצריך לבדוק — המערכת לא מציגה מקום כפנוי על סמך מידע ישן או חסר.</p></section>
+  <section class="card"><h2>העיקרון</h2><p>בכל תקלה המצב הוא לא ידוע, והמפעיל רואה שצריך לבדוק — המערכת לא מציגה מקום כפנוי על סמך מידע ישן או חסר.</p>
+    <p>במצב לא ידוע ההתראה לנהג מוסתרת. מידע בן יותר מ-5 דקות נחשב לא עדכני גם בלי תקלה מוצהרת. לנהג מגיע רק מצב וזמן עדכון — לא תמונה, לא קישור למצלמה ולא לוחית רישוי.</p></section>
   <p><a class="btn" href="./atidim.html">לדמו החניון</a> &nbsp;<a href="../index.html">דף הבית</a></p>
 </div>
+<script src="../src/lib/fault-lab.js"></script>
 <script>
 var spot=document.getElementById('spot'),why=document.getElementById('why');
 document.querySelectorAll('[data-fault]').forEach(function(b){b.addEventListener('click',function(){spot.textContent='מקום A1: לא ידוע';why.textContent='סיבה: '+b.getAttribute('data-fault')+'. לא מציגים פנוי/תפוס בלי מידע אמין.';});});
 document.getElementById('reset').addEventListener('click',function(){spot.textContent='מקום A1: פנוי (הדגמה)';why.textContent='המידע עדכני לפי ההדגמה.';});
+// research-01: freshness stamp + hidden driver alert + operator note from the core.
+var FAULT_KEY={'מצלמה נותקה':'camera','ראות חסומה':'view','מידע לא עדכני':'stale'};
+function paint(v){document.getElementById('stamp').textContent=v.stampHe;document.getElementById('alert').textContent=v.alertHe;document.getElementById('alertBox').setAttribute('data-state',v.alertVisible?'shown':'hidden');document.getElementById('ops').textContent=v.operatorHe;}
+document.querySelectorAll('[data-fault]').forEach(function(b){b.addEventListener('click',function(){var k=FAULT_KEY[b.getAttribute('data-fault')];paint(PWFaultLab.spotView({reading:'free',fault:k,ageSec:k==='stale'?420:4}));});});
+document.getElementById('reset').addEventListener('click',function(){paint(PWFaultLab.spotView({reading:'free',ageSec:4}));});
 </script>
 </body>
 </html>
