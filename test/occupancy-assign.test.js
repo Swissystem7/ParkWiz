@@ -235,3 +235,37 @@ test('the schema doc names both inputs and the response fields', () => {
   assert.match(readme, /docs\/occupancy-assign-api\.md/);
   assert.match(readme, /api\/assign\.js/);
 });
+
+test('safeAssign rejects missing lot id, empty stalls and non-numeric input', () => {
+  const { safeAssign, normalizeLotId, normalizeEta } = require('../src/lib/occupancy-assign.js');
+  const good = [spot('A-1', 'free', '2026-11-02T12:00:00.000Z')];
+  assert.equal(safeAssign(null, null).error, 'BAD_BODY');
+  assert.equal(safeAssign(null, []).error, 'BAD_BODY');
+  assert.equal(safeAssign(null, { stalls: good }).error, 'MISSING_LOT_ID');
+  assert.equal(safeAssign(null, { lotId: '  ', stalls: good }).error, 'MISSING_LOT_ID');
+  assert.equal(safeAssign(null, { lotId: 'L1', stalls: [] }).error, 'EMPTY_STALLS');
+  assert.equal(safeAssign(null, { lotId: 'L1' }).error, 'EMPTY_STALLS');
+  assert.equal(safeAssign(null, { lotId: 'L1', stalls: [null] }).error, 'BAD_STALL');
+  assert.equal(safeAssign(null, { lotId: 'L1', stalls: [spot('A-1', 'free', 'abc')] }).error, 'BAD_STALL');
+  assert.equal(safeAssign(null, { lotId: 'L1', stalls: [spot('A-1', 'bad', '2026-11-02T12:00:00.000Z')] }).error, 'BAD_STATUS');
+  assert.equal(normalizeLotId(7), '7');
+  assert.equal(normalizeLotId(NaN), null);
+  assert.equal(normalizeEta('12'), 12);
+  assert.equal(normalizeEta('x'), null);
+  assert.equal(normalizeEta(''), null);
+});
+
+test('safeAssign assigns a valid request and reports no free stall as 409', () => {
+  const { safeAssign } = require('../src/lib/occupancy-assign.js');
+  const svc = createService({ now: () => LATER_TS });
+  const ok = safeAssign(svc, { lotId: 'L1', stalls: [spot('A-1', 'free', '2026-11-02T12:00:00.000Z')] });
+  assert.equal(ok.ok, true);
+  assert.equal(ok.lotId, 'L1');
+  assert.equal(ok.result.spot, 'A-1');
+  const none = safeAssign(svc, { lotId: 'L1', stalls: [spot('A-2', 'occupied', '2026-11-02T12:00:00.000Z')] });
+  assert.equal(none.status, 409);
+  assert.equal(none.error, 'NO_FREE_SPOT');
+  assert.equal(safeAssign(undefined, { lotId: 'L', stalls: [spot('1', 'free', '2026-11-02T12:00:00.000Z')] }).ok, true);
+  const boom = safeAssign({ ingestAndAssign() { throw new Error('x'); } }, { lotId: 'L', stalls: [spot('1', 'free', '2026-11-02T12:00:00.000Z')] });
+  assert.equal(boom.status, 500);
+});

@@ -642,6 +642,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 })();
 </script>
 <a class="skip-link" href="#searchInput">דלג לחיפוש</a>
+<a class="skip-link" href="#mainContent">דלג לתוכן הראשי</a>
 <div id="pwSurfaceNav" data-active="map" style="position:relative;z-index:9999"></div>
 
 <section class="atidim-hero" id="atidimWelcomeHero" role="region" aria-label="מבוא למערכת ParkWiz — פיילוט פארק עתידים ועיריית תל אביב">
@@ -871,7 +872,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
   <button class="filter-btn active" id="filt-timed" onclick="toggleFilter('timed')" aria-pressed="true">⏱️ עד 3 שעות</button>
 </div>
 
-<div class="main">
+<main id="mainContent" class="main" role="main">
   <div class="map-wrap" id="mapWrap" role="region" aria-label="מפת חניה בנתניה">
     <div id="realMap" role="application" aria-label="מפת OpenStreetMap של נתניה"></div>
     <button type="button" id="tlvBtn" onclick="toggleTlvLayer()" aria-pressed="false" aria-label="הצג או הסתר מגרשי חניה עירוניים — מיקום בלבד" style="position:absolute;bottom:14px;right:12px;z-index:11;background:rgba(10,15,10,.92);color:var(--text);border:1px solid rgba(56,189,248,.5);border-radius:10px;padding:8px 11px;font-size:.72rem;cursor:pointer;opacity:.85;font-family:inherit">🏛 מגרשי חניה נתניה · מיקום בלבד</button>
@@ -935,14 +936,14 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
     <div class="live-feed" style="border-color:rgba(251,191,36,.4)">
       <div class="feed-title" style="color:#fbbf24">🏖 מצב חופשה — תכנן חניה מראש</div>
       <div style="display:flex;gap:6px;margin-bottom:6px">
-        <select id="vacDest" style="flex:2;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
+        <select id="vacDest" aria-label="יעד החופשה" style="flex:2;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
           <option value="0">עיריית נתניה</option>
           <option value="1">קניון השרון</option>
           <option value="2">קניון הדרים</option>
           <option value="3">כיכר האחדות</option>
           <option value="4">מרכז קניות קרית השרון</option>
         </select>
-        <select id="vacHour" style="flex:1;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
+        <select id="vacHour" aria-label="שעת ההגעה ליעד" style="flex:1;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
           <option value="0">08:00</option><option value="1">10:00</option><option value="2" selected>12:00</option>
           <option value="3">14:00</option><option value="4">16:00</option><option value="5">18:00</option><option value="6">20:00</option>
         </select>
@@ -994,7 +995,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
     <!-- Vehicle selector: מדד התאמת מקום לפי גודל הרכב -->
     <div style="padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;margin:6px 0">
       <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">🚗 הרכב שלי (למדד "מתאים לרכב"):</div>
-      <select id="vehicleSel" onchange="setVehicle(this.value)"
+      <select id="vehicleSel" aria-label="סוג הרכב שלי" onchange="setVehicle(this.value)"
               style="width:100%;background:#101d10;color:#e5e7eb;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px;font-size:0.75rem"></select>
     </div>
     <div class="spots-list" id="spotsList" role="region" aria-label="רשימת רחובות קרובים"></div>
@@ -1032,7 +1033,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
       <div class="ch-progress" role="progressbar" aria-valuenow="4" aria-valuemin="0" aria-valuemax="7" aria-label="אתגר דמו: 4 מתוך 7"><div class="ch-fill" style="width:57%;background:var(--purple)"></div></div>
     </div>
   </div>
-</div>
+</main>
 
 <!-- Recommended 3 streets mini-card -->
 <div class="reco-card" id="recoCard">
