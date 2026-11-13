@@ -189,13 +189,40 @@ input[type="url"], input[type="file"] { min-height: 44px; border: 1.5px solid va
     ensureModel().then(function () { if (!timer) timer = setInterval(tick, TICK_MS); },
       function () { /* the Hebrew failure message is already on screen */ });
   }
+  function safeMediaUrl(url) {
+    var s = String(url).trim();
+    var base, parsed, proto;
+    if (!s) return '';
+    try {
+      base = (typeof document !== 'undefined' && document.baseURI) ||
+             (typeof location !== 'undefined' && location.href);
+      parsed = base ? new URL(s, base) : new URL(s);
+      proto = String(parsed.protocol || '').toLowerCase();
+      if (proto === 'https:' || proto === 'http:' || proto === 'blob:') return parsed.href;
+    } catch (e) { /* rejected: bad URL or disallowed scheme */ }
+    return '';
+  }
   function useVideoUrl(url, label) {
     stopSource();
     video.srcObject = null;
-    video.src = url;
+    var safe = safeMediaUrl(url);
+    if (!safe) {
+      srcStatus.textContent = 'כתובת המדיה נדחתה (מותר רק http, https או קובץ מקומי).';
+      return;
+    }
+    video.src = safe;
     start(video, label);
   }
-  function useImage(url, label) { stopSource(); image.src = url; start(image, label); }
+  function useImage(url, label) {
+    stopSource();
+    var safe = safeMediaUrl(url);
+    if (!safe) {
+      srcStatus.textContent = 'כתובת המדיה נדחתה (מותר רק http, https או קובץ מקומי).';
+      return;
+    }
+    image.src = safe;
+    start(image, label);
+  }
   document.getElementById('fileIn').addEventListener('change', function (e) {
     var file = e.target.files && e.target.files[0];
     if (!file) return;
