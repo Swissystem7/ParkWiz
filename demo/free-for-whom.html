@@ -18,6 +18,13 @@ h1{font-size:1.3rem;margin:8px 0 4px}.lede{color:var(--pw-muted);max-width:68ch}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .spot{border:1px solid var(--pw-line);border-radius:12px;padding:12px;background:var(--pw-surface-2)}
 .spot[hidden]{display:none}
+/* research-02: free AND allowed verdicts */
+.spot .verdict{display:block;font-size:.85rem;color:var(--pw-muted);margin-top:4px}
+.spot[data-verdict="suggest"]{border-color:var(--pw-brand);border-width:2px}
+.spot[data-verdict="suggest"] .verdict{color:var(--pw-brand);font-weight:700}
+.spot[data-verdict="unknown"],.spot[data-verdict="not-allowed"],.spot[data-verdict="not-free"]{border-style:dashed}
+.stamp{color:var(--pw-muted);font-size:.9rem}
+.showall{display:flex;align-items:center;gap:8px;min-height:44px}
 
 /* design-06: Claude Design look (project 4db02f73): dashed amber demo tag,
    H1 28/700, white 18px cards, 52px teal primary / 44px outline secondary,
@@ -50,17 +57,26 @@ input[type=checkbox],input[type=radio]{width:22px;height:22px;accent-color:var(-
     <button class="btn2" data-user="ev">רכב חשמלי לטעינה</button>
     <button class="btn2" data-user="accessible">נגישות</button>
     <div class="grid" style="margin-top:12px">
-      <div class="spot" data-kind="visitor reserved">A1 — רגיל</div>
-      <div class="spot" data-kind="reserved">A2 — שמור</div>
-      <div class="spot" data-kind="ev visitor">A3 — טעינה</div>
-      <div class="spot" data-kind="accessible visitor">A4 — נגיש</div>
+      <div class="spot" data-kind="visitor reserved ev accessible" data-type="regular" data-state="free">A1 — רגיל<span class="verdict"></span></div>
+      <div class="spot" data-kind="reserved" data-type="reserved" data-state="free">A2 — שמור<span class="verdict"></span></div>
+      <div class="spot" data-kind="ev" data-type="ev" data-state="free">A3 — טעינה<span class="verdict"></span></div>
+      <div class="spot" data-kind="accessible" data-type="accessible" data-state="free">A4 — נגיש<span class="verdict"></span></div>
+      <div class="spot" data-kind="visitor reserved ev accessible" data-type="regular" data-state="unknown">A5 — רגיל<span class="verdict"></span></div>
     </div>
+    <p id="stamp" class="stamp">עודכן לפני 6 שניות (הדגמה) — מקום פנוי נכון לרגע העדכון, אין שמירת מקום</p>
+    <label class="showall"><input type="checkbox" id="showAll"> הצג גם מקומות שלא מוצעים לי (עם הסבר)</label>
     <p id="msg" role="status" aria-live="polite">בחרו סוג משתמש לסינון.</p>
   </section>
   <p><a class="btn" href="./atidim.html">לדמו החניון</a> &nbsp;<a href="../index.html">דף הבית</a></p>
 </div>
+<script src="../src/lib/eligibility.js"></script>
 <script>
 document.querySelectorAll('[data-user]').forEach(function(b){b.addEventListener('click',function(){var u=b.getAttribute('data-user'),n=0;document.querySelectorAll('.spot').forEach(function(s){var ok=s.getAttribute('data-kind').split(' ').indexOf(u)>-1;s.hidden=!ok;if(ok)n++;});document.getElementById('msg').textContent='מוצגים '+n+' מקומות מתאימים (הדגמה).';});});
+// research-02: verdict per spot = free AND allowed (src/lib/eligibility.js).
+var currentUser=null;
+function judgeAll(){if(!currentUser)return;var all=document.getElementById('showAll').checked,n=0;document.querySelectorAll('.spot').forEach(function(s){var v=PWEligibility.judge({kind:s.getAttribute('data-type'),state:s.getAttribute('data-state')},currentUser);s.setAttribute('data-verdict',v.verdict);s.querySelector('.verdict').textContent=v.textHe;s.hidden=!(v.verdict==='suggest'||all);if(v.verdict==='suggest')n++;});document.getElementById('msg').textContent=n?'פנוי וגם מותר לך: '+n+' מקומות (הדגמה). מקום לא ידוע לא מוצע.':'אין כרגע מקום פנוי שמותר לך (הדגמה).';}
+document.querySelectorAll('[data-user]').forEach(function(b){b.addEventListener('click',function(){currentUser=b.getAttribute('data-user');document.querySelectorAll('[data-user]').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});judgeAll();});});
+document.getElementById('showAll').addEventListener('change',judgeAll);
 </script>
 </body>
 </html>

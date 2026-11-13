@@ -126,6 +126,7 @@
         pending: false,  // the state the most recent frames argue for
         streak: 0,
         score: 0,
+        observations: 0,
       }));
     }
 
@@ -139,7 +140,7 @@
         free: total - occupied,
         rate: total > 0 ? occupied / total : 0,
         spots: lanes.map((l) => ({
-          id: l.id, occupied: l.occupied, score: Number(l.score.toFixed(3)),
+          id: l.id, occupied: l.occupied, score: Number(l.score.toFixed(3)), observations: l.observations,
           x: l.box.x, y: l.box.y, w: l.box.w, h: l.box.h,
         })),
       };
@@ -155,6 +156,7 @@
           if (s > best) best = s;
         }
         lane.score = best;
+        lane.observations += 1;
         const seen = best >= threshold;
         if (seen === lane.pending) lane.streak += 1;
         else { lane.pending = seen; lane.streak = 1; }
