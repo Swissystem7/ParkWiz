@@ -8,7 +8,7 @@ const path = require('node:path');
 
 const root = path.join(__dirname, '..');
 const dir = path.join(root, 'docs', 'business');
-const DOCS = ['business-model.md', 'pilot-requirements.md', 'pitch.md', 'pitch.html', 'SOURCES.md'];
+const DOCS = ['business-model.md', 'pilot-requirements.md', 'pitch.md', 'pitch.html', 'SOURCES.md', 'product-spec-proposal.md'];
 
 test('all PW-602 business docs exist and are non-empty', () => {
   for (const f of DOCS) {
