@@ -251,3 +251,5 @@ payback_months  = setup_site / margin            (only if ParkWiz funds the setu
 | 9 | **הפיץ' ([pitch.md](pitch.md), שקפים 7 ו-9) עדיין מניח שהמפעיל או המעסיק משלמים ושעתידים שותפה לתקציב.** לא עודכן, כי זה מסר ללקוח | אבירן |
 
 **המשך:** הצעה למסכים הבאים שנגזרת מהמודל הזה, בפורמט של תור השרתים: [product-spec-proposal.md](product-spec-proposal.md).
+
+**חשמל, תקשורת ופריסה בכל הפארק** (מה שאבירן קבע ב-13.11.2026, שש דרכים לחשמל וסדר גודל ל-4,000 תאים): [infrastructure-options.md](infrastructure-options.md).
