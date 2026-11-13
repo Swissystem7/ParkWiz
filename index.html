@@ -644,6 +644,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 })();
 </script>
 <a class="skip-link" href="#searchInput">דלג לחיפוש</a>
+<a class="skip-link" href="#mainContent">דלג לתוכן הראשי</a>
 <div id="pwSurfaceNav" data-active="map" style="position:relative;z-index:9999"></div>
 
 <section class="atidim-hero" id="atidimWelcomeHero" role="region" aria-label="מבוא למערכת ParkWiz — פיילוט פארק עתידים ועיריית תל אביב">
@@ -873,7 +874,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
   <button class="filter-btn active" id="filt-timed" onclick="toggleFilter('timed')" aria-pressed="true">⏱️ עד 3 שעות</button>
 </div>
 
-<div class="main">
+<main id="mainContent" class="main" role="main">
   <div class="map-wrap" id="mapWrap" role="region" aria-label="מפת חניה בנתניה">
     <div id="realMap" role="application" aria-label="מפת OpenStreetMap של נתניה"></div>
     <button type="button" id="tlvBtn" onclick="toggleTlvLayer()" aria-pressed="false" aria-label="הצג או הסתר מגרשי חניה עירוניים — מיקום בלבד" style="position:absolute;bottom:14px;right:12px;z-index:11;background:rgba(10,15,10,.92);color:var(--text);border:1px solid rgba(56,189,248,.5);border-radius:10px;padding:8px 11px;font-size:.72rem;cursor:pointer;opacity:.85;font-family:inherit">🏛 מגרשי חניה נתניה · מיקום בלבד</button>
@@ -898,9 +899,9 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
     <!-- Collapsed on phones so the legend does not cover the map; opened on wider screens. -->
     <details class="legend" id="mapLegend">
       <summary>מקרא</summary>
-      <div class="legend-item"><div class="seg-lg" style="background:var(--green)"></div>קל (70%+)</div>
-      <div class="legend-item"><div class="seg-lg" style="background:var(--yellow)"></div>בינוני (30-70%)</div>
-      <div class="legend-item"><div class="seg-lg" style="background:var(--red)"></div>קשה (0-30%)</div>
+      <div class="legend-item"><div class="seg-lg" style="background:#1b6e45"></div>קל (70%+)</div>
+      <div class="legend-item"><div class="seg-lg" style="background:#e5b45a"></div>בינוני (30-70%)</div>
+      <div class="legend-item"><div class="seg-lg" style="background:#b42318"></div>קשה (0-30%)</div>
       <div class="legend-item"><div class="dot-lg" style="background:var(--blue)"></div>אתה כאן</div>
       <div class="legend-item"><div class="seg-lg" style="background:#3b82f6"></div>כחול-לבן</div>
       <div class="legend-item"><div class="seg-lg" style="background:#9ca3af"></div>אפור (חינם)</div>
@@ -937,14 +938,14 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
     <div class="live-feed" style="border-color:rgba(251,191,36,.4)">
       <div class="feed-title" style="color:#fbbf24">🏖 מצב חופשה — תכנן חניה מראש</div>
       <div style="display:flex;gap:6px;margin-bottom:6px">
-        <select id="vacDest" style="flex:2;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
+        <select id="vacDest" aria-label="יעד החופשה" style="flex:2;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
           <option value="0">עיריית נתניה</option>
           <option value="1">קניון השרון</option>
           <option value="2">קניון הדרים</option>
           <option value="3">כיכר האחדות</option>
           <option value="4">מרכז קניות קרית השרון</option>
         </select>
-        <select id="vacHour" style="flex:1;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
+        <select id="vacHour" aria-label="שעת ההגעה ליעד" style="flex:1;background:#0c150c;color:#e5e7eb;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px;font-size:.72rem">
           <option value="0">08:00</option><option value="1">10:00</option><option value="2" selected>12:00</option>
           <option value="3">14:00</option><option value="4">16:00</option><option value="5">18:00</option><option value="6">20:00</option>
         </select>
@@ -996,7 +997,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
     <!-- Vehicle selector: מדד התאמת מקום לפי גודל הרכב -->
     <div style="padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;margin:6px 0">
       <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">🚗 הרכב שלי (למדד "מתאים לרכב"):</div>
-      <select id="vehicleSel" onchange="setVehicle(this.value)"
+      <select id="vehicleSel" aria-label="סוג הרכב שלי" onchange="setVehicle(this.value)"
               style="width:100%;background:#101d10;color:#e5e7eb;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px;font-size:0.75rem"></select>
     </div>
     <div class="spots-list" id="spotsList" role="region" aria-label="רשימת רחובות קרובים"></div>
@@ -1034,7 +1035,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
       <div class="ch-progress" role="progressbar" aria-valuenow="4" aria-valuemin="0" aria-valuemax="7" aria-label="אתגר דמו: 4 מתוך 7"><div class="ch-fill" style="width:57%;background:var(--purple)"></div></div>
     </div>
   </div>
-</div>
+</main>
 
 <!-- Recommended 3 streets mini-card -->
 <div class="reco-card" id="recoCard">
@@ -1259,6 +1260,10 @@ const STREETS_DEF = [
 ];
 
 // ─── מפה אמיתית (Leaflet + OpenStreetMap) עם סימוני חניה ─────────
+// Map colours from the Claude Design tokens (project 4db02f73, src/ui/tokens.css).
+// Leaflet needs literal colours, so the token values are copied here; curb colours
+// (blue-white, grey, red-white, reserved) stay the real street markings.
+const PW_MAP_COLORS = { free:'#1b6e45', mid:'#e5b45a', hard:'#b42318', brand:'#0e5a5e', ink:'#14211f' };
 const ZONE_COLORS = { blue:'#3b82f6', free:'#9ca3af', timed:'#f59e0b' };
 let realMap = null, segLayers = [], midMarkers = [], heatLayer = null;
 let userMarker = null, overlaySpotLayer = null, overlayPangoLayer = null;
@@ -1299,7 +1304,7 @@ function arrivalMode(lat, lng, name) {
   if (!realMap) return;
   if (destMarker) { destMarker.remove(); destCircle.remove(); }
   destMarker = L.marker([lat, lng]).addTo(realMap).bindTooltip('🎯 ' + name);
-  destCircle = L.circle([lat, lng], { radius: 300, color:'#22c55e', weight:1.5, fillOpacity:0.05 }).addTo(realMap);
+  destCircle = L.circle([lat, lng], { radius: 300, color:PW_MAP_COLORS.brand, weight:1.5, fillOpacity:0.05 }).addTo(realMap);
   realMap.setView([lat, lng], 16);
 
   const near = CURBS.flat().filter(ch => distM([lat,lng], ch.mid) <= 300);
@@ -1438,7 +1443,7 @@ function initRealMap() {
     const mid = [ (s.a[0]+s.b[0])/2, (s.a[1]+s.b[1])/2 ];
     const pct = getCurrentHourAvailabilityPct(idx);
     const mk = L.circleMarker(mid, {
-      radius: 13, color:'#0c1a0c', weight:2,
+      radius: 13, color:PW_MAP_COLORS.ink, weight:2,
       fillColor: availColor(pct), fillOpacity: 0.95,
     }).addTo(realMap);
     mk.bindTooltip(`${s.name} · סיכוי ${pct}% (הערכה, לא הבטחה)`, {direction:'top'});
@@ -1644,9 +1649,9 @@ function fitInfo(idx) {
   const gap = streetGap(idx);
   const need = getVehicle().len + 0.4; // מרווח תמרון
   const ratio = gap / need;
-  if (ratio >= 1.15) return { txt:'✓ מתאים לרכב שלך', color:'#22c55e', gap };
-  if (ratio >= 0.98) return { txt:'⚠ צפוף לרכב שלך', color:'#eab308', gap };
-  return { txt:'✗ צר מדי לרכב שלך', color:'#ef4444', gap };
+  if (ratio >= 1.15) return { txt:'✓ מתאים לרכב שלך', color:PW_MAP_COLORS.free, gap };
+  if (ratio >= 0.98) return { txt:'⚠ צפוף לרכב שלך', color:PW_MAP_COLORS.mid, gap };
+  return { txt:'✗ צר מדי לרכב שלך', color:PW_MAP_COLORS.hard, gap };
 }
 // ─── ניווט חיצוני: Waze + Google Maps (deep links רשמיים) ──────────
 function navWaze(idx, ev) {
@@ -1815,9 +1820,9 @@ function init() {
 
 // ─── Availability color ───────────────────────────────────────────
 function availColor(pct) {
-  if (pct >= 70) return '#22c55e';
-  if (pct >= 30) return '#eab308';
-  return '#ef4444';
+  if (pct >= 70) return PW_MAP_COLORS.free;
+  if (pct >= 30) return PW_MAP_COLORS.mid;
+  return PW_MAP_COLORS.hard;
 }
 
 function getHourlySlotIndex(targetDate, slotCount) {
@@ -1924,7 +1929,7 @@ function updateLeafletOverlays() {
     if (sdef && !activeFilters[sdef.type]) return;
     const frac = sdef && sdef.isH ? s.x : s.y;
     const ll = sdef ? streetPointLatLng(s.streetIdx, frac) : xyToLatLng(s.x, s.y);
-    const color = s.type === 'free' ? '#22c55e' : s.type === 'soon' ? '#eab308' : '#ef4444';
+    const color = s.type === 'free' ? PW_MAP_COLORS.free : s.type === 'soon' ? PW_MAP_COLORS.mid : PW_MAP_COLORS.hard;
     const letter = s.type === 'free' ? 'P' : s.type === 'soon' ? '↑' : '✕';
     const flashing = s.flash && Date.now() - s.flash < 3000;
     overlaySpotLayer.addLayer(L.marker(ll, {
@@ -1965,11 +1970,11 @@ function updateLeafletOverlays() {
   if (overlayRouteParks) { overlayRouteParks.remove(); overlayRouteParks = null; }
   if (route.active && route.path.length > 1) {
     overlayRouteLine = L.polyline(route.path.map(p => xyToLatLng(p.x, p.y)), {
-      color: '#3b82f6', weight: 5, opacity: 0.9, className: 'pw-route-line',
+      color: PW_MAP_COLORS.brand, weight: 5, opacity: 0.9, className: 'pw-route-line',
     }).addTo(realMap);
     overlayRouteParks = L.layerGroup();
     route.parkings.forEach(p => {
-      const color = p.taken ? '#ef4444' : (p.type === 'blue' ? '#3b82f6' : '#22c55e');
+      const color = p.taken ? PW_MAP_COLORS.hard : (p.type === 'blue' ? '#3b82f6' : PW_MAP_COLORS.free);
       const mk = L.circleMarker(xyToLatLng(p.x, p.y), {
         radius: 8, color: '#fff', weight: 2, fillColor: color, fillOpacity: 0.95,
       });

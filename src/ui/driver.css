@@ -109,6 +109,10 @@
 [data-theme="light"] [style*="color:#eab308"],[data-theme="light"] [style*="color: rgb(234, 179, 8)"],
 [data-theme="light"] [style*="color:#fbbf24"],[data-theme="light"] [style*="color:#f59e0b"],[data-theme="light"] [style*="color: rgb(245, 158, 11)"]{color:var(--pw-warn)!important}
 [data-theme="light"] [style*="color:#ef4444"],[data-theme="light"] [style*="color: rgb(239, 68, 68)"]{color:var(--pw-danger)!important}
+/* design map colours (PW_MAP_COLORS in index.html) used as text: readable on both themes */
+[style*="color:#1b6e45"],[style*="color: rgb(27, 110, 69)"]{color:var(--pw-free)!important}
+[style*="color:#e5b45a"],[style*="color: rgb(229, 180, 90)"]{color:var(--pw-attn)!important}
+[style*="color:#b42318"],[style*="color: rgb(180, 35, 24)"]{color:var(--pw-danger)!important}
 [data-theme="light"] select[style*="background:#"]{background:var(--pw-surface)!important;color:var(--pw-ink)!important;border-color:var(--pw-line)!important}
 [data-theme="light"] .park-pricing-overlay,[data-theme="light"] .premium-lock-overlay{background:var(--pw-scrim)}
 

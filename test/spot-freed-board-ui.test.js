@@ -16,7 +16,7 @@ const occ = require('../src/lib/occupancy');
 const marginLib = require('../src/lib/margin');
 const sf = require('../src/lib/spot-freed');
 
-const inline = html.match(/<script>([\s\S]*?)<\/script>/);
+const inline = html.match(/<script\s*>([\s\S]*?)<\/script\s*>/i);
 
 // 10:30 Jerusalem — mid-morning, 13 of 18 bays taken, the hour the demo opens on.
 const FIXED = '2026-10-19T07:30:00Z';
