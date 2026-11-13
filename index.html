@@ -48,6 +48,8 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;gap:8px;z-index:30;flex-shrink:0}
 .logo{font-size:1.1rem;font-weight:800;color:var(--green);white-space:nowrap;line-height:1.1}
 .logo-sub{font-size:0.6rem;color:var(--muted);font-weight:400;white-space:nowrap}
+/* design (Claude Design 4db02f73): the "P" mark is a teal rounded tile instead of the blue emoji */
+.logo-mark{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:700;font-size:1rem;line-height:1;vertical-align:-4px}
 .search-wrap{flex:1;position:relative;max-width:360px}
 .search-box{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:24px;padding:7px 14px;color:var(--text);font-size:0.85rem;font-family:inherit;direction:rtl}
 .search-box:focus{outline:none;border-color:var(--green)}
@@ -165,8 +167,8 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 .rank-sub{font-size:0.65rem;color:var(--muted)}
 .xp-bar-wrap{margin-bottom:14px}
 .xp-label{font-size:0.7rem;color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between}
-.xp-track{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
-.xp-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--purple));border-radius:3px;transition:width .5s}
+.xp-track{height:8px;background:var(--pw-track);border-radius:4px;overflow:hidden}
+.xp-fill{height:100%;background:var(--pw-brand);border-radius:4px;transition:width .5s}
 .leaderboard-title{font-size:0.73rem;font-weight:700;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
 .lb-item{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.75rem}
 .lb-item:last-child{border:none}
@@ -845,7 +847,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 
 <div class="topbar">
   <div style="display:flex;flex-direction:column;align-items:flex-start">
-    <div class="logo">🅿️ ParkWiz</div>
+    <div class="logo"><span class="logo-mark" aria-hidden="true">P</span> ParkWiz</div>
     <div class="logo-sub">העוזר החכם לחניה ברחוב</div>
     <div class="logo-sub" style="color:var(--green);opacity:.8">הסתברויות אמיתיות, לא הבטחות</div>
   </div>
