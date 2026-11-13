@@ -111,6 +111,14 @@
   a.back{display:inline-flex;align-items:center;min-height:44px}
   #btnClearAlerts{min-height:44px!important;padding:0 14px!important;border-radius:12px!important;border-width:1.5px!important}
   @media(max-width:540px){.wrap{padding:16px 16px 40px} h1{font-size:22px} .panel{padding:16px} .kpi{padding:16px} .kpi .n{font-size:28px}}
+
+  #occupancyCategoryBadge.badge { display:inline-block; margin-top:6px; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+  #occupancyCategoryBadge.badge-low { background:#dcfce7; color:#166534; }
+  #occupancyCategoryBadge.badge-medium { background:#fef9c3; color:#854d0e; }
+  #occupancyCategoryBadge.badge-high { background:#ffedd5; color:#9a3412; }
+  #occupancyCategoryBadge.badge-full { background:#fee2e2; color:#991b1b; }
+  #occupancyCategoryBadge.badge-unknown { background:#e2e8f0; color:#334155; }
+
 </style>
 <script src="../src/lib/freshness.js" defer></script>
 </head>
@@ -152,7 +160,9 @@
   <section class="kpis" aria-label="מדדי תפוסה בשעה שמוצגת" aria-live="polite">
     <div class="kpi free"><div class="n" id="kFree">—</div><div class="l">מקומות פנויים (X)</div></div>
     <div class="kpi occ"><div class="n" id="kOcc">—</div><div class="l">מקומות תפוסים (Y)</div></div>
-    <div class="kpi"><div class="n" id="kOccPct">—</div><div class="l">אחוז תפוסה</div></div>
+    <div class="kpi"><div class="n" id="kOccPct">—</div><div class="l">אחוז תפוסה</div>
+    <span id="occupancyCategoryBadge" class="badge badge-low" role="status" aria-live="polite">פנוי</span>
+  </div>
     <div class="kpi"><div class="n" id="kTotal">—</div><div class="l">סה״כ מקומות בחניון</div></div>
   </section>
 
@@ -231,9 +241,28 @@
 
 <script src="../src/lib/atidim-lot.js"></script>
 <script src="../src/lib/occupancy.js"></script>
+<script src="../src/lib/categorizeOccupancyLevel.js"></script>
 <script src="../src/lib/margin.js"></script>
 <script src="../src/lib/spot-freed.js"></script>
 <script>
+  var OCC_BADGE_LABELS = {
+    low: 'עומס נמוך',
+    medium: 'עומס בינוני',
+    high: 'עומס כבד',
+    full: 'חניון מלא',
+    unknown: 'פנוי'
+  };
+  function updateOccupancyBadge(pct) {
+    var el = document.getElementById('occupancyCategoryBadge');
+    if (!el) return;
+    var api = window.ParkWizCategorizeOccupancyLevel;
+    var cat = (api && typeof api.categorizeOccupancyLevel === 'function')
+      ? api.categorizeOccupancyLevel(Number(pct))
+      : 'unknown';
+    el.textContent = OCC_BADGE_LABELS[cat] || OCC_BADGE_LABELS.unknown;
+    el.className = 'badge badge-' + (cat || 'unknown');
+  }
+
 "use strict";
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("../sw.js", { scope: "../" }).catch(function () {});
@@ -511,7 +540,7 @@ function render() {
   const snap = LOT.snapshotAt(hour, config);
   $("kFree").textContent = String(snap.free);
   $("kOcc").textContent = String(snap.occupied);
-  $("kOccPct").textContent = OCC.pct(snap.pct);
+  $("kOccPct").textContent = OCC.pct(snap.pct); updateOccupancyBadge(parseFloat(String(OCC.pct(snap.pct)))); if (window.__pwUpdateOccupancyBadge) window.__pwUpdateOccupancyBadge(parseFloat(String(OCC.pct(snap.pct))));
   $("kTotal").textContent = String(snap.total);
   $("hourOut").textContent = label(hour);
   $("hourRange").value = String(hour);
@@ -651,5 +680,7 @@ fetch("atidim-data.json")
     start();
   });
 </script>
+
+
 </body>
 </html>

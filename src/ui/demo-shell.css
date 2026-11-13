@@ -14,3 +14,5 @@ img,canvas,video,svg{max-width:100%}
 @media (max-width:600px){.table-sources{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 .pw-demo-btn.primary:hover{background:var(--pw-brand-hover);border-color:var(--pw-brand-hover)}
+/* dark theme (design ink + teal family): the demo tag keeps its dashed amber look on ink */
+[data-theme="dark"] .pw-demo-badge{background:rgba(229,180,90,.14);color:#e5b45a;border-color:#e5b45a}

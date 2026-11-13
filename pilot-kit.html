@@ -579,7 +579,7 @@ function computeEstimate() {
   document.getElementById("estNote").textContent =
     "הערכה היוריסטית בשיטת «" + method + "», תאורה " + light +
     (state.hasEmpty ? (state.hasNight ? ", ייחוס יום+לילה." : ", ייחוס ריק.") : ", בלי ייחוס (סף לפי תאורה).") +
-    " confidence=" + lot.confidence.toFixed(2) + " — לא דיוק מדוד מול פקח.";
+    " confidence=" + lot.confidence.toFixed(2) + " (רמת ביטחון: " + HEU.confidenceLabelHe(lot.confidence) + ") — לא דיוק מדוד מול פקח.";
   saveLocal();
   drawOverlay();
   renderSpotList();
