@@ -199,6 +199,39 @@ test('a car entering and leaving the bay moves the counters and fires spot-freed
   // More empty frames must not re-fire for the same freeing.
   await frames(page, [], 4);
   assert.equal(page.events.length, 1);
+
+  // Drive car back into bay (3 frames to debounce occupied)
+  await frames(page, CAR, 3);
+  assert.equal(page.el('kpiOcc').textContent, 1);
+  assert.equal(page.events.length, 1);
+
+  // Drive car out again (3 frames to debounce freed)
+  await frames(page, [], 3);
+  assert.equal(page.events.length, 2, 'second occupied->free transition must fire exactly one additional spot-freed event');
+  assert.equal(page.events[1].type, 'parkwiz:spot-freed');
+  assert.equal(page.events[1].detail.spotId, 'ת1');
+});
+
+test('demo clip simulation maintains spot-freed single-fire invariant across cycles', async () => {
+  const page = runPage();
+  page.el('btnDemoClip').fire('click');
+  assert.equal(page.events.length, 0, 'initial sim step has no freed events prior to occupancy');
+  
+  // Advance simulation ticks manually to trigger transitions (12 steps cover 2 full occupied->free cycles)
+  for (let i = 0; i < 12; i++) {
+    page.timers[0]();
+    await settle();
+  }
+  
+  // Verify every fired event is uniquely a parkwiz:spot-freed event
+  const freedEvents = page.events.filter((e) => e.type === 'parkwiz:spot-freed');
+  assert.ok(freedEvents.length > 0, 'simulation should generate spot-freed events on transition');
+  assert.equal(freedEvents.length, 2, 'two complete occupied->free cycles must fire exactly two freed events');
+  freedEvents.forEach((e) => {
+    assert.equal(e.type, 'parkwiz:spot-freed');
+    assert.equal(e.detail.source, 'camera');
+    assert.equal(e.detail.spotId, 'ת1');
+  });
 });
 
 test('both charts are rendered as SVG from the run\'s own detections', async () => {
