@@ -7,6 +7,7 @@ test("B-15 -> 14", () => assert.equal(spotIdToIndex("B-15"), 14));
 test("A01 without dash", () => assert.equal(spotIdToIndex("A01"), 0));
 test("invalid -> -1", () => {
 	assert.equal(spotIdToIndex(""), -1);
+	assert.equal(spotIdToIndex("   "), -1);
 	assert.equal(spotIdToIndex("ABC"), -1);
 	assert.equal(spotIdToIndex("12"), -1);
 	assert.equal(spotIdToIndex(null), -1);
