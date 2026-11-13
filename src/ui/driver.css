@@ -116,3 +116,73 @@
   .skel-cell{animation:none}
   .spot-item:hover{transform:none}
 }
+
+/* ── design-02: driver view in the Claude Design look (project 4db02f73) ──
+   White chrome on the grey-green surface, teal for "current / active",
+   status chips free = green, soon = amber, 44px tap targets. Only the look
+   changes; every class, id and hook stays as it was. */
+.topbar{min-height:60px;padding:8px 16px;box-shadow:none;border-bottom:1px solid var(--pw-line)}
+.logo{font-family:var(--pw-font);font-weight:700;font-size:1.25rem;color:var(--pw-brand);letter-spacing:-.01em}
+.logo-sub{color:var(--pw-muted);font-size:.68rem}
+.search-box{min-height:44px;border-radius:var(--pw-radius-md);background:var(--pw-chip);border:1.5px solid var(--pw-line);font-size:.94rem;padding:0 16px}
+.btn{min-height:44px;border-radius:var(--pw-radius-md);padding:0 16px;font-size:.88rem;font-weight:600}
+.btn-primary{background:var(--pw-brand);color:var(--pw-on-brand)}
+.btn-primary:hover{background:var(--pw-brand-hover)}
+.heatmap-btn,.pw-theme-toggle{min-height:44px;border-radius:var(--pw-radius-md)}
+.filter-bar{gap:8px;padding:8px 16px;border-bottom:1px solid var(--pw-line)}
+.filter-label{color:var(--pw-muted);font-size:.81rem;font-weight:500}
+.filter-btn,.arrival-chip{min-height:44px;padding:0 14px;border-radius:22px;border:1.5px solid var(--pw-line);background:var(--pw-surface);color:var(--pw-ink);font-size:.81rem;font-weight:600}
+.filter-btn.active,.arrival-chip.active{background:var(--pw-brand-soft);border-color:var(--pw-brand);color:var(--pw-brand)}
+/* bottom nav: white bar, teal active tab (design "בית / מפה / היסטוריה") */
+.bottom-nav{background:var(--pw-surface);border-top:1px solid var(--pw-line);box-shadow:none}
+.nav-tab{min-height:60px;font-size:.75rem;font-weight:500;color:var(--pw-muted);gap:3px}
+.nav-tab.active{color:var(--pw-brand);font-weight:600}
+.nav-tab.active::before{background:var(--pw-brand);inset-inline:30%}
+.nav-tab:hover{color:var(--pw-brand)}
+/* map overlays: white cards, radius 16, soft shadow */
+.live-badge,.legend{border-radius:var(--pw-radius-lg)!important;border:1px solid var(--pw-line)!important;box-shadow:var(--pw-shadow-2)!important;padding:12px 14px;font-size:.78rem}
+.live-pulse{color:var(--pw-free)}
+.demo-pulse{color:var(--pw-attn)}
+.live-dot{background:var(--pw-free)}
+.legend summary{min-height:24px;display:flex;align-items:center;color:var(--pw-ink);font-weight:600}
+.hero-text{border-radius:var(--pw-radius-md);font-weight:600}
+/* side panel: list of streets as white cards */
+.side-panel{background:var(--pw-bg);border-color:var(--pw-line)}
+.panel-header{background:var(--pw-surface);padding:14px 16px}
+.panel-header h3{font-size:1rem;font-weight:600}
+.panel-header p{font-size:.78rem;color:var(--pw-muted)}
+.stats-row{background:var(--pw-surface);gap:8px;padding:10px 12px}
+.stat-pill{background:var(--pw-chip);border-radius:14px;padding:10px 8px}
+.stat-n{font-size:1.375rem;font-weight:700;font-variant-numeric:tabular-nums}
+.stat-l{font-size:.75rem;font-weight:500}
+.arrival-row{background:var(--pw-surface)}
+.arrival-note{background:var(--pw-surface);font-size:.75rem}
+.spots-list{padding:10px}
+.spot-item{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:var(--pw-radius-lg);padding:12px 14px;margin-bottom:8px}
+.spot-item:hover{border-color:var(--pw-brand)}
+.spot-item.selected{border:2px solid var(--pw-brand);background:var(--pw-surface);padding:11px 13px}
+.spot-street{font-size:.94rem;font-weight:600}
+.spot-dist,.spot-time,.spot-tariff{font-size:.78rem;color:var(--pw-muted)}
+.spot-badge{min-height:24px;display:inline-flex;align-items:center;padding:0 10px;border-radius:12px;font-size:.75rem}
+.badge-free,.chance-high{background:var(--pw-free-soft);color:var(--pw-free);border-color:transparent}
+.badge-soon,.chance-mid{background:var(--pw-attn-soft);color:var(--pw-attn);border-color:transparent}
+.chance-low{background:var(--pw-taken-soft);color:var(--pw-danger);border-color:transparent}
+.chance-badge{min-height:24px;padding:0 10px;font-size:.72rem}
+.reserve-btn{min-height:44px;border-radius:var(--pw-radius-md);background:var(--pw-surface);border:1.5px solid var(--pw-brand);color:var(--pw-brand);font-size:.81rem}
+.reserve-btn:hover{background:var(--pw-brand-soft);color:var(--pw-brand)}
+.live-feed{background:var(--pw-surface)}
+.feed-title{color:var(--pw-brand);font-size:.75rem}
+.feed-item{font-size:.78rem}
+.fresh{background:var(--pw-free)}
+.stale{background:var(--pw-attn)}
+/* eval banner controls: 44px targets */
+.eval-banner #pwConsumerToggle,.eval-banner .eb-hero-btn{min-height:44px;padding:4px 12px;margin-block:2px}
+#tlvBtn,#sideSheetToggle,#vacDest,#vacHour{min-height:44px}
+.legend summary{min-height:44px}
+.spot-nav-btn,#vehicleSel{min-height:44px}
+/* The meeting section and banner above the map used to squeeze the map to a
+   sliver (smoke test: 59px of 844). The page now scrolls and the map keeps a
+   real height; the bottom nav stays pinned. */
+body{height:auto;min-height:100dvh;overflow-x:hidden;overflow-y:auto}
+.main{flex:none;height:max(420px,calc(100dvh - 190px))}
+.bottom-nav{position:sticky;bottom:0}

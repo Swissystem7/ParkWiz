@@ -198,3 +198,13 @@ test('numeric JSON and a missing stream are 400', async () => {
   assert.equal(res.statusCode, 400);
   assert.equal(res.json.error, 'BAD_JSON');
 });
+
+test('handler: wrong-typed spots and driver stay 400 and leave the store empty', async () => {
+  const service = createService();
+  const app = handler.createHandler(service);
+  for (const body of [{ spots: 5 }, { spots: [], frames: [] }, { spots: [{ spot_id: '1', status: 'free', ts: 'nan' }] }, { driver: 3 }]) {
+    const res = await call(app, body);
+    assert.equal(res.statusCode, 400);
+  }
+  assert.deepEqual(service.snapshot(), {});
+});
