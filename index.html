@@ -1103,7 +1103,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
       <div class="leaving-step-title">🅿️ כמה מקומות נפנו לידך?</div>
       <div class="leaving-slider-wrap">
         <div class="leaving-slider-val" id="sliderVal">1</div>
-        <input type="range" min="1" max="3" value="1" oninput="document.getElementById('sliderVal').textContent=this.value" id="spotsSlider">
+        <input type="range" min="1" max="3" value="1" oninput="document.getElementById('sliderVal').textContent=this.value" id="spotsSlider" aria-label="כמה מקומות נפנו לידך">
         <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px"><span>1</span><span>2</span><span>3+</span></div>
       </div>
       <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="leavingSubmit()">שלח דיווח ✅</button>

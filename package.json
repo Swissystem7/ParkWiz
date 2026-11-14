@@ -12,7 +12,8 @@
     "size": "size-limit",
     "check:data": "node scripts/check-atidim-data.js",
     "check:html": "node scripts/check-html.js",
-    "doctor": "node scripts/doctor.js"
+    "doctor": "node scripts/doctor.js",
+    "check:a11y-static": "node scripts/check-a11y-static.js"
   },
   "devDependencies": {
     "@size-limit/file": "14.3.0",

@@ -321,8 +321,8 @@
   <section id="login" class="card">
     <h2>כניסה למערכת</h2>
     <div class="form-row">
-      <input id="name" placeholder="שם משתמש" maxlength="40">
-      <select id="role">
+      <input id="name" placeholder="שם משתמש" maxlength="40" aria-label="שם משתמש">
+      <select id="role" aria-label="תפקיד">
         <option value="driver">נהג</option>
         <option value="manager">מנהל חניון</option>
       </select>
@@ -342,7 +342,7 @@
     <div id="managerTools" class="manager-box" hidden>
       <div class="manager-box-title">כלים למנהל חניון</div>
       <div class="form-row">
-        <input id="lotName" placeholder="שם החניון" maxlength="80">
+        <input id="lotName" placeholder="שם החניון" maxlength="80" aria-label="שם החניון">
         <input id="spotCount" type="number" min="1" max="100" value="8" style="width:80px" aria-label="מספר מקומות">
         <button id="createLot" class="primary">צור חניון</button>
       </div>
