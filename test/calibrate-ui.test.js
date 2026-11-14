@@ -99,13 +99,14 @@ test('reset clears the calibration clock and the stale status line', () => {
 });
 
 test('wizard buttons include their visible text in their accessible name (WCAG 2.5.3 label-content-name-mismatch)', () => {
-  const buttonMatches = [
-    ...html.matchAll(/<button\b[^>]*id="([^"]+)"[^>]*aria-label="([^"]+)"[^>]*>([\s\S]*?)<\/button>/gi),
-  ];
+  const buttonMatches = html.match(/<button\b[^>]*>[^<]+<\/button>/g) || [];
   assert.equal(buttonMatches.length, 14);
 
-  for (const [, id, ariaLabel, inner] of buttonMatches) {
-    const visibleText = inner.replace(/<[^>]+>/g, '').trim();
+  for (const buttonTag of buttonMatches) {
+    const id = buttonTag.match(/\sid="([^"]+)"/)[1];
+    const ariaLabel = buttonTag.match(/\saria-label="([^"]+)"/)[1];
+    const visibleText = buttonTag.match(/>([^<]+)<\/button>/)[1].trim();
+
     assert.ok(
       ariaLabel.includes(visibleText),
       `Button #${id} visible text "${visibleText}" is not contained in aria-label "${ariaLabel}" (label-content-name-mismatch)`
@@ -120,9 +121,9 @@ test('wizard buttons include their visible text in their accessible name (WCAG 2
 });
 
 test('input fields on pilot-calibrate.html include visible label in aria-label', () => {
-  assert.match(html, /<input\b[^>]*id="streetName"[^>]*aria-label="רחוב \/ אתר/);
-  assert.match(html, /<input\b[^>]*id="fileSnap"[^>]*aria-label="צילום נוכחי/);
-  assert.match(html, /<input\b[^>]*id="fileEmpty"[^>]*aria-label="פריים ריק/);
-  assert.match(html, /<input\b[^>]*id="fileNight"[^>]*aria-label="פריים לילה ריק/);
+  assert.match(html, /id="streetName"[^>]*aria-label="רחוב \/ אתר/);
+  assert.match(html, /id="fileSnap"[^>]*aria-label="צילום נוכחי/);
+  assert.match(html, /id="fileEmpty"[^>]*aria-label="פריים ריק/);
+  assert.match(html, /id="fileNight"[^>]*aria-label="פריים לילה ריק/);
 });
 
