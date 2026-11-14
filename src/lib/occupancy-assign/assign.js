@@ -139,6 +139,5 @@ module.exports = {
   etaSeconds,
   ETA_BASE_SEC,
   ETA_STALL_SEC,
-  ETA_STALL_CAP,
   ETA_HOP_SEC,
 };

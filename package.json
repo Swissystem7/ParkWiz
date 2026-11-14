@@ -10,7 +10,9 @@
     "test:load": "node scripts/load-test.js",
     "knip": "knip",
     "size": "size-limit",
-    "check:data": "node scripts/check-atidim-data.js"
+    "check:data": "node scripts/check-atidim-data.js",
+    "check:html": "node scripts/check-html.js",
+    "doctor": "node scripts/doctor.js"
   },
   "devDependencies": {
     "@size-limit/file": "14.3.0",
