@@ -190,3 +190,78 @@
 body{height:auto;min-height:100dvh;overflow-x:hidden;overflow-y:auto}
 .main{flex:none;height:max(420px,calc(100dvh - 190px))}
 .bottom-nav{position:sticky;bottom:0}
+
+/* ── design-07: index.html pop-ups in the Claude Design look (project 4db02f73) ──
+   History sheet, profile, pricing / premium, sign-in, terms, onboarding and
+   feedback: white 20px sheets and modals on an ink scrim, 52px teal primary,
+   44px secondary / close controls and inputs, 24px switches inside 44px rows.
+   Prefixed with `html` so these win over the later inline <style> blocks in
+   index.html without !important on most rules. Only the look changes. */
+html .history-sheet{background:var(--pw-surface);border-top:1px solid var(--pw-line);border-radius:24px 24px 0 0;box-shadow:var(--pw-shadow-2)}
+html .sheet-handle{background:var(--pw-line);width:44px}
+html .sheet-title{font-size:1.125rem;font-weight:600;padding:0 20px 12px;border-color:var(--pw-line)}
+html #historyCloseBtn{min-width:44px;min-height:44px!important;display:inline-flex;align-items:center;justify-content:center;border-radius:12px!important}
+html #historyCloseBtn:hover{background:var(--pw-brand-soft)!important;color:var(--pw-brand)!important}
+html .history-list{padding:8px 20px}
+html .history-item{font-size:.875rem;border-color:var(--pw-line);min-height:52px}
+html .profile-overlay,html .profile-panel{background:var(--pw-bg)}
+html .profile-top{background:var(--pw-surface);border-color:var(--pw-line);padding:12px 20px}
+html .profile-title{font-size:1.125rem;font-weight:700}
+html .profile-close{min-height:44px;padding:0 16px;border-radius:12px;border:1.5px solid var(--pw-brand);background:var(--pw-surface);color:var(--pw-brand);font-size:.88rem;font-weight:600}
+html .profile-close:hover{background:var(--pw-brand-soft)}
+html .profile-body{padding:16px 20px 28px}
+html .profile-user,html .profile-xp,html .profile-block{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:20px;padding:16px 18px}
+html .profile-avatar{background:var(--pw-brand-soft);color:var(--pw-brand);border:0}
+html .profile-name{font-size:1.25rem;font-weight:700}
+html .profile-level{color:var(--pw-brand);font-weight:700}
+html .profile-badge{min-height:24px;display:inline-flex;align-items:center;border-radius:12px;font-weight:600}
+html .profile-stats{gap:8px}
+html .profile-stat{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:14px;padding:12px 8px}
+html .profile-stat-n{font-size:1.375rem;font-weight:700;font-variant-numeric:tabular-nums}
+html .profile-stat-l{font-size:.75rem}
+html .profile-block-title{font-size:1rem;font-weight:600}
+html .profile-setting{min-height:44px;font-size:.875rem}
+html .profile-switch{min-height:44px;min-width:44px;justify-content:center}
+html .profile-switch input{width:24px;height:24px;accent-color:var(--pw-brand)}
+html .profile-upgrade{min-height:52px;border-radius:14px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:600;font-size:1rem}
+html .park-pricing-overlay,html .premium-lock-overlay,html .pw-overlay{background:rgba(20,33,31,.55)}
+html .park-pricing-box,html .premium-lock-box,html .pw-modal{background:var(--pw-surface);color:var(--pw-ink);border:0;border-radius:20px;box-shadow:var(--pw-shadow-2)}
+html #pricingCloseBtn{min-width:44px;min-height:44px!important;border-radius:12px}
+html .pp2{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:18px}
+html .pp2.feat{border:2px solid var(--pw-brand)}
+html .pp2-top{background:var(--pw-brand);color:var(--pw-on-brand);border-radius:6px}
+html .pp2-price{color:var(--pw-ink);font-weight:700;font-variant-numeric:tabular-nums}
+html .pw-modal h2{font-size:1.25rem;font-weight:700}
+html .pw-modal .sub{font-size:.875rem;color:var(--pw-muted)}
+html .pw-modal a{color:var(--pw-brand)}
+html .pw-tab{min-height:44px;border-radius:12px;border:1.5px solid var(--pw-line);color:var(--pw-ink);font-weight:600}
+html .pw-tab.active{background:var(--pw-brand-soft);border-color:var(--pw-brand);color:var(--pw-brand)}
+html .pw-field,html .pw-fb-text{min-height:44px;background:var(--pw-surface);border:1.5px solid var(--pw-line);border-radius:12px;color:var(--pw-ink);font-size:.94rem}
+html .pw-field:focus,html .pw-fb-text:focus{border-color:var(--pw-brand);box-shadow:0 0 0 3px var(--pw-brand-soft)}
+html .pw-submit{min-height:52px;border-radius:14px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:600;font-size:1rem}
+html .pw-submit:hover{background:var(--pw-brand-hover)}
+html .pw-close{min-height:44px;color:var(--pw-brand);font-size:.88rem;font-weight:600;text-decoration:none;border-radius:12px}
+html .pw-close:hover{background:var(--pw-brand-soft)}
+html .pw-legal-body{color:var(--pw-ink);font-size:.875rem}
+html .pw-ob-dot{background:var(--pw-line)}
+html .pw-ob-dot.on{background:var(--pw-brand)}
+html .pw-ob-skip{min-height:44px;border-radius:12px;border:1.5px solid var(--pw-brand);color:var(--pw-brand);background:var(--pw-surface);font-weight:600}
+html .pw-fb-fab{min-height:44px;border-radius:22px;background:var(--pw-brand);color:var(--pw-on-brand);font-weight:600;box-shadow:var(--pw-shadow-2)}
+html .pw-fb-star{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+html .pw-avatar{width:44px;height:44px;background:var(--pw-brand-soft);color:var(--pw-brand);border:0}
+html .pw-dd{background:var(--pw-surface);border-color:var(--pw-line);box-shadow:var(--pw-shadow-2)}
+html .pw-dd div{min-height:44px;display:flex;align-items:center}
+html .reco-card,html .found-prompt{background:var(--pw-surface);border:1px solid var(--pw-line);border-radius:20px;box-shadow:var(--pw-shadow-2)}
+html .reco-title{color:var(--pw-brand)}
+html .found-btn{min-height:44px;border-radius:12px;background:var(--pw-surface);border:1.5px solid var(--pw-brand);color:var(--pw-brand)}
+html .reco-close{min-width:44px;min-height:44px}
+/* vacation planner button ("בנה לי תוכנית חניה"): inline yellow → design secondary, 44px */
+html button[onclick="planVacation()"]{min-height:44px!important;border-radius:12px!important;background:var(--pw-surface)!important;color:var(--pw-brand)!important;border:1.5px solid var(--pw-brand)!important;font-weight:600!important}
+html .profile-switch{cursor:pointer;border-radius:12px}
+html .profile-switch:hover{background:var(--pw-brand-soft)}
+html .park-pricing-box button[onclick^="pwOpenLegal"]{min-height:44px;padding:0 6px}
+html .legend summary{min-width:44px}
+html .skip-link{min-height:44px;display:inline-flex;align-items:center;border-radius:12px}
+html .park-pricing-box [style*="color:#fde68a"]{color:var(--pw-attn)!important;background:var(--pw-attn-soft)!important;border:1px dashed var(--pw-attn)!important}
+html .park-pricing-box .btn{min-height:44px;border-radius:12px}
+html .park-pricing-box .btn[style*="background:var(--purple)"]{background:var(--pw-surface)!important;color:var(--pw-brand)!important;border:1.5px solid var(--pw-brand)}
