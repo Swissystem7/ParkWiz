@@ -65,23 +65,26 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
     </div>
     <div class="row" style="margin:0">
       <button type="button" class="primary" id="btnStart" aria-label="התחל כיול 3 דקות">התחל כיול</button>
-      <button type="button" id="btnDemo" aria-label="מלא את כל שלבי הכיול מדוגמת הריפו">מלא מדוגמת הריפו</button>
+      <button type="button" id="btnDemo" aria-label="מלא מדוגמת הריפו — כל שלבי הכיול מהדוגמה">מלא מדוגמת הריפו</button>
     </div>
   </div>
 
+  <!-- biome-ignore lint/a11y/noRedundantRoles: list-style:none in Safari needs role=list -->
   <ol class="steps" id="stepList" role="list" aria-label="שלבי כיול"></ol>
 
+  <!-- biome-ignore lint/a11y/noRedundantRoles: explicit landmark role -->
   <section class="panel" id="panel-image" role="region" aria-labelledby="hImage">
     <h2 id="hImage">1. תמונת snapshot</h2>
     <p class="hint">העלו צילום מהזווית הקבועה, או טענו את דוגמת הרצל שכלולה בריפו.</p>
     <div class="row">
       <label class="hint" for="streetName">רחוב / אתר</label>
-      <input type="text" id="streetName" value="הרצל, נתניה" autocomplete="street-address" aria-label="שם הרחוב או האתר לכיול">
+      <input type="text" id="streetName" value="הרצל, נתניה" autocomplete="street-address" aria-label="רחוב / אתר — שם הרחוב או האתר לכיול">
     </div>
     <div class="row">
-      <button type="button" id="btnSampleSnap" aria-label="טען צילום דוגמת יום של מגרש החניה">טען דוגמת יום</button>
+      <button type="button" id="btnSampleSnap" aria-label="טען דוגמת יום — צילום מגרש החניה">טען דוגמת יום</button>
       <label class="hint" for="fileSnap">צילום נוכחי <input type="file" id="fileSnap" accept="image/*" aria-label="צילום נוכחי להעלאה"></label>
     </div>
+    <!-- biome-ignore lint/a11y/useSemanticElements: interactive canvas stage -->
     <div class="stage" id="stage" role="region" aria-label="אזור תמונת מגרש החניה">
       <img id="snapImg" alt="צילום מגרש חניה לכיול">
       <canvas id="calCanvas" role="img" aria-label="סימון מלבני חניה על התמונה" tabindex="0"></canvas>
@@ -89,38 +92,43 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
     <p class="hint">בשלב 2 גררו על התמונה כדי לסמן מלבן. המלבנים נשמרים כשברים (0–1).</p>
   </section>
 
+  <!-- biome-ignore lint/a11y/noRedundantRoles: explicit landmark role -->
   <section class="panel hidden" id="panel-spots" role="region" aria-labelledby="hSpots">
     <h2 id="hSpots">2. סימון מלבנים</h2>
     <p class="hint">מלבן אחד לכל מקום שנמדוד. אפשר לטעון את 12 מקומות הדוגמה.</p>
     <div class="row">
-      <button type="button" id="btnSampleSpots" aria-label="טען 12 מלבני חניה לדוגמה">טען מלבני דוגמה</button>
-      <button type="button" id="btnUndo" aria-label="בטל מלבן אחרון שסומן">בטל אחרון</button>
+      <button type="button" id="btnSampleSpots" aria-label="טען מלבני דוגמה — 12 מלבני חניה">טען מלבני דוגמה</button>
+      <button type="button" id="btnUndo" aria-label="בטל אחרון — ביטול מלבן אחרון שסומן">בטל אחרון</button>
       <button type="button" class="danger" id="btnClear" aria-label="נקה את כל מלבני החניה המסומנים">נקה</button>
     </div>
     <p class="hint empty-msg" id="spotsEmpty" style="display: block">אין מלבנים עדיין. גררו על התמונה או לחצו «טען מלבני דוגמה».</p>
+    <!-- biome-ignore lint/a11y/useSemanticElements: scrollable list region -->
     <div class="spot-list" id="spotList" role="region" aria-label="רשימת מלבני חניה מסומנים"></div>
   </section>
 
+  <!-- biome-ignore lint/a11y/noRedundantRoles: explicit landmark role -->
   <section class="panel hidden" id="panel-empty" role="region" aria-labelledby="hEmpty">
     <h2 id="hEmpty">3. פריים ייחוס ריק</h2>
     <p class="hint">אותה זווית בלי רכבים. ייחוס לילה הוא רשות — משפר לילה, לא חובה לסיום.</p>
     <div class="row">
-      <button type="button" id="btnSampleEmpty" aria-label="טען פריים ייחוס יום ריק לדוגמה">טען ייחוס יום</button>
-      <button type="button" id="btnSampleNight" aria-label="טען פריים ייחוס לילה ריק לדוגמה">טען ייחוס לילה (רשות)</button>
-      <label class="hint" for="fileEmpty">פריים ריק <input type="file" id="fileEmpty" accept="image/*" aria-label="פריים ייחוס יום ריק"></label>
-      <label class="hint" for="fileNight">פריים לילה ריק <input type="file" id="fileNight" accept="image/*" aria-label="פריים ייחוס לילה ריק (רשות)"></label>
+      <button type="button" id="btnSampleEmpty" aria-label="טען ייחוס יום — פריים ריק לדוגמה">טען ייחוס יום</button>
+      <button type="button" id="btnSampleNight" aria-label="טען ייחוס לילה (רשות) — פריים ריק לדוגמה">טען ייחוס לילה (רשות)</button>
+      <label class="hint" for="fileEmpty">פריים ריק <input type="file" id="fileEmpty" accept="image/*" aria-label="פריים ריק — פריים ייחוס יום"></label>
+      <label class="hint" for="fileNight">פריים לילה ריק <input type="file" id="fileNight" accept="image/*" aria-label="פריים לילה ריק — פריים ייחוס (רשות)"></label>
     </div>
     <p class="hint" id="emptyNote" role="status" aria-live="polite">עדיין אין ייחוס ריק.</p>
   </section>
 
+  <!-- biome-ignore lint/a11y/noRedundantRoles: explicit landmark role -->
   <section class="panel hidden" id="panel-check" role="region" aria-labelledby="hCheck">
     <h2 id="hCheck">4. בדיקה ושמירה</h2>
     <div class="row">
-      <button type="button" class="primary" id="btnEstimate" aria-label="חשב תפוסת מקומות לפי היוריסטיקה">חשב תפוסה (היוריסטיקה)</button>
+      <button type="button" class="primary" id="btnEstimate" aria-label="חשב תפוסה (היוריסטיקה) — חישוב מקומות">חשב תפוסה (היוריסטיקה)</button>
       <button type="button" id="btnCopySummary" aria-label="העתק סיכום כיול ללוח">העתק סיכום כיול</button>
-      <button type="button" id="btnSave" aria-label="שמור כיול מקומי בדפדפן והורד קובץ JSON">שמור כיול בדפדפן + JSON</button>
-      <button type="button" id="btnReset" aria-label="אפס את כל נתוני הכיול">איפוס כיול</button>
+      <button type="button" id="btnSave" aria-label="שמור כיול בדפדפן + JSON — שמירה מקומית והורדה">שמור כיול בדפדפן + JSON</button>
+      <button type="button" id="btnReset" aria-label="איפוס כיול — אפס את כל נתוני הכיול">איפוס כיול</button>
     </div>
+    <!-- biome-ignore lint/a11y/useSemanticElements: styled kpi grid region -->
     <div class="kpis" role="region" aria-label="מדדי תפוסה והערכה">
       <div class="kpi"><div class="n" id="kTotal">0</div><div class="l">מקומות</div></div>
       <div class="kpi"><div class="n" id="kOcc" style="color:var(--occ)">0</div><div class="l">תפוסים (הערכה)</div></div>
@@ -132,8 +140,8 @@ input[type=text]{width:100%;max-width:420px;padding:8px 10px;border:1px solid va
   </section>
 
   <div class="navrow">
-    <button type="button" id="btnPrev" aria-label="מעבר לשלב הקודם באשף">חזרה</button>
-    <button type="button" class="primary" id="btnNext" aria-label="מעבר לשלב הבא באשף">המשך</button>
+    <button type="button" id="btnPrev" aria-label="חזרה — מעבר לשלב הקודם באשף">חזרה</button>
+    <button type="button" class="primary" id="btnNext" aria-label="המשך — מעבר לשלב הבא באשף">המשך</button>
     <a href="./pilot-method.html">מתודולוגיה</a>
     <a href="./pilot-eval.html">דיוק דמו</a>
     <a href="./pilot-kit.html">ערכת הפיילוט המלאה</a>
@@ -235,7 +243,10 @@ function renderSteps() {
     document.getElementById("panel-" + id).classList.toggle("hidden", i !== state.step);
   });
   document.getElementById("btnPrev").disabled = state.step === 0;
-  document.getElementById("btnNext").textContent = state.step === 3 ? "סיים" : "המשך";
+  const btnNext = document.getElementById("btnNext");
+  const isLast = state.step === 3;
+  btnNext.textContent = isLast ? "סיים" : "המשך";
+  btnNext.setAttribute("aria-label", isLast ? "סיים — שמירת כיול בדפדפן והורדה" : "המשך — מעבר לשלב הבא באשף");
 }
 
 function tickClock() {
