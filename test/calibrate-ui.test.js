@@ -121,6 +121,7 @@ test('wizard buttons include their visible text in their accessible name (WCAG 2
 
 test('input fields on pilot-calibrate.html include visible label in aria-label', () => {
   assert.match(html, /<input\b[^>]*id="streetName"[^>]*aria-label="רחוב \/ אתר/);
+  assert.match(html, /<input\b[^>]*id="fileSnap"[^>]*aria-label="צילום נוכחי/);
   assert.match(html, /<input\b[^>]*id="fileEmpty"[^>]*aria-label="פריים ריק/);
   assert.match(html, /<input\b[^>]*id="fileNight"[^>]*aria-label="פריים לילה ריק/);
 });
