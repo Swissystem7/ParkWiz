@@ -188,4 +188,4 @@ function parseBody(body) {
   fail('BAD_BODY', 'body needs spots, frames, or a pipeline frame');
 }
 
-module.exports = { parseBody, tsFromFrameName, parseIsoTs, MAX_UPDATES };
+module.exports = { parseBody };

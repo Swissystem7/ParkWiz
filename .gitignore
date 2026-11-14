@@ -13,3 +13,4 @@ build/
 demo/samples/*.mp4
 demo/samples/*.mov
 demo/samples/*.webm
+coverage/
