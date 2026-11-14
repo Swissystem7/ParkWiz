@@ -99,17 +99,13 @@ test('reset clears the calibration clock and the stale status line', () => {
 });
 
 test('wizard buttons include their visible text in their accessible name (WCAG 2.5.3 label-content-name-mismatch)', () => {
-  const buttonMatches = [...html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/gi)];
-  assert.ok(buttonMatches.length >= 14, `expected at least 14 buttons, found ${buttonMatches.length}`);
+  const buttonMatches = [
+    ...html.matchAll(/<button\b[^>]*id="([^"]+)"[^>]*aria-label="([^"]+)"[^>]*>([\s\S]*?)<\/button>/gi),
+  ];
+  assert.equal(buttonMatches.length, 14);
 
-  for (const match of buttonMatches) {
-    const attrs = match[1];
-    const visibleText = match[2].replace(/<[^>]+>/g, '').trim();
-    const labelMatch = attrs.match(/aria-label="([^"]+)"/);
-    if (!visibleText || !labelMatch) continue;
-    const ariaLabel = labelMatch[1].trim();
-    const idMatch = attrs.match(/id="([^"]+)"/);
-    const id = idMatch ? idMatch[1] : '(no id)';
+  for (const [, id, ariaLabel, inner] of buttonMatches) {
+    const visibleText = inner.replace(/<[^>]+>/g, '').trim();
     assert.ok(
       ariaLabel.includes(visibleText),
       `Button #${id} visible text "${visibleText}" is not contained in aria-label "${ariaLabel}" (label-content-name-mismatch)`
