@@ -73,6 +73,50 @@
     return 'day';
   }
 
+  function isValidDimension(dim) {
+    if (!Number.isFinite(dim)) return false;
+    return dim > 0;
+  }
+
+  function parseImageDimensions(imageWidth, imageHeight) {
+    const W = Math.floor(Number(imageWidth));
+    const H = Math.floor(Number(imageHeight));
+    if (!isValidDimension(W)) return null;
+    if (!isValidDimension(H)) return null;
+    return { W, H };
+  }
+
+  function parseSpotFractions(spot) {
+    if (!spot) return null;
+    const fx = Number(spot.x);
+    const fy = Number(spot.y);
+    const fw = Number(spot.w);
+    const fh = Number(spot.h);
+    if (!Number.isFinite(fx)) return null;
+    if (!Number.isFinite(fy)) return null;
+    if (!Number.isFinite(fw)) return null;
+    if (!Number.isFinite(fh)) return null;
+    if (fw <= 0) return null;
+    if (fh <= 0) return null;
+    if (fx + fw <= 0) return null;
+    if (fy + fh <= 0) return null;
+    return { fx, fy, fw, fh };
+  }
+
+  function clipSpotToFrame(spotFraction, W, H) {
+    const { fx, fy, fw, fh } = spotFraction;
+    const x = Math.max(0, Math.floor(fx * W));
+    const y = Math.max(0, Math.floor(fy * H));
+    if (x >= W) return null;
+    if (y >= H) return null;
+    // Keep the original 1px floor for hairline rectangles, then clip to the frame.
+    const w = Math.min(Math.max(1, Math.floor(fw * W)), W - x);
+    const h = Math.min(Math.max(1, Math.floor(fh * H)), H - y);
+    if (w <= 0) return null;
+    if (h <= 0) return null;
+    return { x, y, w, h };
+  }
+
   // A calibration rectangle is stored as image fractions { x, y, w, h } in
   // 0..1. It comes straight from an uploaded spots file or localStorage, so it
   // can sit partly or fully outside the frame. Returns the integer pixel rect
@@ -80,22 +124,11 @@
   // callers must skip such a spot instead of handing getImageData a width of
   // zero (or a negative one), which throws and aborts the whole lot estimate.
   function spotPixelRect(spot, imageWidth, imageHeight) {
-    const W = Math.floor(Number(imageWidth));
-    const H = Math.floor(Number(imageHeight));
-    if (!spot || !Number.isFinite(W) || !Number.isFinite(H) || W <= 0 || H <= 0) return null;
-    const fx = Number(spot.x);
-    const fy = Number(spot.y);
-    const fw = Number(spot.w);
-    const fh = Number(spot.h);
-    if (![fx, fy, fw, fh].every(Number.isFinite) || fw <= 0 || fh <= 0) return null;
-    const x = Math.max(0, Math.floor(fx * W));
-    const y = Math.max(0, Math.floor(fy * H));
-    if (x >= W || y >= H) return null;
-    // Keep the original 1px floor for hairline rectangles, then clip to the frame.
-    const w = Math.min(Math.max(1, Math.floor(fw * W)), W - x);
-    const h = Math.min(Math.max(1, Math.floor(fh * H)), H - y);
-    if (fx + fw <= 0 || fy + fh <= 0 || w <= 0 || h <= 0) return null;
-    return { x, y, w, h };
+    const dims = parseImageDimensions(imageWidth, imageHeight);
+    if (!dims) return null;
+    const frac = parseSpotFractions(spot);
+    if (!frac) return null;
+    return clipSpotToFrame(frac, dims.W, dims.H);
   }
 
   function percentile(sorted, p) {
@@ -111,13 +144,23 @@
     return sorted[lo] * (1 - f) + sorted[hi] * f;
   }
 
-  function lumaSamples(data, stride) {
+  function resolveSampleStride(stride) {
     const step = Number(stride);
-    const use = Number.isFinite(step) && step >= RGBA_BYTES
-      ? Math.floor(step / RGBA_BYTES) * RGBA_BYTES
-      : SAMPLE_STRIDE;
+    if (!Number.isFinite(step)) return SAMPLE_STRIDE;
+    if (step < RGBA_BYTES) return SAMPLE_STRIDE;
+    return Math.floor(step / RGBA_BYTES) * RGBA_BYTES;
+  }
+
+  function hasMinimumRgbaBytes(data) {
+    if (!data) return false;
+    if (typeof data.length !== 'number') return false;
+    return data.length >= RGBA_BYTES;
+  }
+
+  function lumaSamples(data, stride) {
     const out = [];
-    if (!data || typeof data.length !== 'number' || data.length < 4) return out;
+    if (!hasMinimumRgbaBytes(data)) return out;
+    const use = resolveSampleStride(stride);
     for (let i = 0; i + 2 < data.length; i += use) {
       const y = luma(data[i], data[i + 1], data[i + 2]);
       if (Number.isFinite(y)) out.push(y);
@@ -158,7 +201,9 @@
   function lightingGain(curMean, refMean) {
     const cur = Number(curMean);
     const ref = Number(refMean);
-    if (!Number.isFinite(cur) || !Number.isFinite(ref) || cur <= 1) return 1;
+    if (!Number.isFinite(cur)) return 1;
+    if (!Number.isFinite(ref)) return 1;
+    if (cur <= 1) return 1;
     return ref / cur;
   }
 
@@ -172,8 +217,10 @@
   }
 
   function rangeOf(stats) {
-    if (stats && Number.isFinite(stats.p90) && Number.isFinite(stats.p10)) {
-      return Math.max(0, stats.p90 - stats.p10);
+    if (stats && Number.isFinite(stats.p90)) {
+      if (Number.isFinite(stats.p10)) {
+        return Math.max(0, stats.p90 - stats.p10);
+      }
     }
     return 2 * stdOf(stats);
   }
@@ -228,12 +275,18 @@
     };
   }
 
+  function isValidStatsRecord(stats) {
+    if (!stats) return false;
+    if (!Number.isFinite(stats.mean)) return false;
+    return Number.isFinite(stats.variance);
+  }
+
   function pickEmptyRef(emp, opts, lighting) {
-    const night = opts && opts.emptyNight;
-    if (lighting === 'night' && night && Number.isFinite(night.mean) && Number.isFinite(night.variance)) {
+    const night = opts ? opts.emptyNight : null;
+    if (lighting === 'night' && isValidStatsRecord(night)) {
       return night;
     }
-    if (emp && Number.isFinite(emp.mean) && Number.isFinite(emp.variance)) return emp;
+    if (isValidStatsRecord(emp)) return emp;
     return null;
   }
 
@@ -271,10 +324,10 @@
   }
 
   function estimateOccupiedLegacy(cur, emp) {
-    if (!cur || !Number.isFinite(cur.mean) || !Number.isFinite(cur.variance)) {
+    if (!isValidStatsRecord(cur)) {
       return null;
     }
-    if (emp && Number.isFinite(emp.mean) && Number.isFinite(emp.variance)) {
+    if (isValidStatsRecord(emp)) {
       const score = legacyVsEmptyScore(cur, emp);
       return {
         occupied: score >= EMPTY_SCORE_CUTOFF,
@@ -293,16 +346,22 @@
     };
   }
 
+  function resolveEmptySamples(opts, lighting) {
+    if (!opts) return undefined;
+    if (lighting === 'night' && opts.emptyNightSamples) {
+      return opts.emptyNightSamples;
+    }
+    return opts.emptySamples;
+  }
+
   function estimateOccupied(cur, emp, opts) {
-    if (!cur || !Number.isFinite(cur.mean) || !Number.isFinite(cur.variance)) {
+    if (!isValidStatsRecord(cur)) {
       return null;
     }
     const o = opts || {};
     const lighting = o.lighting || classifyLighting(cur.mean);
     const curSamples = o.curSamples;
-    const emptySamples = o.emptyNightSamples && lighting === 'night'
-      ? o.emptyNightSamples
-      : o.emptySamples;
+    const emptySamples = resolveEmptySamples(o, lighting);
 
     if (curSamples && emptySamples) {
       const bg = backgroundSubtract(curSamples, emptySamples, lighting);
@@ -337,12 +396,20 @@
     return absoluteEstimate(cur, lighting);
   }
 
+  function extractItemMean(it) {
+    if (!it) return null;
+    if (!it.cur) return null;
+    if (!Number.isFinite(it.cur.mean)) return null;
+    return it.cur.mean;
+  }
+
   function estimateLot(items, opts) {
     const list = Array.isArray(items) ? items : [];
     const o = opts || {};
     const means = [];
     list.forEach((it) => {
-      if (it && it.cur && Number.isFinite(it.cur.mean)) means.push(it.cur.mean);
+      const mean = extractItemMean(it);
+      if (mean !== null) means.push(mean);
     });
     // True median: with an even patch count, average the two middle means
     // instead of taking the upper one, which biased a split lot towards 'day'.
