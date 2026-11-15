@@ -55,7 +55,10 @@
   }
 
   function pooledAgreement(pairs) {
-    const list = Array.isArray(pairs) ? pairs.filter((p) => p && Number.isFinite(p.total) && p.total > 0) : [];
+    if (!Array.isArray(pairs)) {
+      return { trials: 0, agree: 0, rate: null, meanSignedError: null, wilson: null };
+    }
+    const list = pairs.filter((p) => p && Number.isFinite(p.total) && p.total > 0);
     let trials = 0;
     let agree = 0;
     let signed = 0;
@@ -89,14 +92,16 @@
   // silently rolled-over day: Date.UTC would otherwise turn 2026-02-31 into
   // 3 March and shift every pilot day and the outreach countdown with it.
   function dayMs(isoDay) {
-    const m = String(isoDay || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!isoDay || typeof isoDay !== 'string') return NaN;
+    const m = isoDay.match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (!m) return NaN;
     const y = Number(m[1]);
     const mo = Number(m[2]);
     const d = Number(m[3]);
+    if (mo < 1 || mo > 12) return NaN;
     const t = Date.UTC(y, mo - 1, d);
     const back = new Date(t);
-    if (back.getUTCFullYear() !== y || back.getUTCMonth() !== mo - 1 || back.getUTCDate() !== d) return NaN;
+    if (back.getUTCDate() !== d) return NaN;
     return t;
   }
 
@@ -158,10 +163,11 @@
   function buildCalendar(startDate, days) {
     const n = Number(days);
     const len = Number.isFinite(n) && n > 0 ? Math.min(PILOT_DAYS, Math.floor(n)) : PILOT_DAYS;
-    const start = String(startDate || '').match(/^\d{4}-\d{2}-\d{2}/) ? String(startDate).slice(0, 10) : '';
+    const m = typeof startDate === 'string' ? startDate.match(/^(\d{4}-\d{2}-\d{2})/) : null;
+    const valid = m && Number.isFinite(dayMs(m[1]));
     const out = [];
     for (let i = 0; i < len; i++) {
-      out.push(emptyDay(i + 1, start ? addDays(start, i) : ''));
+      out.push(emptyDay(i + 1, valid ? addDays(m[1], i) : ''));
     }
     return out;
   }
@@ -169,43 +175,44 @@
   function mergeLog(calendar, incoming) {
     const base = (Array.isArray(calendar) && calendar.length)
       ? calendar.map((d, i) => normalizeDay(d) || emptyDay(i + 1, d && d.date))
-      : buildCalendar('', PILOT_DAYS);
+      : buildCalendar();
     const byDay = new Map(base.map((d) => [d.day, d]));
-    (Array.isArray(incoming) ? incoming : []).forEach((raw) => {
-      const d = normalizeDay(raw);
-      if (!d) return;
-      const prev = byDay.get(d.day) || emptyDay(d.day, d.date);
-      byDay.set(d.day, {
-        ...prev,
-        ...d,
-        date: d.date || prev.date,
+    if (Array.isArray(incoming)) {
+      incoming.forEach((raw) => {
+        const d = normalizeDay(raw);
+        if (!d) return;
+        const prev = byDay.get(d.day) || emptyDay(d.day, d.date);
+        byDay.set(d.day, {
+          ...prev,
+          ...d,
+          date: d.date || prev.date,
+        });
       });
-    });
+    }
     return Array.from(byDay.values()).sort((a, b) => a.day - b.day);
   }
 
   function parseLog(text) {
-    const raw = String(text || '').trim();
-    if (!raw) return [];
-    let list = [];
+    let a = null;
     try {
-      const a = JSON.parse(raw);
-      if (Array.isArray(a)) list = a;
-      else if (a && Array.isArray(a.days)) list = a.days;
+      a = JSON.parse(text);
     } catch (e) {
-      return [];
+      // invalid JSON: a remains null
     }
+    const list = Array.isArray(a) ? a : (a && Array.isArray(a.days) ? a.days : null);
+    if (!Array.isArray(list)) return [];
     return list.map(normalizeDay).filter(Boolean).sort((a, b) => a.day - b.day);
   }
 
   function filledDays(log) {
-    return (Array.isArray(log) ? log : []).filter((d) => (
+    if (!Array.isArray(log)) return [];
+    return log.filter((d) => (
       d && d.total != null && d.systemOccupied != null && d.manualOccupied != null
     ));
   }
 
   function dayToPair(day, street) {
-    if (!day || day.total == null || day.systemOccupied == null || day.manualOccupied == null) return null;
+    if (!day) return null;
     return compare.pairObservation({
       ts: day.date ? (day.date + 'T12:00:00') : ('day-' + day.day),
       street: street || '—',
@@ -218,7 +225,7 @@
   }
 
   function logToPairs(log, street) {
-    return filledDays(log).map((d) => dayToPair(d, street)).filter(Boolean);
+    return filledDays(log).map((d) => dayToPair(d, street));
   }
 
   function daysSince(isoDay, now) {
@@ -234,14 +241,14 @@
   }
 
   function decidePilot(input) {
-    const all = (input && Array.isArray(input.pairs)) ? input.pairs : [];
+    const all = (input && Array.isArray(input.pairs)) ? input.pairs : null;
     // The stop rule runs on inspector counts only. A sample series with one
     // field day typed over it used to count every sample pair toward
     // MIN_PAIRS and the pooled rate, so a single real count could pass as a
     // field CONTINUE or PARK.
     const allSummary = compare.summarizePairs(all);
-    const pairs = allSummary.sampleOnly ? all : all.filter((p) => !p || p.source !== 'sample');
-    const sampleSkipped = all.length - pairs.length;
+    const pairs = allSummary.sampleOnly ? all : (all ? all.filter((p) => !p || p.source !== 'sample') : null);
+    const sampleSkipped = all ? all.length - pairs.length : 0;
     const summary = allSummary.sampleOnly ? allSummary : compare.summarizePairs(pairs);
     const pooled = pooledAgreement(pairs);
     const hasCalibrationPlan = !!(input && input.hasCalibrationPlan);
@@ -253,8 +260,8 @@
     const camlytics = VENDOR_CLAIMS[0].rate;
 
     const reasons = [];
-    let code = 'INSUFFICIENT';
-    let label = 'אין עדיין מספיק תצפיות לפסק דין.';
+    let code;
+    let label;
 
     if (summary.sampleOnly && summary.count) {
       code = 'SAMPLE_ONLY';
@@ -267,7 +274,7 @@
         'צריך לפחות ' + MIN_PAIRS + ' זוגות ו־' + MIN_SPOT_TRIALS +
         ' השוואות מקום (יש ' + summary.count + ' זוגות, ' + pooled.trials + ' מקומות).'
       );
-    } else if (pooled.rate != null && pooled.rate < camlytics && !hasCalibrationPlan) {
+    } else if (pooled.rate < camlytics && !hasCalibrationPlan) {
       code = 'PARK_ACCURACY';
       label = 'PARK — הדיוק מתחת להצהרת יצרן ואין תוכנית כיול.';
       reasons.push(
@@ -275,19 +282,17 @@
         ', מתחת ל־96% ש־Camlytics מצהירה (הצהרת יצרן, לא רף מדעי).'
       );
       reasons.push('בלי תוכנית כיול פר־מצלמה כלל העצירה ב־RESEARCH.md אומר PARK מיד.');
-    } else if (elapsed != null && elapsed >= PILOT_DAYS && !cameraAccess && !integratorAsk) {
+    } else if (elapsed >= PILOT_DAYS && !cameraAccess && !integratorAsk) {
       code = 'PARK_NO_ACCESS';
       label = 'PARK — 30 יום מהפנייה בלי גישת מצלמה ובלי בקשת דמו.';
       reasons.push('חלפו ' + elapsed + ' ימים מאז תאריך הפנייה שסומן, בלי גישת snapshot ובלי פנייה מאינטגרטור.');
     } else {
       code = 'CONTINUE';
       label = 'ממשיכים את הפיילוט.';
-      if (pooled.rate != null && pooled.rate >= camlytics) {
+      if (pooled.rate >= camlytics) {
         reasons.push('הסכם מול פקח על הסדרה הזו הוא ' + occ.pct(pooled.rate) + ' — מעל הצהרת Camlytics, עדיין לא מדידת מצלמה חיה.');
-      } else if (hasCalibrationPlan && pooled.rate != null && pooled.rate < camlytics) {
-        reasons.push('הדיוק מתחת להצהרת יצרן, אבל סומנה תוכנית כיול פר־מצלמה — ממשיכים למדוד, לא PARK אוטומטי.');
       } else {
-        reasons.push('יש מספיק זוגות שדה ואין תנאי עצירה שמתקיים.');
+        reasons.push('הדיוק מתחת להצהרת יצרן, אבל סומנה תוכנית כיול פר־מצלמה — ממשיכים למדוד, לא PARK אוטומטי.');
       }
     }
 
