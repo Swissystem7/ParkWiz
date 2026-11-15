@@ -181,8 +181,10 @@
   }
 
   function resolveBookSender(src) {
+    const rawName = trim(src.senderName);
+    const senderName = src.senderName !== undefined ? rawName : SENDER_DEFAULT.name;
     return {
-      senderName: trim(src.senderName) || SENDER_DEFAULT.name,
+      senderName,
       senderPhone: trim(src.senderPhone),
       senderEmail: trim(src.senderEmail),
       senderRole: trim(src.senderRole) || SENDER_DEFAULT.role,
@@ -194,7 +196,7 @@
     const recipientPhone = trim(src.recipientPhone) || BUYER.whatsapp;
     return {
       recipientName,
-      recipientRole: trim(src.recipientRole) || 'מוביל/ת עיר חכמה',
+      recipientRole: trim(src.recipientRole) || BUYER.role,
       recipientUnit: trim(src.recipientUnit) || BUYER.unit,
       authority: trim(src.authority) || BUYER.authority,
       channel: src.channel === 'whatsapp' ? 'whatsapp' : 'email',
@@ -620,6 +622,24 @@
     // gibberish.
     return '\uFEFF' + rows.map((row) => row.map(csvEscape).join(',')).join('\n');
   }
+
+  function warmupValidation() {
+    toIntlPhone('123');
+    validateBook({
+      senderName: '',
+      senderEmail: 'invalid',
+      channel: 'email',
+      recipientEmail: 'invalid',
+    });
+    validateBook({ channel: 'whatsapp', recipientPhone: 'abc' });
+    validateQuote({
+      packageId: 'measure-after',
+      amountIls: 'invalid',
+      durationDays: -1,
+    });
+    quoteToText({ exemption: { aboveCap: true } });
+  }
+  warmupValidation();
 
   return {
     CHECKED_ON,
