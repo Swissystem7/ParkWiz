@@ -1,5 +1,3 @@
-"use strict";
-
 // axe rule "label-content-name-mismatch" (WCAG 2.5.3 Label in Name):
 // Elements labelled through their content must have their visible text as part of their accessible name.
 // For interactive buttons with visible text, the text (or alphanumeric tokens) must be present in aria-label.
@@ -14,16 +12,17 @@ const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 const NON_LETTER_OR_NUMBER = /[^\p{L}\p{N}]+/gu;
 
 function curateTokens(str) {
-	let text = str;
-	if (typeof text.normalize === "function") text = text.normalize("NFKD");
-	text = text.replace(/\([^()]*\)/g, "");
-	text = text.replace(NON_LETTER_OR_NUMBER, " ").trim();
-	if (!text) return [];
+	const text = (str || "")
+		.normalize("NFKD")
+		.replace(/\([^()]*\)/g, "")
+		.replace(NON_LETTER_OR_NUMBER, " ")
+		.trim();
+	if (text.length === 0) return [];
 	return text.split(/\s+/).filter(Boolean);
 }
 
 function isContiguousSubsequence(nameTokens, labelTokens) {
-	if (!labelTokens.length) return true;
+	if (labelTokens.length === 0) return true;
 	if (labelTokens.length > nameTokens.length) return false;
 	for (let i = 0; i <= nameTokens.length - labelTokens.length; i++) {
 		let match = true;
@@ -38,15 +37,23 @@ function isContiguousSubsequence(nameTokens, labelTokens) {
 	return false;
 }
 
+function hasMatchingLabel(attrs, innerHtml) {
+	const ariaLabelMatch = attrs.match(/aria-label="([^"]+)"/);
+	if (!ariaLabelMatch) return true;
+	const visibleText = innerHtml.replace(/<[^>]+>/g, " ").trim();
+	const vTokens = curateTokens(visibleText);
+	const aTokens = curateTokens(ariaLabelMatch[1]);
+	return isContiguousSubsequence(aTokens, vTokens);
+}
+
 test("btnDismissHero includes visible text in aria-label (WCAG 2.5.3)", () => {
 	const match = html.match(
 		/<button[^>]*id="btnDismissHero"[^>]*>([\s\S]*?)<\/button>/i,
 	);
 	assert.ok(match, "btnDismissHero button exists in index.html");
-	const tag = match[0];
-	const ariaLabel = (tag.match(/aria-label="([^"]+)"/) || [])[1];
-	assert.ok(ariaLabel, "btnDismissHero must have aria-label");
-	assert.match(ariaLabel, /מעבר למפה/);
+	const ariaLabelMatch = match[0].match(/aria-label="([^"]+)"/);
+	assert.ok(ariaLabelMatch, "btnDismissHero must have aria-label");
+	assert.match(ariaLabelMatch[1], /מעבר למפה/);
 });
 
 test("tlvBtn includes visible text in aria-label (WCAG 2.5.3)", () => {
@@ -54,10 +61,9 @@ test("tlvBtn includes visible text in aria-label (WCAG 2.5.3)", () => {
 		/<button[^>]*id="tlvBtn"[^>]*>([\s\S]*?)<\/button>/i,
 	);
 	assert.ok(match, "tlvBtn button exists in index.html");
-	const tag = match[0];
-	const ariaLabel = (tag.match(/aria-label="([^"]+)"/) || [])[1];
-	assert.ok(ariaLabel, "tlvBtn must have aria-label");
-	assert.match(ariaLabel, /מגרשי חניה נתניה/);
+	const ariaLabelMatch = match[0].match(/aria-label="([^"]+)"/);
+	assert.ok(ariaLabelMatch, "tlvBtn must have aria-label");
+	assert.match(ariaLabelMatch[1], /מגרשי חניה נתניה/);
 });
 
 test("consumer demo buttons include visible text in aria-label", () => {
@@ -87,24 +93,7 @@ test("every button in index.html with aria-label has its visible text contained 
 		`expected buttons in index.html, found ${buttonMatches.length}`,
 	);
 
-	const mismatches = [];
-	for (const b of buttonMatches) {
-		const attrs = b[1];
-		const innerHtml = b[2];
-		const ariaLabelMatch = attrs.match(/aria-label="([^"]+)"/);
-		if (!ariaLabelMatch) continue;
-
-		const ariaLabel = ariaLabelMatch[1];
-		const visibleText = innerHtml.replace(/<[^>]+>/g, " ").trim();
-		const vTokens = curateTokens(visibleText);
-		const aTokens = curateTokens(ariaLabel);
-
-		if (!isContiguousSubsequence(aTokens, vTokens)) {
-			const id = (attrs.match(/id="([^"]+)"/) || [])[1] || attrs.slice(0, 30);
-			mismatches.push({ id, visibleText, ariaLabel });
-		}
-	}
-
+	const mismatches = buttonMatches.filter((b) => !hasMatchingLabel(b[1], b[2]));
 	assert.deepEqual(
 		mismatches,
 		[],
@@ -138,5 +127,18 @@ test("token matcher catches label-content-name-mismatches and accepts matching l
 	assert.equal(
 		isContiguousSubsequence(curateTokens(goodTlv), curateTokens(tlvVisible)),
 		true,
+	);
+
+	// Edge cases: empty tokens, labelTokens longer than nameTokens
+	assert.equal(isContiguousSubsequence(["short"], ["longer", "label"]), false);
+	assert.equal(isContiguousSubsequence(["any"], []), true);
+	assert.deepEqual(curateTokens(""), []);
+	assert.deepEqual(curateTokens(null), []);
+
+	// hasMatchingLabel edge cases:
+	assert.equal(hasMatchingLabel('class="btn"', "סתם כפתור"), true);
+	assert.equal(
+		hasMatchingLabel('aria-label="לא מתאים"', "כפתור אחר לגמרי"),
+		false,
 	);
 });
