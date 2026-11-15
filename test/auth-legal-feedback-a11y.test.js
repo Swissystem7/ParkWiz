@@ -64,7 +64,7 @@ test('pwFbOverlay has accessible region role, dialog container, accessible star 
   assert.match(html, /<textarea class="pw-fb-text" id="pwFbText"[^>]*aria-label="תוכן המשוב">/);
 
   // Semantic button element for close
-  assert.match(html, /<button type="button" class="pw-close" id="pwFbCloseBtn" onclick="pwCloseFeedback\(event\)" aria-label="סגור חלון משוב">ביטול<\/button>/);
+  assert.match(html, /<button type="button" class="pw-close" id="pwFbCloseBtn" onclick="pwCloseFeedback\(event\)" aria-label="ביטול — סגור חלון משוב">ביטול<\/button>/);
 });
 
 test('modal close functions guard against clicks inside dialog content', () => {
