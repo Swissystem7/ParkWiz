@@ -110,18 +110,34 @@
     return trim(value).replace(/\D/g, '');
   }
 
+  function stripInternationalPrefix(digits) {
+    if (digits.startsWith('00')) return digits.slice(2);
+    return digits;
+  }
+
+  function normalizeIsraeliCountryCode(digits) {
+    if (digits.startsWith('9720')) return '972' + digits.slice(4);
+    if (digits.startsWith('972')) return digits;
+    return null;
+  }
+
+  function formatIsraeliDomesticPhone(digits) {
+    if (digits.startsWith('0') && digits.length >= 9) {
+      return '972' + digits.slice(1);
+    }
+    if (digits.length === 9 && digits.startsWith('5')) {
+      return '972' + digits;
+    }
+    return digits;
+  }
+
   function toIntlPhone(phone) {
-    let d = digitsOnly(phone);
-    if (!d) return '';
-    // 00 is the international dialing prefix from Israel (00972...), and people
-    // often keep the domestic trunk 0 after the country code (+972 052...).
-    // wa.me wants neither, so a pasted 00972526333106 must not become 9720972...
-    if (d.startsWith('00')) d = d.slice(2);
-    if (d.startsWith('9720')) d = '972' + d.slice(4);
-    if (d.startsWith('972')) return d;
-    if (d.startsWith('0') && d.length >= 9) return '972' + d.slice(1);
-    if (d.length === 9 && d.startsWith('5')) return '972' + d;
-    return d;
+    const raw = digitsOnly(phone);
+    if (!raw) return '';
+    const stripped = stripInternationalPrefix(raw);
+    const withCountryCode = normalizeIsraeliCountryCode(stripped);
+    if (withCountryCode) return withCountryCode;
+    return formatIsraeliDomesticPhone(stripped);
   }
 
   function formatIls(amount) {
@@ -164,43 +180,71 @@
     };
   }
 
+  function resolveBookSender(src) {
+    return {
+      senderName: trim(src.senderName) || SENDER_DEFAULT.name,
+      senderPhone: trim(src.senderPhone),
+      senderEmail: trim(src.senderEmail),
+      senderRole: trim(src.senderRole) || SENDER_DEFAULT.role,
+    };
+  }
+
+  function resolveBookRecipient(src) {
+    const recipientName = trim(src.recipientName) || 'מוביל/ת עיר חכמה';
+    const recipientPhone = trim(src.recipientPhone) || BUYER.whatsapp;
+    return {
+      recipientName,
+      recipientRole: trim(src.recipientRole) || 'מוביל/ת עיר חכמה',
+      recipientUnit: trim(src.recipientUnit) || BUYER.unit,
+      authority: trim(src.authority) || BUYER.authority,
+      channel: src.channel === 'whatsapp' ? 'whatsapp' : 'email',
+      recipientEmail: trim(src.recipientEmail),
+      recipientPhone,
+      cameraStreet: trim(src.cameraStreet),
+      accuracyNote: trim(src.accuracyNote) || 'טרם נמדד דיוק מול ספירת פקח בשטח.',
+    };
+  }
+
+  function collectSenderErrors(fields, errors) {
+    if (!fields.senderName) {
+      errors.push('חסר שם השולח.');
+    }
+    if (!fields.senderPhone && !fields.senderEmail) {
+      errors.push('צריך טלפון או מייל של השולח.');
+    }
+    if (fields.senderEmail && !isValidEmail(fields.senderEmail)) {
+      errors.push('מייל השולח לא תקין.');
+    }
+  }
+
+  function collectRecipientErrors(fields, errors) {
+    if (fields.channel === 'email') {
+      if (!fields.recipientEmail) {
+        errors.push('חסר מייל נמען.');
+      } else if (!isValidEmail(fields.recipientEmail)) {
+        errors.push('מייל הנמען לא תקין.');
+      }
+      return;
+    }
+    if (!digitsOnly(fields.recipientPhone)) {
+      errors.push('חסר מספר WhatsApp.');
+    }
+  }
+
   function validateBook(input) {
     const src = input || {};
     const errors = [];
-    const senderName = trim(src.senderName) || SENDER_DEFAULT.name;
-    const senderPhone = trim(src.senderPhone);
-    const senderEmail = trim(src.senderEmail);
-    const recipientName = trim(src.recipientName);
-    const channel = src.channel === 'whatsapp' ? 'whatsapp' : 'email';
-    const recipientEmail = trim(src.recipientEmail);
-    const recipientPhone = trim(src.recipientPhone) || BUYER.whatsapp;
-    if (!senderName) errors.push('חסר שם השולח.');
-    if (!senderPhone && !senderEmail) errors.push('צריך טלפון או מייל של השולח.');
-    if (senderEmail && !isValidEmail(senderEmail)) errors.push('מייל השולח לא תקין.');
-    if (channel === 'email') {
-      if (!recipientEmail) errors.push('חסר מייל נמען.');
-      else if (!isValidEmail(recipientEmail)) errors.push('מייל הנמען לא תקין.');
-    } else if (!digitsOnly(recipientPhone)) {
-      errors.push('חסר מספר WhatsApp.');
-    }
+    const sender = resolveBookSender(src);
+    const recipient = resolveBookRecipient(src);
+    const fields = { ...sender, ...recipient };
+
+    collectSenderErrors(fields, errors);
+    collectRecipientErrors(fields, errors);
+
     return {
       ok: errors.length === 0,
       errors,
-      fields: {
-        senderName,
-        senderPhone,
-        senderEmail,
-        senderRole: trim(src.senderRole) || SENDER_DEFAULT.role,
-        recipientName: recipientName || 'מוביל/ת עיר חכמה',
-        recipientRole: trim(src.recipientRole) || 'מוביל/ת עיר חכמה',
-        recipientUnit: trim(src.recipientUnit) || BUYER.unit,
-        authority: trim(src.authority) || BUYER.authority,
-        channel,
-        recipientEmail,
-        recipientPhone,
-        cameraStreet: trim(src.cameraStreet),
-        accuracyNote: trim(src.accuracyNote) || 'טרם נמדד דיוק מול ספירת פקח בשטח.',
-      },
+      fields,
     };
   }
 
@@ -301,44 +345,110 @@
     return 'PW-' + day + '-' + tail;
   }
 
+  function isEmptyInput(value) {
+    if (value == null) return true;
+    return trim(value) === '';
+  }
+
+  function isValidAmountNumber(num) {
+    if (!Number.isFinite(num)) return false;
+    return num >= 0;
+  }
+
+  function validateQuoteAmount(pkgId, rawAmount, errors) {
+    if (pkgId === 'pilot-free') return 0;
+    if (isEmptyInput(rawAmount)) {
+      errors.push('לחבילה בתשלום צריך למלא סכום — אין מחירון שוק להשלים לבד.');
+      return null;
+    }
+    const amount = Number(rawAmount);
+    if (!isValidAmountNumber(amount)) {
+      errors.push('סכום לא תקין.');
+      return null;
+    }
+    return amount;
+  }
+
+  function resolveNumericInput(value, defaultValue) {
+    if (isEmptyInput(value)) return defaultValue;
+    return Number(value);
+  }
+
+  function isValidCameraCount(cameras) {
+    if (!Number.isInteger(cameras)) return false;
+    if (cameras < 1) return false;
+    if (cameras > 5) return false;
+    return true;
+  }
+
+  function isValidDurationDays(days) {
+    if (!Number.isFinite(days)) return false;
+    if (days < 1) return false;
+    if (days > 366) return false;
+    return true;
+  }
+
+  function safePositiveRound(value, fallback) {
+    if (!Number.isFinite(value)) return fallback;
+    if (value < 1) return fallback;
+    return Math.round(value);
+  }
+
   function validateQuote(input) {
     const src = input || {};
     const errors = [];
     const pkgId = src.packageId === 'measure-after' ? 'measure-after' : 'pilot-free';
     const pkg = packageById(pkgId);
-    const cameras = src.cameras == null || trim(src.cameras) === ''
-      ? pkg.cameras
-      : Number(src.cameras);
-    const durationDays = src.durationDays == null || trim(src.durationDays) === ''
-      ? pkg.durationDays
-      : Number(src.durationDays);
-    let amountIls;
-    if (pkgId === 'pilot-free') {
-      amountIls = 0;
-    } else if (src.amountIls == null || trim(src.amountIls) === '') {
-      amountIls = null;
-      errors.push('לחבילה בתשלום צריך למלא סכום — אין מחירון שוק להשלים לבד.');
-    } else {
-      amountIls = Number(src.amountIls);
-      if (!Number.isFinite(amountIls) || amountIls < 0) {
-        errors.push('סכום לא תקין.');
-        amountIls = null;
-      }
-    }
-    // A camera is a whole device: 1.5 used to pass and print as 2 on the quote.
-    if (!Number.isInteger(cameras) || cameras < 1 || cameras > 5) {
+    const cameras = resolveNumericInput(src.cameras, pkg.cameras);
+    const durationDays = resolveNumericInput(src.durationDays, pkg.durationDays);
+    const amountIls = validateQuoteAmount(pkgId, src.amountIls, errors);
+
+    if (!isValidCameraCount(cameras)) {
       errors.push('מספר מצלמות: 1 עד 5.');
     }
-    if (!Number.isFinite(durationDays) || durationDays < 1 || durationDays > 366) {
+    if (!isValidDurationDays(durationDays)) {
       errors.push('משך לא תקין.');
     }
+
     return {
       ok: errors.length === 0,
       errors,
       pkg,
-      cameras: Number.isFinite(cameras) && cameras >= 1 ? Math.round(cameras) : pkg.cameras,
-      durationDays: Number.isFinite(durationDays) && durationDays >= 1 ? Math.round(durationDays) : pkg.durationDays,
+      cameras: safePositiveRound(cameras, pkg.cameras),
+      durationDays: safePositiveRound(durationDays, pkg.durationDays),
       amountIls,
+    };
+  }
+
+  function buildQuoteExemption(generatedAt, amountIls) {
+    const isAbove = amountIls != null ? aboveExemption(amountIls) : false;
+    return {
+      regulation: EXEMPTION.regulation,
+      thirdPartyCapIls: EXEMPTION.thirdPartyIls,
+      thirdPartyWindow: EXEMPTION.thirdPartyWindow,
+      windowStart: EXEMPTION.windowStart,
+      windowEnd: EXEMPTION.windowEnd,
+      capExpired: exemptionStatus(generatedAt).expired,
+      aboveCap: isAbove,
+      note: EXEMPTION.note,
+    };
+  }
+
+  function buildQuoteParties(src) {
+    const authority = trim(src.authority) || BUYER.authority;
+    const unit = trim(src.unit) || BUYER.unit;
+    return {
+      authority,
+      unit,
+      buyer: {
+        authority,
+        unit,
+        contactName: trim(src.contactName),
+      },
+      seller: {
+        name: trim(src.sellerName) || SENDER_DEFAULT.name,
+        note: 'מפתח יחיד. לא חברה רשומה בדף הזה.',
+      },
     };
   }
 
@@ -346,49 +456,35 @@
     const src = input || {};
     const v = validateQuote(src);
     const generatedAt = src.generatedAt || new Date().toISOString();
-    const authority = trim(src.authority) || BUYER.authority;
-    const unit = trim(src.unit) || BUYER.unit;
+    const parties = buildQuoteParties(src);
+    const amountLabel = v.pkg.real ? 'חינם' : 'סכום שהמפתח הקליד — לא מחירון שוק';
+    const accuracyNote = trim(src.accuracyNote) || 'טרם נמדד דיוק מול ספירת פקח בשטח.';
+
     const quote = {
       version: 1,
       kind: 'parkwiz-quote-draft',
-      id: quoteId(generatedAt, authority),
+      id: quoteId(generatedAt, parties.authority),
       generatedAt,
       validUntil: src.validUntil || nextMonthIso(generatedAt),
       status: 'טיוטה — לא חוזה ולא הזמנת רכש',
       sent: false,
       payment: 'אין סליקה בריפו. אין חשבונית אוטומטית.',
-      buyer: {
-        authority,
-        unit,
-        contactName: trim(src.contactName) || '',
-      },
-      seller: {
-        name: trim(src.sellerName) || SENDER_DEFAULT.name,
-        note: 'מפתח יחיד. לא חברה רשומה בדף הזה.',
-      },
+      buyer: parties.buyer,
+      seller: parties.seller,
       packageId: v.pkg.id,
       title: v.pkg.title,
       realOffer: v.pkg.real,
       cameras: v.cameras,
       durationDays: v.durationDays,
       amountIls: v.amountIls,
-      amountLabel: v.pkg.real ? 'חינם' : 'סכום שהמפתח הקליד — לא מחירון שוק',
+      amountLabel,
       currency: 'ILS',
       vatNote: 'אם יש סכום — לציין מול הגזבר אם כולל מע״מ. הדף לא מחשב מע״מ.',
       includes: v.pkg.includes.slice(),
       excludes: v.pkg.excludes.slice(),
       cameraStreet: trim(src.cameraStreet),
-      accuracyNote: trim(src.accuracyNote) || 'טרם נמדד דיוק מול ספירת פקח בשטח.',
-      exemption: {
-        regulation: EXEMPTION.regulation,
-        thirdPartyCapIls: EXEMPTION.thirdPartyIls,
-        thirdPartyWindow: EXEMPTION.thirdPartyWindow,
-        windowStart: EXEMPTION.windowStart,
-        windowEnd: EXEMPTION.windowEnd,
-        capExpired: exemptionStatus(generatedAt).expired,
-        aboveCap: v.amountIls != null && aboveExemption(v.amountIls),
-        note: EXEMPTION.note,
-      },
+      accuracyNote,
+      exemption: buildQuoteExemption(generatedAt, v.amountIls),
       noRoi: true,
       noCustomers: true,
       errors: v.errors,
@@ -397,47 +493,93 @@
     return quote;
   }
 
+  function formatCapNote(exemption) {
+    if (exemption && exemption.capExpired) {
+      const capIls = formatIls(exemption.thirdPartyCapIls);
+      const windowStr = exemption.thirdPartyWindow || '';
+      return 'אזהרה: רף הפטור שבדף (' + capIls + ', ' + windowStr + ') פג תוקף לפני תאריך ההצעה. לא לצטט אותו — לבדוק את הרף המעודכן מול הגזבר.';
+    }
+    if (exemption && exemption.aboveCap) {
+      return 'אזהרה: הסכום אינו מתחת לרף הפטור המחושב לצד ג׳. זה כנראה דורש מכרז.';
+    }
+    return 'אם רוצים פטור לפי תקנה 3(3) — לאמת את רף המדד מול הגזבר ביום החתימה.';
+  }
+
+  function fallbackText(val, fallback) {
+    const fb = fallback !== undefined ? fallback : '—';
+    if (val == null || val === '') return fb;
+    return String(val);
+  }
+
+  function formatQuoteBuyerLines(buyer) {
+    const b = buyer || {};
+    return [
+      'לכבוד: ' + fallbackText(b.authority),
+      'יחידה: ' + fallbackText(b.unit),
+      'איש קשר: ' + fallbackText(b.contactName),
+    ];
+  }
+
+  function formatQuoteSellerLine(seller) {
+    const s = seller || {};
+    return 'מאת: ' + fallbackText(s.name, SENDER_DEFAULT.name);
+  }
+
+  function formatQuoteScopeLines(q) {
+    const cameras = q.cameras != null ? q.cameras : '—';
+    const duration = q.durationDays != null ? q.durationDays + ' יום' : '—';
+    return [
+      'חבילה: ' + fallbackText(q.title),
+      'מצלמות: ' + cameras,
+      'משך: ' + duration,
+      'רחוב / מצלמה: ' + fallbackText(q.cameraStreet, 'לא צוין'),
+      'דיוק שדה: ' + fallbackText(q.accuracyNote),
+    ];
+  }
+
+  function formatQuotePricingLines(q) {
+    const amount = q.amountIls == null ? 'לא מולא' : formatIls(q.amountIls);
+    return [
+      'סכום: ' + amount,
+      'סוג הסכום: ' + fallbackText(q.amountLabel),
+      q.vatNote || '',
+      formatCapNote(q.exemption),
+    ];
+  }
+
+  function formatBulletList(title, items) {
+    const list = Array.isArray(items) ? items : [];
+    return [
+      title,
+      list.map((x) => '• ' + x).join('\n'),
+    ];
+  }
+
   function quoteToText(quote) {
     const q = quote || {};
-    const amount = q.amountIls == null ? 'לא מולא' : formatIls(q.amountIls);
-    const cap = q.exemption && q.exemption.capExpired
-      ? 'אזהרה: רף הפטור שבדף (' + formatIls(q.exemption.thirdPartyCapIls) + ', ' + (q.exemption.thirdPartyWindow || '') + ') פג תוקף לפני תאריך ההצעה. לא לצטט אותו — לבדוק את הרף המעודכן מול הגזבר.'
-      : q.exemption && q.exemption.aboveCap
-        ? 'אזהרה: הסכום אינו מתחת לרף הפטור המחושב לצד ג׳. זה כנראה דורש מכרז.'
-        : 'אם רוצים פטור לפי תקנה 3(3) — לאמת את רף המדד מול הגזבר ביום החתימה.';
-    return [
+    const lines = [
       'ParkWiz — הצעת מחיר / הצעת פיילוט',
-      q.status || 'טיוטה',
-      'מספר: ' + (q.id || '—'),
-      'נוצר: ' + (q.generatedAt || '—'),
-      'בתוקף עד: ' + (q.validUntil || '—'),
+      fallbackText(q.status, 'טיוטה'),
+      'מספר: ' + fallbackText(q.id),
+      'נוצר: ' + fallbackText(q.generatedAt),
+      'בתוקף עד: ' + fallbackText(q.validUntil),
       '',
-      'לכבוד: ' + ((q.buyer && q.buyer.authority) || '—'),
-      'יחידה: ' + ((q.buyer && q.buyer.unit) || '—'),
-      'איש קשר: ' + ((q.buyer && q.buyer.contactName) || '—'),
-      'מאת: ' + ((q.seller && q.seller.name) || SENDER_DEFAULT.name),
+      ...formatQuoteBuyerLines(q.buyer),
+      formatQuoteSellerLine(q.seller),
       '',
-      'חבילה: ' + (q.title || '—'),
-      'מצלמות: ' + (q.cameras != null ? q.cameras : '—'),
-      'משך: ' + (q.durationDays != null ? q.durationDays + ' יום' : '—'),
-      'רחוב / מצלמה: ' + (q.cameraStreet || 'לא צוין'),
-      'דיוק שדה: ' + (q.accuracyNote || '—'),
+      ...formatQuoteScopeLines(q),
       '',
-      'סכום: ' + amount,
-      'סוג הסכום: ' + (q.amountLabel || '—'),
-      q.vatNote || '',
-      cap,
+      ...formatQuotePricingLines(q),
       '',
-      'כלול:',
-      (q.includes || []).map((x) => '• ' + x).join('\n'),
+      ...formatBulletList('כלול:', q.includes),
       '',
-      'לא כלול:',
-      (q.excludes || []).map((x) => '• ' + x).join('\n'),
+      ...formatBulletList('לא כלול:', q.excludes),
       '',
       q.payment || '',
       'אין הבטחת ROI. אין לקוחות משלמים להציג. אין אכיפה.',
       'מקור הרף: ' + EXEMPTION.regulation,
-    ].join('\n');
+    ];
+    return lines.join('\n');
   }
 
   // Same formula guard as src/lib/export.js: a buyer-typed authority or unit
