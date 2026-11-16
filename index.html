@@ -1825,6 +1825,7 @@ function availColor(pct) {
   return PW_MAP_COLORS.hard;
 }
 
+const HOURLY_SLOTS = [8, 10, 12, 14, 16, 18, 20];
 function getHourlySlotIndex(targetDate, slotCount) {
   const targetHour = targetDate.getHours() + (targetDate.getMinutes() / 60);
   return Math.max(0, Math.min(slotCount - 1, Math.floor((targetHour - HOURLY_SLOTS[0]) / 2)));
