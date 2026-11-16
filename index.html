@@ -1825,6 +1825,7 @@ function availColor(pct) {
   return PW_MAP_COLORS.hard;
 }
 
+const HOURLY_SLOTS = [8, 10, 12, 14, 16, 18, 20];
 function getHourlySlotIndex(targetDate, slotCount) {
   const targetHour = targetDate.getHours() + (targetDate.getMinutes() / 60);
   return Math.max(0, Math.min(slotCount - 1, Math.floor((targetHour - HOURLY_SLOTS[0]) / 2)));
@@ -2648,7 +2649,7 @@ function switchNav(tab) {
     activeBtn.setAttribute('aria-current', 'page');
   }
   if (tab==='search') document.getElementById('searchInput').focus();
-  if (tab==='profile') { openProfile(); return; }
+  if (tab==='profile') openProfile();
 }
 
 function toggleSideSheet() {
@@ -2718,7 +2719,7 @@ window.addEventListener('keydown', (e) => {
     const legal = document.getElementById('pwLegalOverlay');
     if (legal && legal.classList.contains('show')) { pwCloseLegal(); return; }
     const fb = document.getElementById('pwFbOverlay');
-    if (fb && fb.classList.contains('show')) { pwCloseFeedback(); return; }
+    if (fb && fb.classList.contains('show')) pwCloseFeedback();
   }
 });
 
@@ -2982,11 +2983,11 @@ function finishNavigation() {
   clearInterval(navState.timer);
   document.getElementById('navPrompt').classList.remove('show');
   const end = route.path[route.path.length-1];
-  let nearest = null, nd = 1e9;
+  let nearest = null, minDist = 1e9;
   route.parkings.forEach(p => {
     if (p.taken) return;
     const d = Math.hypot(p.x-end.x, p.y-end.y);
-    if (d < nd) { nd = d; nearest = p; }
+    if (d < minDist) { minDist = d; nearest = p; }
   });
   if (nearest) { nearest.taken = true; userPos = { x:nearest.x, y:nearest.y }; positionUserDot(); }
   showToast('✅ סוף הדמיית הניווט — החניה סומנה כתפוסה בדפדפן הזה בלבד');

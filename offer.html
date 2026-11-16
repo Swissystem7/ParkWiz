@@ -268,31 +268,61 @@ a{color:var(--brand)}
   const O = window.ParkWizOffer;
   const $ = (id) => document.getElementById(id);
   let lastOutreach = null;
-  let lastQuote = null;
+
+  const senderName = $('senderName');
+  const senderRole = $('senderRole');
+  const senderPhone = $('senderPhone');
+  const senderEmail = $('senderEmail');
+  const authority = $('authority');
+  const recipientUnit = $('recipientUnit');
+  const recipientName = $('recipientName');
+  const recipientRole = $('recipientRole');
+  const channel = $('channel');
+  const recipientEmail = $('recipientEmail');
+  const recipientPhone = $('recipientPhone');
+  const cameraStreet = $('cameraStreet');
+  const accuracyNote = $('accuracyNote');
+  const confirmDraft = $('confirmDraft');
+  const emailWrap = $('emailWrap');
+  const phoneWrap = $('phoneWrap');
+  const btnOpen = $('btnOpen');
+  const bookErr = $('bookErr');
+  const bookOk = $('bookOk');
+  const bookPreview = $('bookPreview');
+  const qCapHint = $('qCapHint');
+  const qPackage = $('qPackage');
+  const qCameras = $('qCameras');
+  const qDays = $('qDays');
+  const qAmount = $('qAmount');
+  const qContact = $('qContact');
+  const quotePreview = $('quotePreview');
+  const quoteErr = $('quoteErr');
+  const quoteOk = $('quoteOk');
+  const quoteEmpty = $('quoteEmpty');
 
   function bookFields() {
     return {
-      senderName: $('senderName').value,
-      senderRole: $('senderRole').value,
-      senderPhone: $('senderPhone').value,
-      senderEmail: $('senderEmail').value,
-      authority: $('authority').value,
-      recipientUnit: $('recipientUnit').value,
-      recipientName: $('recipientName').value,
-      recipientRole: $('recipientRole').value,
-      channel: $('channel').value,
-      recipientEmail: $('recipientEmail').value,
-      recipientPhone: $('recipientPhone').value,
-      cameraStreet: $('cameraStreet').value,
-      accuracyNote: $('accuracyNote').value,
+      senderName: senderName.value,
+      senderRole: senderRole.value,
+      senderPhone: senderPhone.value,
+      senderEmail: senderEmail.value,
+      authority: authority.value,
+      recipientUnit: recipientUnit.value,
+      recipientName: recipientName.value,
+      recipientRole: recipientRole.value,
+      channel: channel.value,
+      recipientEmail: recipientEmail.value,
+      recipientPhone: recipientPhone.value,
+      cameraStreet: cameraStreet.value,
+      accuracyNote: accuracyNote.value,
     };
   }
 
   function syncChannel() {
-    const wa = $('channel').value === 'whatsapp';
-    $('emailWrap').hidden = wa;
-    $('phoneWrap').hidden = !wa;
-    $('btnOpen').textContent = wa ? 'פתח WhatsApp' : 'פתח מייל';
+    const wa = channel.value === 'whatsapp';
+    emailWrap.hidden = wa;
+    phoneWrap.hidden = !wa;
+    btnOpen.textContent = wa ? 'פתח WhatsApp' : 'פתח מייל';
   }
 
   function download(name, text, type) {
@@ -308,37 +338,37 @@ a{color:var(--brand)}
     const st = O.exemptionStatus(new Date().toISOString());
     if (!st.expired) return;
     const warn = ' אזהרה: הרף הזה פג תוקף ב־' + O.EXEMPTION.thirdPartyWindow.split('–')[1] + '. לא לצטט אותו — לבדוק רף מעודכן מול הגזבר.';
-    $('qCapHint').textContent += warn;
-    $('qCapHint').classList.add('err');
+    qCapHint.textContent += warn;
+    qCapHint.classList.add('err');
   })();
-  $('channel').addEventListener('change', syncChannel);
+  channel.addEventListener('change', syncChannel);
   syncChannel();
 
   $('btnPreview').addEventListener('click', () => {
-    $('bookErr').hidden = true;
-    $('bookOk').hidden = true;
+    bookErr.hidden = true;
+    bookOk.hidden = true;
     const out = O.buildOutreach(bookFields());
     lastOutreach = out;
     if (!out.ok) {
-      $('bookErr').hidden = false;
-      $('bookErr').textContent = out.errors.join(' ');
-      $('bookPreview').hidden = true;
-      $('btnOpen').disabled = true;
+      bookErr.hidden = false;
+      bookErr.textContent = out.errors.join(' ');
+      bookPreview.hidden = true;
+      btnOpen.disabled = true;
       return;
     }
-    $('bookPreview').hidden = false;
-    $('bookPreview').textContent = out.subject + '\n\n' + out.body;
-    $('btnOpen').disabled = !$('confirmDraft').checked;
-    $('bookOk').hidden = false;
-    $('bookOk').textContent = 'טיוטה מוכנה. לא נשלח כלום.';
+    bookPreview.hidden = false;
+    bookPreview.textContent = out.subject + '\n\n' + out.body;
+    btnOpen.disabled = !confirmDraft.checked;
+    bookOk.hidden = false;
+    bookOk.textContent = 'טיוטה מוכנה. לא נשלח כלום.';
   });
 
-  $('confirmDraft').addEventListener('change', () => {
-    $('btnOpen').disabled = !(lastOutreach && lastOutreach.ok && $('confirmDraft').checked);
+  confirmDraft.addEventListener('change', () => {
+    btnOpen.disabled = !(lastOutreach && lastOutreach.ok && confirmDraft.checked);
   });
 
-  $('btnOpen').addEventListener('click', () => {
-    if (!lastOutreach || !lastOutreach.ok || !$('confirmDraft').checked) return;
+  btnOpen.addEventListener('click', () => {
+    if (!lastOutreach || !lastOutreach.ok || !confirmDraft.checked) return;
     const href = lastOutreach.fields.channel === 'whatsapp' ? lastOutreach.waHref : lastOutreach.emailHref;
     window.location.href = href;
   });
@@ -346,68 +376,67 @@ a{color:var(--brand)}
   $('btnCopy').addEventListener('click', async () => {
     const out = lastOutreach && lastOutreach.ok ? lastOutreach : O.buildOutreach(bookFields());
     if (!out.ok) {
-      $('bookErr').hidden = false;
-      $('bookErr').textContent = out.errors.join(' ');
+      bookErr.hidden = false;
+      bookErr.textContent = out.errors.join(' ');
       return;
     }
     const text = out.subject + '\n\n' + out.body;
     try {
       await navigator.clipboard.writeText(text);
-      $('bookOk').hidden = false;
-      $('bookOk').textContent = 'הועתק. הדף עדיין לא שלח כלום.';
-    } catch (e) {
-      $('bookErr').hidden = false;
-      $('bookErr').textContent = 'ההעתקה נחסמה בדפדפן — סמנו ידנית מהתיבה.';
-      $('bookPreview').hidden = false;
-      $('bookPreview').textContent = text;
+      bookOk.hidden = false;
+      bookOk.textContent = 'הועתק. הדף עדיין לא שלח כלום.';
+    } catch {
+      bookErr.hidden = false;
+      bookErr.textContent = 'ההעתקה נחסמה בדפדפן — סמנו ידנית מהתיבה.';
+      bookPreview.hidden = false;
+      bookPreview.textContent = text;
     }
   });
 
   function syncPackage() {
-    const paid = $('qPackage').value === 'measure-after';
-    $('qAmount').disabled = !paid;
-    $('qDays').value = paid ? '90' : '30';
-    if (!paid) $('qAmount').value = '';
+    const paid = qPackage.value === 'measure-after';
+    qAmount.disabled = !paid;
+    qDays.value = paid ? '90' : '30';
+    if (!paid) qAmount.value = '';
   }
-  $('qPackage').addEventListener('change', syncPackage);
+  qPackage.addEventListener('change', syncPackage);
   syncPackage();
 
   function currentQuote() {
     return O.buildQuote({
-      packageId: $('qPackage').value,
-      cameras: $('qCameras').value,
-      durationDays: $('qDays').value,
-      amountIls: $('qAmount').value,
-      authority: $('authority').value,
-      unit: $('recipientUnit').value,
-      contactName: $('qContact').value,
-      cameraStreet: $('cameraStreet').value,
-      accuracyNote: $('accuracyNote').value,
-      sellerName: $('senderName').value,
+      packageId: qPackage.value,
+      cameras: qCameras.value,
+      durationDays: qDays.value,
+      amountIls: qAmount.value,
+      authority: authority.value,
+      unit: recipientUnit.value,
+      contactName: qContact.value,
+      cameraStreet: cameraStreet.value,
+      accuracyNote: accuracyNote.value,
+      sellerName: senderName.value,
     });
   }
 
   function requireValidQuote() {
     const q = currentQuote();
-    lastQuote = q;
-    $('quotePreview').hidden = false;
-    $('quotePreview').textContent = O.quoteToText(q);
-    $('quoteEmpty').hidden = true;
+    quotePreview.hidden = false;
+    quotePreview.textContent = O.quoteToText(q);
+    quoteEmpty.hidden = true;
     if (!q.ok) {
-      $('quoteErr').hidden = false;
-      $('quoteErr').textContent = q.errors.join(' ');
-      $('quoteOk').hidden = true;
+      quoteErr.hidden = false;
+      quoteErr.textContent = q.errors.join(' ');
+      quoteOk.hidden = true;
       return null;
     }
-    $('quoteErr').hidden = true;
+    quoteErr.hidden = true;
     return q;
   }
 
   $('btnQuote').addEventListener('click', () => {
     const q = requireValidQuote();
     if (q) {
-      $('quoteOk').hidden = false;
-      $('quoteOk').textContent = 'טיוטת ההצעה נבנתה בהצלחה. לא נשלח כלום.';
+      quoteOk.hidden = false;
+      quoteOk.textContent = 'טיוטת ההצעה נבנתה בהצלחה. לא נשלח כלום.';
     }
   });
 
@@ -417,11 +446,11 @@ a{color:var(--brand)}
     const text = O.quoteToText(q);
     try {
       await navigator.clipboard.writeText(text);
-      $('quoteOk').hidden = false;
-      $('quoteOk').textContent = 'טיוטת ההצעה הועתקה ללוח. לא נשלח כלום.';
-    } catch (e) {
-      $('quoteErr').hidden = false;
-      $('quoteErr').textContent = 'ההעתקה נחסמה בדפדפן — העתיקו ידנית מהתצוגה.';
+      quoteOk.hidden = false;
+      quoteOk.textContent = 'טיוטת ההצעה הועתקה ללוח. לא נשלח כלום.';
+    } catch {
+      quoteErr.hidden = false;
+      quoteErr.textContent = 'ההעתקה נחסמה בדפדפן — העתיקו ידנית מהתצוגה.';
     }
   });
 
@@ -429,22 +458,22 @@ a{color:var(--brand)}
     const q = requireValidQuote();
     if (!q) return;
     download((q.id || 'parkwiz-quote') + '.txt', O.quoteToText(q));
-    $('quoteOk').hidden = false;
-    $('quoteOk').textContent = 'קובץ TXT של ההצעה הורד.';
+    quoteOk.hidden = false;
+    quoteOk.textContent = 'קובץ TXT של ההצעה הורד.';
   });
   $('btnQuoteJson').addEventListener('click', () => {
     const q = requireValidQuote();
     if (!q) return;
     download((q.id || 'parkwiz-quote') + '.json', JSON.stringify(q, null, 2), 'application/json');
-    $('quoteOk').hidden = false;
-    $('quoteOk').textContent = 'קובץ JSON של ההצעה הורד.';
+    quoteOk.hidden = false;
+    quoteOk.textContent = 'קובץ JSON של ההצעה הורד.';
   });
   $('btnQuoteCsv').addEventListener('click', () => {
     const q = requireValidQuote();
     if (!q) return;
     download((q.id || 'parkwiz-quote') + '.csv', O.quoteToCsv(q), 'text/csv;charset=utf-8');
-    $('quoteOk').hidden = false;
-    $('quoteOk').textContent = 'קובץ CSV של ההצעה הורד.';
+    quoteOk.hidden = false;
+    quoteOk.textContent = 'קובץ CSV של ההצעה הורד.';
   });
   $('btnQuotePrint').addEventListener('click', () => {
     const q = requireValidQuote();
@@ -452,20 +481,19 @@ a{color:var(--brand)}
     window.print();
   });
   $('btnQuoteReset').addEventListener('click', () => {
-    lastQuote = null;
-    $('qPackage').value = 'pilot-free';
+    qPackage.value = 'pilot-free';
     syncPackage();
-    $('qCameras').value = '1';
-    $('qDays').value = '30';
-    $('qAmount').value = '';
-    $('qContact').value = '';
-    $('quotePreview').hidden = true;
-    $('quotePreview').textContent = '';
-    $('quoteErr').hidden = true;
-    $('quoteErr').textContent = '';
-    $('quoteOk').hidden = false;
-    $('quoteOk').textContent = 'טופס ההצעה אופס לברירת המחדל (פיילוט חינם).';
-    $('quoteEmpty').hidden = false;
+    qCameras.value = '1';
+    qDays.value = '30';
+    qAmount.value = '';
+    qContact.value = '';
+    quotePreview.hidden = true;
+    quotePreview.textContent = '';
+    quoteErr.hidden = true;
+    quoteErr.textContent = '';
+    quoteOk.hidden = false;
+    quoteOk.textContent = 'טופס ההצעה אופס לברירת המחדל (פיילוט חינם).';
+    quoteEmpty.hidden = false;
   });
   $('btnPrintPitch').addEventListener('click', () => window.print());
 })();
