@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>ParkWiz — פיילוט פארק עתידים, עמוד אחד</title>
+<style>
+  @page { size: A4; margin: 15mm 16mm 13mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; color: #101a24; font-size: 10.4pt; line-height: 1.45; margin: 0; }
+  h1 { font-size: 19pt; margin: 0 0 2pt; }
+  .sub { color: #4a5766; font-size: 10.5pt; margin: 0 0 8pt; }
+  h2 { font-size: 12pt; margin: 9pt 0 3pt; color: #0b6bcb; break-after: avoid; }
+  p { margin: 0 0 5pt; }
+  ul { margin: 0 0 5pt; padding-inline-start: 16pt; }
+  li { margin-bottom: 2pt; }
+  table { width: 100%; border-collapse: collapse; margin: 3pt 0 5pt; font-size: 10pt; }
+  th, td { border: 1px solid #c9d2dc; padding: 3.5pt 6pt; text-align: right; vertical-align: top; }
+  th { background: #eef3f8; }
+  .code { direction: ltr; unicode-bidi: embed; font-family: Consolas, monospace; font-size: 10pt; background: #101a24; color: #fff; padding: 5pt 8pt; border-radius: 4pt; display: block; text-align: center; margin: 4pt 0; }
+  .note { background: #fff1dc; color: #8a4b00; padding: 6pt 9pt; border-radius: 4pt; margin-top: 8pt; }
+  .cols { display: flex; gap: 14pt; }
+  .cols > div { flex: 1; }
+</style>
+</head>
+<body>
+<h1>ParkWiz — פיילוט בפארק עתידים</h1>
+<p class="sub">לפגישה עם רוני נדלר, מנהל חניוני פארק עתידים · 12–20 חניות · בניין 6 · 4 שבועות</p>
+
+<h2>הבעיה</h2>
+<p>בשעת השיא נהגים מסתובבים בין המפלסים בלי לדעת איפה יש מקום. אין מספר פנויים בזמן אמת, ואין תמונת עומס שאפשר לבסס עליה החלטה כמו פתיחת מפלס נוסף.</p>
+
+<h2>ההצעה</h2>
+<p>פיילוט קטן ומדיד: <b>12–20 חניות בבניין 6</b>, שנבחרות יחד איתכם. לכל חניה נקבל בזמן אמת תפוס או פנוי, ומזה עקומת עומס שעתית ויומית ודוח בוקר של עמוד אחד.</p>
+
+<div class="cols">
+<div>
+<h2>פרטיות</h2>
+<ul>
+  <li>פנים ולוחיות רישוי <b>מטושטשים על המכשיר עצמו</b>, לפני כל עיבוד אחר.</li>
+  <li>וידאו לא נשמר ולא נשלח.</li>
+  <li>מהחניון יוצאים רק שלושה שדות:</li>
+</ul>
+<span class="code">{ id, status, ts }</span>
+<p>מספר החניה, תפוס או פנוי, וזמן. בלי אכיפה ובלי נתון על נהג.</p>
+</div>
+<div>
+<h2>התקנה</h2>
+<ul>
+  <li><b>מתקן מודפס בתלת־ממד</b> שמתחבר בלי קידוח, ומוסר בסוף בלי להשאיר סימן.</li>
+  <li><b>ספק כוח 24/7:</b> המכשיר צריך חשמל רציף.</li>
+  <li>בלי חציבה באספלט ובלי חיבור למערכות אחרות של הפארק.</li>
+</ul>
+</div>
+</div>
+
+<h2>לוח זמנים</h2>
+<table>
+  <tr><th style="width:18%">שבוע</th><th>מה עושים</th><th style="width:34%">תוצר</th></tr>
+  <tr><td>1</td><td>התקנה וסימון החניות</td><td>תמונת מצב ראשונה</td></tr>
+  <tr><td>2–3</td><td>מדידה רציפה, וספירה ידנית מול המערכת בשעת שיא</td><td>סדרת תפוסה + זוגות מערכת/ספירה</td></tr>
+  <tr><td>4</td><td>דוח ופגישת החלטה</td><td>דיוק, עקומת עומס, החלטה משותפת</td></tr>
+</table>
+
+<h2>מדדי הצלחה (נקבעים מראש)</h2>
+<ul>
+  <li><b>דיוק מול ספירה ידנית:</b> פער של עד חניה אחת ברוב התצפיות בשעות היום.</li>
+  <li><b>דקות שנחסכות בשעת שיא:</b> זמן חיפוש לפני ואחרי, על מדגם הגעות בבוקר.</li>
+</ul>
+
+<div class="cols">
+<div>
+<h2>מה מבקשים מעתידים</h2>
+<ul>
+  <li>אישור עקרוני לפיילוט של 4 שבועות.</li>
+  <li>בחירת 12–20 החניות ונקודת התקנה אחת בבניין 6.</li>
+  <li>נקודת חשמל.</li>
+  <li>איש קשר אחד לתיאום ולספירות הבקרה.</li>
+</ul>
+</div>
+<div>
+<h2>אחרי הפיילוט — לדיון</h2>
+<ul>
+  <li>אם המדדים עומדים ביעד: מנוי חודשי לפי מספר חניות מנוטרות.</li>
+  <li>אפשרות לבדוק חיבור לאפליקציית תשלום קיימת (למשל פנגו).</li>
+  <li>מחירים ותנאים לא נקבעו. הם נושא לפגישת ההחלטה.</li>
+</ul>
+</div>
+</div>
+
+<p class="note"><b>גילוי נאות:</b> הדמו שמוצג בפגישה הוא הדמיה בדפדפן, לא שידור ממצלמה בפארק, והדיוק עוד לא נמדד בשטח. הפיילוט הזה הוא מה שיהפוך את ההדמיה למדידה.</p>
+</body>
+</html>
