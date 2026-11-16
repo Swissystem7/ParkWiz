@@ -84,6 +84,7 @@ test('escape key listener closes pwAuthOverlay, pwLegalOverlay, and pwFbOverlay 
 
 test('.pw-fb-fab text passes WCAG AA color-contrast (4.5:1) in both themes', () => {
   const tokens = fs.readFileSync(path.join(root, 'src/ui/tokens.css'), 'utf8');
+  const driverCss = fs.readFileSync(path.join(root, 'src/ui/driver.css'), 'utf8');
   const lum = (hex) => {
     const c = [1, 3, 5]
       .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
@@ -106,8 +107,8 @@ test('.pw-fb-fab text passes WCAG AA color-contrast (4.5:1) in both themes', () 
   const fabMatch = /\.pw-fb-fab\{([^}]*)\}/.exec(html);
   assert.ok(fabMatch, '.pw-fb-fab rule must exist in index.html');
   const fab = fabMatch[1];
-  assert.match(fab, /color:\s*var\(--pw-on-brand\)/);
   assert.match(fab, /background:\s*var\(--green\)/);
+  assert.match(driverCss, /\.pw-fb-fab\{color:\s*var\(--pw-on-brand\)!important\}/);
   for (const [label, css] of [
     ['dark', block(':root')],
     ['light', block('[data-theme="light"]')],
@@ -121,5 +122,5 @@ test('.pw-fb-fab text passes WCAG AA color-contrast (4.5:1) in both themes', () 
 
 test('service worker cache is bumped to v27 or later following modal accessibility update', () => {
   const v = Number((sw.match(/const CACHE = 'parkwiz-field-v(\d+)';/) || [])[1]);
-  assert.ok(v >= 27, 'cache version ' + v + ' regressed below v27');
+  assert.ok(v >= 27, `cache version ${v} regressed below v27`);
 });
