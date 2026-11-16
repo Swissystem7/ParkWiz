@@ -592,20 +592,26 @@ function start() {
   }
   hour = nowHour();
   render();
-  $("hourRange").addEventListener("input", (e) => {
-    follow = false;
-    hour = Number(e.target.value);
-    render();
-    const snap = LOT.snapshotAt(hour, config);
-    announce("שעה שונתה ל-" + label(hour) + " · " + snap.free + " פנויים מתוך " + snap.total + ".");
-  });
-  $("nowBtn").addEventListener("click", () => {
-    follow = true;
-    hour = nowHour();
-    render();
-    const snap = LOT.snapshotAt(hour, config);
-    announce("חזרה לשעה הנוכחית (" + label(hour) + ") · " + snap.free + " פנויים מתוך " + snap.total + ".");
-  });
+  const hourRange = $("hourRange");
+  if (hourRange) {
+    hourRange.addEventListener("input", (e) => {
+      follow = false;
+      hour = Number(e.target.value);
+      render();
+      const snap = LOT.snapshotAt(hour, config);
+      announce("שעה שונתה ל-" + label(hour) + " · " + snap.free + " פנויים מתוך " + snap.total + ".");
+    });
+  }
+  const nowBtn = $("nowBtn");
+  if (nowBtn) {
+    nowBtn.addEventListener("click", () => {
+      follow = true;
+      hour = nowHour();
+      render();
+      const snap = LOT.snapshotAt(hour, config);
+      announce("חזרה לשעה הנוכחית (" + label(hour) + ") · " + snap.free + " פנויים מתוך " + snap.total + ".");
+    });
+  }
   const copyBoardBtn = $("btnCopyBoard");
   if (copyBoardBtn) {
     copyBoardBtn.addEventListener("click", () => {
@@ -618,16 +624,22 @@ function start() {
   }
   // The two margin sliders move the window only — unlike the hour scrubber they
   // must not drop the counters out of clock-follow, nor redraw the canvas.
-  $("etaRange").addEventListener("input", (e) => {
-    eta = Number(e.target.value);
-    renderMargin();
-    announce("זמן נסיעה עודכן: " + eta + " דק׳ · שוליים: ±" + buffer + " דק׳.");
-  });
-  $("bufferRange").addEventListener("input", (e) => {
-    buffer = Number(e.target.value);
-    renderMargin();
-    announce("שולי ביטחון עודכנו: ±" + buffer + " דק׳ · זמן נסיעה: " + eta + " דק׳.");
-  });
+  const etaRange = $("etaRange");
+  if (etaRange) {
+    etaRange.addEventListener("input", (e) => {
+      eta = Number(e.target.value);
+      renderMargin();
+      announce("זמן נסיעה עודכן: " + eta + " דק׳ · שוליים: ±" + buffer + " דק׳.");
+    });
+  }
+  const bufferRange = $("bufferRange");
+  if (bufferRange) {
+    bufferRange.addEventListener("input", (e) => {
+      buffer = Number(e.target.value);
+      renderMargin();
+      announce("שולי ביטחון עודכנו: ±" + buffer + " דק׳ · זמן נסיעה: " + eta + " דק׳.");
+    });
+  }
   const copyMarginBtn = $("btnCopyMargin");
   if (copyMarginBtn) {
     copyMarginBtn.addEventListener("click", () => {

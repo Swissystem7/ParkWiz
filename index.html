@@ -2983,11 +2983,11 @@ function finishNavigation() {
   clearInterval(navState.timer);
   document.getElementById('navPrompt').classList.remove('show');
   const end = route.path[route.path.length-1];
-  let nearest = null, nd = 1e9;
+  let nearest = null, minDist = 1e9;
   route.parkings.forEach(p => {
     if (p.taken) return;
     const d = Math.hypot(p.x-end.x, p.y-end.y);
-    if (d < nd) { nd = d; nearest = p; }
+    if (d < minDist) { minDist = d; nearest = p; }
   });
   if (nearest) { nearest.taken = true; userPos = { x:nearest.x, y:nearest.y }; positionUserDot(); }
   showToast('✅ סוף הדמיית הניווט — החניה סומנה כתפוסה בדפדפן הזה בלבד');
