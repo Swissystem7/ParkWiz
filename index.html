@@ -2648,7 +2648,7 @@ function switchNav(tab) {
     activeBtn.setAttribute('aria-current', 'page');
   }
   if (tab==='search') document.getElementById('searchInput').focus();
-  if (tab==='profile') { openProfile(); return; }
+  if (tab==='profile') openProfile();
 }
 
 function toggleSideSheet() {
@@ -2718,7 +2718,7 @@ window.addEventListener('keydown', (e) => {
     const legal = document.getElementById('pwLegalOverlay');
     if (legal && legal.classList.contains('show')) { pwCloseLegal(); return; }
     const fb = document.getElementById('pwFbOverlay');
-    if (fb && fb.classList.contains('show')) { pwCloseFeedback(); return; }
+    if (fb && fb.classList.contains('show')) pwCloseFeedback();
   }
 });
 
