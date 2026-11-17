@@ -1,0 +1,10 @@
+# typos (crate-ci) settings for dell-ci/full-gate.
+# The gate passes changed paths by name, which reads binaries unless check-file is off.
+
+[type.pdf]
+extend-glob = ["*.pdf"]
+check-file = false
+
+[type.pptx]
+extend-glob = ["*.pptx"]
+check-file = false
