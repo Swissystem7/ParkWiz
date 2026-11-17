@@ -87,9 +87,9 @@ class YoloDetector:
 
 def spot_score(box, s):
     """Share of the spot the box covers, or 1 when the box sits centred and mostly inside it."""
-    ix = max(0.0, min(box["x"] + box["w"], s["x"] + s["w"]) - max(box["x"], s["x"]))
-    iy = max(0.0, min(box["y"] + box["h"], s["y"] + s["h"]) - max(box["y"], s["y"]))
-    inter, area = ix * iy, s["w"] * s["h"]
+    overlap_w = max(0.0, min(box["x"] + box["w"], s["x"] + s["w"]) - max(box["x"], s["x"]))
+    overlap_h = max(0.0, min(box["y"] + box["h"], s["y"] + s["h"]) - max(box["y"], s["y"]))
+    inter, area = overlap_w * overlap_h, s["w"] * s["h"]
     if inter <= 0 or area <= 0:
         return 0.0
     cx, cy = box["x"] + box["w"] / 2, box["y"] + box["h"] / 2
