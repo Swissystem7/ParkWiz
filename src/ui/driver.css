@@ -180,6 +180,7 @@
 .fresh{background:var(--pw-free)}
 .stale{background:var(--pw-attn)}
 /* eval banner controls: 44px targets */
+.pw-fb-fab{color:var(--pw-on-brand)!important}
 .eval-banner #pwConsumerToggle,.eval-banner .eb-hero-btn{min-height:44px;padding:4px 12px;margin-block:2px}
 #tlvBtn,#sideSheetToggle,#vacDest,#vacHour{min-height:44px}
 .legend summary{min-height:44px}

@@ -60,7 +60,13 @@
     return data;
   }
 
-  function paintRect(data, w, h, x0, y0, rw, rh, rgb, seed) {
+  function paintRect(data, bounds, rgb, seed) {
+    const w = bounds.w != null ? bounds.w : PATCH_W;
+    const h = bounds.h != null ? bounds.h : PATCH_H;
+    const x0 = bounds.x0;
+    const y0 = bounds.y0;
+    const rw = bounds.rw;
+    const rh = bounds.rh;
     const x1 = Math.max(0, Math.min(w, x0 + rw));
     const y1 = Math.max(0, Math.min(h, y0 + rh));
     const xs = Math.max(0, x0);
@@ -104,44 +110,61 @@
 
   function paintCar(data, index, lighting, kind) {
     const body = carBodyRgb(index, lighting, kind);
-    paintRect(data, PATCH_W, PATCH_H, 2, 3, PATCH_W - 4, PATCH_H - 6, body, 80 + index);
+    paintRect(data, { x0: 2, y0: 3, rw: PATCH_W - 4, rh: PATCH_H - 6 }, body, 80 + index);
     const windowRgb = lighting === 'night' ? [70, 78, 92] : [46, 53, 68];
-    paintRect(data, PATCH_W, PATCH_H, 4, 7, PATCH_W - 8, 8, windowRgb, 180 + index);
+    paintRect(data, { x0: 4, y0: 7, rw: PATCH_W - 8, rh: 8 }, windowRgb, 180 + index);
     if (lighting === 'night') {
-      paintRect(data, PATCH_W, PATCH_H, 4, PATCH_H - 8, 5, 3, [210, 200, 140], 240 + index);
-      paintRect(data, PATCH_W, PATCH_H, PATCH_W - 9, PATCH_H - 8, 5, 3, [210, 200, 140], 260 + index);
+      paintRect(data, { x0: 4, y0: PATCH_H - 8, rw: 5, rh: 3 }, [210, 200, 140], 240 + index);
+      paintRect(data, { x0: PATCH_W - 9, y0: PATCH_H - 8, rw: 5, rh: 3 }, [210, 200, 140], 260 + index);
     }
     if (lighting === 'wet') {
-      paintRect(data, PATCH_W, PATCH_H, 6, 16, 8, 3, [170, 176, 186], 300 + index);
+      paintRect(data, { x0: 6, y0: 16, rw: 8, rh: 3 }, [170, 176, 186], 300 + index);
+    }
+  }
+
+  function paintSpecialKind(data, o, lighting) {
+    const idx = o.index || 0;
+    if (o.kind === 'shadow') {
+      paintRect(data, { x0: 3, y0: 8, rw: PATCH_W - 8, rh: 14 }, mulRgb(asphaltRgb(lighting), 0.55), 400 + idx);
+      return true;
+    }
+    if (o.kind === 'glare') {
+      paintRect(data, { x0: 5, y0: 12, rw: PATCH_W - 10, rh: 4 }, [188, 194, 204], 420 + idx);
+      return true;
+    }
+    if (o.kind === 'tiny') {
+      paintRect(data, { x0: 8, y0: 11, rw: 8, rh: 10 }, carBodyRgb(idx, lighting, 'dark'), 440 + idx);
+      return true;
+    }
+    if (o.kind === 'camo') {
+      const body = mulRgb(asphaltRgb(lighting), 0.88);
+      paintRect(data, { x0: 2, y0: 4, rw: PATCH_W - 4, rh: PATCH_H - 8 }, body, 460 + idx);
+      paintRect(data, { x0: 5, y0: 8, rw: PATCH_W - 10, rh: 5 }, mulRgb(asphaltRgb(lighting), 0.7), 480 + idx);
+      return true;
+    }
+    return false;
+  }
+
+  function applyGain(data, gain) {
+    if (gain == null || gain === 1) return;
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = clampByte(data[i] * gain);
+      data[i + 1] = clampByte(data[i + 1] * gain);
+      data[i + 2] = clampByte(data[i + 2] * gain);
     }
   }
 
   function makePatch(opts) {
     const o = opts || {};
     const lighting = o.lighting || 'day';
-    const occupied = !!o.occupied;
     const seed = (o.seed != null ? o.seed : 1) + (o.index || 0) * 31;
     const data = fillRgba(PATCH_W, PATCH_H, asphaltRgb(lighting), seed);
-    if (o.kind === 'shadow') {
-      paintRect(data, PATCH_W, PATCH_H, 3, 8, PATCH_W - 8, 14, mulRgb(asphaltRgb(lighting), 0.55), 400 + (o.index || 0));
-    } else if (o.kind === 'glare') {
-      paintRect(data, PATCH_W, PATCH_H, 5, 12, PATCH_W - 10, 4, [188, 194, 204], 420 + (o.index || 0));
-    } else if (o.kind === 'tiny') {
-      paintRect(data, PATCH_W, PATCH_H, 8, 11, 8, 10, carBodyRgb(o.index || 0, lighting, 'dark'), 440 + (o.index || 0));
-    } else if (o.kind === 'camo') {
-      const body = mulRgb(asphaltRgb(lighting), 0.88);
-      paintRect(data, PATCH_W, PATCH_H, 2, 4, PATCH_W - 4, PATCH_H - 8, body, 460 + (o.index || 0));
-      paintRect(data, PATCH_W, PATCH_H, 5, 8, PATCH_W - 10, 5, mulRgb(asphaltRgb(lighting), 0.7), 480 + (o.index || 0));
-    } else if (occupied) {
+
+    const handled = paintSpecialKind(data, o, lighting);
+    if (!handled && o.occupied) {
       paintCar(data, o.index || 0, lighting, o.kind || 'dark');
     }
-    if (o.gain != null && o.gain !== 1) {
-      for (let i = 0; i < data.length; i += 4) {
-        data[i] = clampByte(data[i] * o.gain);
-        data[i + 1] = clampByte(data[i + 1] * o.gain);
-        data[i + 2] = clampByte(data[i + 2] * o.gain);
-      }
-    }
+    applyGain(data, o.gain);
     return data;
   }
 

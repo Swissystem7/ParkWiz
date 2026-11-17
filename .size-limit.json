@@ -1,0 +1,47 @@
+[
+  {
+    "name": "index.html — דף הבית / תצוגת הנהג",
+    "path": "index.html",
+    "limit": "49 kB"
+  },
+  {
+    "name": "live-assign.html — שיוך חי בשטח",
+    "path": "live-assign.html",
+    "limit": "8.5 kB"
+  },
+  {
+    "name": "offer.html — הצעת הפיילוט",
+    "path": "offer.html",
+    "limit": "6.4 kB"
+  },
+  {
+    "name": "pilot-kit.html — ערכת מדידה לפיילוט",
+    "path": "pilot-kit.html",
+    "limit": "9.6 kB"
+  },
+  {
+    "name": "demo/atidim.html — דמו מצלמה בפארק עתידים",
+    "path": "demo/atidim.html",
+    "limit": "13.4 kB"
+  },
+  {
+    "name": "demo/atidim-board.html — לוח מפעיל עתידים",
+    "path": "demo/atidim-board.html",
+    "limit": "11.1 kB"
+  },
+  {
+    "name": "availability-model.js — מודל זמינות ברמת השורש",
+    "path": "availability-model.js",
+    "limit": "2 kB"
+  },
+  {
+    "name": "sw.js — Service Worker",
+    "path": "sw.js",
+    "limit": "1.5 kB"
+  },
+  {
+    "name": "ספריית המקור שמגיעה לדפדפן (src/**/*.js)",
+    "path": "src/**/*.js",
+    "limit": "132 kB"
+  }
+]

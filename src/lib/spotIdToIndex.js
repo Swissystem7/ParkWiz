@@ -5,7 +5,7 @@ function spotIdToIndex(spotId) {
 	const m = /^([A-Za-z]+)-?(\d+)$/.exec(trimmed);
 	if (!m) return -1;
 	const num = Number(m[2]);
-	if (!Number.isInteger(num) || num < 1) return -1;
+	if (!Number.isSafeInteger(num) || num < 1) return -1;
 	return num - 1;
 }
 module.exports = { spotIdToIndex };

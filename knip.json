@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "sw.js",
+    "api/**/*.js",
+    "server/**/*.js",
+    "scripts/**/*.js",
+    "src/lib/freshness.js",
+    "src/lib/pwa.js",
+    "src/lib/sentry.js",
+    "test/**/*.{js,mjs}"
+  ],
+  "project": [
+    "availability-model.js",
+    "api/**/*.js",
+    "server/**/*.js",
+    "scripts/**/*.js",
+    "src/**/*.js",
+    "test/**/*.{js,mjs}"
+  ],
+  "ignoreDependencies": ["leaflet"]
+}

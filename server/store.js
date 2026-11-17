@@ -30,7 +30,8 @@ class StoreError extends Error {
 const fail = (status, code, message) => { throw new StoreError(status, code, message); };
 
 function cleanText(value, max) {
-  return String(value === undefined || value === null ? '' : value).trim().slice(0, max);
+  if (value === undefined || value === null) return '';
+  return String(value).trim().slice(0, max);
 }
 
 function createStore(options) {
@@ -187,7 +188,8 @@ function createStore(options) {
 
   // The ring /health shows; console logging is the runtime adapter's job.
   function recordError(err, where) {
-    errors.push({ at: now(), where: String(where || ''), message: String((err && err.message) || err) });
+    const msg = err && typeof err === 'object' && err.message !== undefined ? err.message : err;
+    errors.push({ at: now(), where: String(where || ''), message: String(msg || '') });
     if (errors.length > ERROR_LIMIT) errors.splice(0, errors.length - ERROR_LIMIT);
   }
 
