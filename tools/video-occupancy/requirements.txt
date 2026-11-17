@@ -1,0 +1,5 @@
+# Install CPU-only torch first (see README), then: pip install -r requirements.txt
+# OpenCV stays on 4.x: 5.x dropped CascadeClassifier and the bundled Haar cascades the blur step uses.
+opencv-python==4.14.0.94
+numpy==2.5.5
+ultralytics==8.4.215
