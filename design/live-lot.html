@@ -578,36 +578,36 @@
           <span>🚗</span> תמונת תאים חיה — מתחם בניין 6
         </h1>
         <div class="filter-group" role="tablist" aria-label="סינון תאים">
-          <button class="filter-btn active" onclick="setFilter('all', this)" role="tab" aria-selected="true">כל החניות (16)</button>
-          <button class="filter-btn" onclick="setFilter('free', this)" role="tab" aria-selected="false">פנויות בלבד (<span id="btnFreeFilter">6</span>)</button>
-          <button class="filter-btn" onclick="setFilter('occ', this)" role="tab" aria-selected="false">תפוסות בלבד (<span id="btnOccFilter">10</span>)</button>
+          <button type="button" class="filter-btn active" data-filter="all" role="tab" aria-selected="true">כל החניות (16)</button>
+          <button type="button" class="filter-btn" data-filter="free" role="tab" aria-selected="false">פנויות בלבד (<span id="btnFreeFilter">6</span>)</button>
+          <button type="button" class="filter-btn" data-filter="occ" role="tab" aria-selected="false">תפוסות בלבד (<span id="btnOccFilter">10</span>)</button>
         </div>
       </div>
 
       <div class="lot-view" id="lotView">
         <div class="lot-lane-label">שורה צפונית — כניסה משער 2</div>
-        <div class="bay-row" id="rowNorth" role="region" aria-label="שורה צפונית">
+        <section class="bay-row" id="rowNorth" aria-label="שורה צפונית">
           <!-- B6-01 to B6-08 -->
-        </div>
+        </section>
 
         <div class="lot-lane-label">נתיב נסיעה ותמרון פנימי (כיוון יציאה ⬅)</div>
 
         <div class="lot-lane-label">שורה דרומית — צמוד לבניין 6</div>
-        <div class="bay-row" id="rowSouth" role="region" aria-label="שורה דרומית">
+        <section class="bay-row" id="rowSouth" aria-label="שורה דרומית">
           <!-- B6-09 to B6-16 -->
-        </div>
+        </section>
       </div>
 
       <p class="slot-hint">💡 <strong>התנסות בפגישה:</strong> לחצו על כל תא חניה כדי לשנות את מצבו (תפוס ⇄ פנוי). המונים, ההתראות והפלט יתעדכנו מיידית.</p>
 
       <div class="sim-controls">
-        <button class="sim-btn" onclick="simulateArrival()">
+        <button type="button" class="sim-btn" id="btnArrival">
           ➕ הדמיית כניסת רכב
         </button>
-        <button class="sim-btn" onclick="simulateDeparture()">
+        <button type="button" class="sim-btn" id="btnDeparture">
           ➖ הדמיית יציאת רכב
         </button>
-        <button class="sim-btn" onclick="resetLot()">
+        <button type="button" class="sim-btn" id="btnReset">
           🔄 איפוס למצב ברירת מחדל
         </button>
       </div>
@@ -866,6 +866,13 @@
     spots = JSON.parse(JSON.stringify(initialSpots));
     renderSpots();
   }
+
+  document.querySelectorAll('.filter-btn').forEach((btn) => {
+    btn.addEventListener('click', () => setFilter(btn.dataset.filter, btn));
+  });
+  document.getElementById('btnArrival').addEventListener('click', simulateArrival);
+  document.getElementById('btnDeparture').addEventListener('click', simulateDeparture);
+  document.getElementById('btnReset').addEventListener('click', resetLot);
 
   // Initialize
   renderSpots();

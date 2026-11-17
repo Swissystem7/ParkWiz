@@ -1,0 +1,12 @@
+# Binary deck exports are not text. extend-exclude skips them during a
+# directory walk; check-file = false skips them when a path is passed by name.
+[files]
+extend-exclude = ["*.pdf", "*.pptx"]
+
+[type.pdf]
+extend-glob = ["*.pdf"]
+check-file = false
+
+[type.pptx]
+extend-glob = ["*.pptx"]
+check-file = false
