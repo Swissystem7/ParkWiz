@@ -601,13 +601,13 @@
       <p class="slot-hint">💡 <strong>התנסות בפגישה:</strong> לחצו על כל תא חניה כדי לשנות את מצבו (תפוס ⇄ פנוי). המונים, ההתראות והפלט יתעדכנו מיידית.</p>
 
       <div class="sim-controls">
-        <button type="button" class="sim-btn" id="btnArrival">
+        <button type="button" class="sim-btn" id="simArrive">
           ➕ הדמיית כניסת רכב
         </button>
-        <button type="button" class="sim-btn" id="btnDeparture">
+        <button type="button" class="sim-btn" id="simDepart">
           ➖ הדמיית יציאת רכב
         </button>
-        <button type="button" class="sim-btn" id="btnReset">
+        <button type="button" class="sim-btn" id="simReset">
           🔄 איפוס למצב ברירת מחדל
         </button>
       </div>
@@ -870,9 +870,9 @@
   document.querySelectorAll('.filter-btn').forEach((btn) => {
     btn.addEventListener('click', () => setFilter(btn.dataset.filter, btn));
   });
-  document.getElementById('btnArrival').addEventListener('click', simulateArrival);
-  document.getElementById('btnDeparture').addEventListener('click', simulateDeparture);
-  document.getElementById('btnReset').addEventListener('click', resetLot);
+  document.getElementById('simArrive').addEventListener('click', simulateArrival);
+  document.getElementById('simDepart').addEventListener('click', simulateDeparture);
+  document.getElementById('simReset').addEventListener('click', resetLot);
 
   // Initialize
   renderSpots();
