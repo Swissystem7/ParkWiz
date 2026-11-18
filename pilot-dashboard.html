@@ -83,6 +83,36 @@
   .empty-msg{color:var(--muted); font-size:13px; padding:12px 0}
   .foot{margin-top:24px; color:var(--muted); font-size:11.5px; text-align:center}
   @media(max-width:560px){ .kpis{grid-template-columns:1fr} h1{font-size:19px} }
+  /* ── design-05: pilot dashboard in the Claude Design look (project 4db02f73,
+     "לוח בקרה · מפעיל"): this page has no theme switch, so the design values
+     are set here — light by default, ink + teal when the OS asks for dark. */
+  :root{
+    --bg:#f3f5f4; --panel:#ffffff; --ink:#14211f; --muted:#4a5654;
+    --line:#dde3e1; --brand:#0e5a5e; --brand2:#0a4245;
+    --free:#1b6e45; --occ:#b42318; --accent:#0e5a5e; --shadow:none;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0f1a19;--panel:#14211f;--ink:#eef3f2;--muted:#a9b8b5;--line:rgba(255,255,255,.1);
+      --brand:#5cc2bc;--brand2:#7fd3ce;--free:#6fd39d;--occ:#f87171;--accent:#5cc2bc}
+  }
+  body{font-family:'IBM Plex Sans Hebrew','Heebo','Rubik',system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans Hebrew',Arial,sans-serif}
+  .panel{border-radius:18px;padding:20px 24px;box-shadow:none}
+  .panel h2{font-size:18px;color:var(--ink);font-weight:600;letter-spacing:0}
+  .kpis{gap:16px}
+  .kpi{border-radius:18px;padding:20px;box-shadow:none;display:flex;flex-direction:column;gap:4px}
+  .kpi .n{font-size:34px;letter-spacing:0;font-variant-numeric:tabular-nums}
+  .kpi .l{order:-1;font-size:14px;margin-top:0}
+  .tile{border-radius:10px}
+  .tile.free{background:color-mix(in srgb,var(--free) 14%,var(--panel));border:1.5px dashed var(--free);color:var(--free)}
+  .tile.occ{background:color-mix(in srgb,var(--occ) 12%,var(--panel));border-color:color-mix(in srgb,var(--occ) 35%,var(--panel));color:var(--occ)}
+  button{min-height:44px;border-radius:12px;padding:0 16px;font-weight:600}
+  button.primary{background:var(--brand);border-color:var(--brand);color:var(--panel)}
+  details.data summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+  .drop{border-radius:12px}
+  .pill{min-height:24px;display:inline-flex;align-items:center}
+  @media(max-width:600px){.kpis{gap:10px}.kpi{padding:14px}.kpi .n{font-size:26px}.panel{padding:16px}}
+  .banner{background:#fbf0d9;border:1px dashed #8a5a00;color:#14211f;border-radius:12px;padding:12px 14px;line-height:1.6}
+  .banner b{color:#8a5a00}
 </style>
 </head>
 <body>
@@ -188,7 +218,7 @@ function setStatus(msg, isErr){
   const el = document.getElementById("dashStatus");
   if(!el) return;
   el.textContent = msg;
-  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e7490)";
+  el.style.color = isErr ? "var(--occ, #dc2626)" : "var(--brand, #0e5a5e)";
 }
 
 // ---- render ----
