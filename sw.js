@@ -1,6 +1,5 @@
 /* ParkWiz field shell. Cache-first for same-origin GET. Off-origin requests are ignored. */
-const CACHE = 'parkwiz-field-v35';
-const CACHE = 'parkwiz-field-v33';
+const CACHE = 'parkwiz-field-v36';
 const ASSETS = [
   './',
   './index.html',

@@ -1076,43 +1076,43 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
 </nav>
 
 <!-- Leaving multi-step overlay -->
-<div class="leaving-overlay" id="leavingOverlay">
-  <div class="leaving-box">
+<div class="leaving-overlay" id="leavingOverlay" onclick="cancelLeaving(event)" role="region" aria-label="דיווח על פינוי חניה">
+  <div class="leaving-box" role="dialog" aria-modal="true" aria-labelledby="leavingStep0Title">
     <!-- Step 0: when -->
     <div id="leavingStep0">
-      <div class="leaving-step-title">🕐 מתי אתה יוצא?</div>
+      <div class="leaving-step-title" id="leavingStep0Title">🕐 מתי אתה יוצא?</div>
       <div class="leaving-when-btns">
-        <button class="leaving-type-btn" onclick="leavingPickWhen(0,this)">🚗 עכשיו</button>
-        <button class="leaving-type-btn" onclick="leavingPickWhen(4,this)">⏳ בעוד 2-5 דק'</button>
-        <button class="leaving-type-btn" onclick="leavingPickWhen(10,this)">🕐 בעוד 10 דק'</button>
+        <button type="button" class="leaving-type-btn" onclick="leavingPickWhen(0,this)">🚗 עכשיו</button>
+        <button type="button" class="leaving-type-btn" onclick="leavingPickWhen(4,this)">⏳ בעוד 2-5 דק'</button>
+        <button type="button" class="leaving-type-btn" onclick="leavingPickWhen(10,this)">🕐 בעוד 10 דק'</button>
       </div>
-      <button class="cancel-btn" onclick="cancelLeaving()">ביטול</button>
+      <button type="button" class="cancel-btn" id="leavingCancelBtn0" onclick="cancelLeaving(event)">ביטול</button>
     </div>
     <!-- Step 1: type -->
     <div id="leavingStep1">
-      <div class="leaving-step-title">🚗 איזה סוג חניה?</div>
+      <div class="leaving-step-title" id="leavingStep1Title">🚗 איזה סוג חניה?</div>
       <div class="leaving-type-btns">
-        <button class="leaving-type-btn" onclick="leavingPickType('free',this)">⚪ חינם</button>
-        <button class="leaving-type-btn" onclick="leavingPickType('blue',this)">🔵 כחול-לבן</button>
-        <button class="leaving-type-btn" onclick="leavingPickType('timed',this)">⏱️ מוגבל זמן</button>
+        <button type="button" class="leaving-type-btn" onclick="leavingPickType('free',this)">⚪ חינם</button>
+        <button type="button" class="leaving-type-btn" onclick="leavingPickType('blue',this)">🔵 כחול-לבן</button>
+        <button type="button" class="leaving-type-btn" onclick="leavingPickType('timed',this)">⏱️ מוגבל זמן</button>
       </div>
-      <button class="cancel-btn" onclick="cancelLeaving()">ביטול</button>
+      <button type="button" class="cancel-btn" id="leavingCancelBtn1" onclick="cancelLeaving(event)">ביטול</button>
     </div>
     <!-- Step 2: count -->
     <div id="leavingStep2" style="display:none">
-      <div class="leaving-step-title">🅿️ כמה מקומות נפנו לידך?</div>
+      <label for="spotsSlider" class="leaving-step-title" id="leavingStep2Title" style="display:block">🅿️ כמה מקומות נפנו לידך?</label>
       <div class="leaving-slider-wrap">
-        <div class="leaving-slider-val" id="sliderVal">1</div>
-        <input type="range" min="1" max="3" value="1" oninput="document.getElementById('sliderVal').textContent=this.value" id="spotsSlider">
+        <div class="leaving-slider-val" id="sliderVal" aria-live="polite">1</div>
+        <input type="range" min="1" max="3" value="1" oninput="document.getElementById('sliderVal').textContent=this.value" id="spotsSlider" aria-label="מספר מקומות שנפנו" aria-labelledby="leavingStep2Title" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1">
         <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px"><span>1</span><span>2</span><span>3+</span></div>
       </div>
-      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="leavingSubmit()">שלח דיווח ✅</button>
-      <button class="cancel-btn" onclick="cancelLeaving()">ביטול</button>
+      <button type="button" class="btn btn-primary" style="width:100%;margin-top:8px" onclick="leavingSubmit()">שלח דיווח ✅</button>
+      <button type="button" class="cancel-btn" id="leavingCancelBtn2" onclick="cancelLeaving(event)">ביטול</button>
     </div>
     <!-- Step 3: countdown -->
     <div id="leavingStep3" style="display:none">
-      <div class="leaving-count" id="leavingCount">3</div>
-      <div class="leaving-label" id="leavingLabel">מדווח בעוד...</div>
+      <div class="leaving-count" id="leavingCount" aria-live="polite">3</div>
+      <div class="leaving-label" id="leavingLabel" aria-live="polite">מדווח בעוד...</div>
     </div>
   </div>
 </div>
@@ -2482,6 +2482,8 @@ function leavingPickType(type, btn) {
   }, 280);
 }
 
+let leavingIv = null;
+
 function leavingSubmit() {
   const count = parseInt(document.getElementById('spotsSlider').value);
   if (leavingDelayMin > 0) { addFutureReport(count); return; }
@@ -2494,10 +2496,12 @@ function leavingSubmit() {
   labelEl.textContent = 'מדווח בעוד...';
   let n = 3;
   countEl.textContent = n;
-  const iv = setInterval(()=>{
+  if (leavingIv) clearInterval(leavingIv);
+  leavingIv = setInterval(()=>{
     n--;
     if (n <= 0) {
-      clearInterval(iv);
+      clearInterval(leavingIv);
+      leavingIv = null;
       countEl.textContent = '✅';
       countEl.style.fontSize = '3rem';
       const xpGain = 10 + count * 5;
@@ -2519,7 +2523,12 @@ function leavingSubmit() {
   }, 1000);
 }
 
-function cancelLeaving() {
+function cancelLeaving(e) {
+  if (e && e.target && e.target !== document.getElementById('leavingOverlay') && !e.target.closest('.cancel-btn')) return;
+  if (leavingIv) {
+    clearInterval(leavingIv);
+    leavingIv = null;
+  }
   document.getElementById('leavingOverlay').classList.remove('show');
 }
 
@@ -2704,6 +2713,8 @@ function activatePremium() {
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    const leaving = document.getElementById('leavingOverlay');
+    if (leaving && leaving.classList.contains('show')) { cancelLeaving(); return; }
     const reserve = document.getElementById('reserveModal');
     if (reserve && reserve.classList.contains('show')) { closeReserve(); return; }
     const rent = document.getElementById('rentOverlay');
