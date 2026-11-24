@@ -178,6 +178,19 @@
     };
   }
 
+  function attachEventTypeSpecificFields(event, clean, type) {
+    if (type === 'spot-freed') {
+      event.confidence = clamp(num(clean.confidence, 0.6), 0, 1);
+    }
+    if (type === 'spot-claim') {
+      event.etaS = clamp(num(clean.etaS, 60), 0, 3600);
+    }
+    if (type === 'spot-release') {
+      event.reason = RELEASE_REASONS.indexOf(str(clean.reason)) !== -1 ? str(clean.reason) : 'gave-up';
+    }
+    return event;
+  }
+
   function normalizeEvent(raw) {
     if (!raw || typeof raw !== 'object') return null;
     const { clean, dropped } = stripIdentity(raw);
@@ -197,16 +210,7 @@
       source: normalizeSource(clean.source),
       droppedFields: dropped,
     };
-    if (type === 'spot-freed') {
-      event.confidence = clamp(num(clean.confidence, 0.6), 0, 1);
-    }
-    if (type === 'spot-claim') {
-      event.etaS = clamp(num(clean.etaS, 60), 0, 3600);
-    }
-    if (type === 'spot-release') {
-      event.reason = RELEASE_REASONS.indexOf(str(clean.reason)) !== -1 ? str(clean.reason) : 'gave-up';
-    }
-    return event;
+    return attachEventTypeSpecificFields(event, clean, type);
   }
 
   function validateEvent(raw) {

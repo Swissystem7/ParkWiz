@@ -339,23 +339,26 @@
     };
   }
 
-  function evaluateScene(scene, mode) {
-    const useSamples = mode !== 'legacy' && mode !== 'normalized';
-    const items = scene.spots.map((s) => spotItem(s, useSamples));
-    let estimates;
+  function computeEstimates(items, mode, scene) {
     if (mode === 'legacy') {
-      estimates = items.map((it) => {
+      return items.map((it) => {
         const r = heu.estimateOccupiedLegacy(it.cur, it.empty);
         return { id: it.id, ...(r || { occupied: false, method: 'unknown', confidence: 0 }) };
       });
-    } else if (mode === 'normalized') {
-      estimates = items.map((it) => {
+    }
+    if (mode === 'normalized') {
+      return items.map((it) => {
         const r = heu.estimateOccupied(it.cur, it.empty, { lighting: scene.lighting });
         return { id: it.id, ...(r || { occupied: false, method: 'unknown', confidence: 0 }) };
       });
-    } else {
-      estimates = heu.estimateLot(items, { lighting: scene.lighting }).estimates;
     }
+    return heu.estimateLot(items, { lighting: scene.lighting }).estimates;
+  }
+
+  function evaluateScene(scene, mode) {
+    const useSamples = mode !== 'legacy' && mode !== 'normalized';
+    const items = scene.spots.map((s) => spotItem(s, useSamples));
+    const estimates = computeEstimates(items, mode, scene);
     const judged = scene.spots.map((s, i) => judgeSpot(s, estimates[i]));
     const agree = judged.filter((j) => j.agree).length;
     const n = judged.length;
@@ -378,9 +381,6 @@
     let skipped = 0;
     const byLighting = {};
     list.forEach((s) => {
-      // A scene report is only summed when it carries a real pair of counts.
-      // Before this guard a null entry threw, a missing count turned the whole
-      // total into NaN, and numeric strings were concatenated ("012" spots).
       const counts = sceneCounts(s);
       if (!counts) {
         skipped += 1;

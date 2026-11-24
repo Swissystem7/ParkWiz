@@ -54,6 +54,18 @@
     };
   }
 
+  function processPairItem(p) {
+    const t = p.total;
+    const sys = Number(p.systemOccupied);
+    const man = Number(p.manualOccupied);
+    if (!Number.isFinite(sys) || !Number.isFinite(man)) return null;
+    return {
+      trials: t,
+      agree: t - Math.abs(sys - man),
+      signed: sys - man,
+    };
+  }
+
   function pooledAgreement(pairs) {
     if (!Array.isArray(pairs)) {
       return { trials: 0, agree: 0, rate: null, meanSignedError: null, wilson: null };
@@ -62,18 +74,13 @@
     let trials = 0;
     let agree = 0;
     let signed = 0;
-    // Only pairs that actually enter the sum may enter the bias denominator:
-    // a pair with a missing count is skipped here, so counting it in
-    // list.length would silently shrink the mean signed error toward zero.
     let counted = 0;
     list.forEach((p) => {
-      const t = p.total;
-      const sys = Number(p.systemOccupied);
-      const man = Number(p.manualOccupied);
-      if (!Number.isFinite(sys) || !Number.isFinite(man)) return;
-      trials += t;
-      agree += t - Math.abs(sys - man);
-      signed += sys - man;
+      const res = processPairItem(p);
+      if (!res) return;
+      trials += res.trials;
+      agree += res.agree;
+      signed += res.signed;
       counted += 1;
     });
     if (!trials) {
@@ -130,9 +137,6 @@
 
   function normalizeDay(input) {
     if (!input || typeof input !== 'object') return null;
-    // Day numbers are calendar slots 1..PILOT_DAYS. A fractional day from an
-    // imported file (2.5) used to get its own slot, so the 30-day grid grew to
-    // 31 rows and the extra row was never reachable from the day picker.
     const day = Number(input.day);
     if (!Number.isInteger(day) || day < 1 || day > PILOT_DAYS) return null;
     const numOrNull = (v) => {
@@ -231,34 +235,13 @@
   function daysSince(isoDay, now) {
     const a = dayMs(isoDay);
     if (!Number.isFinite(a)) return null;
-    // Accept a Date, an epoch-ms number, or a parseable date string. A bare
-    // number used to fall through Date.parse and come back NaN, which turned
-    // the elapsed-days check off and made PARK_NO_ACCESS unreachable.
     const t = now instanceof Date ? now.getTime()
       : (typeof now === 'number' ? now : Date.parse(now));
     if (!Number.isFinite(t)) return null;
     return Math.floor((t - a) / 86400000);
   }
 
-  function decidePilot(input) {
-    const all = (input && Array.isArray(input.pairs)) ? input.pairs : null;
-    // The stop rule runs on inspector counts only. A sample series with one
-    // field day typed over it used to count every sample pair toward
-    // MIN_PAIRS and the pooled rate, so a single real count could pass as a
-    // field CONTINUE or PARK.
-    const allSummary = compare.summarizePairs(all);
-    const pairs = allSummary.sampleOnly ? all : (all ? all.filter((p) => !p || p.source !== 'sample') : null);
-    const sampleSkipped = all ? all.length - pairs.length : 0;
-    const summary = allSummary.sampleOnly ? allSummary : compare.summarizePairs(pairs);
-    const pooled = pooledAgreement(pairs);
-    const hasCalibrationPlan = !!(input && input.hasCalibrationPlan);
-    const cameraAccess = !!(input && input.cameraAccess);
-    const integratorAsk = !!(input && input.integratorAsk);
-    const outreachSentAt = input && input.outreachSentAt ? String(input.outreachSentAt) : '';
-    const now = (input && input.now) || new Date();
-    const elapsed = outreachSentAt ? daysSince(outreachSentAt, now) : null;
-    const camlytics = VENDOR_CLAIMS[0].rate;
-
+  function evaluatePilotOutcome({ summary, pooled, hasCalibrationPlan, elapsed, cameraAccess, integratorAsk, camlytics }) {
     const reasons = [];
     let code;
     let label;
@@ -295,6 +278,34 @@
         reasons.push('הדיוק מתחת להצהרת יצרן, אבל סומנה תוכנית כיול פר־מצלמה — ממשיכים למדוד, לא PARK אוטומטי.');
       }
     }
+    return { code, label, reasons };
+  }
+
+  function decidePilot(input) {
+    const all = (input && Array.isArray(input.pairs)) ? input.pairs : null;
+    const allSummary = compare.summarizePairs(all);
+    const pairs = allSummary.sampleOnly ? all : (all ? all.filter((p) => !p || p.source !== 'sample') : null);
+    const sampleSkipped = all ? all.length - pairs.length : 0;
+    const summary = allSummary.sampleOnly ? allSummary : compare.summarizePairs(pairs);
+    const pooled = pooledAgreement(pairs);
+    const hasCalibrationPlan = !!(input && input.hasCalibrationPlan);
+    const cameraAccess = !!(input && input.cameraAccess);
+    const integratorAsk = !!(input && input.integratorAsk);
+    const outreachSentAt = input && input.outreachSentAt ? String(input.outreachSentAt) : '';
+    const now = (input && input.now) || new Date();
+    const elapsed = outreachSentAt ? daysSince(outreachSentAt, now) : null;
+    const camlytics = VENDOR_CLAIMS[0].rate;
+
+    const outcome = evaluatePilotOutcome({
+      summary,
+      pooled,
+      hasCalibrationPlan,
+      elapsed,
+      cameraAccess,
+      integratorAsk,
+      camlytics,
+    });
+    const reasons = outcome.reasons;
 
     if (sampleSkipped > 0) {
       reasons.push(sampleSkipped + ' זוגות דוגמה (sample) לא נספרו — פסק הדין רק על ספירות שטח.');
@@ -302,8 +313,8 @@
     reasons.push('אין בפסק הדין הזה המלצת אכיפה או זיהוי לוחיות.');
 
     return {
-      code,
-      label,
+      code: outcome.code,
+      label: outcome.label,
       reasons,
       summary,
       pooled,
