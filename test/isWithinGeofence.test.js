@@ -151,3 +151,65 @@ test("does not mutate point or polygon input", () => {
 	assert.deepStrictEqual(point, { x: 5, y: 5 });
 	assert.deepStrictEqual(polygon, [v1, v2, v3, v4]);
 });
+
+/* ==== New boundary tests ==== */
+
+test("point exactly on a vertex of a square is considered inside", () => {
+	const square = [
+		{ x: 0, y: 0 },
+		{ x: 10, y: 0 },
+		{ x: 10, y: 10 },
+		{ x: 0, y: 10 },
+	];
+	assert.strictEqual(isWithinGeofence({ x: 0, y: 0 }, square), true);
+	assert.strictEqual(isWithinGeofence({ x: 10, y: 10 }, square), true);
+});
+
+test("point exactly on an edge (but not a vertex) of a square is considered inside", () => {
+	const square = [
+		{ x: 0, y: 0 },
+		{ x: 10, y: 0 },
+		{ x: 10, y: 10 },
+		{ x: 0, y: 10 },
+	];
+	// Mid‑point of bottom edge
+	assert.strictEqual(isWithinGeofence({ x: 5, y: 0 }, square), true);
+	// Mid‑point of right edge
+	assert.strictEqual(isWithinGeofence({ x: 10, y: 5 }, square), true);
+});
+
+test("lat/lng point on vertex of a lat/lng polygon is considered inside", () => {
+	const geoFence = [
+		{ lat: 32.0, lng: 34.0 },
+		{ lat: 32.0, lng: 35.0 },
+		{ lat: 33.0, lng: 35.0 },
+		{ lat: 33.0, lng: 34.0 },
+	];
+	assert.strictEqual(
+		isWithinGeofence({ lat: 32.0, lng: 34.0 }, geoFence),
+		true,
+	);
+	assert.strictEqual(
+		isWithinGeofence({ lat: 33.0, lng: 35.0 }, geoFence),
+		true,
+	);
+});
+
+test("lat/lng point on edge of a lat/lng polygon is considered inside", () => {
+	const geoFence = [
+		{ lat: 32.0, lng: 34.0 },
+		{ lat: 32.0, lng: 35.0 },
+		{ lat: 33.0, lng: 35.0 },
+		{ lat: 33.0, lng: 34.0 },
+	];
+	// Mid‑point of bottom edge (lat 32, lng 34.5)
+	assert.strictEqual(
+		isWithinGeofence({ lat: 32.0, lng: 34.5 }, geoFence),
+		true,
+	);
+	// Mid‑point of left edge (lat 32.5, lng 34)
+	assert.strictEqual(
+		isWithinGeofence({ lat: 32.5, lng: 34.0 }, geoFence),
+		true,
+	);
+});
