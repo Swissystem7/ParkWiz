@@ -241,42 +241,101 @@
     return Math.floor((t - a) / 86400000);
   }
 
+  function isSampleOnlySummary(summary) {
+    return !!(summary && summary.sampleOnly && summary.count);
+  }
+
+  function labelSampleOnly() {
+    return 'סדרת דוגמה — אין פסק דין שטח.';
+  }
+
+  function reasonsSampleOnly() {
+    return ['כל הזוגות מסומנים sample. כלל העצירה חל רק על ספירת פקח אמיתית.'];
+  }
+
+  function isInsufficientSample(summary, pooled) {
+    if (!summary) return false;
+    return summary.count < MIN_PAIRS || (pooled && pooled.trials < MIN_SPOT_TRIALS);
+  }
+
+  function labelInsufficientSample() {
+    return 'מדגם קטן מדי — ממשיכים לאסוף.';
+  }
+
+  function reasonsInsufficientSample(summary, pooled) {
+    return [
+      'צריך לפחות ' + MIN_PAIRS + ' זוגות ו־' + MIN_SPOT_TRIALS +
+      ' השוואות מקום (יש ' + (summary ? summary.count : '?') + ' זוגות, ' + (pooled ? pooled.trials : '?') + ' מקומות).'
+    ];
+  }
+
+  function isParkAccuracy(pooled, camlytics, hasCalibrationPlan) {
+    return !!(pooled && pooled.rate < camlytics && !hasCalibrationPlan);
+  }
+
+  function labelParkAccuracy() {
+    return 'PARK — הדיוק מתחת להצהרת יצרן ואין תוכנית כיול.';
+  }
+
+  function reasonsParkAccuracy(pooled, camlytics) {
+    return [
+      'הסכם מול פקח הוא ' + occ.pct(pooled.rate) +
+      ', מתחת ל־96% ש־Camlytics מצהירה (הצהרת יצרן, לא רף מדעי).',
+      'בלי תוכנית כיול פר־מצלמה כלל העצירה ב־RESEARCH.md אומר PARK מיד.',
+    ];
+  }
+
+  function isParkNoAccess(elapsed, cameraAccess, integratorAsk) {
+    return !!(elapsed != null && elapsed >= PILOT_DAYS && !cameraAccess && !integratorAsk);
+  }
+
+  function labelParkNoAccess(elapsed) {
+    return 'PARK — 30 יום מהפנייה בלי גישת מצלמה ובלי בקשת דמו.';
+  }
+
+  function reasonsParkNoAccess(elapsed) {
+    return ['חלפו ' + elapsed + ' ימים מאז תאריך הפנייה שסומן, בלי גישת snapshot ובלי פנייה מאינטגרטור.'];
+  }
+
+  function labelContinue() {
+    return 'ממשיכים את הפיילוט.';
+  }
+
+  function reasonsContinue(pooledRate, camlytics) {
+    const reasons = [];
+    if (pooledRate >= camlytics) {
+      reasons.push('הסכם מול פקח על הסדרה הזו הוא ' + occ.pct(pooledRate) + ' — מעל הצהרת Camlytics, עדיין לא מדידת מצלמה חיה.');
+    } else {
+      reasons.push('הדיוק מתחת להצהרת יצרן, אבל סומנה תוכנית כיול פר־מצלמה — ממשיכים למדוד, לא PARK אוטומטי.');
+    }
+    return reasons;
+  }
+
   function evaluatePilotOutcome({ summary, pooled, hasCalibrationPlan, elapsed, cameraAccess, integratorAsk, camlytics }) {
     const reasons = [];
     let code;
     let label;
 
-    if (summary.sampleOnly && summary.count) {
+    if (isSampleOnlySummary(summary)) {
       code = 'SAMPLE_ONLY';
-      label = 'סדרת דוגמה — אין פסק דין שטח.';
-      reasons.push('כל הזוגות מסומנים sample. כלל העצירה חל רק על ספירת פקח אמיתית.');
-    } else if (summary.count < MIN_PAIRS || pooled.trials < MIN_SPOT_TRIALS) {
+      label = labelSampleOnly();
+      reasons.push(...reasonsSampleOnly());
+    } else if (isInsufficientSample(summary, pooled)) {
       code = 'INSUFFICIENT';
-      label = 'מדגם קטן מדי — ממשיכים לאסוף.';
-      reasons.push(
-        'צריך לפחות ' + MIN_PAIRS + ' זוגות ו־' + MIN_SPOT_TRIALS +
-        ' השוואות מקום (יש ' + summary.count + ' זוגות, ' + pooled.trials + ' מקומות).'
-      );
-    } else if (pooled.rate < camlytics && !hasCalibrationPlan) {
+      label = labelInsufficientSample();
+      reasons.push(...reasonsInsufficientSample(summary, pooled));
+    } else if (isParkAccuracy(pooled, camlytics, hasCalibrationPlan)) {
       code = 'PARK_ACCURACY';
-      label = 'PARK — הדיוק מתחת להצהרת יצרן ואין תוכנית כיול.';
-      reasons.push(
-        'הסכם מול פקח הוא ' + occ.pct(pooled.rate) +
-        ', מתחת ל־96% ש־Camlytics מצהירה (הצהרת יצרן, לא רף מדעי).'
-      );
-      reasons.push('בלי תוכנית כיול פר־מצלמה כלל העצירה ב־RESEARCH.md אומר PARK מיד.');
-    } else if (elapsed >= PILOT_DAYS && !cameraAccess && !integratorAsk) {
+      label = labelParkAccuracy();
+      reasons.push(...reasonsParkAccuracy(pooled, camlytics));
+    } else if (isParkNoAccess(elapsed, cameraAccess, integratorAsk)) {
       code = 'PARK_NO_ACCESS';
-      label = 'PARK — 30 יום מהפנייה בלי גישת מצלמה ובלי בקשת דמו.';
-      reasons.push('חלפו ' + elapsed + ' ימים מאז תאריך הפנייה שסומן, בלי גישת snapshot ובלי פנייה מאינטגרטור.');
+      label = labelParkNoAccess(elapsed);
+      reasons.push(...reasonsParkNoAccess(elapsed));
     } else {
       code = 'CONTINUE';
-      label = 'ממשיכים את הפיילוט.';
-      if (pooled.rate >= camlytics) {
-        reasons.push('הסכם מול פקח על הסדרה הזו הוא ' + occ.pct(pooled.rate) + ' — מעל הצהרת Camlytics, עדיין לא מדידת מצלמה חיה.');
-      } else {
-        reasons.push('הדיוק מתחת להצהרת יצרן, אבל סומנה תוכנית כיול פר־מצלמה — ממשיכים למדוד, לא PARK אוטומטי.');
-      }
+      label = labelContinue();
+      reasons.push(...reasonsContinue(pooled.rate, camlytics));
     }
     return { code, label, reasons };
   }

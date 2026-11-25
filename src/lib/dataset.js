@@ -339,27 +339,70 @@
     };
   }
 
+  function computeEstimatesLegacy(items, heu) {
+    return items.map((it) => {
+      const r = heu.estimateOccupiedLegacy(it.cur, it.empty);
+      return { id: it.id, ...(r || { occupied: false, method: 'unknown', confidence: 0 }) };
+    });
+  }
+
+  function computeEstimatesNormalized(items, heu, lighting) {
+    return items.map((it) => {
+      const r = heu.estimateOccupied(it.cur, it.empty, { lighting });
+      return { id: it.id, ...(r || { occupied: false, method: 'unknown', confidence: 0 }) };
+    });
+  }
+
+  function computeEstimatesDefault(items, heu, lighting) {
+    return heu.estimateLot(items, { lighting }).estimates;
+  }
+
   function computeEstimates(items, mode, scene) {
     if (mode === 'legacy') {
-      return items.map((it) => {
-        const r = heu.estimateOccupiedLegacy(it.cur, it.empty);
-        return { id: it.id, ...(r || { occupied: false, method: 'unknown', confidence: 0 }) };
-      });
+      return computeEstimatesLegacy(items, heu);
     }
     if (mode === 'normalized') {
-      return items.map((it) => {
-        const r = heu.estimateOccupied(it.cur, it.empty, { lighting: scene.lighting });
-        return { id: it.id, ...(r || { occupied: false, method: 'unknown', confidence: 0 }) };
-      });
+      return computeEstimatesNormalized(items, heu, scene.lighting);
     }
-    return heu.estimateLot(items, { lighting: scene.lighting }).estimates;
+    return computeEstimatesDefault(items, heu, scene.lighting);
+  }
+
+  function spotItemStats(spot, useSamples, heu) {
+    const curStats = heu.statsFromRgba(spot.cur);
+    const emptyStats = heu.statsFromRgba(spot.empty);
+    const nightStats = heu.statsFromRgba(spot.emptyNight);
+    const item = {
+      id: spot.id,
+      cur: curStats,
+      empty: emptyStats,
+      emptyNight: nightStats,
+    };
+    if (useSamples) {
+      item.curSamples = heu.lumaSamples(spot.cur);
+      item.emptySamples = heu.lumaSamples(spot.empty);
+      item.emptyNightSamples = heu.lumaSamples(spot.emptyNight);
+    }
+    return item;
+  }
+
+  function judgeSpotResult(spot, estimated) {
+    const pred = !!(estimated && estimated.occupied);
+    return {
+      id: spot.id,
+      expected: spot.occupied,
+      predicted: pred,
+      agree: pred === spot.occupied,
+      method: estimated ? estimated.method : 'unknown',
+      lighting: estimated ? estimated.lighting : '',
+      score: estimated ? estimated.score : 0,
+    };
   }
 
   function evaluateScene(scene, mode) {
     const useSamples = mode !== 'legacy' && mode !== 'normalized';
-    const items = scene.spots.map((s) => spotItem(s, useSamples));
+    const items = scene.spots.map((s) => spotItemStats(s, useSamples, heu));
     const estimates = computeEstimates(items, mode, scene);
-    const judged = scene.spots.map((s, i) => judgeSpot(s, estimates[i]));
+    const judged = scene.spots.map((s, i) => judgeSpotResult(s, estimates[i]));
     const agree = judged.filter((j) => j.agree).length;
     const n = judged.length;
     return {
@@ -374,7 +417,7 @@
     };
   }
 
-  function rollup(sceneReports) {
+  function aggregateByLighting(sceneReports) {
     const list = Array.isArray(sceneReports) ? sceneReports : [];
     let n = 0;
     let agree = 0;
@@ -397,25 +440,38 @@
       const b = byLighting[k];
       b.rate = b.n ? b.agree / b.n : null;
     });
+    return { n, agree, skipped, byLighting };
+  }
+
+  function rollup(sceneReports) {
+    const list = Array.isArray(sceneReports) ? sceneReports : [];
+    const agg = aggregateByLighting(list);
+    const totalN = agg.n;
+    const totalAgree = agg.agree;
+    const skipped = agg.skipped;
+    const byLighting = agg.byLighting;
+    const rate = totalN ? totalAgree / totalN : null;
+    const wilson = totalN && proto && proto.wilsonInterval ? proto.wilsonInterval(totalAgree, totalN, 1.96) : null;
     return {
-      n,
-      agree,
+      n: totalN,
+      agree: totalAgree,
       skipped,
-      rate: n ? agree / n : null,
-      wilson: n && proto && proto.wilsonInterval ? proto.wilsonInterval(agree, n, 1.96) : null,
+      rate,
+      wilson,
       byLighting,
     };
   }
 
-  // Non-negative integer count from a number or a numeric string; null otherwise.
-  // Blank strings, booleans and arrays are not counts (same rule as compare.js).
-  function countOf(value) {
+  function isNonNegativeInteger(value) {
     if (typeof value === 'string') {
       if (!value.trim()) return null;
       value = Number(value);
     }
-    if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) return null;
-    return value;
+    return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : null;
+  }
+
+  function countOf(value) {
+    return isNonNegativeInteger(value);
   }
 
   function sceneCounts(report) {
