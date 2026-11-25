@@ -135,15 +135,16 @@
     };
   }
 
+  function numOrNull(v) {
+    if (v == null || v === '') return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+
   function normalizeDay(input) {
     if (!input || typeof input !== 'object') return null;
     const day = Number(input.day);
     if (!Number.isInteger(day) || day < 1 || day > PILOT_DAYS) return null;
-    const numOrNull = (v) => {
-      if (v == null || v === '') return null;
-      const n = Number(v);
-      return Number.isFinite(n) ? n : null;
-    };
     const total = numOrNull(input.total);
     let sys = numOrNull(input.systemOccupied != null ? input.systemOccupied : input.occupied);
     let man = numOrNull(input.manualOccupied);
