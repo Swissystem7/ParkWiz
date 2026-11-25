@@ -290,29 +290,31 @@
     return null;
   }
 
-  function absoluteEstimate(cur, lighting) {
-    if (lighting === 'night') {
-      const occupied = cur.variance > NIGHT_ABS_VAR_CUTOFF || madOf(cur) > NIGHT_ABS_MAD_CUTOFF;
-      return {
-        occupied,
-        score: Math.sqrt(Math.max(0, cur.variance)) / 4 + madOf(cur),
-        method: 'absolute-threshold',
-        confidence: CONF_ABSOLUTE_NIGHT,
-        lighting,
-        heuristic: true,
-      };
-    }
-    if (lighting === 'dusk') {
-      const occupied = cur.mean < DUSK_ABS_MEAN_CUTOFF || cur.variance > DUSK_ABS_VAR_CUTOFF;
-      return {
-        occupied,
-        score: (DUSK_ABS_MEAN_CUTOFF - cur.mean) + stdOf(cur) / 4,
-        method: 'absolute-threshold',
-        confidence: CONF_ABSOLUTE,
-        lighting,
-        heuristic: true,
-      };
-    }
+  function absoluteEstimateNight(cur, lighting) {
+    const occupied = cur.variance > NIGHT_ABS_VAR_CUTOFF || madOf(cur) > NIGHT_ABS_MAD_CUTOFF;
+    return {
+      occupied,
+      score: Math.sqrt(Math.max(0, cur.variance)) / 4 + madOf(cur),
+      method: 'absolute-threshold',
+      confidence: CONF_ABSOLUTE_NIGHT,
+      lighting,
+      heuristic: true,
+    };
+  }
+
+  function absoluteEstimateDusk(cur, lighting) {
+    const occupied = cur.mean < DUSK_ABS_MEAN_CUTOFF || cur.variance > DUSK_ABS_VAR_CUTOFF;
+    return {
+      occupied,
+      score: (DUSK_ABS_MEAN_CUTOFF - cur.mean) + stdOf(cur) / 4,
+      method: 'absolute-threshold',
+      confidence: CONF_ABSOLUTE,
+      lighting,
+      heuristic: true,
+    };
+  }
+
+  function absoluteEstimateDay(cur, lighting) {
     return {
       occupied: cur.mean < ABS_MEAN_CUTOFF || cur.variance > ABS_VAR_CUTOFF,
       score: (ABS_MEAN_CUTOFF - cur.mean) + stdOf(cur) / 4,
@@ -321,6 +323,12 @@
       lighting,
       heuristic: true,
     };
+  }
+
+  function absoluteEstimate(cur, lighting) {
+    if (lighting === 'night') return absoluteEstimateNight(cur, lighting);
+    if (lighting === 'dusk') return absoluteEstimateDusk(cur, lighting);
+    return absoluteEstimateDay(cur, lighting);
   }
 
   function estimateOccupiedLegacy(cur, emp) {
@@ -354,6 +362,27 @@
     return opts.emptySamples;
   }
 
+  function tryBackgroundSubtract(curSamples, emptySamples, lighting) {
+    if (!curSamples || !emptySamples) return null;
+    return backgroundSubtract(curSamples, emptySamples, lighting);
+  }
+
+  function tryNormalizedContrast(cur, emp, opts, lighting) {
+    const ref = pickEmptyRef(emp, opts, lighting);
+    if (!ref) return null;
+    const n = normalizedContrastScore(cur, ref);
+    const cutoff = lighting === 'night' ? NIGHT_NORM_SCORE_CUTOFF : NORM_SCORE_CUTOFF;
+    return {
+      occupied: n.score >= cutoff,
+      score: n.score,
+      method: 'vs-empty-normalized',
+      confidence: CONF_VS_EMPTY_NORM,
+      lighting,
+      heuristic: true,
+      detail: n,
+    };
+  }
+
   function estimateOccupied(cur, emp, opts) {
     if (!isValidStatsRecord(cur)) {
       return null;
@@ -363,35 +392,21 @@
     const curSamples = o.curSamples;
     const emptySamples = resolveEmptySamples(o, lighting);
 
-    if (curSamples && emptySamples) {
-      const bg = backgroundSubtract(curSamples, emptySamples, lighting);
-      if (bg) {
-        return {
-          occupied: bg.occupied,
-          score: +(bg.fraction * 100).toFixed(2),
-          method: 'bg-subtract-normalized',
-          confidence: CONF_BG_SUBTRACT,
-          lighting,
-          heuristic: true,
-          detail: bg,
-        };
-      }
-    }
-
-    const ref = pickEmptyRef(emp, o, lighting);
-    if (ref) {
-      const n = normalizedContrastScore(cur, ref);
-      const cutoff = lighting === 'night' ? NIGHT_NORM_SCORE_CUTOFF : NORM_SCORE_CUTOFF;
+    const bg = tryBackgroundSubtract(curSamples, emptySamples, lighting);
+    if (bg) {
       return {
-        occupied: n.score >= cutoff,
-        score: n.score,
-        method: 'vs-empty-normalized',
-        confidence: CONF_VS_EMPTY_NORM,
+        occupied: bg.occupied,
+        score: +(bg.fraction * 100).toFixed(2),
+        method: 'bg-subtract-normalized',
+        confidence: CONF_BG_SUBTRACT,
         lighting,
         heuristic: true,
-        detail: n,
+        detail: bg,
       };
     }
+
+    const normRes = tryNormalizedContrast(cur, emp, o, lighting);
+    if (normRes) return normRes;
 
     return absoluteEstimate(cur, lighting);
   }
@@ -403,42 +418,46 @@
     return it.cur.mean;
   }
 
-  function estimateLot(items, opts) {
-    const list = Array.isArray(items) ? items : [];
-    const o = opts || {};
+  function computeGlobalMean(items, o) {
     const means = [];
-    list.forEach((it) => {
+    (Array.isArray(items) ? items : []).forEach((it) => {
       const mean = extractItemMean(it);
       if (mean !== null) means.push(mean);
     });
-    // True median: with an even patch count, average the two middle means
-    // instead of taking the upper one, which biased a split lot towards 'day'.
-    const globalMean = means.length
+    return means.length
       ? percentile(means.slice().sort((a, b) => a - b), 0.5)
       : (o.globalMean != null ? o.globalMean : 120);
-    const lighting = o.lighting || classifyLighting(globalMean);
-    const estimates = list.map((it) => {
-      if (!it) return { occupied: false, method: 'unknown', confidence: 0, heuristic: true, lighting };
-      const r = estimateOccupied(it.cur, it.empty, {
-        lighting,
-        curSamples: it.curSamples,
-        emptySamples: it.emptySamples,
-        emptyNight: it.emptyNight,
-        emptyNightSamples: it.emptyNightSamples,
-      });
-      if (!r) {
-        return {
-          id: it.id,
-          occupied: false,
-          score: 0,
-          method: 'unknown',
-          confidence: 0,
-          lighting,
-          heuristic: true,
-        };
-      }
-      return { id: it.id, ...r };
+  }
+
+  function mapLotItemEstimate(it, lighting) {
+    if (!it) return { occupied: false, method: 'unknown', confidence: 0, heuristic: true, lighting };
+    const r = estimateOccupied(it.cur, it.empty, {
+      lighting,
+      curSamples: it.curSamples,
+      emptySamples: it.emptySamples,
+      emptyNight: it.emptyNight,
+      emptyNightSamples: it.emptyNightSamples,
     });
+    if (!r) {
+      return {
+        id: it.id,
+        occupied: false,
+        score: 0,
+        method: 'unknown',
+        confidence: 0,
+        lighting,
+        heuristic: true,
+      };
+    }
+    return { id: it.id, ...r };
+  }
+
+  function estimateLot(items, opts) {
+    const list = Array.isArray(items) ? items : [];
+    const o = opts || {};
+    const globalMean = computeGlobalMean(list, o);
+    const lighting = o.lighting || classifyLighting(globalMean);
+    const estimates = list.map((it) => mapLotItemEstimate(it, lighting));
     const occupied = estimates.filter((e) => e && e.occupied).length;
     let csum = 0;
     estimates.forEach((e) => { csum += Number(e.confidence) || 0; });
