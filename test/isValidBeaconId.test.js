@@ -30,3 +30,13 @@ test("rejects malformed", () => {
 test("rejects leading zeros? digits ok as Number", () => {
 	assert.equal(isValidBeaconId("01-02"), true);
 });
+
+test("trims leading/trailing whitespace", () => {
+	assert.equal(isValidBeaconId(" 1-1 "), true);
+	assert.equal(isValidBeaconId(" 1-1"), true);
+	assert.equal(isValidBeaconId("1-1 "), true);
+});
+
+test("internal space still rejects", () => {
+	assert.equal(isValidBeaconId("1 - 1"), false);
+});
