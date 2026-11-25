@@ -115,30 +115,44 @@
     return 'Bearer ' + canonicalAuthString(claims) + '.' + str(sig);
   }
 
-  function checkAuth(header, opts) {
-    const o = opts || {};
-    const nowS = Math.floor(num(o.now, Date.now()) / 1000);
+  function parseAuthHeader(header) {
     const raw = str(header).replace(/^Bearer\s+/i, '');
     const parts = raw.split('.');
-    const fail = (reason) => ({ ok: false, reason, carId: '', scopes: [], signatureChecked: false });
-    if (parts.length !== 5) return fail('malformed');
-    if (parts[0] !== AUTH_PREFIX) return fail('version');
+    if (parts.length !== 5) return { ok: false, reason: 'malformed', carId: '', scopes: [], signatureChecked: false };
+    if (parts[0] !== AUTH_PREFIX) return { ok: false, reason: 'version', carId: '', scopes: [], signatureChecked: false };
     const carId = parts[1];
     const exp = num(parts[2], NaN);
     const scopes = parts[3] ? parts[3].split('+') : [];
     const sig = parts[4];
-    if (!carId) return fail('no-car-id');
-    if (!Number.isFinite(exp)) return fail('malformed');
-    if (exp <= nowS) return fail('expired');
-    if (!sig) return fail('no-signature');
-    if (scopes.some((s) => SCOPES.indexOf(s) === -1)) return fail('unknown-scope');
-    if (o.scope && scopes.indexOf(o.scope) === -1) return fail('scope');
+    if (!carId) return { ok: false, reason: 'no-car-id', carId: '', scopes: [], signatureChecked: false };
+    if (!Number.isFinite(exp)) return { ok: false, reason: 'malformed', carId: '', scopes: [], signatureChecked: false };
+    if (!sig) return { ok: false, reason: 'no-signature', carId: '', scopes: [], signatureChecked: false };
+    return {
+      ok: true, reason: '', carId, scopes, exp, sig,
+      signatureChecked: false,
+    };
+  }
+
+  function validateScope(carId, scopes, o) {
+    if (scopes.some((s) => SCOPES.indexOf(s) === -1)) return 'unknown-scope';
+    if (o.scope && scopes.indexOf(o.scope) === -1) return 'scope';
+    return null;
+  }
+
+  function checkAuth(header, opts) {
+    const o = opts || {};
+    const parsed = parseAuthHeader(header);
+    if (!parsed.ok) return { ok: false, reason: parsed.reason, carId: '', scopes: [], signatureChecked: false };
+    const nowS = Math.floor(num(o.now, Date.now()) / 1000);
+    if (parsed.exp <= nowS) return { ok: false, reason: 'expired', carId: '', scopes: [], signatureChecked: false };
+    const scopeError = validateScope(parsed.carId, parsed.scopes, o);
+    if (scopeError) return { ok: false, reason: scopeError, carId: '', scopes: [], signatureChecked: false };
     let signatureChecked = false;
     if (typeof o.verify === 'function') {
-      if (!o.verify(canonicalAuthString({ carId, exp, scopes }), sig)) return fail('bad-signature');
+      if (!o.verify(canonicalAuthString({ carId: parsed.carId, exp: parsed.exp, scopes: parsed.scopes }), parsed.sig)) return { ok: false, reason: 'bad-signature', carId: '', scopes: [], signatureChecked: false };
       signatureChecked = true;
     }
-    return { ok: true, reason: '', carId, scopes, exp, signatureChecked };
+    return { ok: true, reason: '', carId: parsed.carId, scopes: parsed.scopes, exp: parsed.exp, signatureChecked };
   }
 
   // --- the event contract -------------------------------------------------
