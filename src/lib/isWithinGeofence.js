@@ -24,6 +24,36 @@ function toCoordinate(coord) {
 	return null;
 }
 
+/**
+ * Returns true if point `p` lies exactly on the line segment `a`‑`b`.
+ * Uses a small epsilon to tolerate floating‑point rounding errors.
+ */
+function pointOnSegment(p, a, b) {
+	const epsilon = 1e-12;
+
+	// Vector cross product should be zero for colinearity
+	const cross =
+		(b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+	if (Math.abs(cross) > epsilon) {
+		return false;
+	}
+
+	// Dot product to ensure p is between a and b (inclusive)
+	const dot =
+		(p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y);
+	if (dot < -epsilon) {
+		return false;
+	}
+
+	const lenSq =
+		(b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
+	if (dot - lenSq > epsilon) {
+		return false;
+	}
+
+	return true;
+}
+
 function isWithinGeofence(point, polygon) {
 	const pt = toCoordinate(point);
 	if (!pt) {
@@ -43,10 +73,18 @@ function isWithinGeofence(point, polygon) {
 		vertices.push(v);
 	}
 
+	// 1️⃣  Boundary check – if the point lies on any edge (including vertices) → inside
+	const count = vertices.length;
+	for (let i = 0, j = count - 1; i < count; j = i, i += 1) {
+		if (pointOnSegment(pt, vertices[i], vertices[j])) {
+			return true;
+		}
+	}
+
+	// 2️⃣  Ray‑casting algorithm for strict interior
 	let inside = false;
 	const px = pt.x;
 	const py = pt.y;
-	const count = vertices.length;
 
 	for (let i = 0, j = count - 1; i < count; j = i, i += 1) {
 		const xi = vertices[i].x;
