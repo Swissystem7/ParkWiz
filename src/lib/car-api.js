@@ -79,6 +79,8 @@
   function stripIdentity(input, path) {
     const base = path || '';
     const dropped = [];
+    const isIdentityKey = (key) => IDENTITY_KEYS.indexOf(key.toLowerCase()) !== -1;
+
     const walk = (value, at) => {
       if (Array.isArray(value)) {
         return value.map((item, i) => walk(item, at + '[' + i + ']'));
@@ -87,7 +89,7 @@
       const out = {};
       Object.keys(value).forEach((key) => {
         const here = at ? at + '.' + key : key;
-        if (IDENTITY_KEYS.indexOf(key.toLowerCase()) !== -1) {
+        if (isIdentityKey(key)) {
           dropped.push(here);
           return;
         }
@@ -193,16 +195,22 @@
   }
 
   function attachEventTypeSpecificFields(event, clean, type) {
-    if (type === 'spot-freed') {
-      event.confidence = clamp(num(clean.confidence, 0.6), 0, 1);
-    }
-    if (type === 'spot-claim') {
-      event.etaS = clamp(num(clean.etaS, 60), 0, 3600);
-    }
-    if (type === 'spot-release') {
-      event.reason = RELEASE_REASONS.indexOf(str(clean.reason)) !== -1 ? str(clean.reason) : 'gave-up';
+    const handler = eventHandlers[type];
+    if (handler) {
+      handler(event, clean);
     }
     return event;
+  }
+
+  const eventHandlers = Object.freeze({
+    'spot-freed': (e, c) => { e.confidence = clamp(num(c.confidence, 0.6), 0, 1); },
+    'spot-claim': (e, c) => { e.etaS = clamp(num(c.etaS, 60), 0, 3600); },
+    'spot-release': (e, c) => { e.reason = RELEASE_REASONS.indexOf(str(c.reason)) !== -1 ? str(c.reason) : 'gave-up'; },
+  });
+
+  function parseEventTimestamp(clean) {
+    const tsMs = clean.ts ? Date.parse(clean.ts) : num(clean.tsMs, NaN);
+    return Number.isFinite(tsMs) ? new Date(tsMs).toISOString() : '';
   }
 
   function normalizeEvent(raw) {
@@ -212,8 +220,7 @@
     if (EVENTS.indexOf(type) === -1) return null;
     const spot = normalizeSpot(clean.spot);
     if (!spot) return null;
-    const tsMs = clean.ts ? Date.parse(clean.ts) : num(clean.tsMs, NaN);
-    const ts = Number.isFinite(tsMs) ? new Date(tsMs).toISOString() : '';
+    const ts = parseEventTimestamp(clean);
     const event = {
       v: PROTOCOL_VERSION,
       type,
