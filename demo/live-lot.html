@@ -375,7 +375,7 @@
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({}));
-    if (res.status === 401) logout();
+    if (Number(res.status) === 401) logout();
     if (!res.ok) throw Object.assign(new Error(data.message || data.error), { code: data.error });
     return data;
   }
@@ -387,9 +387,10 @@
   }
 
   function alertLine(text) {
+    const alertsEl = $('alerts');
     const p = Object.assign(document.createElement('p'), { className: 'alert', textContent: text });
-    $('alerts').prepend(p);
-    while ($('alerts').children.length > 3) $('alerts').lastChild.remove();
+    alertsEl.prepend(p);
+    while (alertsEl.children.length > 3) alertsEl.lastChild.remove();
   }
 
   function render() {
@@ -425,6 +426,7 @@
 
   async function poll() {
     if (!session || !lotId) return;
+    const statusEl = $('status');
     try {
       const next = await api('GET', `/api/lots/${lotId}?since=${since}`);
       for (const e of session.user.role === 'driver' && since >= 0 ? next.events : []) {
@@ -432,18 +434,19 @@
       }
       [since, view] = [next.version, next];
       render();
-      $('status').textContent = 'גרסה ' + next.version + ' · עודכן ' + new Date().toLocaleTimeString('he-IL');
+      statusEl.textContent = 'גרסה ' + next.version + ' · עודכן ' + new Date().toLocaleTimeString('he-IL');
     } catch (err) {
-      $('status').textContent = 'אין חיבור לשרת — מנסה שוב';
+      statusEl.textContent = 'אין חיבור לשרת — מנסה שוב';
     }
   }
 
   async function loadLots(select) {
     const lots = await api('GET', '/api/lots');
-    $('lots').innerHTML = '';
-    for (const l of lots) $('lots').add(new Option(`${l.name} (${l.free}/${l.total} פנויים)`, l.id));
-    if (select) $('lots').value = select;
-    if (lotId !== $('lots').value) { lotId = $('lots').value; since = -1; }
+    const lotsEl = $('lots');
+    lotsEl.innerHTML = '';
+    for (const l of lots) lotsEl.add(new Option(`${l.name} (${l.free}/${l.total} פנויים)`, l.id));
+    if (select) lotsEl.value = select;
+    if (lotId !== lotsEl.value) { lotId = lotsEl.value; since = -1; }
     await poll();
   }
 
@@ -462,7 +465,8 @@
     } catch (err) { $('health').textContent = 'הכניסה נכשלה: ' + err.message; }
   };
   $('logout').onclick = logout;
-  $('lots').onchange = () => loadLots($('lots').value);
+  const lotsEl = $('lots');
+  lotsEl.onchange = () => loadLots(lotsEl.value);
   $('createLot').onclick = () => act(async () => {
     const n = Math.max(1, Math.min(100, Number($('spotCount').value) || 1));
     const spots = Array.from({ length: n }, (_, i) => ({ id: 'P' + (i + 1), occupied: true }));
@@ -470,11 +474,12 @@
     await loadLots(lot.id);
   });
 
+  const healthEl = $('health');
   if (location.hostname === 'swissystem7.github.io' || location.protocol === 'file:') {
-    $('health').textContent = 'הדגמת ממשק בדפדפן (סטטי) · להפעלת שרת חי: node server/node.js';
+    healthEl.textContent = 'הדגמת ממשק בדפדפן (סטטי) · להפעלת שרת חי: node server/node.js';
   } else {
-    fetch('/health').then((r) => r.json()).then((h) => { $('health').textContent = `השרת פעיל · ${h.users} משתמשים · ${h.lots} חניונים`; })
-      .catch(() => { $('health').textContent = 'השרת לא זמין — הפעילו node server/node.js'; });
+    fetch('/health').then((r) => r.json()).then((h) => { healthEl.textContent = `השרת פעיל · ${h.users} משתמשים · ${h.lots} החניונים`; })
+      .catch(() => { healthEl.textContent = 'השרת לא זמין — הפעילו node server/node.js'; });
   }
   if (session) enter().catch(logout);
   setInterval(poll, 2000);
