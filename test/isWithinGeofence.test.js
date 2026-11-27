@@ -213,3 +213,31 @@ test("lat/lng point on edge of a lat/lng polygon is considered inside", () => {
 		true,
 	);
 });
+
+test("collinear point past either end of an edge is outside the polygon", () => {
+	const square = [
+		{ x: 0, y: 0 },
+		{ x: 10, y: 0 },
+		{ x: 10, y: 10 },
+		{ x: 0, y: 10 },
+	];
+	// On the line of the bottom edge, beyond each endpoint. Neither point
+	// lies on a segment, so the segment bounds reject them and the point
+	// stays outside.
+	assert.strictEqual(isWithinGeofence({ x: 11, y: 0 }, square), false);
+	assert.strictEqual(isWithinGeofence({ x: -1, y: 0 }, square), false);
+	assert.strictEqual(isWithinGeofence({ x: 5, y: 12 }, square), false);
+	assert.strictEqual(isWithinGeofence({ x: 5, y: -2 }, square), false);
+});
+
+test("collinear point past either end of a diagonal edge is outside the polygon", () => {
+	const triangle = [
+		{ x: 0, y: 0 },
+		{ x: 10, y: 0 },
+		{ x: 0, y: 10 },
+	];
+	// Hypotenuse is the line x + y = 10. These points sit on that line
+	// beyond the segment endpoints (10, 0) and (0, 10).
+	assert.strictEqual(isWithinGeofence({ x: 12, y: -2 }, triangle), false);
+	assert.strictEqual(isWithinGeofence({ x: -2, y: 12 }, triangle), false);
+});
