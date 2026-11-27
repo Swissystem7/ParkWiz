@@ -853,7 +853,7 @@ body:not(.consumer-demo-on) [data-consumer-demo]{display:none!important}
   </div>
   <span class="free-pill" data-consumer-demo id="planPill">FREE</span>
   <div class="search-wrap">
-    <input class="search-box" id="searchInput" placeholder="חפש רחוב בנתניה..." autocomplete="off" oninput="onSearch(this.value)" onblur="setTimeout(closeAC,200)" aria-label="חיפוש רחוב בנתניה" aria-autocomplete="list" aria-controls="autocomplete" aria-expanded="false">
+    <input role="combobox" class="search-box" id="searchInput" placeholder="חפש רחוב בנתניה..." autocomplete="off" oninput="onSearch(this.value)" onblur="setTimeout(closeAC,200)" aria-label="חיפוש רחוב בנתניה" aria-autocomplete="list" aria-controls="autocomplete" aria-expanded="false">
     <div class="autocomplete" id="autocomplete" role="listbox" aria-label="הצעות רחובות"></div>
   </div>
   <button class="btn btn-ghost" data-consumer-demo onclick="liveParkingEvent()" aria-label="DEMO — הוסף אירוע הדגמה למפה">DEMO</button>

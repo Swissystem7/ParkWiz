@@ -15,6 +15,7 @@ test('map has a skip link, labelled search, and reduced-motion rules', () => {
   assert.match(html, /href="#searchInput"/);
   assert.match(html, /aria-label="חיפוש רחוב בנתניה"/);
   assert.match(html, /aria-controls="autocomplete"/);
+  assert.match(html, /id="searchInput"[^>]*role="combobox"|role="combobox"[^>]*id="searchInput"/);
   assert.match(html, /prefers-reduced-motion/);
   assert.match(html, /:focus-visible/);
 });
