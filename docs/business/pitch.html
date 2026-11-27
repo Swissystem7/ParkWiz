@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParkWiz · פיץ' לעתידים</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#ffffff; --ink:#14181f; --muted:#5b6472; --accent:#1f7a4d; --warn:#9a5b00; --line:#e3e6eb; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#101318; --card:#181c23; --ink:#eef1f5; --muted:#a3acb9; --accent:#4cc38a; --warn:#e0a54a; --line:#2a303a; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 system-ui, "Segoe UI", Arial, sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:16px; display:grid; gap:16px; }
+  .slide { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 18px; min-height:60vh; display:flex; flex-direction:column; justify-content:center; overflow-wrap:anywhere; }
+  .num { color:var(--muted); font-size:13px; }
+  h1 { font-size:clamp(24px,6vw,40px); margin:.2em 0; line-height:1.2; }
+  h2 { font-size:clamp(20px,5vw,30px); margin:.2em 0 .5em; color:var(--accent); }
+  ul, ol { padding-inline-start:1.2em; margin:0; }
+  li { margin:.35em 0; }
+  .note { color:var(--warn); font-size:14px; margin-top:12px; }
+  .lead { color:var(--muted); font-size:18px; }
+  code { font-family:ui-monospace, Consolas, monospace; font-size:.92em; direction:ltr; unicode-bidi:embed; }
+  footer { text-align:center; color:var(--muted); font-size:13px; padding:8px 0 24px; }
+</style>
+</head>
+<body>
+<main>
+  <section class="slide" id="s1"><span class="num">1/10</span>
+    <h1>ParkWiz: הכוונה לתא שמותר לך לחנות בו, בפארק עתידים</h1>
+    <p class="lead">שכבת תוכנה מעל החניון הקיים. בלי LPR, בלי שמירת וידאו.</p>
+    <p class="note">טיוטה 4.11.2026 · עדכון למצגת 2.11 לפי מחקר PW-601</p>
+  </section>
+  <section class="slide" id="s2"><span class="num">2/10</span>
+    <h2>הבעיה</h2>
+    <ul>
+      <li>בשעת השיא העובדים מגיעים בחלון צר ומסתובבים בין המפלסים.</li>
+      <li>אין נתון חי לכל תא. הנהג מגלה שהמפלס מלא רק אחרי שירד אליו.</li>
+      <li>ההחלטה לפתוח מפלס נשענת על תחושה, לא על נתון.</li>
+      <li>בפארק יש כ-4,000 מקומות חניה (לפי אתר עתידים). את עקומת העומס האמיתית עוד לא מדדנו.</li>
+    </ul>
+  </section>
+  <section class="slide" id="s3"><span class="num">3/10</span>
+    <h2>הפתרון</h2>
+    <ul>
+      <li>תפוס, פנוי או <b>לא ידוע</b> לכל תא, עם גיל הנתון.</li>
+      <li>הכוונה לתא <b>שמותר</b> לנהג (שמור / EV / נכים).</li>
+      <li>למנהל החניון: תמונת עומס ודוח שעת בוקר.</li>
+      <li>העיבוד מקומי, ויוצא רק <code>{אזור, תא, מצב, זמן}</code>.</li>
+    </ul>
+  </section>
+  <section class="slide" id="s4"><span class="num">4/10</span>
+    <h2>למה עכשיו</h2>
+    <ul>
+      <li>זיהוי תאים כבר קיים בשוק. מה שחסר הוא ההכוונה וההרשאות מעליו.</li>
+      <li>Waze ו-Google מביאים עד הכניסה, לא עד התא.</li>
+      <li>עיבוד בקצה זול: מצלמת AI שמריצה מודל עולה כ-$379.</li>
+      <li>פרטיות שבנויה בארכיטקטורה, בהתאם לתיקון 13.</li>
+    </ul>
+  </section>
+  <section class="slide" id="s5"><span class="num">5/10</span>
+    <h2>מה כבר עובד</h2>
+    <ul>
+      <li>דמו חי: מסך מפעיל, לוח, ערכת פיילוט, השוואה מול ספירה ידנית, מצב "לא ידוע".</li>
+      <li>API להקצאת מקום לפי תפוסה (אב-טיפוס).</li>
+      <li>חבילה משפטית: טיוטת הסכם, נספח עיבוד, עמוד על תיקון 13.</li>
+    </ul>
+    <p class="note">כנות: הדמו הוא הדמיה, והדיוק בשטח עוד לא נמדד. בשביל זה הפיילוט.</p>
+  </section>
+  <section class="slide" id="s6"><span class="num">6/10</span>
+    <h2>הפיילוט: 12–20 תאים, 4–6 שבועות</h2>
+    <ul>
+      <li>אזור רציף אחד שבאמת מתמלא.</li>
+      <li>מצלמה קיימת (קריאה בלבד), או 3–4 מצלמות ייעודיות.</li>
+      <li>מדדים מראש: הסכמה עם ספירה ידנית, "מוצג פנוי אבל תפוס", כיסוי, השהיה, זמן חיפוש.</li>
+      <li>בסוף: פגישת החלטה. מרחיבים, משנים או עוצרים.</li>
+    </ul>
+  </section>
+  <section class="slide" id="s7"><span class="num">7/10</span>
+    <h2>מודל עסקי</h2>
+    <ul>
+      <li>מנוי תוכנה לאתר, ובנוסף הקמה. לנהג השירות חינם.</li>
+      <li>על מצלמות קיימות: כ-30 ₪ הקמה לתא (הנחה).</li>
+      <li>מצלמות ייעודיות רק בלי כיסוי, ועל חשבון הבעלים.</li>
+      <li>המחיר ייקבע אחרי הפיילוט, על בסיס המספרים שלכם.</li>
+    </ul>
+  </section>
+  <section class="slide" id="s8"><span class="num">8/10</span>
+    <h2>פרטיות</h2>
+    <ul>
+      <li>אין LPR, אין זיהוי פנים, אין וידאו, אין אכיפה.</li>
+      <li>לעתידים מועבר פלט ברמת אזור בלבד.</li>
+      <li>תמונת כיול רק בהסכמה, מטושטשת, ונמחקת בסוף.</li>
+      <li>עתידים היא בעלת השליטה, ParkWiz היא המעבד. בכתב.</li>
+    </ul>
+  </section>
+  <section class="slide" id="s9"><span class="num">9/10</span>
+    <h2>מה אנחנו מבקשים</h2>
+    <ul>
+      <li><b>עתידים:</b> אזור של 12–20 תאים, גישת צפייה או פורט רשת, ואיש קשר.</li>
+      <li><b>CityZone:</b> מסגרת פיילוט, הרשאות ומדדים משותפים.</li>
+      <li><b>ביחד:</b> תקרת תשתית של עד 20,000 ₪ לפני מע״מ (מצלמות ייעודיות) והחלטה מי מממן.</li>
+    </ul>
+  </section>
+  <section class="slide" id="s10"><span class="num">10/10</span>
+    <h2>הצעד הבא</h2>
+    <ol>
+      <li>מסכמים את האזור ואת המדדים.</li>
+      <li>מאשרים את הפרטיות ומחתימים על ההסכם.</li>
+      <li>שבוע 0: בדיקת דיוק. שבוע 1: התקנה.</li>
+      <li>שבוע 6: דוח ופגישת החלטה.</li>
+    </ol>
+  </section>
+</main>
+<footer>ParkWiz · PW-602 · טיוטה</footer>
+</body>
+</html>
