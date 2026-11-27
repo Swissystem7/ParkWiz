@@ -66,33 +66,35 @@
     };
   }
 
+  function isValidPair(p) {
+    return p && Number.isFinite(p.total) && p.total > 0;
+  }
+
   function pooledAgreement(pairs) {
     if (!Array.isArray(pairs)) {
-      return { trials: 0, agree: 0, rate: null, meanSignedError: null, wilson: null };
+      return emptyPooledAgreementResult();
     }
-    const list = pairs.filter((p) => p && Number.isFinite(p.total) && p.total > 0);
-    let trials = 0;
-    let agree = 0;
-    let signed = 0;
-    let counted = 0;
-    list.forEach((p) => {
-      const res = processPairItem(p);
-      if (!res) return;
-      trials += res.trials;
-      agree += res.agree;
-      signed += res.signed;
-      counted += 1;
-    });
+    const valid = pairs.filter(isValidPair);
+    const processed = valid.map(processPairItem);
+    const results = processed.filter((r) => r != null);
+    const counted = results.length;
+    const trials = results.reduce((sum, r) => sum + r.trials, 0);
     if (!trials) {
-      return { trials: 0, agree: 0, rate: null, meanSignedError: null, wilson: null };
+      return emptyPooledAgreementResult();
     }
+    const agree = results.reduce((sum, r) => sum + r.agree, 0);
+    const signed = results.reduce((sum, r) => sum + r.signed, 0);
     return {
       trials,
       agree,
       rate: agree / trials,
-      meanSignedError: signed / counted,
+      meanSignedError: counted ? signed / counted : null,
       wilson: wilsonInterval(agree, trials, Z95),
     };
+  }
+
+  function emptyPooledAgreementResult() {
+    return { trials: 0, agree: 0, rate: null, meanSignedError: null, wilson: null };
   }
 
   // A date that is not on the calendar (month 13, 31 February) is NaN, not a

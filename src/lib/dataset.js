@@ -90,21 +90,30 @@
     return mulRgb(base, g);
   }
 
+  const BODY_COLORS = Object.freeze([
+    [28, 31, 40],     // index 0
+    [36, 24, 26],     // index 1
+    [22, 26, 34],     // index 2
+    [26, 34, 32],     // index 3
+    [34, 24, 28],     // index 4
+    [24, 28, 38],     // index 5
+  ]);
+
+  function baseBodyColor(index) {
+    return BODY_COLORS[index % BODY_COLORS.length];
+  }
+
+  function lightingGain(lighting) {
+    return LIGHTING_GAIN[lighting] != null ? LIGHTING_GAIN[lighting] : 1;
+  }
+
   function carBodyRgb(index, lighting, kind) {
     if (kind === 'white') {
       const pale = [214, 218, 224];
       return lighting === 'night' ? mulRgb(pale, 0.35) : pale;
     }
-    const bodies = [
-      [28, 31, 40],
-      [36, 24, 26],
-      [22, 26, 34],
-      [26, 34, 32],
-      [34, 24, 28],
-      [24, 28, 38],
-    ];
-    const base = bodies[index % bodies.length];
-    const g = LIGHTING_GAIN[lighting] != null ? LIGHTING_GAIN[lighting] : 1;
+    const base = baseBodyColor(index);
+    const g = lightingGain(lighting);
     return mulRgb(base, lighting === 'wet' ? 0.85 : g);
   }
 
@@ -122,24 +131,40 @@
     }
   }
 
+  function paintShadow(data, o, lighting, idx) {
+    paintRect(data, { x0: 3, y0: 8, rw: PATCH_W - 8, rh: 14 }, mulRgb(asphaltRgb(lighting), 0.55), 400 + idx);
+    return true;
+  }
+
+  function paintGlare(data, o, lighting, idx) {
+    paintRect(data, { x0: 5, y0: 12, rw: PATCH_W - 10, rh: 4 }, [188, 194, 204], 420 + idx);
+    return true;
+  }
+
+  function paintTiny(data, o, lighting, idx) {
+    paintRect(data, { x0: 8, y0: 11, rw: 8, rh: 10 }, carBodyRgb(idx, lighting, 'dark'), 440 + idx);
+    return true;
+  }
+
+  function paintCamo(data, o, lighting, idx) {
+    const body = mulRgb(asphaltRgb(lighting), 0.88);
+    paintRect(data, { x0: 2, y0: 4, rw: PATCH_W - 4, rh: PATCH_H - 8 }, body, 460 + idx);
+    paintRect(data, { x0: 5, y0: 8, rw: PATCH_W - 10, rh: 5 }, mulRgb(asphaltRgb(lighting), 0.7), 480 + idx);
+    return true;
+  }
+
+  const kindHandlers = Object.freeze({
+    shadow: paintShadow,
+    glare: paintGlare,
+    tiny: paintTiny,
+    camo: paintCamo,
+  });
+
   function paintSpecialKind(data, o, lighting) {
     const idx = o.index || 0;
-    if (o.kind === 'shadow') {
-      paintRect(data, { x0: 3, y0: 8, rw: PATCH_W - 8, rh: 14 }, mulRgb(asphaltRgb(lighting), 0.55), 400 + idx);
-      return true;
-    }
-    if (o.kind === 'glare') {
-      paintRect(data, { x0: 5, y0: 12, rw: PATCH_W - 10, rh: 4 }, [188, 194, 204], 420 + idx);
-      return true;
-    }
-    if (o.kind === 'tiny') {
-      paintRect(data, { x0: 8, y0: 11, rw: 8, rh: 10 }, carBodyRgb(idx, lighting, 'dark'), 440 + idx);
-      return true;
-    }
-    if (o.kind === 'camo') {
-      const body = mulRgb(asphaltRgb(lighting), 0.88);
-      paintRect(data, { x0: 2, y0: 4, rw: PATCH_W - 4, rh: PATCH_H - 8 }, body, 460 + idx);
-      paintRect(data, { x0: 5, y0: 8, rw: PATCH_W - 10, rh: 5 }, mulRgb(asphaltRgb(lighting), 0.7), 480 + idx);
+    const handler = kindHandlers[o.kind];
+    if (handler) {
+      handler(data, o, lighting, idx);
       return true;
     }
     return false;
